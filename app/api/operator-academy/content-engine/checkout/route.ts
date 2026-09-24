@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { CONTENT_ENGINE } from "@/lib/contentEngineCourse";
 import { getStripe } from "@/lib/stripe";
+import { requestOrigin } from "@/lib/requestOrigin";
 
 export const runtime = "nodejs";
 
@@ -17,7 +18,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 });
     }
 
-    const origin = new URL(request.url).origin;
+    const origin = requestOrigin(request);
     const session = await getStripe().checkout.sessions.create({
       mode: "payment",
       customer_email: email,

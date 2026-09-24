@@ -12,6 +12,12 @@
 // a guessed number here.
 
 export const PRICES = {
+  /** Ryan-approved September 2026 introductory package, one time. */
+  septemberSpecialTotal: 1497,
+  septemberSpecialAds: 500,
+  septemberSpecialEstimateLow: 5000,
+  septemberSpecialEstimateHigh: 7500,
+
   /** Website Launch: buy the five-page foundation outright. */
   websiteLaunchTotal: 1000,
   websiteLaunchDeposit: 500,
@@ -19,6 +25,20 @@ export const PRICES = {
 
   /** System Map: paid diagnosis, credited toward an approved larger build. */
   systemMap: 497,
+
+  /** Smallest card down payment on a build (build_deposit and package_deposit in /api/checkout). */
+  buildDepositMin: 250,
+
+  /**
+   * TLFP Credits packs (TLFP_PACKS in lib/tlfpCredits.ts): the dollars paid.
+   * The credits each pack carries live beside the pack, not here.
+   */
+  tlfpPackStarter: 250,
+  tlfpPackBuilder: 500,
+  tlfpPackFounder: 1000,
+
+  /** Days of managed hosting that came with a (retired) free build; proposals still print it. */
+  hostingIncludedDays: 90,
 
   /** Optional managed hosting for a site we built. */
   hostingManagedMonthly: 49,
@@ -50,6 +70,21 @@ export const PRICES = {
 
   /** SellerProof: one chargeback evidence packet export. */
   sellerProofPacket: 49,
+
+  /**
+   * SellerProof Membership: unlimited packets in the SellerProof app
+   * (sellerproof.theleadflowpro.com), monthly or one payment for life.
+   * Ryan-approved 2026-09-24 ("unbeatable"). lib/sellerproof/membership.ts links to it.
+   */
+  sellerProofMemberMonthly: 9,
+  sellerProofMemberLifetime: 79,
+
+  /**
+   * Chase Sheet (/chase-sheet): the open-quote follow-up engine. Monthly, or
+   * one payment for life. lib/chaseSheet/product.ts is what checkout charges.
+   */
+  chaseSheetMonthly: 20,
+  chaseSheetLifetime: 97,
 
   /**
    * Time Back (/go/time-back) entry price: 3 posts a day for 7 days, one time.

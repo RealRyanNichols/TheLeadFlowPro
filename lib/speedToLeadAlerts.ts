@@ -187,7 +187,7 @@ type AlertLead = Pick<
  * not the CRM, and the link carries the rest.
  *
  *   NEW LEAD | Meta lead ad | 2:14 PM CT
- *   Jane at Example Co. Free Website Program.
+ *   Jane at Example Co. Website Launch.
  *   Open: https://www.theleadflowpro.com/admin/sales/leads/<id>
  */
 export function staffAlertText(lead: AlertLead, siteUrl: string, now: Date): string {

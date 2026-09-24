@@ -45,7 +45,11 @@ test("the one first text names a consultation request, asks one question, and is
     assert.ok(text.includes("theleadflowpro.com/services"));
     assert.ok(text.endsWith("Reply STOP to opt out."));
     assert.ok(text.length <= 306, `${text.length} characters`);
+    // Main's #71 lesson: an automated text never promises a call on a clock.
+    assert.ok(!/call you|shortly/i.test(text), text);
   }
+  // The retired generic text-back (kept only to recognise old echoes) also promised nothing.
+  assert.ok(!/call you|shortly/i.test(leadTextBackBody("Sam", null)));
   // leadNotify can no longer text anyone; the job is the single sender.
   const notify = readFileSync(join(process.cwd(), "lib/leadNotify.ts"), "utf8");
   assert.ok(!notify.includes("sendLeadText"), "lib/leadNotify.ts must not send texts");

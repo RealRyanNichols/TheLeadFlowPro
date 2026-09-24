@@ -25,16 +25,28 @@ export const EXTERNAL_LINKS = {
   /** Hosted Stripe Payment Link: $500 Website Launch deposit. */
   stripeWebsiteLaunchDeposit: "https://book.stripe.com/cNi6oG52y1kockE5oq5AQ0a",
 
+  /**
+   * Hosted Stripe Payment Links for Chase Sheet, created 2026-09-24 in the
+   * live account (product prod_VJgdpQoFYS70Re). Both carry the same kind and
+   * plan metadata as the page checkout and redirect to the claim route, so a
+   * sale through a link is fulfilled exactly like a sale through the page.
+   * For pasting into a text, a post, or an email; the page buttons use
+   * /api/checkout and do not need these.
+   */
+  stripeChaseSheetMonthly: "https://buy.stripe.com/aFa3cu8eK9QUesMdUW5AQ0d",
+  stripeChaseSheetLifetime: "https://buy.stripe.com/28EcN4bqWbZ2esM4km5AQ0e",
+
   /** The plugin's MCP endpoint, pasted into ChatGPT, Claude, Claude Code, Cursor. */
   mcpEndpoint: "https://www.theleadflowpro.com/api/mcp",
 
   /**
-   * Ryan's self-serve booking page (a Google Calendar appointment schedule,
-   * Calendly, or similar). Empty until Ryan creates one and pastes the address
-   * here. While empty, no page, email, or text mentions booking a time:
-   * bookingPage() returns null and every consumer hides the line.
+   * Ryan's self-serve booking page. Set 2026-09-23 to the Calendly event
+   * "Straight Answer Call (20 min)": twenty minutes, Ryan calls the invitee,
+   * Mon to Sat 9:00 AM to 6:30 PM Central. The welcome email, the text-back,
+   * and every Rent Receipt series email link here. Clear it to "" and every
+   * consumer hides the line again: bookingPage() returns null.
    */
-  bookingPage: "" as string,
+  bookingPage: "https://calendly.com/ryan-realryannichols/straight-answer-call-20-min" as string,
 
   /**
    * The Google Business Profile listing (the "share" address of the profile).

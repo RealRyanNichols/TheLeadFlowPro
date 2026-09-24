@@ -534,6 +534,7 @@ export function leadWelcomePayload(lead: NotifiableLead) {
       `2. I reach out within one business day. Usually a text or call from ${BUSINESS.phone.display}. Save that number, it is my direct line.`,
       `3. You leave that first conversation knowing the fastest thing to fix and your next three moves, whether you hire me or not.`,
       ``,
+      ...bookingLines(),
       `Want a head start? The live systems I have already built and handed over are here:`,
       `https://www.theleadflowpro.com/portfolio`,
       ``,
@@ -589,7 +590,7 @@ export async function enrollInEmailSeries(_email: string): Promise<void> {
 // the opt-out. Plain GSM characters only and at most two SMS segments
 // (lib/speedToLeadAlerts.ts smsSegments; the test pins both).
 const FIRST_TEXT_QUESTION =
-  "Quick question so I call you ready: what is costing you the most business right now, missed calls, slow follow-up, or not enough leads?";
+  "Quick question so I know where to start: what is costing you the most business right now, missed calls, slow follow-up, or not enough leads?";
 
 // Names the software invents when nobody typed one (Meta, the Quo webhook,
 // the text-in alert). "Unknown, this is Ryan" is worse than "Hi, this is Ryan".
@@ -635,12 +636,16 @@ export function isAutomatedLeadText(body: string): boolean {
 }
 
 /**
- * RETIRED 2026-09-22 (replaced by leadFirstText). Kept so the call sheet can
- * still recognise the copies already sent and so the booking-line tests keep
- * their meaning. Nothing sends this any more.
+ * RETIRED 2026-09-22 (replaced by leadFirstText, sent once per lead by speed
+ * to lead). Kept so the call sheet can still recognise the copies already sent
+ * and so the booking-line tests keep their meaning. Nothing sends this any more.
+ * History: on Sept 20 and 21 eleven leads got "I will text or call you shortly"
+ * and nobody called, so the last version promised nothing on a clock and asked
+ * for the business name. Keep the first sentence as is: AUTOMATED_TEXT_MARKERS
+ * matches it on old and new texts.
  */
 export function leadTextBackBody(first: string, booking: string | null = bookingPage()): string {
-  return `${first}, this is Ryan with The LeadFlow Pro. Got your answers and I am already looking at what to fix first. I will text or call you shortly. Save this number, it is my direct line.${bookingSentence(booking)} Reply STOP to opt out.`;
+  return `${first}, this is Ryan with The LeadFlow Pro. Got your answers and I am already looking at what to fix first. Reply here with your business name so I look at the right thing. Save this number, it is my direct line.${bookingSentence(booking)} Reply STOP to opt out.`;
 }
 
 /**

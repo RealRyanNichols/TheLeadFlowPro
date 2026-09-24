@@ -1,5 +1,11 @@
 # DigitalOcean: what to do with the droplet
 
+> **Superseded September 24, 2026.** Ryan decided to move the site onto the
+> droplet, next to the central brain. The plan, scripts, and rollback are in
+> `droplet.md`. The reasons below are why that move ships with a cron
+> replacement, a health-checked deploy with automatic rollback, and Caddy
+> for HTTPS, rather than as a bare copy of the site.
+
 Written September 20, 2026. Ryan created a DigitalOcean droplet with the
 idea of moving The LeadFlow Pro onto it. This is the straight answer.
 

@@ -29,6 +29,8 @@ const SCAN_FILES = [
   "lib/siteContent.ts",
   "lib/leadNotify.ts",
   "lib/nurture.ts",
+  "lib/nurtureHtml.ts",
+  "lib/nurtureRentReceipt.ts",
   "lib/workshopFollowUp.ts",
   "lib/pluginOnboarding.ts",
   "lib/pluginDocs.ts",
@@ -64,7 +66,7 @@ const ALLOW: Allow[] = [
   },
   {
     file: /^components\/RentCalculator\.tsx$/,
-    line: /ClickFunnels|HighLevel|Wix|Squarespace|Shopify|Kajabi|Mailchimp|Calendly|price: \d+/,
+    line: /ClickFunnels|HighLevel|Wix|Squarespace|Shopify|Kajabi|Mailchimp|Calendly|Vercel|Resend|price: \d+/,
     reason: "rented-stack vendor prices sourced in the calculator",
   },
   {

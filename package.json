@@ -33,15 +33,15 @@
     "scoreboard:owner-link": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/scoreboard-owner-link.ts",
     "tool:new": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/new-tool.ts",
     "plugin:packs": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/plugin-packs.ts",
-    "sellerproof:demo": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/sellerproof-demo.ts"
+    "call-closer:demo": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/call-closer-demo.ts",
+    "sellerproof:demo": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/sellerproof-demo.ts",
+    "chasesheet:stripe": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/chase-sheet-stripe.ts"
   },
   "dependencies": {
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.47.10",
-    "@vercel/analytics": "^1.4.1",
-    "@vercel/speed-insights": "^1.1.0",
     "lucide-react": "^0.469.0",
-    "next": "^15.1.6",
+    "next": "15.5.26",
     "qrcode-generator": "^2.0.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
@@ -56,10 +56,15 @@
     "@types/react-dom": "^19.0.0",
     "autoprefixer": "^10.4.20",
     "eslint": "^8.57.1",
-    "eslint-config-next": "^15.5.23",
+    "eslint-config-next": "15.5.26",
     "playwright": "^1.62.1",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.2"
+  },
+  "overrides": {
+    "next": {
+      "postcss": "8.5.26"
+    }
   }
 }

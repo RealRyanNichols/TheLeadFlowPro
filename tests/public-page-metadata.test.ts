@@ -305,7 +305,7 @@ test("all generated previews really render as distinct 1200 by 630 PNGs", async 
       { width: 1200, height: 630 },
     );
     const bytes: Buffer = Buffer.from(await response.arrayBuffer());
-    const dimensions: sharp.Metadata = await sharp(bytes).metadata();
+    const dimensions = await sharp(bytes).metadata();
     assert.equal(dimensions.format, "png", route);
     assert.equal(dimensions.width, 1200, route);
     assert.equal(dimensions.height, 630, route);

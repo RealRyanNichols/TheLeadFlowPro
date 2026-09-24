@@ -1,6 +1,7 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { hasProAccess, proKindFromSession, proKindSlug, verifyProAccess, type ProCatalogLike, type ProCheckoutSession } from "./proAccess";
 import { stripePurchaseEventId } from "./stripeSession";
+import { requestOrigin } from "./requestOrigin";
 
 export const PRO_PURCHASE_RECEIPT_COOKIE = "lfp_pro_purchase_receipt";
 export const PRO_PURCHASE_RECEIPT_PATH = "/api/pro/purchase-receipt";
@@ -122,7 +123,7 @@ export async function consumeProPurchaseReceipt(input: {
   claimOnce: (receipt: ProPurchaseReceipt) => Promise<boolean>;
   now?: number;
 }): Promise<{ status: number; clearCookie: boolean; event: ProPurchaseEvent | null }> {
-  const origin = new URL(input.request.url).origin;
+  const origin = requestOrigin(input.request);
   const fetchSite = input.request.headers.get("sec-fetch-site");
   if (input.request.method !== "POST" || input.request.headers.get("origin") !== origin ||
     input.request.headers.get("x-leadflow-receipt") !== "1" || (fetchSite && fetchSite !== "same-origin")) {

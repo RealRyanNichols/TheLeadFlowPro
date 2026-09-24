@@ -5,7 +5,11 @@ const RESEND_ENDPOINT = "https://api.resend.com/emails";
 // A content or recipient change that intentionally creates a different email
 // request must bump this version. Resend rejects the same key with a different
 // payload, which is safer than silently delivering two versions of one step.
-export const NURTURE_SEQUENCE_VERSION = "v1";
+//
+// v2 (2026-09-22): the designed HTML part joined the text.
+// v3 (2026-09-23): tags on every send and the Rent Receipt series. Same
+// words for Free Build, different request body.
+export const NURTURE_SEQUENCE_VERSION = "v3";
 
 // Resend retains idempotency keys for 24 hours. Stop automated retries one
 // hour early so clock drift cannot replay an ambiguous request after the
@@ -23,7 +27,15 @@ export type NurtureResendPayload = {
   to: string[];
   subject: string;
   text: string;
+  /**
+   * The designed version of the same email (lib/nurtureHtml.ts). Clients that
+   * strip HTML get `text`. It is also what lets Resend count opens and clicks:
+   * a text-only send carries no pixel and no tracked links.
+   */
+  html?: string;
   headers: Record<string, string>;
+  /** campaign, day and track, so Resend can be filtered per email without reading the body. */
+  tags?: { name: string; value: string }[];
 };
 
 export type NurtureDeliveryResult =
@@ -32,8 +44,12 @@ export type NurtureDeliveryResult =
 
 type FetchLike = (input: string | URL | Request, init?: RequestInit) => Promise<Response>;
 
-export function nurtureEmailIdempotencyKey(leadId: string, step: number): string {
-  const key = `nurture-${NURTURE_CAMPAIGN}-${NURTURE_SEQUENCE_VERSION}-${leadId}-${step}`;
+export function nurtureEmailIdempotencyKey(
+  leadId: string,
+  step: number,
+  campaign: string = NURTURE_CAMPAIGN,
+): string {
+  const key = `nurture-${campaign}-${NURTURE_SEQUENCE_VERSION}-${leadId}-${step}`;
   if (key.length > 256) throw new Error("Nurture idempotency key exceeds Resend's limit");
   return key;
 }

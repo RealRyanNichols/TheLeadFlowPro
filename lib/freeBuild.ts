@@ -12,6 +12,19 @@
 //
 // The ids, names, and prices are frozen at what those sessions were sold for.
 // They are not current prices, so they are not in lib/site/prices.ts.
+//
+// FREE_BUILD_HOSTING_LINE is the other survivor: the old free-build hosting
+// sentence, kept only so tests/proposals.test.ts can prove no proposal prints
+// it. The retired offers have no pay door, so no proposal can name one, and
+// nothing in the app reads this line.
+
+import { PRICES, usdPerMonth } from "@/lib/site/prices";
+
+/**
+ * How hosting worked after a free build, in one sentence a proposal prints: the included days first, then the published
+ * monthly prices, and nothing renewing on its own.
+ */
+export const FREE_BUILD_HOSTING_LINE = `The first ${PRICES.hostingIncludedDays} days of managed hosting are included. After that, self-host or export the site, use ${usdPerMonth(PRICES.hostingManagedMonthly)} managed hosting, or choose ${usdPerMonth(PRICES.hostingWithEditsMonthly)} hosting with two minor edits. Nothing renews without written approval.`;
 
 export type FreeBuildTier = {
   id: "free_build_followup" | "free_build_content" | "free_build_launch";

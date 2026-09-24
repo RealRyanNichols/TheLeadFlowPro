@@ -15,6 +15,7 @@
 
 import { EXTERNAL_LINKS } from "./external-links";
 import { PRICES, usd, usdFrom, usdPerMonth, usdRange } from "./prices";
+import { SELLERPROOF_MEMBER_PRICING_URL } from "../sellerproof/membership";
 
 export type OfferStatus = "live" | "tbd_ryan" | "retired";
 export type OfferCategory =
@@ -251,6 +252,34 @@ export const OFFERS: readonly Offer[] = [
     source: "lib/hq/types.ts",
   },
   {
+    id: "chase_sheet_monthly",
+    name: "Chase Sheet, monthly",
+    category: "product",
+    priceUsd: PRICES.chaseSheetMonthly,
+    priceLabel: usdPerMonth(PRICES.chaseSheetMonthly),
+    terms: "Monthly. Renews on the same date each month until cancelled from inside the sheet; stops at the end of the paid month. You send every message yourself.",
+    status: "live",
+    effectiveDate: "2026-09-23",
+    reviewDate: REVIEW,
+    href: "/chase-sheet",
+    stripeLink: EXTERNAL_LINKS.stripeChaseSheetMonthly,
+    source: "lib/chaseSheet/product.ts",
+  },
+  {
+    id: "chase_sheet_lifetime",
+    name: "Chase Sheet, one payment",
+    category: "product",
+    priceUsd: PRICES.chaseSheetLifetime,
+    priceLabel: usd(PRICES.chaseSheetLifetime),
+    terms: "One time. The sheet, every trade library and message added after, for as long as it exists. Nothing renews. You send every message yourself.",
+    status: "live",
+    effectiveDate: "2026-09-23",
+    reviewDate: REVIEW,
+    href: "/chase-sheet",
+    stripeLink: EXTERNAL_LINKS.stripeChaseSheetLifetime,
+    source: "lib/chaseSheet/product.ts",
+  },
+  {
     id: "sellerproof_packet",
     name: "SellerProof chargeback packet",
     category: "product",
@@ -262,6 +291,34 @@ export const OFFERS: readonly Offer[] = [
     reviewDate: REVIEW,
     href: "/sellerproof",
     source: "lib/sellerproof/packet.ts",
+  },
+  {
+    id: "sellerproof_member_monthly",
+    name: "SellerProof Membership, monthly",
+    category: "product",
+    priceUsd: PRICES.sellerProofMemberMonthly,
+    priceLabel: usdPerMonth(PRICES.sellerProofMemberMonthly),
+    terms: "Unlimited chargeback packets, response drafts, PDF export, evidence library, and deadline tracking in the SellerProof app. Billed monthly until cancelled. Separate from the single packet.",
+    status: "live",
+    effectiveDate: "2026-09-24",
+    reviewDate: REVIEW,
+    href: SELLERPROOF_MEMBER_PRICING_URL,
+    stripeLink: "https://buy.stripe.com/9B69ASeD8d361G0bMO5AQ0g",
+    source: "lib/sellerproof/membership.ts",
+  },
+  {
+    id: "sellerproof_member_lifetime",
+    name: "SellerProof Membership, lifetime",
+    category: "product",
+    priceUsd: PRICES.sellerProofMemberLifetime,
+    priceLabel: usd(PRICES.sellerProofMemberLifetime),
+    terms: "One payment for lifetime SellerProof app access: unlimited packets, response drafts, PDF export, evidence library, deadline tracking. No renewals. Separate from the single packet.",
+    status: "live",
+    effectiveDate: "2026-09-24",
+    reviewDate: REVIEW,
+    href: SELLERPROOF_MEMBER_PRICING_URL,
+    stripeLink: "https://buy.stripe.com/28EeVcamSfbefwQeZ05AQ0f",
+    source: "lib/sellerproof/membership.ts",
   },
   {
     id: "tool_studio_blueprint",

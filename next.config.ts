@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
+// The droplet image (deploy/droplet/Dockerfile) sets NEXT_OUTPUT=standalone so
+// the build emits a self-contained server. Vercel builds leave it unset.
+const standalone = process.env.NEXT_OUTPUT === "standalone";
+
 const nextConfig: NextConfig = {
+  ...(standalone ? { output: "standalone" as const } : {}),
   // Dynamic local-image reads otherwise trace the whole public directory,
   // including large video/download libraries this function never reads.
   // These remain independently served public assets.

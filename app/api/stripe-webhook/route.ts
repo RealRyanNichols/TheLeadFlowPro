@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import crypto from "node:crypto";
+import type Stripe from "stripe";
+import { handleSpecialWebhook } from "@/lib/septemberSpecialServer";
 import {
   createClient as createSupabaseClient,
   type SupabaseClient,
@@ -31,11 +33,15 @@ import { sendSellerProofReceipt } from "@/lib/sellerproof/receipt";
 import { handleHqStripeEvent } from "@/lib/hq/subscription";
 import { HQ_PLAN } from "@/lib/hq/types";
 import { AGENCY_PAYMENT, agencyPaymentFromMetadata } from "@/lib/agencyPayment";
+import { CHASE_SHEET, isChaseSheetKind } from "@/lib/chaseSheet/product";
+import { applyChaseSheetMoneyBack, ensureChaseSheetPaid, handleChaseSheetSubscription, markChaseSheetRenewed } from "@/lib/chaseSheet/subscription";
 import { deliverPaymentEmail } from "@/lib/paymentEmailDelivery";
 import { classifyStripeInvoice, dollars, renewalAction } from "@/lib/stripeInvoiceEvents";
 import { refundOutcome } from "@/lib/stripeRefunds";
 import { BUSINESS } from "@/lib/site/business";
 import { PRICES, usd } from "@/lib/site/prices";
+import { TLFP_CREDITS, findPack } from "@/lib/tlfpCredits";
+import { awardReferralPurchase, creditPackPaid, creditPackReversed, settleHold } from "@/lib/tlfp";
 
 // Stripe webhook: records paid checkouts and unlocks training access.
 // Needs STRIPE_WEBHOOK_SECRET (from Stripe dashboard → Webhooks) and
@@ -474,6 +480,51 @@ async function markLeadActivity(supabase: SupabaseClient, leadId: string, detail
 // with diagnostic.source "package_page" before Stripe opened. Until
 // 2026-09-21 this fell into the catch-all: an alert, an acknowledgement, and
 // a lead still sitting at "new".
+/**
+ * A paid TLFP Credits pack (/tlfp). The credits post to the buyer's email
+ * through the ledger function, idempotent on the session id, so a retried
+ * event never double-credits. The buyer hears where to see the balance; the
+ * email body carries no live number because a retry must send the same body.
+ */
+async function ensureCreditPackPaid(supabase: SupabaseClient, session: StripeCheckoutSession) {
+  const sessionId = String(session.id);
+  const customer = websiteLaunchCustomer(session);
+  const pack = findPack(session.metadata?.pack);
+  if (!pack) throw new Error("Paid credit pack has no pack id");
+  const amount = amountCentsOf(session);
+  const posted = await creditPackPaid(supabase, { email: customer.email, pack, sessionId, amountCents: amount });
+  if (!posted.ok && posted.error !== "balance_cap") throw new Error(`Credit pack post failed: ${posted.error ?? "unknown"}`);
+  const first = String(customer.fullName || "").trim().split(" ")[0] || "Hey";
+  const acknowledged = await sendBuyerAcknowledgement(supabase, sessionId, "tlfp-pack:buyer", customer.email, `${pack.credits} ${TLFP_CREDITS.name} are on your account.`, [
+    `${first},`,
+    "",
+    `Your ${pack.name} is paid (${dollarsOrUnknown(amount)}) and ${pack.credits} credits are on the account for ${customer.email}.`,
+    "",
+    "How to use them:",
+    "",
+    `1. Log in at ${BUSINESS.siteUrl}/login with this same email. No password yet? Use the magic link.`,
+    `2. Open ${BUSINESS.siteUrl}${TLFP_CREDITS.path} to see your balance, your history, and your referral link.`,
+    "3. Pick what you want to put them on. Credits apply first, the card covers the rest.",
+    "",
+    "1 credit = $1 of LeadFlow Pro services. No cash value, not transferable, redeem only with The LeadFlow Pro.",
+    `Terms: ${BUSINESS.siteUrl}${TLFP_CREDITS.termsPath}`,
+  ]);
+  await internalAlert(supabase, sessionId, "tlfp-pack:internal", `💰 CREDIT PACK: ${pack.name} ${dollarsOrUnknown(amount)} | ${customer.email}`, [
+    `${pack.name} paid: ${dollarsOrUnknown(amount)} for ${pack.credits} credits.`,
+    `Buyer: ${customer.fullName || "-"}`,
+    `Email: ${customer.email}`,
+    `Stripe session: ${sessionId}`,
+    posted.ok
+      ? `Ledger: ${posted.duplicate ? "already posted (retry)" : `posted ${posted.applied} credits`}${typeof posted.requested === "number" && posted.applied !== posted.requested ? ` (capped from ${posted.requested})` : ""}`
+      : "Ledger: NOT POSTED, balance cap reached. Refund or grant by hand.",
+    "",
+    "Deferred revenue until they redeem it. Nothing to fulfil today.",
+    acknowledgementLine(acknowledged),
+    "",
+    `Credits admin: ${BUSINESS.siteUrl}/admin/tlfp`,
+  ], { acknowledged });
+}
+
 async function ensureSystemMapPaid(supabase: SupabaseClient, session: StripeCheckoutSession) {
   const amount = amountCentsOf(session);
   const { leadId, leadName, customer, sessionId } = await claimFunnelLead(supabase, session, {
@@ -1547,7 +1598,7 @@ async function recordSubscriptionInvoice(
   invoice: ReturnType<typeof classifyStripeInvoice>,
 ): Promise<boolean> {
   const action = renewalAction(invoice, eventType);
-  if (action === "ignore") return invoice.family === "hq_subscription" || invoice.family === "agency_payment" || invoice.family === "tool_monthly_menu";
+  if (action === "ignore") return invoice.family === "hq_subscription" || invoice.family === "agency_payment" || invoice.family === "tool_monthly_menu" || invoice.family === "chase_sheet";
   if (action === "skip_first_invoice") return true;
   const invoiceId = invoice.invoiceId;
   if (!invoiceId) throw new Error("Stripe invoice event has no invoice ID");
@@ -1558,8 +1609,10 @@ async function recordSubscriptionInvoice(
       ? HQ_PLAN.name
       : invoice.family === "agency_payment"
         ? `Agency retainer: ${meta.service_name ?? meta.service ?? "service"}${meta.reference ? ` (${meta.reference})` : ""}`
-        : `Tool Studio monthly menu: ${meta.monthly_ids ?? "menu"}`;
-  const kind = invoice.family === "hq_subscription" ? HQ_PLAN.kind : invoice.family;
+        : invoice.family === "chase_sheet"
+          ? `${CHASE_SHEET.name} monthly`
+          : `Tool Studio monthly menu: ${meta.monthly_ids ?? "menu"}`;
+  const kind = invoice.family === "hq_subscription" ? HQ_PLAN.kind : invoice.family === "chase_sheet" ? CHASE_SHEET.monthlyKind : invoice.family;
 
   if (action === "record_failed") {
     await internalAlert(supabase, invoiceId, "renewal-failed:internal", `RENEWAL FAILED: ${what} for ${email}`, [
@@ -1590,6 +1643,10 @@ async function recordSubscriptionInvoice(
     "Purchases: https://www.theleadflowpro.com/admin/purchases",
   ]);
   await recordPurchase(supabase, { email, kind, amount_cents: invoice.amountPaidCents, stripe_session_id: invoiceId, status: "paid" });
+  if (invoice.family === "chase_sheet" && invoice.subscriptionId) {
+    // A paid month keeps the sheet open even when the subscription webhooks were never registered.
+    await markChaseSheetRenewed(supabase, invoice.subscriptionId);
+  }
   if (invoice.family === "agency_payment") {
     const leadId = await findAgencyLeadByEmail(supabase, invoice.email);
     if (leadId) await markLeadActivity(supabase, leadId, `Agency retainer renewed: ${meta.service_name ?? meta.service ?? "service"}, ${dollars(invoice.amountPaidCents)}. Stripe invoice: ${invoiceId}.`, "Agency renewal");
@@ -1654,6 +1711,14 @@ async function finishPaidInvoice(
  * charge's own `invoice` field is tried first, then the session by payment
  * intent, then the charge's invoice through the Stripe API.
  */
+/** "This purchase used N credits" when a refunded checkout had TLFP Credits on it; "" otherwise. */
+async function creditsAppliedLine(supabase: SupabaseClient, sessionId: string | null): Promise<string> {
+  if (!sessionId) return "";
+  const { data } = await supabase.from("tlfp_ledger").select("delta").eq("stripe_session_id", sessionId).eq("reason", "redeem").eq("status", "posted").maybeSingle();
+  if (!data) return "";
+  return `This purchase used ${Math.abs(Number(data.delta))} TLFP Credits. A full refund does not return them automatically: grant them back at /admin/tlfp if that is the deal.`;
+}
+
 async function handleMoneyBack(supabase: SupabaseClient, eventType: string, object: unknown) {
   const outcome = refundOutcome(eventType, object);
   if (!outcome) return false;
@@ -1726,12 +1791,20 @@ async function handleMoneyBack(supabase: SupabaseClient, eventType: string, obje
         : purchase
           ? `The purchase is marked ${purchase.status ?? "unknown"}, not ${fromStatus}, so nothing was changed.`
           : "No purchase row could be matched, so nothing was changed in the database.",
+    await creditsAppliedLine(supabase, purchase?.stripe_session_id ?? null),
     "Purchases: https://www.theleadflowpro.com/admin/purchases",
   ].filter(Boolean));
   if (willFlip && purchase) {
     const updated = await supabase.from("purchases").update({ status: toStatus }).eq("stripe_session_id", purchase.stripe_session_id).eq("status", fromStatus).select("stripe_session_id");
     if (updated.error) throw new Error(`Purchase status flip failed: ${updated.error.code}`);
     if (!updated.data?.length) console.warn(`No ${fromStatus} purchase matched ${purchase.stripe_session_id} for ${toStatus}`);
+    // A refund or dispute on either Chase Sheet plan locks the sheet; a dispute won reopens it.
+    await applyChaseSheetMoneyBack(supabase, purchase, restoring);
+    // A refunded or disputed credit pack takes its credits back; a dispute
+    // won puts them back. Both idempotent on the session id.
+    if (purchase.kind === TLFP_CREDITS.purchaseKind && purchase.email) {
+      await creditPackReversed(supabase, { email: purchase.email, sessionId: purchase.stripe_session_id, restore: restoring });
+    }
   }
   return true;
 }
@@ -1816,6 +1889,22 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Bad payload" }, { status: 400 });
   }
 
+  // Capacity-controlled September checkouts are bound to a server reservation.
+  // Process expiry as well as paid events; no generic purchase path may bypass
+  // the five-slot ledger. This runs only after signature verification above.
+  if (typeof event.type === "string" && event.type.startsWith("checkout.session.")) {
+    try {
+      const handled = await handleSpecialWebhook(
+        createSupabaseClient(SUPABASE_URL, serviceKey), event.type,
+        (event.data?.object ?? {}) as Stripe.Checkout.Session,
+      );
+      if (handled) return NextResponse.json({ received: true });
+    } catch {
+      console.error("September special webhook processing failed");
+      return NextResponse.json({ error: "Special payment processing failed" }, { status: 500 });
+    }
+  }
+
   // The plugin subscription: a subscription checkout (which can complete
   // with no payment during the trial, so it must come before the paid-only
   // path below) and every customer.subscription.* lifecycle event.
@@ -1828,6 +1917,18 @@ export async function POST(request: Request) {
     if (handledByHq) return NextResponse.json({ received: true });
   } catch (error) {
     console.error("Stripe plugin subscription webhook failed:", error instanceof Error ? error.message : "unknown");
+    return NextResponse.json({ error: "Subscription processing failed" }, { status: 500 });
+  }
+
+  // The Chase Sheet monthly plan: every customer.subscription.* event keeps
+  // the account's status in step with Stripe. Paid checkouts for either plan
+  // are recorded and fulfilled by the dispatch below like every other kind.
+  try {
+    if (await handleChaseSheetSubscription(createSupabaseClient(SUPABASE_URL, serviceKey), event)) {
+      return NextResponse.json({ received: true });
+    }
+  } catch (error) {
+    console.error("Stripe Chase Sheet subscription webhook failed:", error instanceof Error ? error.message : "unknown");
     return NextResponse.json({ error: "Subscription processing failed" }, { status: 500 });
   }
 
@@ -1896,13 +1997,33 @@ export async function POST(request: Request) {
     }
   }
 
+  // A checkout that expired with TLFP Credits held on it gives them back.
+  if (event.type === "checkout.session.expired") {
+    const expired = (event.data?.object ?? {}) as StripeCheckoutSession;
+    const ref = typeof expired.metadata?.tlfp_hold_ref === "string" ? expired.metadata.tlfp_hold_ref : "";
+    if (ref) {
+      try {
+        await settleHold(createSupabaseClient(SUPABASE_URL, serviceKey), ref, "released", typeof expired.id === "string" ? expired.id : null);
+      } catch (error) {
+        console.error("TLFP hold release failed:", error instanceof Error ? error.message : "unknown");
+        return NextResponse.json({ error: "Hold release failed" }, { status: 500 });
+      }
+    }
+    return NextResponse.json({ received: true });
+  }
+
   if (!isCheckoutPaymentEvent(event.type)) {
     return NextResponse.json({ received: true });
   }
 
   try {
     const session = (event.data?.object ?? {}) as StripeCheckoutSession;
-    if (session.payment_status !== "paid") {
+    // A checkout fully covered by TLFP Credits is a no-cost order: Stripe
+    // reports no_payment_required, collects no card, and still fires
+    // checkout.session.completed. It is paid, in credits.
+    const tlfpHoldRef = typeof session.metadata?.tlfp_hold_ref === "string" ? session.metadata.tlfp_hold_ref : "";
+    const coveredByCredits = session.payment_status === "no_payment_required" && !!tlfpHoldRef;
+    if (session.payment_status !== "paid" && !coveredByCredits) {
       return NextResponse.json({ received: true });
     }
     if (typeof session.id !== "string" || !session.id.trim()) {
@@ -1924,7 +2045,7 @@ export async function POST(request: Request) {
     const websiteLaunch = isWebsiteLaunchDeposit(session, configuredPaymentLinkId);
     const customer = websiteLaunchCustomer(session);
     if (!customer.email) {
-      if (websiteLaunch || ["event", "pro_tool", "pro_bundle"].includes(String(session.metadata?.kind))) {
+      if (websiteLaunch || ["event", "pro_tool", "pro_bundle", TLFP_CREDITS.purchaseKind].includes(String(session.metadata?.kind)) || isChaseSheetKind(String(session.metadata?.kind))) {
         throw new Error("Paid checkout is missing its customer email");
       }
       return NextResponse.json({ received: true });
@@ -1951,12 +2072,38 @@ export async function POST(request: Request) {
       status: "paid",
     });
 
+    // Credits applied to this checkout are spent now (the hold becomes a
+    // posted row). Must succeed: a 500 here makes Stripe retry, and the
+    // settle is idempotent.
+    if (tlfpHoldRef) {
+      await settleHold(supabase, tlfpHoldRef, "posted", session.id.slice(0, 200));
+    }
+
+    // A referral code that rode in from /r/<code> pays the referrer on this
+    // buyer's first paid checkout. Never blocks fulfilment: it is logged and
+    // retried on the next event delivery only if the whole handler fails.
+    if (typeof session.metadata?.tlfp_ref === "string" && session.metadata.tlfp_ref) {
+      try {
+        await awardReferralPurchase(supabase, {
+          buyerEmail: customer.email,
+          code: session.metadata.tlfp_ref,
+          amountCents: amountCentsOf(session),
+          sessionId: session.id.slice(0, 200),
+          kind,
+        });
+      } catch (error) {
+        console.error("TLFP referral award failed:", error instanceof Error ? error.message : "unknown");
+      }
+    }
+
     if (websiteLaunch) {
       await ensureWebsiteLaunchIntake(supabase, session);
     } else if (proKind) {
       await sendProKitReceipt(supabase, session.id, customer.email, proKind);
     } else if (kind === SELLERPROOF.kind) {
       await sendSellerProofReceipt(customer.email, session.id);
+    } else if (isChaseSheetKind(kind)) {
+      await ensureChaseSheetPaid(supabase, session);
     } else if (kind === "timeback_order") {
       await ensureTimebackOrderPaid(supabase, session);
     } else if (kind === "event") {
@@ -1971,6 +2118,8 @@ export async function POST(request: Request) {
       await ensureToolStudioPaid(supabase, session, kind);
     } else if (kind === "system_map") {
       await ensureSystemMapPaid(supabase, session);
+    } else if (kind === TLFP_CREDITS.purchaseKind) {
+      await ensureCreditPackPaid(supabase, session);
     } else if (kind === "learn_it") {
       await sendPurchaseEmails(supabase, session.id, customer.email, kind);
     } else if (kind === CONTENT_ENGINE.purchaseKind) {

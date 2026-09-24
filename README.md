@@ -38,6 +38,9 @@ known model limits. Node 22.6 or later is required.
 - `app/articles/` — owned article library (SEO + lead generation).
 - `app/tools/` and `lib/tools/` — the free tool library: registry, taxonomy, search,
   artwork, collections and embeds. Start with `docs/TOOLS_ARCHITECTURE.md`.
+- `app/chase-sheet/` and `lib/chaseSheet/` — Chase Sheet, the paid open-quote
+  follow-up engine ($20/mo or $97 once): the trade libraries, the cadence, the
+  words, the sheet, and the Stripe plans. Start with `docs/CHASE_SHEET_RELEASE.md`.
 - `supabase/migrations/` — schema history. Every migration documents its rollback.
 
 ## Local development
@@ -49,3 +52,13 @@ npm run dev
 
 Supabase URL and publishable key have safe public fallbacks in `lib/config.ts`.
 Secrets (Resend, Quo, cron, unsubscribe) are Vercel env vars and are never committed.
+
+## Reverse-proxy hosting
+
+When Next.js runs behind Caddy, its internal request URL can use the loopback
+listen address. `lib/requestOrigin.ts` keeps checkout returns, sign-in links,
+and same-origin checks on the owned public hosts. Caddy must preserve `Host`
+and replace forwarded headers. Bind Next.js to loopback so requests go through
+the TLS proxy. Add explicitly owned preview hosts to `LEADFLOW_TRUSTED_HOSTS`
+(comma separated); production apex, `www`, and `go` are already allowed. Unknown
+hosts fall back to the canonical site and cannot select an external callback.

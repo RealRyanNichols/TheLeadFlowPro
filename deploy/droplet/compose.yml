@@ -1,0 +1,77 @@
+# The LeadFlow Pro on the DigitalOcean droplet, next to the central brain.
+# Run through deploy/droplet/deploy.sh, not by hand. See docs/infrastructure/droplet.md.
+#
+#   web     Next.js standalone server, bound to 127.0.0.1:3100. The droplet's
+#           Caddy terminates HTTPS and proxies to it; the brain keeps :3000.
+#   cron    Replaces Vercel Cron. Idle until /etc/theleadflowpro/cron-enabled
+#           exists (deploy/droplet/cutover.sh crons-on).
+#   worker  Content Command queue worker. Opt in with COMPOSE_PROFILES=worker.
+
+name: theleadflowpro
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
+services:
+  web:
+    image: theleadflowpro-web:latest
+    build:
+      context: ../..
+      dockerfile: deploy/droplet/Dockerfile
+      args:
+        GIT_SHA: ${GIT_SHA:-unknown}
+      secrets:
+        - webenv
+    env_file:
+      - ${WEB_ENV_FILE:-/etc/theleadflowpro/web.env}
+    ports:
+      - "127.0.0.1:3100:3000"
+    restart: unless-stopped
+    logging: *logging
+
+  cron:
+    image: node:22-alpine
+    working_dir: /app
+    command: ["node", "/app/deploy/droplet/cron-runner.mjs"]
+    env_file:
+      - ${WEB_ENV_FILE:-/etc/theleadflowpro/web.env}
+    environment:
+      CRON_TARGET: http://web:3000
+      CRON_VERCEL_JSON: /app/vercel.json
+      CRON_FLAG_FILE: /config/cron-enabled
+      CRON_STATUS_FILE: /state/cron-status.json
+    volumes:
+      - ../..:/app:ro
+      - ${CONFIG_DIR:-/etc/theleadflowpro}:/config:ro
+      - cron-state:/state
+    depends_on:
+      - web
+    restart: unless-stopped
+    logging: *logging
+
+  worker:
+    profiles: ["worker"]
+    image: node:22-alpine
+    working_dir: /app
+    command: ["node", "/app/worker/content-command-worker.mjs"]
+    env_file:
+      - ${WEB_ENV_FILE:-/etc/theleadflowpro/web.env}
+    environment:
+      CONTENT_COMMAND_BASE_URL: http://web:3000
+      CONTENT_COMMAND_WORKER_ID: droplet-worker
+    volumes:
+      - ../..:/app:ro
+    depends_on:
+      - web
+    restart: unless-stopped
+    logging: *logging
+
+secrets:
+  webenv:
+    file: ${WEB_ENV_FILE:-/etc/theleadflowpro/web.env}
+
+volumes:
+  cron-state:

@@ -37,6 +37,7 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
       { href: "/add-ons", label: "Add-On Menu" },
       { href: "/tools", label: "Free Tools" },
       { href: "/tools/pro", label: `Pro Kits | ${usdRange(PRICES.proKitMin, PRICES.proKitMax)}` },
+      { href: "/chase-sheet", label: `Chase Sheet | ${usdPerMonth(PRICES.chaseSheetMonthly)} or ${usd(PRICES.chaseSheetLifetime)} once` },
       { href: "/plugin", label: `Plugin for ChatGPT and Claude | ${usdPerMonth(PRICES.pluginMonthly)}` },
       { href: "/sellerproof", label: "SellerProof | Chargeback packets" },
       { href: "/chatgpt/free", label: "Free starter lesson" },
@@ -63,6 +64,7 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
       { href: "/packages", label: "Packages" },
       { href: "/go/lead-follow-up", label: `Follow-Up Campaign | ${usd(PRICES.leadFollowUpCampaign)}` },
       { href: "/packages/launch", label: `Website Launch | ${usd(PRICES.websiteLaunchTotal)}` },
+      { href: "/tlfp", label: "TLFP Credits | Earn, buy, spend" },
       { href: "/agency/start", label: "Agency intake" },
       { href: "/start", label: "Map My Company" },
       {

@@ -1,13 +1,5 @@
 // The 30 day follow-up sequence. One email a day, thirty days, no gaps.
 //
-// RETIRED 2026-09-22. This sequence sold the free website build, and Ryan
-// killed that offer. isFreeWebsiteProgramNurtureLead() below now returns
-// false, so /api/cron/nurture enrolls nobody new and sends no further step to
-// anyone already in it. The steps stay in the file as the record of what was
-// sent (step numbers are part of the send ledger and the Resend idempotency
-// key, so never reuse them). The workshop sequence further down is separate
-// and still runs.
-//
 // WHY THIS FILE EXISTS: from August 17 to August 26 every lead that came
 // through any door got exactly one welcome email and then silence forever. The
 // old sequence lived inside a Resend automation nobody could read, was written
@@ -37,6 +29,8 @@
 //     that gets marked as spam.
 //   - Every email ends with a working unsubscribe, added by the cron.
 
+import { LEADFLOW_META } from "@/lib/metaCampaignGuard";
+import type { NurtureContext } from "@/lib/nurtureContext";
 import { BUSINESS } from "@/lib/site/business";
 import { eventWhen, featuredEvent, featuredEventStartMs } from "@/lib/site/events";
 import { usd } from "@/lib/site/prices";
@@ -45,9 +39,10 @@ import { usd } from "@/lib/site/prices";
 // even though the offer it was named for is retired.
 export const NURTURE_CAMPAIGN = "free_build";
 
-// The retired free-build add-on prices the historical copy below was written
-// with. Frozen here for the record only: nothing sells them any more, so they
-// are not in lib/site/prices.ts.
+// The free website build was retired on 2026-09-22 (its page is a 301 to
+// /services). New leads get the Rent Receipt series (lib/nurtureRentReceipt.ts);
+// only leads that already started this sequence finish it. Its add-on prices
+// are frozen here because they are no longer sold or in lib/site/prices.ts.
 const RETIRED_FOLLOW_UP_PACK = usd(197);
 const RETIRED_CONTENT_ENGINE = usd(497);
 
@@ -71,28 +66,57 @@ export type FreeWebsiteNurtureCandidate = NurtureLeadAttribution & {
   marketing_email_consent?: unknown;
 };
 
+/**
+ * Meta instant forms whose leads belong in this 30-day sequence. The v2 free
+ * website form plus the Sep 2026 volume lanes that all sell the same flagship
+ * offer: the $0 build, the services menu, and the scoreboard. The workshop
+ * form is NOT here; it has its own short sequence below.
+ */
+export const FREE_BUILD_SEQUENCE_META_FORM_IDS: ReadonlySet<string> = new Set([
+  LEADFLOW_META.formId,
+  "1602617814609528", // LFP Free Build NoQ v2
+  "1001553739566746", // LFP Services Volume v1
+  "1072145798524733", // LFP Scoreboard Volume v1
+  "1075109702046952", // LFP | Qualified | Budget + Timeline (Amanda/PDA video ad)
+  "3610264839155246", // LFP | Rent Receipt | Pain + Timeline v1 (mall video)
+  "2349934135833664", // LFP Enrollment Gap Timeline v1 (schools)
+]);
+
 /** LFP Workshop Sep 17 Volumev1 — enrolled in the workshop sequence instead. */
 export const WORKSHOP_META_FORM_ID = "1749164796410610";
 
 /**
- * RETIRED 2026-09-22 with the free website build it sold. Always false, so
- * the 30-day sequence enrolls nobody and sends no further step, the same way
- * shouldEnrollInLegacyEmailSeries() retired the Resend automation before it.
- * Until then it admitted consented leads from the free-build website funnel
- * and from the Meta instant forms in the free-build lane (the v2 free website
- * form, Free Build NoQ v2, Services Volume v1, Scoreboard Volume v1,
- * Qualified, Rent Receipt, and Enrollment Gap). Those leads still get the
- * instant welcome from lib/leadNotify.ts; they just get no drip.
+ * The free-build sequence is an offer-specific campaign, not a general list.
+ * Admit the owned website funnel, or a Meta lead from one of the admitted
+ * instant forms above, and only when marketing_email_consent is true (a
+ * checked box, or an inquiryOptIn form per lib/metaCampaignGuard).
  */
 export function isFreeWebsiteProgramNurtureLead(
-  _lead: FreeWebsiteNurtureCandidate,
+  lead: FreeWebsiteNurtureCandidate,
 ): boolean {
-  return false;
+  if (lead.marketing_email_consent !== true) return false;
+  if (!lead.diagnostic || typeof lead.diagnostic !== "object" || Array.isArray(lead.diagnostic)) {
+    return false;
+  }
+
+  const diagnostic = lead.diagnostic as Record<string, unknown>;
+  if (
+    lead.source === "meta_lead_ad" &&
+    typeof diagnostic.form_id === "string" &&
+    FREE_BUILD_SEQUENCE_META_FORM_IDS.has(diagnostic.form_id)
+  ) {
+    return true;
+  }
+  return (
+    lead.interest === "free_website_program" &&
+    diagnostic.source === "free_build_funnel" &&
+    lead.source === "website"
+  );
 }
 
 /**
  * Workshop leads get the short seats-and-deadline sequence, never the 30-day
- * campaign, and only with explicit marketing_email_consent.
+ * campaign. Same consent rule as above.
  */
 export function isWorkshopNurtureLead(lead: FreeWebsiteNurtureCandidate): boolean {
   if (lead.marketing_email_consent !== true) return false;
@@ -130,8 +154,16 @@ export type NurtureStep = {
   /** Days after the lead was created that this email becomes due. */
   day: number;
   subject: string;
-  /** Body without the signature or the unsubscribe line: the cron adds both. */
-  body: (firstName: string) => string;
+  /**
+   * A subject that depends on what the lead told us (the Rent Receipt series
+   * writes days one to five per pain). Wins over subject when present.
+   */
+  subjectFor?: (context: NurtureContext) => string;
+  /**
+   * Body without the signature or the unsubscribe line: the cron adds both.
+   * The context carries the form answers; the Free Build steps ignore it.
+   */
+  body: (firstName: string, context?: NurtureContext) => string;
 };
 
 export const NURTURE_STEPS: NurtureStep[] = [
@@ -661,6 +693,11 @@ Thank you for reading this far. I built this whole thing because I needed a plat
 Ryan`,
   },
 ];
+
+/** The subject for a lead, honoring a per-lead subject when the step defines one. */
+export function nurtureSubjectFor(step: NurtureStep, context?: NurtureContext): string {
+  return context && step.subjectFor ? step.subjectFor(context) : step.subject;
+}
 
 /** The step due for a lead this many days old, or null. Highest due wins. */
 export function stepDueOnDay(ageInDays: number): NurtureStep | null {

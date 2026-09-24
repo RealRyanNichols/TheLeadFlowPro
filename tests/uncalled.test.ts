@@ -16,6 +16,7 @@ function lead(id: string, overrides: Partial<CallSheetLead> = {}): CallSheetLead
     id,
     created_at: hoursAgo(5),
     full_name: `Lead ${id}`,
+    next_follow_up_at: null,
     business_name: null,
     email: `${id}@example.com`,
     phone: "(903) 555-0100",
@@ -131,7 +132,7 @@ test("the page: both roles, checked next to the read, no last_contacted_at, no l
   assert.match(loader, /\.range\(from, to\)/, "touch reads page past the 1000-row cap");
   assert.ok(!loader.includes(".insert(") && !loader.includes(".update(") && !loader.includes(".delete("), "the loader is read-only");
   for (const layout of ["app/admin/layout.tsx", "app/sales/layout.tsx"]) {
-    assert.match(read(layout), /href="\/admin\/sales\/uncalled"[\s\S]{0,200}Uncalled/, layout);
+    assert.match(read(layout), /href(="|: ")\/admin\/sales\/uncalled"[\s\S]{0,200}Uncalled/, layout);
   }
 });
 

@@ -846,3 +846,82 @@
     font-size: 30px;
   }
 }
+
+/* Membership upsell (the full SellerProof app). */
+.member {
+  margin-top: 56px;
+  padding: 48px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+}
+.member h2 {
+  font-size: clamp(26px, 3vw, 34px);
+  font-weight: 800;
+  line-height: 1.15;
+  margin: 12px 0 10px;
+}
+.member > p {
+  font-size: 15px;
+  color: #475569;
+  max-width: 66ch;
+}
+.memberGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-top: 28px;
+}
+.memberGrid .priceCard p {
+  font-size: 14px;
+  color: #475569;
+  margin-top: 8px;
+}
+.memberAlt {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  width: 100%;
+  margin: 22px 0 8px;
+  padding: 14px 18px;
+  min-height: 48px;
+  border-radius: 9px;
+  font-size: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  line-height: 1.4;
+  color: #0f172a;
+  background: white;
+  border: 1.5px solid #cbd5e1;
+}
+.memberAlt:hover {
+  border-color: #1f49eb;
+  color: #1f49eb;
+}
+.memberIncludes {
+  list-style: none;
+  padding: 0;
+  margin: 24px 0 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px 24px;
+}
+.memberIncludes li {
+  display: flex;
+  gap: 10px;
+  font-size: 14px;
+}
+.memberIncludes li svg {
+  color: #1f49eb;
+  flex-shrink: 0;
+}
+@media (max-width: 760px) {
+  .member {
+    padding: 28px 20px;
+  }
+  .memberGrid,
+  .memberIncludes {
+    grid-template-columns: 1fr;
+  }
+}

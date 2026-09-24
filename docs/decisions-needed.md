@@ -508,3 +508,103 @@ is a decision, an account action, or a check only Ryan can do.
     founding price ($297), both already charged by code; they are now
     `PRICES.timeBackFrom` and `PRICES.chatgptOperatorFounding` and printed
     from there. Decision: confirm both numbers are current. Default: yes.
+
+## J. Chase Sheet (September 23)
+
+Added September 23, 2026 with `docs/CHASE_SHEET_RELEASE.md`. The product is
+built and tested; each item below is a switch, an account action, or a check
+only Ryan can do. Nothing has been deployed, charged, or created in Stripe.
+
+70. **Apply the Chase Sheet migration.**
+    `supabase/migrations/20260923120000_chase_sheet.sql` creates three new
+    tables (accounts, quotes, touches), service role only. Apply it with
+    `supabase db push --include-all` or the Supabase MCP before the first
+    sale. Without it, a paid checkout still charges the card, the claim route
+    sends the buyer to the locked view with "claim=unavailable", and the
+    webhook returns 500 until the tables exist (Stripe retries). Default:
+    apply before merging.
+    Done September 24: applied through the Supabase MCP before #73 went
+    live. Three tables, row level security on, no anon or authenticated
+    access. The repo file is the same SQL and is idempotent, so a later
+    `supabase db push` is harmless.
+
+71. **The Stripe payment links.** Done September 24, 2026: product, both
+    prices, and both hosted Payment Links created in the live account and
+    recorded in `EXTERNAL_LINKS` and `docs/CHASE_SHEET_RELEASE.md`. The page
+    buttons still sell through `/api/checkout`; the links are for texts,
+    posts, and emails.
+
+72. **Refund window.** `/chase-sheet/terms` promises a full refund within
+    seven days of a first purchase, and no refund on renewal months. Decision:
+    keep, lengthen, or drop. Default: keep.
+
+73. **The price pair.** $20 a month and $97 once, as requested. The lifetime
+    price pays for itself against five months of monthly. Decision: confirm
+    both numbers are what Ryan wants printed. Default: yes.
+
+74. **`CHASE_SHEET_SECRET`.** Optional. Without it the Pro Kit secrets sign
+    the cookie and the key. Setting a dedicated one (`openssl rand -hex 32`)
+    means a Pro Kit key rotation never touches Chase Sheet buyers. Default:
+    set it before the first sale.
+
+75. **Adding a trade.** A buyer whose trade is missing is told to reply to the
+    receipt. A new library is one entry in `lib/chaseSheet/trades.ts`; the
+    engine tests cover every entry automatically. Decision: which trades to
+    add first after launch. Default: whatever the first ten buyers ask for.
+
+## K. The Call Closer (September 24)
+
+Added with `docs/handoff-2026-09-24-call-closer.md`. Nothing below has been
+deployed, sent, or switched on; the branch is a draft pull request.
+
+76. **Approve the merge.** Open `/admin/call-sheet/sample` and
+    `/admin/proposals/sample-build?offers=website_launch` on the preview, on
+    a phone. Both run on fictional data and save nothing. Merging to `main`
+    deploys to production. Rollback: revert the merge commit; there is no
+    migration or environment change. Default: merge after one look.
+    Done September 24: Ryan approved the merge.
+
+77. **The first morning's sheet will be longer.** Failed CRM texts and calls
+    marked noise no longer count as a person reaching the lead, and promises
+    older than the 90-day window now come back when due. Leads those rules
+    were hiding will reappear once. Nothing to decide; this is expected.
+
+78. **Proposal wording changed.** The "To accept" lines now print the real
+    pay link for each offer, a free build says no payment is due and names
+    the hosting it includes, and larger builds say they start with the
+    System Map. Decision: read `/admin/proposals/sample-build` once and
+    confirm, or edit the wording in `lib/payDoors.ts`.
+
+79. **Holidays.** Callbacks skip weekends but not holidays, so a retry can
+    land on Thanksgiving or Christmas. Default: pick a date by hand around
+    them. A holiday list is a small follow-up if wanted.
+
+80. **What counts on the speed-to-lead line.** Any logged try by a person
+    within 24 hours counts, including a call nobody answered, so the line
+    says "a person reached out to", never "heard from". It is admin-only and
+    is not a public claim. Decision: keep, or count only calls where
+    someone talked.
+
+81. **Two saves at the exact same instant.** A double tap is blocked and a
+    retry is recognised, but two identical saves arriving at the same
+    moment (two tabs, a flaky network) can both write their task and
+    timeline entry. The complete fix is a unique save key in the database,
+    which is a migration. Default: accept for now; approve the migration if
+    it is ever seen.
+
+82. **"Mark the proposal sent" and item 67.** The proposal page now records
+    that Ryan sent a proposal himself (stage Proposal, follow-up in two
+    business days, the proposal task closed). It still sends nothing. Item
+    67, an in-app send, stays a separate decision.
+
+83. **Follow-ups found in passing, not changed here:**
+    - Callback chips always offer 9:00 AM, even when the lead wrote "after
+      3 PM". Reading the lead's stated time is a small follow-up.
+    - The live-refresh clock and the lead page's dates render in UTC on the
+      server and Central on the phone, which logs a hydration warning.
+      Visible only as a brief flicker; it predates this change.
+    - The Today queue labels a number that replied STOP as "No consent",
+      while the call sheet says "Replied STOP. Call instead."
+    - Tapping Text on the card opens Ryan's own phone, so a STOP sent back to
+      that phone does not reach the suppression list. This matches the call
+      sheet today; texting from the CRM route is the way to keep STOP exact.

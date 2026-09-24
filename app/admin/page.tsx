@@ -1,10 +1,21 @@
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import LeadsTable from "./LeadsTable";
+import TodaysCallsBanner from "./TodaysCallsBanner";
 import LiveRefresh from "./command-center/LiveRefresh";
 import Link from "next/link";
 
 export default async function AdminLeads() {
   const supabase = await createClient();
+  // Authorization next to the private reads (the leads below and the call
+  // sheet in the banner), not only in the layout.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login?next=/admin");
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+  if (profile?.role !== "admin") redirect("/dashboard");
+
   const { data: leads, error } = await supabase
     .from("leads")
     .select("*")
@@ -15,14 +26,17 @@ export default async function AdminLeads() {
 
   if (error)
     return (
-      <div className="card" role="alert">
-        <h2 className="font-bold">Leads could not be loaded.</h2>
-        <p className="my-3 text-sm">
-          This is a connection problem, not an empty pipeline. Try refreshing in
-          a moment.
-        </p>
-        <LiveRefresh />
-      </div>
+      <>
+        <TodaysCallsBanner supabase={supabase} />
+        <div className="card" role="alert">
+          <h2 className="font-bold">Leads could not be loaded.</h2>
+          <p className="my-3 text-sm">
+            This is a connection problem, not an empty pipeline. Try refreshing
+            in a moment.
+          </p>
+          <LiveRefresh />
+        </div>
+      </>
     );
   const all = leads ?? [];
   const counts = {
@@ -34,6 +48,7 @@ export default async function AdminLeads() {
 
   return (
     <>
+      <TodaysCallsBanner supabase={supabase} />
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl font-black">Leads & conversations</h2>

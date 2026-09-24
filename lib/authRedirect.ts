@@ -9,6 +9,11 @@ export function safeAuthNext(value: string | null | undefined): string | null {
       return null;
     const url = new URL(value, "https://auth.internal");
     if (url.origin !== "https://auth.internal") return null;
+    // Resolving dot segments can turn "/a/..//evil.example" into the
+    // protocol-relative "//evil.example", which a browser treats as another
+    // host. Check the normalized path, not only the raw and decoded input.
+    if (!url.pathname.startsWith("/") || url.pathname.startsWith("//"))
+      return null;
     if (
       ["/login", "/logout", "/auth"].some(
         (path) => url.pathname === path || url.pathname.startsWith(`${path}/`),

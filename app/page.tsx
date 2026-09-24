@@ -1,3 +1,4 @@
+import SeptemberSpecialNotice from "@/components/site/SeptemberSpecialNotice";
 import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 export const metadata = withPublicPageMetadata("/", {
   title: "Marketing Agency in Longview, TX: Ads, Websites, Follow-Up | The LeadFlow Pro",
@@ -69,6 +70,7 @@ const CONSULT_HREF = `#${CONSULTATION.anchor}`;
 export default function HomePage() {
   return (
     <main className="lf-home">
+      <SeptemberSpecialNotice />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: jsonLdText(HOME_JSONLD) }}

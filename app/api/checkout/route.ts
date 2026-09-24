@@ -5,7 +5,20 @@ import { priceToolStudio } from "@/lib/toolStudio";
 import { PRO_BUNDLE, getProTool } from "@/lib/tools/pro";
 import { startEventCheckout } from "@/lib/eventCheckoutServer";
 import { AGENCY_PAYMENT, resolveAgencyCharge } from "@/lib/agencyPayment";
+import { CHASE_SHEET, checkoutNameForPlan, isChaseSheetKind, planForKind, priceUsdForPlan } from "@/lib/chaseSheet/product";
 import { PRICES, usd } from "@/lib/site/prices";
+import { cookies } from "next/headers";
+import crypto from "node:crypto";
+import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
+import {
+  TLFP_CREDITS,
+  TLFP_REDEEMABLE_KINDS,
+  findPack,
+  redeemableCredits,
+  wouldExceedCap,
+} from "@/lib/tlfpCredits";
+import { holdCredits, holdRef, isEmail, normalizeEmail, readTlfpBalance, settleHold } from "@/lib/tlfp";
 
 // Stripe Checkout for fixed products, approved package payments, and paid event seats. Activates when
 // STRIPE_SECRET_KEY is set in Vercel env vars (same pattern as RESEND_API_KEY).
@@ -27,6 +40,41 @@ const PRODUCTS: Record<string, { name: string; amount: number }> = {
   // The Stripe webhook still records a late event for a session created
   // before that date.
 };
+
+/**
+ * Which one-time checkouts accept TLFP Credits. Kinds whose fulfilment checks
+ * an exact total (Website Launch deposit, events, Pro Kits, the September
+ * special) are out, because a discounted total would fail those checks.
+ */
+function creditsAllowedFor(kind: string, metadata: Record<string, string>): boolean {
+  if (kind === "package_deposit" && metadata.package !== "system-map") return false;
+  return TLFP_REDEEMABLE_KINDS.has(kind) || kind === LEAD_FOLLOW_UP.id;
+}
+
+/** The logged-in account's email, or "" when nobody is logged in. */
+async function loginEmail(): Promise<string> {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    const email = normalizeEmail(user?.email);
+    return isEmail(email) ? email : "";
+  } catch {
+    return "";
+  }
+}
+
+/** A referral code carried in from /r/<code>, when it looks like one. */
+async function referralFromCookie(): Promise<string> {
+  try {
+    const store = await cookies();
+    const code = store.get(TLFP_CREDITS.referralCookie)?.value?.trim().toUpperCase() ?? "";
+    return /^[A-Z0-9]{6,12}$/.test(code) ? code : "";
+  } catch {
+    return "";
+  }
+}
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => ({}));
@@ -50,7 +98,7 @@ export async function POST(request: Request) {
   if (!key) return NextResponse.json({ error: "not_configured" }, { status: 501 });
 
   try {
-    const email = typeof body.email === "string" ? body.email.slice(0, 200) : "";
+    let email = typeof body.email === "string" ? body.email.slice(0, 200) : "";
     const site = "https://www.theleadflowpro.com";
 
     let kind: string;
@@ -90,6 +138,39 @@ export async function POST(request: Request) {
       subscriptionNote =
         "This management fee renews on the same calendar date each month until you cancel. Cancel any time by replying to your receipt or texting Ryan; it stops at the end of the paid month. Ad spend is separate and is paid by you to Meta or Google directly.";
       Object.assign(metadata, charge.metadata);
+    } else if (body.kind === TLFP_CREDITS.purchaseKind) {
+      // A TLFP Credits pack (/tlfp). The browser sends a pack id, never a
+      // price or a credit count: both come from lib/tlfpCredits.ts. The
+      // credits go to the login email when there is one, else the typed
+      // email, and the webhook posts them to that account. A pack that would
+      // push the balance past the cap is refused here so nobody pays for
+      // credits the ledger would then cut.
+      const pack = findPack(body.pack);
+      if (!pack) return NextResponse.json({ error: "Unknown pack" }, { status: 400 });
+      const buyerEmail = (await loginEmail()) || normalizeEmail(body.email);
+      if (!isEmail(buyerEmail)) {
+        return NextResponse.json({ error: "Enter the email the credits should go to." }, { status: 400 });
+      }
+      try {
+        const balance = await readTlfpBalance(createServiceClient(), buyerEmail);
+        if (wouldExceedCap(balance, pack.credits)) {
+          return NextResponse.json(
+            { error: `That pack would take this balance past ${TLFP_CREDITS.maxBalance} credits. Spend some first.` },
+            { status: 400 },
+          );
+        }
+      } catch {
+        // Service access missing here: the ledger caps at post time anyway.
+      }
+      kind = TLFP_CREDITS.purchaseKind;
+      name = `${pack.name} | ${pack.credits} ${TLFP_CREDITS.name}`;
+      amount = pack.priceUsd * 100;
+      email = buyerEmail;
+      cancelUrl = `${site}${TLFP_CREDITS.path}?cancelled=1`;
+      successUrl = `${site}${TLFP_CREDITS.path}?paid=${encodeURIComponent(pack.id)}&session_id={CHECKOUT_SESSION_ID}`;
+      metadata.kind = kind;
+      metadata.pack = pack.id;
+      metadata.credits = String(pack.credits);
     } else if (body.kind === "build_deposit") {
       // Down payment on a custom scope or anything Ryan quoted outside the
       // package ladder. Amount is customer-chosen and clamped server-side.
@@ -97,7 +178,7 @@ export async function POST(request: Request) {
       if (!Number.isFinite(requested)) {
         return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
       }
-      const dollars = Math.max(250, Math.min(25000, requested));
+      const dollars = Math.max(PRICES.buildDepositMin, Math.min(25000, requested));
       kind = "build_deposit";
       name = "Build down payment (credited in full toward your build)";
       amount = dollars * 100;
@@ -137,7 +218,7 @@ export async function POST(request: Request) {
             { status: 400 },
           );
         }
-        const min = 250;
+        const min = PRICES.buildDepositMin;
         const max = Math.min(25000, pkg.base / 100);
         const dollars = Math.max(min, Math.min(max, requested));
         name = `${pkg.label} | build down payment (credited in full)`;
@@ -213,6 +294,25 @@ export async function POST(request: Request) {
         metadata.pro_slug = kit.slug;
       }
       successUrl = `${site}/api/pro/claim?session_id={CHECKOUT_SESSION_ID}`;
+    } else if (typeof body.kind === "string" && isChaseSheetKind(body.kind)) {
+      // Chase Sheet (/chase-sheet). Two plans, one product: a monthly
+      // subscription or one payment for good. The browser names the plan and
+      // nothing else; the amount and the mode come from lib/chaseSheet/product.ts.
+      // Success lands on the claim route, which verifies the session with
+      // Stripe, writes the account, and signs the identity cookie before it
+      // opens the sheet, so a slow webhook never leaves a buyer locked out.
+      const plan = planForKind(body.kind)!;
+      kind = body.kind;
+      name = checkoutNameForPlan(plan);
+      amount = priceUsdForPlan(plan) * 100;
+      checkoutMode = plan === "monthly" ? "subscription" : "payment";
+      checkoutLines = [{ name, amount, recurring: plan === "monthly" }];
+      cancelUrl = `${site}${CHASE_SHEET.path}?cancelled=1`;
+      successUrl = `${site}${CHASE_SHEET.claimPath}?session_id={CHECKOUT_SESSION_ID}`;
+      subscriptionNote =
+        `${CHASE_SHEET.name} renews on the same date each month until you cancel from inside the sheet; it stops at the end of the paid month. You send every message yourself; nothing is sent for you.`;
+      metadata.kind = kind;
+      metadata.plan = plan;
     } else if (body.kind === "timeback_order") {
       // Time Back funnel (/go/time-back). The client sends selections, never
       // prices. The total comes from lib/timeback.ts so nobody can edit a
@@ -260,14 +360,71 @@ export async function POST(request: Request) {
       }
     }
 
+    const lines = checkoutLines ?? [{ name, amount, recurring: false }];
+
+    // A referral code from /r/<code> rides along so the webhook can pay the
+    // referrer once this buyer's first purchase clears.
+    const referral = await referralFromCookie();
+    if (referral) metadata.tlfp_ref = referral;
+
+    // TLFP Credits against this checkout. Only a logged-in account can spend,
+    // so the spending email is the login email, never a typed one. The
+    // credits are held in the ledger first, then turned into a one-use Stripe
+    // coupon on the session; the webhook posts the hold when the session pays
+    // and releases it when the session expires. A coupon cannot share a
+    // session with allow_promotion_codes, so that switch is off for these.
+    let tlfpHold: { ref: string; credits: number; coupon: string } | null = null;
+    const requestedCredits = Math.floor(Number(body.tlfp_credits));
+    if (Number.isFinite(requestedCredits) && requestedCredits > 0) {
+      if (checkoutMode !== "payment" || !creditsAllowedFor(kind, metadata)) {
+        return NextResponse.json({ error: "Credits cannot be applied to this checkout." }, { status: 400 });
+      }
+      const accountEmail = await loginEmail();
+      if (!accountEmail) return NextResponse.json({ error: "Log in to use your credits." }, { status: 401 });
+      const due = lines.reduce((sum, line) => sum + line.amount, 0);
+      const credits = redeemableCredits(requestedCredits, due);
+      if (credits < 1) return NextResponse.json({ error: "Nothing to apply." }, { status: 400 });
+      const service = createServiceClient();
+      const ref = holdRef(crypto.randomUUID());
+      const hold = await holdCredits(service, { email: accountEmail, credits, ref, memo: `Applied to ${name}`.slice(0, 200) });
+      if (!hold.ok) {
+        return NextResponse.json(
+          { error: hold.error === "insufficient" ? "Not enough credits for that." : "Credits could not be applied." },
+          { status: 400 },
+        );
+      }
+      const coupon = await fetch("https://api.stripe.com/v1/coupons", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          amount_off: String(credits * TLFP_CREDITS.creditValueCents),
+          currency: "usd",
+          duration: "once",
+          max_redemptions: "1",
+          name: `${TLFP_CREDITS.name} (${credits})`,
+          "metadata[tlfp_hold_ref]": ref,
+        }).toString(),
+      });
+      const couponJson = await coupon.json().catch(() => null);
+      if (!coupon.ok || typeof couponJson?.id !== "string") {
+        await settleHold(service, ref, "released").catch(() => undefined);
+        console.error("Stripe coupon failed:", couponJson?.error?.message);
+        return NextResponse.json({ error: "Could not apply credits." }, { status: 502 });
+      }
+      tlfpHold = { ref, credits, coupon: couponJson.id };
+      email = accountEmail;
+      metadata.tlfp_hold_ref = ref;
+      metadata.tlfp_credits = String(credits);
+    }
+
     const params = new URLSearchParams({
       mode: checkoutMode,
       success_url:
         successUrl ?? `${site}/thank-you?purchase=${kind}&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: cancelUrl,
-      allow_promotion_codes: "true",
     });
-    const lines = checkoutLines ?? [{ name, amount, recurring: false }];
+    if (tlfpHold) params.set("discounts[0][coupon]", tlfpHold.coupon);
+    else params.set("allow_promotion_codes", "true");
     lines.forEach((line, index) => {
       params.set(`line_items[${index}][quantity]`, "1");
       params.set(`line_items[${index}][price_data][currency]`, "usd");
@@ -297,6 +454,7 @@ export async function POST(request: Request) {
     const j = await r.json();
     if (!r.ok || !j.url) {
       console.error("Stripe session failed:", j?.error?.message);
+      if (tlfpHold) await settleHold(createServiceClient(), tlfpHold.ref, "released").catch(() => undefined);
       return NextResponse.json({ error: "Could not start checkout." }, { status: 502 });
     }
     return NextResponse.json({ url: j.url });

@@ -23,7 +23,8 @@ export function renderProposalHtml(p: Proposal, opts: { sample?: boolean } = {})
 <style>
   :root { --ink: #0a1220; --muted: #4b5563; --line: #dfe3ea; --blue: #1240e8; --bg: #ffffff; }
   * { box-sizing: border-box; }
-  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 Inter, system-ui, sans-serif; }
+  /* overflow-wrap: anywhere lets a long pay link break inside a line, so the page never scrolls sideways on a phone. */
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 Inter, system-ui, sans-serif; overflow-wrap: anywhere; }
   .page { width: min(820px, calc(100% - 32px)); margin: 0 auto; padding: 40px 0 64px; }
   h1 { font-size: 30px; line-height: 1.15; letter-spacing: -.02em; margin: 0 0 6px; }
   h2 { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--blue); margin: 32px 0 8px; }

@@ -5,15 +5,29 @@ import {
   isBusinessDiagnosticLead,
   isFreeWebsiteProgramNurtureLead,
   isWorkshopNurtureLead,
+  NURTURE_CAMPAIGN,
   NURTURE_FIRST_STEP,
+  NURTURE_LAST_STEP,
   NURTURE_STEPS,
+  nurtureSubjectFor,
   stepsDueBy,
   workshopSequenceClosed,
   workshopStepsDueBy,
+  WORKSHOP_FIRST_STEP,
   WORKSHOP_LAST_STEP,
   WORKSHOP_STEPS,
   type NurtureStep,
 } from "@/lib/nurture";
+import { nurtureContextFor, type NurtureContext } from "@/lib/nurtureContext";
+import { renderNurtureHtml } from "@/lib/nurtureHtml";
+import {
+  isRentReceiptSeriesLead,
+  RENT_RECEIPT_CAMPAIGN,
+  RENT_RECEIPT_FIRST_STEP,
+  RENT_RECEIPT_LAST_STEP,
+  RENT_RECEIPT_STEPS,
+  rentReceiptStepsDueBy,
+} from "@/lib/nurtureRentReceipt";
 import {
   nurtureEmailIdempotencyKey,
   nurtureRetryWindowExpired,
@@ -24,11 +38,24 @@ import { BUSINESS } from "@/lib/site/business";
 import { unsubscribeSecret, unsubscribeUrl } from "@/lib/unsubscribe";
 
 // The nurture sequence sender. Runs hourly so an uncertain provider response
-// can be retried inside Resend's 24-hour idempotency window. The 30-day
-// free-build campaign it was built for is retired (lib/nurture.ts), and the
-// only other lane, the workshop countdown, closed when that workshop
-// started. Until a new sequence is written this cron admits no one
-// and returns early; it is kept so a new lane can plug straight in.
+// can be retried inside Resend's 24-hour idempotency window. The free website
+// build its first series sold was retired on 2026-09-22; see below for who
+// still finishes that series and who gets Rent Receipt instead.
+//
+// THREE SEQUENCES share this sender and a lead belongs to exactly one:
+//   - the Rent Receipt series (steps 501-530) for every admitted lead created
+//     at or after RENT_RECEIPT_SERIES_START
+//   - the Free Build series (steps 101-130) for admitted leads created before
+//     that, and for any lead that already received a Free Build step
+//   - the workshop countdown (steps 201-204) for workshop form leads
+// sequenceFor() below is the only place that decision is made.
+//
+// EVERY THIRTY DAY SEND CARRIES TEXT AND HTML. The HTML part is the designed
+// email (lib/nurtureHtml.ts): same words, a picture, one button, a free tool.
+// Without an HTML part Resend cannot count an open or a click, which is how
+// 870 text-only sends in thirty days reported one of each. The workshop
+// countdown keeps the plain look. Every send is tagged campaign, day and
+// track so Resend can be filtered without reading a body.
 //
 // ONE SUCCESSFUL EMAIL PER LEAD PER 24 HOURS. A lead that has been sitting for
 // three weeks with nothing sent does not get slammed with six emails at once.
@@ -66,7 +93,65 @@ type EligibleLead = {
   interest: string | null;
   marketing_email_consent: boolean | null;
   diagnostic: unknown;
+  timeline: string | null;
+  goals: string | null;
 };
+
+type Sequence = {
+  campaign: string;
+  steps: NurtureStep[];
+  firstStep: number;
+  lastStep: number;
+  dueBy: (ageInDays: number) => NurtureStep[];
+};
+
+const FREE_BUILD_SEQUENCE: Sequence = {
+  campaign: NURTURE_CAMPAIGN,
+  steps: NURTURE_STEPS,
+  firstStep: NURTURE_FIRST_STEP,
+  lastStep: NURTURE_LAST_STEP,
+  dueBy: stepsDueBy,
+};
+
+const WORKSHOP_SEQUENCE: Sequence = {
+  campaign: "workshop_sep17_2026",
+  steps: WORKSHOP_STEPS,
+  firstStep: WORKSHOP_FIRST_STEP,
+  lastStep: WORKSHOP_LAST_STEP,
+  dueBy: workshopStepsDueBy,
+};
+
+const RENT_RECEIPT_SEQUENCE: Sequence = {
+  campaign: RENT_RECEIPT_CAMPAIGN,
+  steps: RENT_RECEIPT_STEPS,
+  firstStep: RENT_RECEIPT_FIRST_STEP,
+  lastStep: RENT_RECEIPT_LAST_STEP,
+  dueBy: rentReceiptStepsDueBy,
+};
+
+/** The highest step any sequence here writes; the send-history read stops there. */
+const HISTORY_LAST_STEP = Math.max(
+  FREE_BUILD_SEQUENCE.lastStep,
+  WORKSHOP_SEQUENCE.lastStep,
+  RENT_RECEIPT_SEQUENCE.lastStep,
+);
+
+/**
+ * Which sequence owns this lead. A lead that already received a Free Build
+ * step stays on Free Build no matter when it was created, so a deploy that
+ * lands after RENT_RECEIPT_SERIES_START can never hand anyone two series.
+ */
+function sequenceFor(lead: EligibleLead, history: NurtureDeliveryRow[]): Sequence {
+  if (isWorkshopNurtureLead(lead)) return WORKSHOP_SEQUENCE;
+  const startedFreeBuild = history.some(
+    (row) =>
+      row.delivery_status !== "failed" &&
+      row.step >= FREE_BUILD_SEQUENCE.firstStep &&
+      row.step <= FREE_BUILD_SEQUENCE.lastStep,
+  );
+  if (!startedFreeBuild && isRentReceiptSeriesLead(lead)) return RENT_RECEIPT_SEQUENCE;
+  return FREE_BUILD_SEQUENCE;
+}
 
 type NurtureDeliveryRow = {
   id: string;
@@ -79,17 +164,17 @@ type NurtureDeliveryRow = {
   attempt_count: number;
 };
 
-function firstNameOf(fullName: string | null): string {
-  return String(fullName ?? "").trim().split(" ")[0] || "there";
-}
-
 function ageInDays(createdAt: string): number {
   return Math.floor((Date.now() - new Date(createdAt).getTime()) / 86400000);
 }
 
-function renderBody(step: NurtureStep, lead: EligibleLead, unsubUrl: string): string {
+function renderBody(
+  step: NurtureStep,
+  context: NurtureContext,
+  unsubUrl: string,
+): string {
   return [
-    step.body(firstNameOf(lead.full_name)),
+    step.body(context.first, context),
     "",
     "Ryan Nichols",
     "The LeadFlow Pro",
@@ -141,7 +226,7 @@ export async function GET(request: Request) {
   const { data: leads, error: leadsError } = await supabase
     .from("leads")
     .select(
-      "id, created_at, full_name, email, source, interest, marketing_email_consent, diagnostic",
+      "id, created_at, full_name, email, source, interest, marketing_email_consent, diagnostic, timeline, goals",
     )
     .is("deleted_at", null)
     .is("email_unsubscribed_at", null)
@@ -163,12 +248,10 @@ export async function GET(request: Request) {
   const nonDiagnosticLeads = ((leads ?? []) as EligibleLead[]).filter(
     (lead) => !isBusinessDiagnosticLead(lead),
   );
-  // Two sequences share this sender: the 30-day campaign and the short
-  // workshop countdown. The 30-day campaign sold the free website build and
-  // was retired with it on 2026-09-22 (isFreeWebsiteProgramNurtureLead is
-  // always false), so nobody new enters it and nobody in it gets another
-  // step. Workshop leads drop out entirely once the event has started; nobody
-  // gets sold a chair in a room that already met.
+  // The 30-day lanes (Rent Receipt for new leads, Free Build for leads that
+  // started it) and the short workshop countdown share this sender; see
+  // sequenceFor(). Workshop leads drop out entirely once the event has
+  // started; nobody gets sold a chair in a room that already met.
   const eligibleLeads = nonDiagnosticLeads.filter(
     (lead) =>
       isFreeWebsiteProgramNurtureLead(lead) ||
@@ -195,7 +278,7 @@ export async function GET(request: Request) {
     )
     .in("lead_id", ids)
     .gte("step", NURTURE_FIRST_STEP)
-    .lte("step", WORKSHOP_LAST_STEP);
+    .lte("step", HISTORY_LAST_STEP);
 
   if (sentRowsError) {
     console.error("Nurture send-history query failed:", sentRowsError.message);
@@ -237,15 +320,18 @@ export async function GET(request: Request) {
     if (!lead.email || lead.email.includes("@no-email.")) continue;
 
     // Which sequence owns this lead decides both the steps that exist for it
-    // and which of them are due at its age.
-    const workshopLead = isWorkshopNurtureLead(lead);
-    const sequenceSteps = workshopLead ? WORKSHOP_STEPS : NURTURE_STEPS;
-    const due = workshopLead
-      ? workshopStepsDueBy(ageInDays(lead.created_at))
-      : stepsDueBy(ageInDays(lead.created_at));
+    // and which of them are due at its age. Only that sequence's own rows
+    // count as its history; a pending row from another sequence's range is
+    // that sequence's business.
+    const allRows = deliveryRowsByLead.get(lead.id) ?? [];
+    const sequence = sequenceFor(lead, allRows);
+    const sequenceSteps = sequence.steps;
+    const due = sequence.dueBy(ageInDays(lead.created_at));
     if (!due.length) continue;
 
-    const deliveryRows = deliveryRowsByLead.get(lead.id) ?? [];
+    const deliveryRows = allRows.filter(
+      (row) => row.step >= sequence.firstStep && row.step <= sequence.lastStep,
+    );
     const failedRow = deliveryRows.find((row) => row.delivery_status === "failed");
     if (failedRow) {
       blocked++;
@@ -350,19 +436,33 @@ export async function GET(request: Request) {
     }
 
     const unsubUrl = unsubscribeUrl(lead.id, secret);
+    const context = nurtureContextFor(lead);
+    const subject = nurtureSubjectFor(next, context);
+    const text = renderBody(next, context, unsubUrl);
+    const track = `${context.pain}_${context.hot ? "hot" : "cool"}`;
     const delivery = await sendNurtureEmail(
       resendKey,
-      nurtureEmailIdempotencyKey(lead.id, next.step),
+      nurtureEmailIdempotencyKey(lead.id, next.step, sequence.campaign),
       {
         from: `${BUSINESS.operator} <${BUSINESS.email.ryan}>`,
         reply_to: BUSINESS.email.hello,
         to: [lead.email],
-        subject: next.subject,
-        text: renderBody(next, lead, unsubUrl),
+        subject,
+        text,
+        // The designed email. Workshop steps keep the plain look: they are a
+        // four day countdown, not a thirty day series.
+        ...(sequence === WORKSHOP_SEQUENCE
+          ? {}
+          : { html: renderNurtureHtml({ step: next, firstName: context.first, unsubUrl, context }) }),
         headers: {
           "List-Unsubscribe": `<${unsubUrl}>`,
           "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
         },
+        tags: [
+          { name: "campaign", value: sequence.campaign },
+          { name: "day", value: String(next.day).padStart(2, "0") },
+          { name: "track", value: track },
+        ],
       },
     );
 
@@ -401,7 +501,7 @@ export async function GET(request: Request) {
         .insert({
           lead_id: lead.id,
           kind: "system",
-          detail: `Sent day ${next.day} follow-up email: ${next.subject}`,
+          detail: `Sent day ${next.day} follow-up email: ${subject} [${sequence.campaign}/${track}]`,
         })
         .then(
           () => undefined,

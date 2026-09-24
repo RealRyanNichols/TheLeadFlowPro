@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { authDestination, safeAuthNext } from "@/lib/authRedirect";
+import { requestOrigin } from "@/lib/requestOrigin";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
+  const origin = requestOrigin(request);
   const next = safeAuthNext(url.searchParams.get("next"));
   const code = url.searchParams.get("code");
   const failure = () => {
-    const destination = new URL("/login", url.origin);
+    const destination = new URL("/login", origin);
     destination.searchParams.set("auth_error", "link_expired");
     if (next === "/account/password")
       destination.searchParams.set("mode", "reset");
@@ -36,7 +38,7 @@ export async function GET(request: Request) {
         : profileError
           ? "/login?auth_error=workspace_unavailable"
           : authDestination(profile?.role, next);
-    const response = NextResponse.redirect(new URL(destination, url.origin));
+    const response = NextResponse.redirect(new URL(destination, origin));
     response.headers.set("Cache-Control", "private, no-store");
     return response;
   } catch {

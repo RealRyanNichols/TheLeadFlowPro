@@ -65,6 +65,25 @@ export type LeadTimelineItem = {
   status?: string;
 };
 
+// The Call Closer (lib/callCloser.ts) ends each lead_activity detail it writes
+// with bookkeeping markers: " Outcome: no_answer.", " Offer ids: a, b." and
+// " Ref <key>". The save route finds a retried save by its Ref and the call
+// card reads the outcome and offers back, so the stored detail keeps them.
+// People reading the timeline should not have to. The markers are only ever
+// appended at the end, so only a trailing run is removed: a detail that says
+// "Outcome: great." in the middle of a sentence keeps it. Same shapes as the
+// call sheet's note summary (lib/callSheet.ts), kept here because this module
+// runs in the browser and the call sheet does not.
+const ACTIVITY_MARKER_TAIL =
+  /(?:\s*\bOutcome: [a-z_]+\.)?(?:\s*\bOffer ids: [a-z0-9_]+(?:, [a-z0-9_]+)*\.)?(?:\s*\bRef [A-Za-z0-9-]{20,80})?\s*$/;
+
+/** An activity detail for display: the Call Closer's trailing markers removed. The stored detail is unchanged. */
+export function stripActivityMarkers(detail: string): string {
+  if (typeof detail !== "string") return "";
+  const stripped = detail.replace(ACTIVITY_MARKER_TAIL, "");
+  return stripped || detail.trim();
+}
+
 export function leadSourceLabel(source: string | null | undefined): string {
   if (
     ["meta_lead_ad", "facebook-lead-ad", "facebook_lead_ad"].includes(
@@ -214,7 +233,7 @@ export function buildLeadTimeline(input: {
       kind: "activity",
       at: event.created_at,
       title: event.kind.replace(/_/g, " "),
-      body: event.detail,
+      body: stripActivityMarkers(event.detail),
       author: "CRM activity",
     });
   }

@@ -17,10 +17,13 @@ import {
   Users,
   Workflow,
 } from "lucide-react";
+import { stripActivityMarkers } from "@/lib/leadTimeline";
 import { requireOperatorAdmin } from "@/lib/operatoros/auth";
 import { createServiceClient } from "@/lib/supabase/service";
 import WorkspaceLinks from "@/components/WorkspaceLinks";
+import TodaysCallsBanner from "../TodaysCallsBanner";
 import LiveRefresh from "./LiveRefresh";
+import Rn1DeskPanel from "./Rn1DeskPanel";
 
 export const metadata = { title: "Flow Mission Control | The LeadFlow Pro" };
 
@@ -249,6 +252,7 @@ export default async function FlowMissionControl() {
     // Do not turn failed reads into zero-valued metrics.
     return (
       <div className="space-y-6">
+        <TodaysCallsBanner supabase={supabase} className="" />
         <h2 className="text-2xl font-black text-[var(--heading)]">
           Command Center
         </h2>
@@ -265,6 +269,8 @@ export default async function FlowMissionControl() {
             <LiveRefresh />
           </div>
         </div>
+        {/* The trading desk reads its own server, so a CRM outage never hides it. */}
+        <Rn1DeskPanel />
       </div>
     );
   }
@@ -487,7 +493,8 @@ export default async function FlowMissionControl() {
           id: `activity-${entry.id}`,
           at: entry.created_at,
           title: entry.kind.replace(/_/g, " "),
-          detail: `${lead?.business_name || lead?.full_name || "Lead"}: ${entry.detail}`,
+          // The Call Closer's Outcome, Offer ids and Ref markers are bookkeeping, not owner copy.
+          detail: `${lead?.business_name || lead?.full_name || "Lead"}: ${stripActivityMarkers(entry.detail)}`,
           tone: "violet" as const,
         };
       }),
@@ -518,7 +525,9 @@ export default async function FlowMissionControl() {
 
   return (
     <div className="space-y-6">
+      <TodaysCallsBanner supabase={supabase} className="" />
       <WorkspaceLinks admin />
+      <Rn1DeskPanel />
       <section className="overflow-hidden rounded-[28px] border border-[var(--line)] bg-[#ede6f3] text-[var(--heading)] shadow-[var(--lf-shadow)]">
         <div className="border-b border-[var(--line)] px-5 py-4 sm:px-7">
           <div className="flex flex-wrap items-center justify-between gap-3">

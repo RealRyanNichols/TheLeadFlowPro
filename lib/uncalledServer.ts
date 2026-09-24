@@ -34,7 +34,7 @@ export async function loadUncalledList(supabase: SupabaseClient, now: Date): Pro
     // Newest open leads first, so a cap drops the oldest, never today's.
     const leadsResult = await supabase
       .from("leads")
-      .select("id, created_at, full_name, business_name, email, phone, interest, status, source, utm_source, best_contact_method, sms_consent, sms_unsubscribed_at, is_test")
+      .select("id, created_at, full_name, business_name, email, phone, interest, status, source, utm_source, best_contact_method, sms_consent, sms_unsubscribed_at, is_test, next_follow_up_at")
       .is("deleted_at", null)
       .not("is_test", "is", true)
       .not("status", "in", "(won,lost)")

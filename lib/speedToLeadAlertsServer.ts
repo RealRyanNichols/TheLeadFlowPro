@@ -46,7 +46,7 @@ const JOBS = "speed_to_lead_jobs";
 const FIRST_TEXT_AUTHOR = "Ryan Nichols (automatic first text)";
 // The question every first text asks; finding it on the lead's thread means
 // the text already went (the Quo webhook echo, or our own row).
-const FIRST_TEXT_THREAD_MARKER = "Quick question so I call you ready";
+const FIRST_TEXT_THREAD_MARKER = "Quick question so I know where to start";
 const SWEEP_CONCURRENCY = 5;
 
 type Env = Record<string, string | undefined>;
