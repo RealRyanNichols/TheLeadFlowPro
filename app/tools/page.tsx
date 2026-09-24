@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Download, Code2, Zap } from "lucide-react";
 import { TOOLS, TOOL_COUNT, toolIndex, sortTools } from "@/lib/tools";
+import { CHASE_SHEET } from "@/lib/chaseSheet/product";
 import { PUBLISHED_COLLECTIONS, collectionCount } from "@/lib/tools/collections";
 import ToolDirectory from "@/components/tools/ToolDirectory";
 import ToolFinder from "@/components/tools/ToolFinder";
@@ -151,6 +152,13 @@ export default function ToolsPage() {
 
         </div>
       </section>
+      <FinalCta
+        eyebrow={`Chase Sheet · ${CHASE_SHEET.monthlyLabel} or ${CHASE_SHEET.lifetimeLabel}`}
+        title="Every open quote, chased every day."
+        body="The follow-up for every quote you send, written for your trade, sent from your own phone with one tap. Try the free demo: it writes the whole sequence for one of your quotes. Chase Sheet is a separate paid product."
+        primary={{ href: "/chase-sheet", label: "See Chase Sheet" }}
+        secondary={{ href: "/chase-sheet#demo", label: "Watch it write a follow-up" }}
+      />
       <FinalCta
         eyebrow="SellerProof · chargeback evidence packets"
         title="A chargeback needs a clear record."

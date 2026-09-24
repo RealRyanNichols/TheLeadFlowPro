@@ -10,9 +10,10 @@
 // invisible to the owner. Leaf module: no network, no Next.js.
 
 import { AGENCY_PAYMENT } from "@/lib/agencyPayment";
+import { CHASE_SHEET } from "@/lib/chaseSheet/product";
 import { HQ_PLAN } from "@/lib/hq/types";
 
-export type InvoiceFamily = "sales_desk" | "agency_payment" | "tool_monthly_menu" | "hq_subscription" | "unknown";
+export type InvoiceFamily = "sales_desk" | "agency_payment" | "tool_monthly_menu" | "hq_subscription" | "chase_sheet" | "unknown";
 
 export type ClassifiedInvoice = {
   invoiceId: string | null;
@@ -85,6 +86,7 @@ export function classifyStripeInvoice(input: unknown): ClassifiedInvoice {
   if (kind === HQ_PLAN.kind || typeof subscriptionMetadata.workspace_id === "string") family = "hq_subscription";
   else if (kind === AGENCY_PAYMENT.kind) family = "agency_payment";
   else if (kind === "tool_monthly_menu") family = "tool_monthly_menu";
+  else if (kind === CHASE_SHEET.monthlyKind) family = "chase_sheet";
   else if (metadata.leadflow_source === "sales_desk" || leadId) family = "sales_desk";
 
   return {

@@ -33,6 +33,8 @@ import { sendSellerProofReceipt } from "@/lib/sellerproof/receipt";
 import { handleHqStripeEvent } from "@/lib/hq/subscription";
 import { HQ_PLAN } from "@/lib/hq/types";
 import { AGENCY_PAYMENT, agencyPaymentFromMetadata } from "@/lib/agencyPayment";
+import { CHASE_SHEET, isChaseSheetKind } from "@/lib/chaseSheet/product";
+import { applyChaseSheetMoneyBack, ensureChaseSheetPaid, handleChaseSheetSubscription, markChaseSheetRenewed } from "@/lib/chaseSheet/subscription";
 import { deliverPaymentEmail } from "@/lib/paymentEmailDelivery";
 import { classifyStripeInvoice, dollars, renewalAction } from "@/lib/stripeInvoiceEvents";
 import { refundOutcome } from "@/lib/stripeRefunds";
@@ -1549,7 +1551,7 @@ async function recordSubscriptionInvoice(
   invoice: ReturnType<typeof classifyStripeInvoice>,
 ): Promise<boolean> {
   const action = renewalAction(invoice, eventType);
-  if (action === "ignore") return invoice.family === "hq_subscription" || invoice.family === "agency_payment" || invoice.family === "tool_monthly_menu";
+  if (action === "ignore") return invoice.family === "hq_subscription" || invoice.family === "agency_payment" || invoice.family === "tool_monthly_menu" || invoice.family === "chase_sheet";
   if (action === "skip_first_invoice") return true;
   const invoiceId = invoice.invoiceId;
   if (!invoiceId) throw new Error("Stripe invoice event has no invoice ID");
@@ -1560,8 +1562,10 @@ async function recordSubscriptionInvoice(
       ? HQ_PLAN.name
       : invoice.family === "agency_payment"
         ? `Agency retainer: ${meta.service_name ?? meta.service ?? "service"}${meta.reference ? ` (${meta.reference})` : ""}`
-        : `Tool Studio monthly menu: ${meta.monthly_ids ?? "menu"}`;
-  const kind = invoice.family === "hq_subscription" ? HQ_PLAN.kind : invoice.family;
+        : invoice.family === "chase_sheet"
+          ? `${CHASE_SHEET.name} monthly`
+          : `Tool Studio monthly menu: ${meta.monthly_ids ?? "menu"}`;
+  const kind = invoice.family === "hq_subscription" ? HQ_PLAN.kind : invoice.family === "chase_sheet" ? CHASE_SHEET.monthlyKind : invoice.family;
 
   if (action === "record_failed") {
     await internalAlert(supabase, invoiceId, "renewal-failed:internal", `RENEWAL FAILED: ${what} for ${email}`, [
@@ -1592,6 +1596,10 @@ async function recordSubscriptionInvoice(
     "Purchases: https://www.theleadflowpro.com/admin/purchases",
   ]);
   await recordPurchase(supabase, { email, kind, amount_cents: invoice.amountPaidCents, stripe_session_id: invoiceId, status: "paid" });
+  if (invoice.family === "chase_sheet" && invoice.subscriptionId) {
+    // A paid month keeps the sheet open even when the subscription webhooks were never registered.
+    await markChaseSheetRenewed(supabase, invoice.subscriptionId);
+  }
   if (invoice.family === "agency_payment") {
     const leadId = await findAgencyLeadByEmail(supabase, invoice.email);
     if (leadId) await markLeadActivity(supabase, leadId, `Agency retainer renewed: ${meta.service_name ?? meta.service ?? "service"}, ${dollars(invoice.amountPaidCents)}. Stripe invoice: ${invoiceId}.`, "Agency renewal");
@@ -1734,6 +1742,8 @@ async function handleMoneyBack(supabase: SupabaseClient, eventType: string, obje
     const updated = await supabase.from("purchases").update({ status: toStatus }).eq("stripe_session_id", purchase.stripe_session_id).eq("status", fromStatus).select("stripe_session_id");
     if (updated.error) throw new Error(`Purchase status flip failed: ${updated.error.code}`);
     if (!updated.data?.length) console.warn(`No ${fromStatus} purchase matched ${purchase.stripe_session_id} for ${toStatus}`);
+    // A refund or dispute on either Chase Sheet plan locks the sheet; a dispute won reopens it.
+    await applyChaseSheetMoneyBack(supabase, purchase, restoring);
   }
   return true;
 }
@@ -1849,6 +1859,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Subscription processing failed" }, { status: 500 });
   }
 
+  // The Chase Sheet monthly plan: every customer.subscription.* event keeps
+  // the account's status in step with Stripe. Paid checkouts for either plan
+  // are recorded and fulfilled by the dispatch below like every other kind.
+  try {
+    if (await handleChaseSheetSubscription(createSupabaseClient(SUPABASE_URL, serviceKey), event)) {
+      return NextResponse.json({ received: true });
+    }
+  } catch (error) {
+    console.error("Stripe Chase Sheet subscription webhook failed:", error instanceof Error ? error.message : "unknown");
+    return NextResponse.json({ error: "Subscription processing failed" }, { status: 500 });
+  }
+
   if (typeof event.type === "string" && INVOICE_EVENT_STATUS[event.type]) {
     try {
       const invoice = (event.data?.object ?? {}) as StripeInvoiceWebhook;
@@ -1942,7 +1964,7 @@ export async function POST(request: Request) {
     const websiteLaunch = isWebsiteLaunchDeposit(session, configuredPaymentLinkId);
     const customer = websiteLaunchCustomer(session);
     if (!customer.email) {
-      if (websiteLaunch || ["event", "pro_tool", "pro_bundle"].includes(String(session.metadata?.kind))) {
+      if (websiteLaunch || ["event", "pro_tool", "pro_bundle"].includes(String(session.metadata?.kind)) || isChaseSheetKind(String(session.metadata?.kind))) {
         throw new Error("Paid checkout is missing its customer email");
       }
       return NextResponse.json({ received: true });
@@ -1975,6 +1997,8 @@ export async function POST(request: Request) {
       await sendProKitReceipt(supabase, session.id, customer.email, proKind);
     } else if (kind === SELLERPROOF.kind) {
       await sendSellerProofReceipt(customer.email, session.id);
+    } else if (isChaseSheetKind(kind)) {
+      await ensureChaseSheetPaid(supabase, session);
     } else if (kind === "timeback_order") {
       await ensureTimebackOrderPaid(supabase, session);
     } else if (kind === "event") {

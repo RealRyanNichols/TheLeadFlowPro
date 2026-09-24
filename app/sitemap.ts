@@ -17,6 +17,7 @@ const BASE = "https://www.theleadflowpro.com";
 const PAGE_PRIORITY: Record<string, number> = {
   "": 1,
   "/plugin": 0.9,
+  "/chase-sheet": 0.9,
 };
 
 export default function sitemap(): MetadataRoute.Sitemap {

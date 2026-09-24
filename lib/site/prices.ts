@@ -65,6 +65,13 @@ export const PRICES = {
   sellerProofPacket: 49,
 
   /**
+   * Chase Sheet (/chase-sheet): the open-quote follow-up engine. Monthly, or
+   * one payment for life. lib/chaseSheet/product.ts is what checkout charges.
+   */
+  chaseSheetMonthly: 20,
+  chaseSheetLifetime: 97,
+
+  /**
    * Time Back (/go/time-back) entry price: 3 posts a day for 7 days, one time.
    * lib/timeback.ts PRICE_GRID[3][7] is what /api/checkout charges; this is
    * the "from" number the page prints.

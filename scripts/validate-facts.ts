@@ -64,7 +64,7 @@ const ALLOW: Allow[] = [
   },
   {
     file: /^components\/RentCalculator\.tsx$/,
-    line: /ClickFunnels|HighLevel|Wix|Squarespace|Shopify|Kajabi|Mailchimp|Calendly|price: \d+/,
+    line: /ClickFunnels|HighLevel|Wix|Squarespace|Shopify|Kajabi|Mailchimp|Calendly|Vercel|Resend|price: \d+/,
     reason: "rented-stack vendor prices sourced in the calculator",
   },
   {

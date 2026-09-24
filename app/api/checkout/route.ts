@@ -6,6 +6,7 @@ import { priceToolStudio } from "@/lib/toolStudio";
 import { PRO_BUNDLE, getProTool } from "@/lib/tools/pro";
 import { startEventCheckout } from "@/lib/eventCheckoutServer";
 import { AGENCY_PAYMENT, resolveAgencyCharge } from "@/lib/agencyPayment";
+import { CHASE_SHEET, checkoutNameForPlan, isChaseSheetKind, planForKind, priceUsdForPlan } from "@/lib/chaseSheet/product";
 import { PRICES, usd } from "@/lib/site/prices";
 
 // Stripe Checkout for fixed products, approved package payments, and paid event seats. Activates when
@@ -221,6 +222,25 @@ export async function POST(request: Request) {
         metadata.pro_slug = kit.slug;
       }
       successUrl = `${site}/api/pro/claim?session_id={CHECKOUT_SESSION_ID}`;
+    } else if (typeof body.kind === "string" && isChaseSheetKind(body.kind)) {
+      // Chase Sheet (/chase-sheet). Two plans, one product: a monthly
+      // subscription or one payment for good. The browser names the plan and
+      // nothing else; the amount and the mode come from lib/chaseSheet/product.ts.
+      // Success lands on the claim route, which verifies the session with
+      // Stripe, writes the account, and signs the identity cookie before it
+      // opens the sheet, so a slow webhook never leaves a buyer locked out.
+      const plan = planForKind(body.kind)!;
+      kind = body.kind;
+      name = checkoutNameForPlan(plan);
+      amount = priceUsdForPlan(plan) * 100;
+      checkoutMode = plan === "monthly" ? "subscription" : "payment";
+      checkoutLines = [{ name, amount, recurring: plan === "monthly" }];
+      cancelUrl = `${site}${CHASE_SHEET.path}?cancelled=1`;
+      successUrl = `${site}${CHASE_SHEET.claimPath}?session_id={CHECKOUT_SESSION_ID}`;
+      subscriptionNote =
+        `${CHASE_SHEET.name} renews on the same date each month until you cancel from inside the sheet; it stops at the end of the paid month. You send every message yourself; nothing is sent for you.`;
+      metadata.kind = kind;
+      metadata.plan = plan;
     } else if (body.kind === "timeback_order") {
       // Time Back funnel (/go/time-back). The client sends selections, never
       // prices. The total comes from lib/timeback.ts so nobody can edit a
