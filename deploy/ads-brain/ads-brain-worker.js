@@ -109,8 +109,8 @@ async function persist(brain, startedAt, analysis) {
       INSERT INTO ads_brain_run (started_at, finished_at, ok, mode, account_id, meta_state, leads_seen, error, detail)
       VALUES ($1, now(), true, 'observe_only', $2, $3, $4, $5, $6) RETURNING id`,
       [startedAt, LEADFLOW_ACCOUNT_ID, metaState, Number(analysis.leads.totals.total || 0), analysis.meta.error, {
-        active_ads: analysis.meta.active_ads.length,
-        active_campaigns: analysis.meta.active_campaigns.length,
+        active_ads: analysis.meta.connected ? analysis.meta.active_ads.length : null,
+        active_campaigns: analysis.meta.connected ? analysis.meta.active_campaigns.length : null,
         alerts: analysis.alerts.length,
       }]);
     await brain.query(`INSERT INTO ads_brain_snapshot (run_id, payload) VALUES ($1,$2)`, [run.rows[0].id, analysis]);
@@ -154,7 +154,8 @@ async function main() {
     console.log(JSON.stringify({
       at: new Date().toISOString(), event: 'ads_brain.completed', run_id: runId,
       mode: analysis.hard_stops.mode, spend_lock: analysis.hard_stops.spend_lock,
-      meta_connected: analysis.meta.connected, active_ads: analysis.meta.active_ads.length,
+      meta_connected: analysis.meta.connected,
+      active_ads: analysis.meta.connected ? analysis.meta.active_ads.length : null,
       meta_leads: Number(analysis.leads.totals.total || 0), alerts: analysis.alerts.length,
     }));
   } finally {

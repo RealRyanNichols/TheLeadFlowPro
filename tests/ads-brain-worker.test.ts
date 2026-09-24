@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
+import fs from "node:fs";
 import test from "node:test";
 
 const require = createRequire(import.meta.url);
@@ -55,4 +56,11 @@ test("observer keeps account reporting connected when only Page form inventory i
   assert.equal(result.meta.form_access.connected, false);
   assert.ok(result.alerts.some((alert: { key: string }) => alert.key === "meta_form_reporting_limited"));
   assert.ok(!result.alerts.some((alert: { key: string }) => alert.key === "meta_reporting_disconnected"));
+});
+
+test("private dashboard never presents disconnected delivery or spend as zero", () => {
+  const dashboard = fs.readFileSync(new URL("../deploy/ads-brain/public/ads.html", import.meta.url), "utf8");
+  assert.match(dashboard, /m\.connected\?num\(\(m\.active_ads\|\|\[\]\)\.length\):'Unknown'/);
+  assert.match(dashboard, /m\.connected\?money\(seven\.spend\):'Unavailable'/);
+  assert.match(dashboard, /Cannot verify delivery until ads_read is connected/);
 });

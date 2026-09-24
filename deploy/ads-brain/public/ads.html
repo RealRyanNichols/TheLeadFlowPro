@@ -51,12 +51,12 @@ function render(data){
   const latest=data.runs&&data.runs[0];
   $('#app').innerHTML=`<div class="grid">
     ${metric('Meta connection',m.connected?'Connected':'Needs attention',m.connected?'Aggregate read access only':m.error||'Disconnected')}
-    ${metric('Active ads',num((m.active_ads||[]).length),(m.active_ads||[]).length?'Review Ads Manager now':'Delivery lock looks clean')}
+    ${metric('Active ads',m.connected?num((m.active_ads||[]).length):'Unknown',m.connected?((m.active_ads||[]).length?'Review Ads Manager now':'Meta reports no active delivery'):'Cannot verify delivery until ads_read is connected')}
     ${metric('Meta leads',num(t.total),'All live, non test CRM rows')}
     ${metric('No first contact',num(t.uncontacted),'Work these before new spend')}
-    ${metric('Spend, 7 days',money(seven.spend),`${num(seven.platform_leads)} platform leads`) }
+    ${metric('Spend, 7 days',m.connected?money(seven.spend):'Unavailable',m.connected?`${num(seven.platform_leads)} platform leads`:'Meta reporting is disconnected') }
     ${metric('CRM leads, 7 days',num(t.d7),`${num(t.proposal)} proposals open`) }
-    ${metric('Spend, 30 days',money(thirty.spend),`${num(thirty.clicks)} clicks`) }
+    ${metric('Spend, 30 days',m.connected?money(thirty.spend):'Unavailable',m.connected?`${num(thirty.clicks)} clicks`:'Meta reporting is disconnected') }
     ${metric('CRM leads, 30 days',num(t.d30),`${num(t.won)} won recorded`) }
     <section class="panel two"><h2>What needs attention</h2>${alerts}</section>
     <section class="panel two"><h2>Next moves</h2><ol>${recs}</ol></section>
