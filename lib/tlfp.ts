@@ -4,8 +4,12 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import {
   TLFP_CREDITS,
+  TLFP_FOUNDING,
   earnRule,
+  foundingRebateCredits,
+  foundingTierFor,
   referralCredits,
+  type FoundingTierId,
   type TlfpPack,
 } from "@/lib/tlfpCredits";
 
@@ -36,13 +40,41 @@ export type TlfpLedgerRow = {
   created_at: string;
 };
 
+export type TlfpFoundingSeat = {
+  seatNo: number;
+  tier: FoundingTierId;
+  bonusApplied: number;
+  claimedAt: string;
+};
+
 export type TlfpAccountView = {
   email: string;
   balance: number;
   held: number;
   referralCode: string;
   history: TlfpLedgerRow[];
+  /** The Founding 100 seat on this email, or null. */
+  founding: TlfpFoundingSeat | null;
 };
+
+export type TlfpReason =
+  | "pack_purchase"
+  | "pack_refund"
+  | "pack_restore"
+  | "course_completed"
+  | "event_attended"
+  | "referral_purchase"
+  | "redeem"
+  | "admin_grant"
+  | "admin_adjust"
+  | "founding_bonus"
+  | "founding_monthly"
+  | "founding_rebate"
+  | "founding_reversed"
+  | "founding_restored";
+
+/** The founding awards a refund takes back. */
+export const FOUNDING_AWARD_REASONS: readonly TlfpReason[] = ["founding_bonus", "founding_monthly", "founding_rebate"];
 
 export function normalizeEmail(value: unknown): string {
   return typeof value === "string" ? value.trim().toLowerCase().slice(0, 254) : "";
@@ -77,16 +109,7 @@ export async function postCredits(
   input: {
     email: string;
     delta: number;
-    reason:
-      | "pack_purchase"
-      | "pack_refund"
-      | "pack_restore"
-      | "course_completed"
-      | "event_attended"
-      | "referral_purchase"
-      | "redeem"
-      | "admin_grant"
-      | "admin_adjust";
+    reason: TlfpReason;
     ref: string;
     memo?: string;
     amountCents?: number | null;
@@ -257,6 +280,218 @@ export async function awardReferralPurchase(
   });
 }
 
+export type FoundingOutcome = {
+  /** The tier this purchase counts as, or null when it does not qualify. */
+  tier: FoundingTierId | null;
+  /** The buyer's seat, whoever claimed it and when. */
+  seatNo: number | null;
+  /** True when this purchase is the one that claimed the seat (stable across retries). */
+  claimedHere: boolean;
+  /** True when this purchase qualified but all seats were already taken. */
+  soldOut: boolean;
+  /** One-time bonus on the seat (only reported when claimedHere). */
+  bonus: number;
+  /** Operations Partner month credits posted for this purchase. */
+  monthly: number;
+  /** Standing rebate credits posted for this purchase. */
+  rebate: number;
+};
+
+/**
+ * Founding 100 on one paid purchase. `key` is the Stripe checkout session or
+ * invoice id that paid. Every award carries it as its stripe_session_id, so a
+ * refund can find it and take it back, and every ref is built from it, so a
+ * retried event posts nothing twice.
+ *
+ * In order: when the purchase qualifies (lib/tlfpCredits.ts foundingTierFor)
+ * and a seat is free, claim one and post its one-time bonus (the database
+ * does both in one transaction and refuses seat 101). Then, for any seat
+ * holder: an Operations Partner month posts its monthly credits, and every
+ * paid purchase posts the standing rebate. All of it under the 1,999 cap.
+ */
+export async function applyFoundingPerks(
+  service: SupabaseClient,
+  input: { email: string; kind: string; amountCents: number | null; key: string; billing?: string | null },
+): Promise<FoundingOutcome> {
+  const email = normalizeEmail(input.email);
+  const key = input.key.trim().slice(0, 200);
+  const outcome: FoundingOutcome = { tier: null, seatNo: null, claimedHere: false, soldOut: false, bonus: 0, monthly: 0, rebate: 0 };
+  if (!isEmail(email) || key.length < 3) return outcome;
+
+  const tier = foundingTierFor({ kind: input.kind, amountCents: input.amountCents, billing: input.billing ?? null });
+  outcome.tier = tier?.id ?? null;
+
+  if (tier) {
+    const { data, error } = await service.rpc("tlfp_founding_claim", {
+      p_email: email,
+      p_tier: tier.id,
+      p_ref: key,
+      p_bonus: tier.oneTimeCredits,
+      p_memo: null,
+    });
+    if (error) throw new Error(`TLFP founding claim failed: ${error.code ?? error.message}`);
+    const claim = (data ?? {}) as { ok?: boolean; error?: string; seat_no?: number; ref?: string; bonus_applied?: number };
+    if (claim.ok && typeof claim.seat_no === "number") {
+      outcome.seatNo = claim.seat_no;
+      outcome.claimedHere = claim.ref === key;
+      if (outcome.claimedHere) outcome.bonus = Number(claim.bonus_applied ?? 0);
+    } else if (claim.error === "sold_out") {
+      outcome.soldOut = true;
+    } else {
+      throw new Error(`TLFP founding claim refused: ${claim.error ?? "unknown"}`);
+    }
+  }
+
+  if (outcome.seatNo === null && !tier) {
+    const { data, error } = await service.from("tlfp_founding_seats").select("seat_no").eq("email", email).maybeSingle();
+    if (error) throw new Error(`TLFP founding seat lookup failed: ${error.code}`);
+    outcome.seatNo = typeof data?.seat_no === "number" ? data.seat_no : null;
+  }
+  if (outcome.seatNo === null) return outcome;
+
+  if (tier && tier.monthlyCredits > 0) {
+    const month = await postCredits(service, {
+      email,
+      delta: tier.monthlyCredits,
+      reason: "founding_monthly",
+      ref: `founding_monthly:${key}`,
+      memo: `Founding ${tier.label} month`,
+      amountCents: input.amountCents,
+      stripeSessionId: key,
+      actor: "webhook",
+      requireFunds: false,
+    });
+    outcome.monthly = month.ok ? Number(month.applied ?? 0) : 0;
+  }
+
+  const rebate = foundingRebateCredits(input.kind, input.amountCents);
+  if (rebate > 0) {
+    const back = await postCredits(service, {
+      email,
+      delta: rebate,
+      reason: "founding_rebate",
+      ref: `founding_rebate:${key}`,
+      memo: `Founding rebate, ${TLFP_FOUNDING.rebatePercent}% back`,
+      amountCents: input.amountCents,
+      stripeSessionId: key,
+      actor: "webhook",
+      requireFunds: false,
+    });
+    outcome.rebate = back.ok ? Number(back.applied ?? 0) : 0;
+  }
+  return outcome;
+}
+
+/**
+ * A refund or dispute takes back every founding award that rode on the money
+ * (bonus, month, rebate); a dispute won puts back what was taken. `keys` are
+ * the checkout session or invoice ids the money maps to. Idempotent on the
+ * original row, so a retried event moves nothing twice. Returns the credits
+ * moved by this call.
+ */
+export async function reverseFoundingCredits(
+  service: SupabaseClient,
+  input: { keys: string[]; restore: boolean },
+): Promise<number> {
+  const keys = [...new Set(input.keys.map((k) => k.trim().slice(0, 200)).filter((k) => k.length >= 3))];
+  if (!keys.length) return 0;
+  const { data, error } = await service
+    .from("tlfp_ledger")
+    .select("id, email, delta, stripe_session_id")
+    .in("stripe_session_id", keys)
+    .in("reason", [...FOUNDING_AWARD_REASONS])
+    .eq("status", "posted")
+    .gt("delta", 0);
+  if (error) throw new Error(`TLFP founding lookup failed: ${error.code}`);
+
+  let moved = 0;
+  for (const row of (data ?? []) as { id: string; email: string; delta: number; stripe_session_id: string | null }[]) {
+    if (input.restore) {
+      const { data: reversal, error: reversalError } = await service
+        .from("tlfp_ledger")
+        .select("delta")
+        .eq("ref", `founding_reversed:${row.id}`)
+        .maybeSingle();
+      if (reversalError) throw new Error(`TLFP founding reversal lookup failed: ${reversalError.code}`);
+      if (!reversal) continue;
+      const put = await postCredits(service, {
+        email: row.email,
+        delta: Math.abs(Number(reversal.delta)),
+        reason: "founding_restored",
+        ref: `founding_restored:${row.id}`,
+        memo: "Dispute closed in our favour; founding credits restored",
+        stripeSessionId: row.stripe_session_id,
+        actor: "webhook",
+        requireFunds: false,
+      });
+      if (put.ok && !put.duplicate) moved += Number(put.applied ?? 0);
+    } else {
+      const took = await postCredits(service, {
+        email: row.email,
+        delta: -Math.abs(Number(row.delta)),
+        reason: "founding_reversed",
+        ref: `founding_reversed:${row.id}`,
+        memo: "Purchase refunded or disputed; founding credits taken back",
+        stripeSessionId: row.stripe_session_id,
+        actor: "webhook",
+        requireFunds: false,
+      });
+      if (took.ok && !took.duplicate) moved += Math.abs(Number(took.applied ?? 0));
+    }
+  }
+  return moved;
+}
+
+/** Founding awards that rode on these keys, summed. For the refund alert; stable across retries. */
+export async function foundingAwardedOn(service: SupabaseClient, keys: string[]): Promise<number> {
+  const clean = [...new Set(keys.map((k) => k.trim().slice(0, 200)).filter((k) => k.length >= 3))];
+  if (!clean.length) return 0;
+  const { data, error } = await service
+    .from("tlfp_ledger")
+    .select("delta")
+    .in("stripe_session_id", clean)
+    .in("reason", [...FOUNDING_AWARD_REASONS])
+    .eq("status", "posted");
+  if (error) return 0;
+  return ((data ?? []) as { delta: number }[]).reduce((sum, row) => sum + Math.max(0, Number(row.delta)), 0);
+}
+
+export type FoundingSeatRow = {
+  seat_no: number;
+  email: string;
+  tier: FoundingTierId;
+  ref: string;
+  bonus_applied: number;
+  claimed_at: string;
+};
+
+/** Every seat, lowest number first, read with the service role (admin page). */
+export async function readFoundingSeats(service: SupabaseClient): Promise<FoundingSeatRow[]> {
+  const { data, error } = await service
+    .from("tlfp_founding_seats")
+    .select("seat_no, email, tier, ref, bonus_applied, claimed_at")
+    .order("seat_no", { ascending: true })
+    .limit(TLFP_FOUNDING.seats);
+  if (error) throw new Error(`TLFP founding seats read failed: ${error.code ?? error.message}`);
+  return (data ?? []) as FoundingSeatRow[];
+}
+
+/**
+ * Seats handed out so far: the highest seat number, because seat numbers are
+ * never reissued. Null when the table cannot be read (migration not applied),
+ * so a public page hides the count instead of printing a wrong one.
+ */
+export async function readFoundingSeatsTaken(service: SupabaseClient): Promise<number | null> {
+  const { data, error } = await service
+    .from("tlfp_founding_seats")
+    .select("seat_no")
+    .order("seat_no", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) return null;
+  return typeof data?.seat_no === "number" ? data.seat_no : 0;
+}
+
 /**
  * Balance and history for the logged-in person, read under their own RLS.
  * Returns null when nobody is logged in. Creates the account on first read
@@ -282,7 +517,7 @@ export async function getTlfpAccountForCurrentUser(): Promise<TlfpAccountView | 
     // Service access missing: still show what the user's own policy can read.
   }
 
-  const [balanceRes, historyRes] = await Promise.all([
+  const [balanceRes, historyRes, seatRes] = await Promise.all([
     supabase.from("tlfp_balances").select("balance, held, referral_code").eq("email", email).maybeSingle(),
     supabase
       .from("tlfp_ledger")
@@ -290,7 +525,10 @@ export async function getTlfpAccountForCurrentUser(): Promise<TlfpAccountView | 
       .eq("email", email)
       .order("created_at", { ascending: false })
       .limit(12),
+    // Errors (the founding migration not applied yet) read as no seat.
+    supabase.from("tlfp_founding_seats").select("seat_no, tier, bonus_applied, claimed_at").eq("email", email).maybeSingle(),
   ]);
+  const seat = seatRes.error ? null : seatRes.data;
 
   return {
     email,
@@ -298,6 +536,14 @@ export async function getTlfpAccountForCurrentUser(): Promise<TlfpAccountView | 
     held: Number(balanceRes.data?.held ?? 0),
     referralCode: referralCode || String(balanceRes.data?.referral_code ?? ""),
     history: (historyRes.data ?? []) as TlfpLedgerRow[],
+    founding: seat
+      ? {
+          seatNo: Number(seat.seat_no),
+          tier: seat.tier as FoundingTierId,
+          bonusApplied: Number(seat.bonus_applied ?? 0),
+          claimedAt: String(seat.claimed_at),
+        }
+      : null,
   };
 }
 

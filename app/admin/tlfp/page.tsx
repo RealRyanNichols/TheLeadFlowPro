@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Coins } from "lucide-react";
 import { createServiceClient } from "@/lib/supabase/service";
-import { TLFP_CREDITS } from "@/lib/tlfpCredits";
+import { readFoundingSeats, type FoundingSeatRow } from "@/lib/tlfp";
+import { TLFP_CREDITS, TLFP_FOUNDING, foundingSeatsLeft, foundingTier } from "@/lib/tlfpCredits";
 import GrantForm from "./GrantForm";
 import AnnounceForm from "./AnnounceForm";
 
@@ -52,6 +53,18 @@ export default async function AdminTlfpPage() {
     problem = error instanceof Error ? error.message : "unknown";
   }
 
+  // Founding 100 reads on its own so a missing founding migration never hides the ledger.
+  let seats: FoundingSeatRow[] = [];
+  let seatsProblem: string | null = null;
+  try {
+    seats = await readFoundingSeats(createServiceClient());
+  } catch (error) {
+    seatsProblem = error instanceof Error ? error.message : "unknown";
+  }
+  // Seat numbers are never reissued, so the highest number is what is gone.
+  const seatsTaken = seats.reduce((max, seat) => Math.max(max, seat.seat_no), 0);
+  const seatsLeft = foundingSeatsLeft(seatsTaken);
+
   const outstanding = balances.reduce((sum, row) => sum + Math.max(0, row.balance), 0);
   const holders = balances.filter((row) => row.balance >= TLFP_CREDITS.holderThreshold).length;
 
@@ -73,11 +86,16 @@ export default async function AdminTlfpPage() {
         </p>
       ) : null}
 
-      <div className="mt-5 grid gap-3 sm:grid-cols-3">
+      <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {[
           { label: "Accounts", value: balances.length.toLocaleString("en-US") },
           { label: "Credits outstanding", value: outstanding.toLocaleString("en-US"), sub: `$${outstanding.toLocaleString("en-US")} of services owed` },
           { label: `Holders (${TLFP_CREDITS.holderThreshold}+)`, value: holders.toLocaleString("en-US") },
+          {
+            label: "Founding seats left",
+            value: seatsProblem ? "?" : seatsLeft.toLocaleString("en-US"),
+            sub: seatsProblem ? "Founding migration not readable" : `${seatsTaken} of ${TLFP_FOUNDING.seats} taken`,
+          },
         ].map((stat) => (
           <div key={stat.label} className="card">
             <p className="text-xs font-extrabold uppercase tracking-[0.14em] text-[var(--muted)]">{stat.label}</p>
@@ -99,6 +117,48 @@ export default async function AdminTlfpPage() {
       </div>
 
       <AnnounceForm />
+
+      <div className="card mt-6 overflow-x-auto">
+        <h3 className="text-lg font-bold text-[var(--heading)]">
+          {TLFP_FOUNDING.name}: {seatsProblem ? "not readable" : `${seatsLeft} of ${TLFP_FOUNDING.seats} seats left`}
+        </h3>
+        <p className="mt-1 text-sm text-[var(--muted)]">
+          A seat is claimed automatically by a buyer&apos;s first qualifying paid purchase. Seat bonus by tier, then{" "}
+          {TLFP_FOUNDING.rebatePercent}% back on everything a seat holder pays. A refund takes the credits back; the seat stays taken.
+        </p>
+        {seatsProblem ? (
+          <p className="mt-3 rounded-xl border border-[var(--danger-line)] bg-[var(--danger-tint)] px-4 py-3 text-sm font-semibold text-[var(--danger)]">
+            Could not read the seats: {seatsProblem}. Is supabase/migrations/20260924200000_tlfp_founding.sql applied?
+          </p>
+        ) : seats.length ? (
+          <table className="mt-3 w-full text-sm">
+            <thead>
+              <tr className="text-left text-xs uppercase tracking-wide text-[var(--muted)]">
+                <th className="py-2 pr-3">Seat</th>
+                <th className="py-2 pr-3">Email</th>
+                <th className="py-2 pr-3">Tier</th>
+                <th className="py-2 pr-3">Bonus</th>
+                <th className="py-2 pr-3">Purchase</th>
+                <th className="py-2">Claimed</th>
+              </tr>
+            </thead>
+            <tbody>
+              {seats.map((seat) => (
+                <tr key={seat.seat_no} className="border-t border-[var(--line)]">
+                  <td className="py-2 pr-3 font-black">{seat.seat_no}</td>
+                  <td className="py-2 pr-3 font-semibold text-[var(--heading)]">{seat.email}</td>
+                  <td className="py-2 pr-3">{foundingTier(seat.tier).label}</td>
+                  <td className="py-2 pr-3">{seat.bonus_applied ? seat.bonus_applied.toLocaleString("en-US") : ""}</td>
+                  <td className="py-2 pr-3 font-mono text-xs">{seat.ref}</td>
+                  <td className="py-2 text-[var(--quiet)]">{when(seat.claimed_at)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p className="mt-3 text-sm text-[var(--muted)]">No seats claimed yet.</p>
+        )}
+      </div>
 
       <div className="card mt-6 overflow-x-auto">
         <h3 className="text-lg font-bold text-[var(--heading)]">Balances</h3>

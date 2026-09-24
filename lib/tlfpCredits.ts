@@ -160,3 +160,128 @@ export const TLFP_REDEEMABLE_KINDS: ReadonlySet<string> = new Set([
 export function formatCredits(n: number): string {
   return `${Math.round(n).toLocaleString("en-US")} ${Math.abs(Math.round(n)) === 1 ? "credit" : "credits"}`;
 }
+
+// Founding 100. The first 100 distinct emails whose first qualifying paid
+// purchase clears after this ships get a numbered seat and a one-time
+// founding bonus by what they bought. Seat holders then earn a standing
+// rebate on every paid purchase, and an Operations Partner month pays a
+// monthly bonus. All of it is credits today: posted to the same ledger,
+// under the same 1,999 cap. The seat counter lives in the database
+// (supabase/migrations/20260924200000_tlfp_founding.sql), which refuses seat
+// 101 on its own; tests/tlfp-founding.test.ts checks the numbers match.
+//
+// The numbers are the client playbook's proposal (2026-09-24). Ryan confirms
+// them, and picks the rebate (5 or 10), before this goes live.
+
+export type FoundingTierId = "build" | "learn" | "operations";
+
+export type FoundingTier = {
+  id: FoundingTierId;
+  label: string;
+  /** Posted once, when the seat is claimed. */
+  oneTimeCredits: number;
+  /** Posted on every paid month of this tier, for any seat holder. */
+  monthlyCredits: number;
+  /** purchases.kind values (or invoice kinds) that count as this tier. */
+  kinds: readonly string[];
+  /** The cash paid on the purchase must be at least this many cents to claim a seat. */
+  minPaidCents: number;
+  /** Client-facing line, short. */
+  line: string;
+};
+
+export const TLFP_FOUNDING = {
+  name: "Founding 100",
+  /** Seats, ever. The migration's check constraint holds the same number. */
+  seats: 100,
+  /** Standing rebate for a seat holder, as a percentage of cash paid. Ryan picks 5 or 10. */
+  rebatePercent: 5,
+  /** Kinds that never earn a rebate or claim a seat: buying credits with credits' own bonus. */
+  rebateExcludedKinds: ["tlfp_credit_pack"] as readonly string[],
+  /**
+   * The value sentence for anything founding a client sees. No price talk,
+   * ever. "Send" joins when earned credits can be claimed as TLFP; until
+   * then credits stay on the email that earned them (terms, section 2).
+   */
+  valueLine: "A dollar of our work each. Yours to spend or hold.",
+} as const;
+
+export const TLFP_FOUNDING_TIERS: readonly FoundingTier[] = [
+  {
+    id: "build",
+    label: "Build client",
+    oneTimeCredits: 1000,
+    monthlyCredits: 0,
+    // Deposits and full payments on a build, a one-time agency scope, a Tool
+    // Studio build, and a Sales Desk or Stripe dashboard invoice.
+    kinds: ["build_deposit", "package_deposit", "package_full", "agency_payment", "tool_studio_order", "stripe_invoice"],
+    // The Website Launch deposit is the smallest real build start.
+    minPaidCents: PRICES.websiteLaunchDeposit * 100,
+    line: "Start a build",
+  },
+  {
+    id: "learn",
+    label: "Learn It",
+    oneTimeCredits: 250,
+    monthlyCredits: 0,
+    // learn_it has no live checkout; the paid Operator Academy courses are the
+    // training sold today.
+    kinds: ["learn_it", "chatgpt_operator_course", "operator_academy_all_access"],
+    minPaidCents: 1,
+    line: "Buy the training",
+  },
+  {
+    id: "operations",
+    label: "Operations Partner",
+    oneTimeCredits: 0,
+    monthlyCredits: 100,
+    // A monthly agency retainer: month one on the checkout, every month after on its invoice.
+    kinds: ["agency_payment"],
+    minPaidCents: 1,
+    line: "Run it with us every month",
+  },
+];
+
+export function foundingTier(id: FoundingTierId): FoundingTier {
+  const tier = TLFP_FOUNDING_TIERS.find((t) => t.id === id);
+  if (!tier) throw new Error(`Unknown founding tier: ${id}`);
+  return tier;
+}
+
+/**
+ * Which founding tier a paid purchase counts as, or null. A monthly agency
+ * retainer is an Operations Partner month; a one-time agency payment is a
+ * build. Cash paid is what counts: a checkout covered by credits claims no
+ * seat and earns no rebate.
+ */
+export function foundingTierFor(purchase: {
+  kind: string;
+  amountCents: number | null;
+  billing?: string | null;
+}): FoundingTier | null {
+  const kind = purchase.kind;
+  const cents = Number(purchase.amountCents);
+  if (!Number.isFinite(cents) || cents <= 0) return null;
+  if (TLFP_FOUNDING.rebateExcludedKinds.includes(kind)) return null;
+  const monthly = purchase.billing === "monthly";
+  for (const tier of TLFP_FOUNDING_TIERS) {
+    if (!tier.kinds.includes(kind)) continue;
+    if (kind === "agency_payment" && (tier.id === "operations") !== monthly) continue;
+    if (cents < tier.minPaidCents) continue;
+    return tier;
+  }
+  return null;
+}
+
+/** The standing rebate on one paid purchase, whole credits, floor. */
+export function foundingRebateCredits(kind: string, amountCents: number | null): number {
+  const cents = Number(amountCents);
+  if (!Number.isFinite(cents) || cents <= 0) return 0;
+  if (TLFP_FOUNDING.rebateExcludedKinds.includes(kind)) return 0;
+  return Math.floor((cents / TLFP_CREDITS.creditValueCents) * (TLFP_FOUNDING.rebatePercent / 100));
+}
+
+/** "7 of 100 seats taken" arithmetic, never negative. */
+export function foundingSeatsLeft(taken: number): number {
+  return Math.max(0, TLFP_FOUNDING.seats - Math.max(0, Math.floor(taken)));
+}

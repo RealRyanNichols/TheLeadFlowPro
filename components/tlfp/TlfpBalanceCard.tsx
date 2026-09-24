@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { Coins, Lock } from "lucide-react";
-import { TLFP_CREDITS, formatCredits } from "@/lib/tlfpCredits";
+import { Award, Coins, Lock } from "lucide-react";
+import { TLFP_CREDITS, TLFP_FOUNDING, formatCredits, foundingTier } from "@/lib/tlfpCredits";
 import type { TlfpAccountView } from "@/lib/tlfp";
 
 // The balance card. Real numbers when a person is logged in; a labelled
@@ -16,7 +16,34 @@ const REASON_LABELS: Record<string, string> = {
   redeem: "Applied at checkout",
   admin_grant: "Granted by Ryan",
   admin_adjust: "Adjusted by Ryan",
+  founding_bonus: "Founding bonus",
+  founding_monthly: "Founding partner month",
+  founding_rebate: "Founding rebate",
+  founding_reversed: "Founding credits taken back",
+  founding_restored: "Founding credits restored",
 };
+
+/** The seat, in the playbook's words: a dollar of our work each, no price talk. */
+function FoundingSeat({ founding }: { founding: NonNullable<TlfpAccountView["founding"]> }) {
+  const tier = foundingTier(founding.tier);
+  return (
+    <div className="mt-5 rounded-xl border border-[var(--green-line)] bg-[var(--green-tint)] px-4 py-3 text-sm">
+      <p className="flex items-center gap-2 font-black text-[var(--heading)]">
+        <Award className="h-4 w-4 flex-none text-[var(--green)]" aria-hidden="true" />
+        {TLFP_FOUNDING.name} seat {founding.seatNo} of {TLFP_FOUNDING.seats}
+        <span className="font-semibold text-[var(--muted)]">· {tier.label}</span>
+      </p>
+      {founding.bonusApplied > 0 ? (
+        <p className="mt-1 font-bold text-[var(--heading)]">{formatCredits(founding.bonusApplied)} on the seat.</p>
+      ) : null}
+      {tier.monthlyCredits > 0 ? (
+        <p className="mt-1 font-bold text-[var(--heading)]">{formatCredits(tier.monthlyCredits)} every month you run with us.</p>
+      ) : null}
+      <p className="mt-1 text-[var(--muted)]">{TLFP_FOUNDING.valueLine}</p>
+      <p className="mt-1 text-[var(--muted)]">{TLFP_FOUNDING.rebatePercent}% back in credits on everything you pay for.</p>
+    </div>
+  );
+}
 
 function reasonLabel(row: { reason: string; status: string }): string {
   const base = REASON_LABELS[row.reason] ?? row.reason.replace(/_/g, " ");
@@ -81,6 +108,8 @@ export default function TlfpBalanceCard({
           />
         </div>
       </div>
+
+      {account?.founding ? <FoundingSeat founding={account.founding} /> : null}
 
       {account ? (
         history.length ? (
