@@ -17,6 +17,7 @@ import {
   Users,
   Workflow,
 } from "lucide-react";
+import { stripActivityMarkers } from "@/lib/leadTimeline";
 import { requireOperatorAdmin } from "@/lib/operatoros/auth";
 import { createServiceClient } from "@/lib/supabase/service";
 import WorkspaceLinks from "@/components/WorkspaceLinks";
@@ -487,7 +488,8 @@ export default async function FlowMissionControl() {
           id: `activity-${entry.id}`,
           at: entry.created_at,
           title: entry.kind.replace(/_/g, " "),
-          detail: `${lead?.business_name || lead?.full_name || "Lead"}: ${entry.detail}`,
+          // The Call Closer's Outcome, Offer ids and Ref markers are bookkeeping, not owner copy.
+          detail: `${lead?.business_name || lead?.full_name || "Lead"}: ${stripActivityMarkers(entry.detail)}`,
           tone: "violet" as const,
         };
       }),

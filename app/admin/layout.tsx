@@ -37,11 +37,12 @@ export default async function AdminLayout({
         <div className="mb-6">
           <BrandLockup href="/" />
         </div>
-        <div className="mb-8 flex flex-wrap items-center gap-6 border-b border-line pb-4">
+        {/* On a phone the nav spans the full width under the title, so every link stays visible in a few rows instead of a tall narrow column. */}
+        <div className="mb-6 flex flex-wrap items-center gap-x-6 gap-y-3 border-b border-line pb-4 sm:mb-8 sm:gap-6">
           <h1 className="text-2xl font-black text-[var(--heading)]">
             Back Office
           </h1>
-          <nav className="flex min-w-0 flex-1 flex-wrap items-center gap-4 text-sm font-semibold">
+          <nav className="flex min-w-0 basis-full flex-wrap items-center gap-x-4 gap-y-2 text-sm font-semibold sm:flex-1 sm:basis-auto sm:gap-4">
             <Link
               href="/admin/command-center"
               className="text-[var(--text)] hover:text-[var(--heading)]"
