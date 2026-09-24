@@ -159,7 +159,8 @@ export default async function TlfpPage({
               <p className="eyebrow">{TLFP_FOUNDING.name}</p>
               <h2 className="mt-3 text-3xl font-black text-[var(--heading)]">The first {TLFP_FOUNDING.seats} get a seat.</h2>
               <p className="mt-3 max-w-2xl text-[var(--muted)]">
-                Your first paid purchase with us claims a numbered seat. Seats go in order. When they are gone, they are gone.
+                Your first qualifying purchase claims a numbered seat. The three below qualify. Seats go in order. When they are
+                gone, they are gone.
               </p>
             </div>
             {seatsOpen !== null ? (
@@ -188,7 +189,7 @@ export default async function TlfpPage({
                     {tier.id === "build"
                       ? `Start a build and put ${usd(tier.minPaidCents / 100)} or more down. ${tier.oneTimeCredits.toLocaleString("en-US")} founding credits land on your seat.`
                       : tier.id === "learn"
-                        ? `Buy the training. ${tier.oneTimeCredits} founding credits land on your seat.`
+                        ? `Take The ChatGPT Operator or Operator Academy all access. ${tier.oneTimeCredits} founding credits land on your seat.`
                         : `Run it with us every month. ${tier.monthlyCredits} credits land every month you pay.`}
                   </p>
                 </div>
@@ -200,15 +201,16 @@ export default async function TlfpPage({
             <div className="rounded-2xl border border-[var(--accent-line)] p-5" style={{ background: "linear-gradient(135deg, var(--accent-tint), var(--panel) 60%)" }}>
               <h3 className="text-lg font-bold text-[var(--heading)]">Then {TLFP_FOUNDING.rebatePercent}% back. Every time.</h3>
               <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
-                Hold a seat and {TLFP_FOUNDING.rebatePercent}% of everything you pay us comes back as credits. Not once. On every purchase after
-                that, too.
+                Hold a seat and {TLFP_FOUNDING.rebatePercent}% of what you pay us comes back as credits. Not once. Every purchase, the first
+                one too. Credit packs do not count.
               </p>
             </div>
             <div className="rounded-2xl border border-[var(--line)] bg-[var(--panel)] p-5 text-sm">
               <p className="font-bold text-[var(--heading)]">{TLFP_FOUNDING.valueLine}</p>
               <p className="mt-2 text-[var(--muted)]">Earned credits become claimable as TLFP later.</p>
               <p className="mt-2 text-xs text-[var(--quiet)]">
-                One seat per email. Credit packs do not claim a seat. A refunded purchase takes its founding credits back. Balance cap{" "}
+                One seat per email. One founding bonus per seat, set by the purchase that claims it. Credit packs do not claim a seat.
+                A refunded purchase takes its founding credits back. Balance cap{" "}
                 {TLFP_CREDITS.maxBalance.toLocaleString("en-US")} still applies.{" "}
                 <Link href={`${TLFP_CREDITS.termsPath}#founding`} className="font-bold text-[var(--blue)] underline-offset-2 hover:underline">
                   The rules

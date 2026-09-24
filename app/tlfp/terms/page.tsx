@@ -3,7 +3,7 @@ import Link from "next/link";
 import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import { BUSINESS } from "@/lib/site/business";
 import { usd } from "@/lib/site/prices";
-import { TLFP_CREDITS, TLFP_EARN_RULES, TLFP_FOUNDING, TLFP_FOUNDING_TIERS, TLFP_PACKS } from "@/lib/tlfpCredits";
+import { TLFP_CREDITS, TLFP_EARN_RULES, TLFP_FOUNDING, TLFP_FOUNDING_TIERS, TLFP_PACKS, foundingStartLabel } from "@/lib/tlfpCredits";
 
 export const metadata: Metadata = withPublicPageMetadata(TLFP_CREDITS.termsPath, {
   title: "TLFP Credits terms | The LeadFlow Pro",
@@ -11,9 +11,10 @@ export const metadata: Metadata = withPublicPageMetadata(TLFP_CREDITS.termsPath,
     "What a TLFP Credit is, how credits are earned and bought, how they are spent, and the limits: no cash value, not transferable, redeemable only with The LeadFlow Pro.",
 });
 
-// Bump both to the day the Founding 100 goes live (the merge date).
-const UPDATED = "September 24, 2026";
-const FOUNDING_START = "September 24, 2026";
+// The Founding 100 opens on TLFP_FOUNDING.startsAt (lib/tlfpCredits.ts), set
+// to the merge date; these terms were updated the same day.
+const FOUNDING_START = foundingStartLabel();
+const UPDATED = FOUNDING_START;
 
 export default function TlfpTermsPage() {
   return (
@@ -75,20 +76,25 @@ export default function TlfpTermsPage() {
               The first {TLFP_FOUNDING.seats} distinct email addresses whose first qualifying paid purchase clears on or after{" "}
               {FOUNDING_START} each get one numbered founding seat. Seats are handed out in the order the payments clear, one per
               email, and a seat number is never reissued. When seat {TLFP_FOUNDING.seats} is taken the program is closed to new
-              seats. A qualifying purchase, and the founding credits it posts once to the seat, is:
+              seats. An email that already made a qualifying paid purchase before {FOUNDING_START} is an existing client and does
+              not take a seat. A qualifying purchase, and the founding credits it posts once to the seat, is:
             </p>
             <ul className="mt-2 list-disc space-y-1 pl-5">
               {TLFP_FOUNDING_TIERS.map((tier) => (
                 <li key={tier.id}>
                   <strong className="text-[var(--heading)]">{tier.label}:</strong>{" "}
                   {tier.id === "build"
-                    ? `a payment of ${usd(tier.minPaidCents / 100)} or more toward a build, a website package, a one time agency scope, a Tool Studio build, or an invoice from ${BUSINESS.name}: ${tier.oneTimeCredits.toLocaleString("en-US")} credits.`
+                    ? `a payment of ${usd(tier.minPaidCents / 100)} or more toward a build, a website package, a one time agency scope, a Tool Studio build (bought on its own or with a monthly menu, counted at the build's own price), or an invoice from ${BUSINESS.name}: ${tier.oneTimeCredits.toLocaleString("en-US")} credits.`
                     : tier.id === "learn"
-                      ? `a paid Operator Academy course or all access: ${tier.oneTimeCredits} credits.`
+                      ? `The ChatGPT Operator course or Operator Academy all access: ${tier.oneTimeCredits} credits.`
                       : `a paid month of a monthly agency retainer: ${tier.monthlyCredits} credits for that month, and for every later paid month.`}
                 </li>
               ))}
             </ul>
+            <p className="mt-2">
+              Each seat carries one founding bonus, set by the purchase that claims it. Later purchases earn the rebate and the
+              monthly credits below, never a second bonus.
+            </p>
             <p className="mt-2">
               A seat holder also earns {TLFP_FOUNDING.rebatePercent}% of the amount paid in money on every later paid purchase, and on
               the one that claimed the seat, as credits, rounded down to whole credits. Any seat holder who pays a month of a monthly
@@ -99,7 +105,7 @@ export default function TlfpTermsPage() {
               Founding credits are earned credits and follow every rule here, including the balance limit in section 7: an award
               that would cross the limit is reduced or declined, and is not paid later. If the purchase behind a founding award is
               fully refunded, reversed, or disputed, the award is removed, which can take a balance below zero; if a dispute closes
-              in our favour it is put back. The seat stays with the email that claimed it. We may change or end the rebate and the
+              in our favour it is put back. A dispute inquiry that moves no money changes nothing. The seat stays with the email that claimed it. We may change or end the rebate and the
               monthly credits for the future under section 8.
             </p>
           </section>

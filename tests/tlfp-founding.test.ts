@@ -6,10 +6,14 @@ import {
   TLFP_CREDITS,
   TLFP_FOUNDING,
   TLFP_FOUNDING_TIERS,
+  foundingNetTaken,
   foundingRebateCredits,
+  foundingReversalPlan,
   foundingSeatsLeft,
+  foundingStartLabel,
   foundingTier,
   foundingTierFor,
+  qualifiedBefore,
 } from "../lib/tlfpCredits.ts";
 import { PRICES } from "../lib/site/prices.ts";
 import { AGENCY_PAYMENT } from "../lib/agencyPayment.ts";
@@ -61,6 +65,18 @@ test("the database refuses seat 101 on its own and agrees with the app's numbers
   assert.match(creditsMigration, /v_cap constant integer := 1999/);
 });
 
+test("tlfp_post caps new credits against posted credits, so a released hold can never lift a balance past 1,999", () => {
+  const post = migration.slice(migration.indexOf("create or replace function public.tlfp_post("), migration.indexOf("create table if not exists public.tlfp_founding_seats"));
+  assert.ok(post.length > 500, "the founding migration replaces tlfp_post");
+  assert.match(post, /v_cap constant integer := 1999;/);
+  assert.match(post, /coalesce\(sum\(delta\) filter \(where status = 'posted'\), 0\)/, "posted credits alone are the cap basis");
+  assert.match(post, /if v_delta > 0 and v_posted \+ v_delta > v_cap then/);
+  assert.match(post, /v_delta := greatest\(v_cap - v_posted, 0\);/);
+  assert.match(post, /if v_delta < 0 and p_require_funds and v_balance \+ v_delta < 0 then/, "spending still checks posted plus held");
+  assert.ok(post.includes("grant execute on function public.tlfp_post(text, integer, text, text, text, integer, text, text, text, boolean) to service_role;"));
+  assert.ok(post.includes("revoke all on function public.tlfp_post(text, integer, text, text, text, integer, text, text, text, boolean) from public, anon, authenticated;"));
+});
+
 test("the founding functions are service-role only, and clients read only their own seat", () => {
   assert.match(migration, /tlfp_founding_claim\([\s\S]*?security definer set search_path = public, pg_temp/);
   assert.ok(migration.includes("revoke all on function public.tlfp_founding_claim(text, text, text, integer, text) from public, anon, authenticated;"));
@@ -105,6 +121,51 @@ test("what counts as which tier: cash paid, by kind, with the build floor", () =
   assert.equal(foundingTierFor({ kind: "package_full", amountCents: Number.NaN }), null);
 });
 
+test("an earlier qualifying purchase makes an existing client, not a founder", () => {
+  assert.equal(qualifiedBefore([]), false);
+  assert.equal(qualifiedBefore([{ kind: "chase_sheet_monthly", amount_cents: 2_000 }, { kind: "pro_bundle", amount_cents: 3_900 }]), false, "small buys do not count");
+  assert.equal(qualifiedBefore([{ kind: "build_deposit", amount_cents: PRICES.buildDepositMin * 100 }]), false, "under the build floor does not count");
+  assert.equal(qualifiedBefore([{ kind: "package_deposit", amount_cents: PRICES.websiteLaunchDeposit * 100 }]), true);
+  assert.equal(qualifiedBefore([{ kind: AGENCY_PAYMENT.kind, amount_cents: 25_000 }]), true, "any paid agency payment, since billing is not stored");
+  assert.equal(qualifiedBefore([{ kind: CHATGPT_OPERATOR.purchaseKind, amount_cents: 29_700 }]), true);
+  assert.equal(qualifiedBefore([{ kind: null, amount_cents: 100_000 }]), false);
+  assert.equal(foundingStartLabel(), new Date(`${TLFP_FOUNDING.startsAt}T00:00:00Z`).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" }));
+  assert.match(TLFP_FOUNDING.startsAt, /^\d{4}-\d{2}-\d{2}$/);
+  assert.ok(serverLib.indexOf("await isExistingClient(service, email, key)") < serverLib.indexOf('service.rpc("tlfp_founding_claim"'), "checked before a seat is claimed");
+  assert.ok(serverLib.includes('.lt("created_at", opened)') && serverLib.includes('.lt("paid_at", opened)'), "purchases and Sales Desk invoices before the start count");
+});
+
+test("a refund takes back what is on the account; a retry moves nothing; a refund after a dispute was won still takes it back", () => {
+  const awards = [
+    { id: "a1", email: "x@y.com", delta: 1000, reason: "founding_bonus", stripe_session_id: "in_1" },
+    { id: "a2", email: "x@y.com", delta: 25, reason: "founding_rebate", stripe_session_id: "in_1" },
+  ];
+  const dispute = foundingReversalPlan(awards, [], false, "disputed:ch_1");
+  assert.deepEqual(dispute.map((m) => [m.ref, m.delta, m.reason]), [
+    ["founding_reversed:a1:disputed:ch_1", -1000, "founding_reversed"],
+    ["founding_reversed:a2:disputed:ch_1", -25, "founding_reversed"],
+  ]);
+  assert.equal(dispute[0].key, "in_1", "the move carries the purchase key so it is found again");
+  const afterDispute = dispute.map((m) => ({ ref: m.ref, delta: m.delta }));
+  assert.deepEqual(foundingReversalPlan(awards, afterDispute, false, "disputed:ch_1"), [], "a retry of the same event moves nothing");
+  assert.equal(foundingNetTaken("a1", afterDispute), 1000);
+
+  const won = foundingReversalPlan(awards, afterDispute, true, "dispute_won:ch_1");
+  assert.deepEqual(won.map((m) => [m.ref, m.delta]), [["founding_restored:a1:dispute_won:ch_1", 1000], ["founding_restored:a2:dispute_won:ch_1", 25]]);
+  const afterWin = [...afterDispute, ...won.map((m) => ({ ref: m.ref, delta: m.delta }))];
+  assert.deepEqual(foundingReversalPlan(awards, afterWin, true, "dispute_won:ch_1"), [], "a restore retry moves nothing");
+
+  const refund = foundingReversalPlan(awards, afterWin, false, "refunded:ch_1");
+  assert.deepEqual(refund.map((m) => [m.ref, m.delta]), [["founding_reversed:a1:refunded:ch_1", -1000], ["founding_reversed:a2:refunded:ch_1", -25]], "a later refund takes it back again");
+
+  // A restore the cap cut short leaves the rest still taken, and a later put-back returns only that.
+  const partialRestore = [...afterDispute, { ref: "founding_restored:a1:dispute_won:ch_1", delta: 400 }];
+  assert.equal(foundingNetTaken("a1", partialRestore), 600);
+  assert.equal(foundingReversalPlan([awards[0]], partialRestore, false, "refunded:ch_1")[0].delta, -400, "only what is on the account is taken");
+  assert.deepEqual(foundingReversalPlan(awards, [], true, "dispute_won:ch_1"), [], "nothing to put back when nothing was taken");
+  assert.equal(foundingNetTaken("a1", [{ ref: "founding_reversed:a10:x", delta: -5 }]), 0, "another award's moves never count");
+});
+
 test("the tier kinds are the real purchase kinds", () => {
   const kinds = new Set(TLFP_FOUNDING_TIERS.flatMap((tier) => tier.kinds));
   for (const kind of [AGENCY_PAYMENT.kind, CHATGPT_OPERATOR.purchaseKind, OPERATOR_ACADEMY.allAccessPurchaseKind]) {
@@ -136,9 +197,11 @@ test("the server posts every award idempotently on the purchase key, capped, wit
   assert.ok(serverLib.includes('service.rpc("tlfp_founding_claim"'));
   assert.ok(serverLib.includes("ref: `founding_monthly:${key}`"));
   assert.ok(serverLib.includes("ref: `founding_rebate:${key}`"));
-  assert.ok(serverLib.includes("ref: `founding_reversed:${row.id}`") && serverLib.includes("ref: `founding_restored:${row.id}`"));
+  assert.ok(serverLib.includes("foundingReversalPlan(awards, moves, input.restore, input.eventTag)"), "reversals follow the pure plan");
   assert.ok((serverLib.match(/stripeSessionId: key,/g) ?? []).length >= 2, "monthly and rebate carry the purchase key so a refund finds them");
-  assert.ok(serverLib.includes("outcome.claimedHere = claim.ref === key"), "the seat alert is keyed on the purchase that claimed it, stable across retries");
+  assert.ok(serverLib.includes("outcome.claimedHere = claim.ref === key") && serverLib.includes("outcome.claimedHere = seat.data.ref === key"), "claimedHere is keyed on the purchase that claimed the seat, stable across retries");
+  assert.ok(serverLib.includes('.update({ bonus_applied: stillOn })'), "the seat shows what is still on it after a refund");
+  assert.ok(serverLib.includes("export class FoundingNotInstalledError"), "a missing migration is its own error");
 });
 
 test("the webhook runs Founding 100 on every paid path, after fulfilment, and never lets it block", () => {
@@ -146,30 +209,43 @@ test("the webhook runs Founding 100 on every paid path, after fulfilment, and ne
   const dispatchEnd = hook.indexOf("await notifyUnhandledPurchase(supabase, customer.email, kind, amountCentsOf(session), session.id);");
   assert.ok(dispatchEnd > 0 && checkoutCall > dispatchEnd, "paid checkout: after the fulfilment dispatch");
   assert.ok(hook.includes('billing: typeof session.metadata?.billing === "string" ? session.metadata.billing : null'), "a monthly retainer checkout is a partner month");
+  assert.ok(hook.includes('key: (typeof sessionInvoice === "string" && sessionInvoice ? sessionInvoice : session.id).slice(0, 200)'), "a subscription's first month is keyed on the invoice a refund maps to");
+  assert.ok(hook.includes('{ tierKind: "tool_studio_order", tierCents: Math.min(amountCentsOf(session) ?? 0, bundledBuild.priceUsd * 100) }'), "a Tool Studio build bought with a monthly menu qualifies on the build price");
   const renewal = hook.indexOf("async function recordSubscriptionInvoice(");
   const renewalCall = hook.indexOf("await foundingPerksOnPaid(supabase, {", renewal);
   assert.ok(renewalCall > renewal && renewalCall < hook.indexOf("async function finishPaidInvoice("), "renewals: partner months and rebates");
   assert.ok(hook.includes('billing: invoice.family === "agency_payment" ? "monthly" : null'));
   const invoice = hook.indexOf("async function finishPaidInvoice(");
-  assert.ok(hook.indexOf('await foundingPerksOnPaid(supabase, { email, kind: "stripe_invoice"', invoice) > invoice, "Sales Desk and dashboard invoices");
+  const invoiceCall = hook.indexOf('await foundingPerksOnPaid(supabase, { email, kind: "stripe_invoice"', invoice);
+  assert.ok(invoiceCall > hook.indexOf('title: taskTitle, due_date', invoice), "Sales Desk and dashboard invoices, after the lead is finished");
   const helper = hook.slice(hook.indexOf("async function foundingPerksOnPaid("), hook.indexOf("async function ensureSystemMapPaid("));
-  assert.ok(helper.includes("try {") && helper.includes("} catch (error) {"), "a founding failure never fails the event");
-  assert.ok(helper.includes("founding-failed:internal"), "the owner hears when it could not run");
+  assert.ok(helper.includes("if (error instanceof FoundingNotInstalledError)") && helper.indexOf("return;") < helper.indexOf("throw error;"), "a missing migration never fails a paid event");
+  assert.ok(helper.includes("throw error;"), "any other founding failure is rethrown so Stripe redelivers");
+  assert.ok(helper.includes("founding-failed:internal") && helper.includes("Do not grant founding credits by hand"), "the owner hears once, and is told not to grant by hand");
+  assert.ok(/founding-seat:internal[\s\S]*\} catch \(error\) \{[\s\S]*seat alert failed/.test(helper), "the seat alert is best effort and never wedges the event");
   assert.ok(!/sendBuyerAcknowledgement|deliverPaymentEmail\(/.test(helper), "nothing goes to the buyer");
 });
 
 test("a full refund or dispute takes founding credits back; a dispute won puts them back", () => {
   const moneyBack = hook.slice(hook.indexOf("async function handleMoneyBack("), hook.indexOf("async function noteSubscriptionEnd("));
-  assert.ok(moneyBack.includes("await reverseFoundingCredits(supabase, { keys: foundingKeys, restore: restoring });"));
-  assert.ok(moneyBack.includes("if (!outcome.partial && (!restoring || willFlip || !purchase))"), "never on a partial refund; restore only on a real flip back");
-  assert.ok(moneyBack.includes("const foundingKeys = purchase ? [purchase.stripe_session_id] : candidates;"), "a Sales Desk invoice with no purchases row is still found");
-  assert.ok(moneyBack.includes("await foundingAppliedLine(supabase, foundingKeys, outcome.partial, restoring)"), "the owner is told in the refund alert");
+  assert.ok(moneyBack.includes("await reverseFoundingCredits(supabase, {") && moneyBack.includes("eventTag: `${outcome.status}:${outcome.chargeId"), "every move is tagged with its event");
+  assert.ok(moneyBack.includes('if (!outcome.partial && !inquiry && (!restoring || willFlip || !purchase || purchase.status === "paid"))'), "never on a partial refund or an inquiry; restore on a flip back or its retry");
+  assert.ok(moneyBack.includes("const foundingKeys = [...new Set([...(purchase ? [purchase.stripe_session_id] : []), ...candidates])];"), "every key the money maps to is tried");
+  assert.ok(moneyBack.includes('disputeStatus.startsWith("warning_")'), "a dispute inquiry moves no founding credits");
+  assert.ok(moneyBack.includes("await foundingAppliedLine(supabase, foundingKeys, outcome.partial, restoring, inquiry)"), "the owner is told in the refund alert");
+  assert.ok(/foundingAwardedOn[\s\S]*?if \(error\) \{[\s\S]*?throw foundingError/.test(serverLib), "a read error throws instead of changing the alert body");
 });
 
 test("the client sees the seat in the playbook's words, and no price talk anywhere founding is shown", () => {
   assert.equal(TLFP_FOUNDING.valueLine, "A dollar of our work each. Yours to spend or hold.");
   assert.ok(!/send/i.test(TLFP_FOUNDING.valueLine), "credits are not transferable until they can be claimed as TLFP");
   assert.ok(card.includes("{TLFP_FOUNDING.valueLine}") && page.includes("{TLFP_FOUNDING.valueLine}"));
+  assert.ok(page.includes("Your first qualifying purchase claims a numbered seat."), "only a qualifying purchase claims a seat");
+  assert.ok(page.includes("One founding bonus per seat, set by the purchase that claims it."));
+  assert.ok(page.includes("Credit packs do not count.") && card.includes("Credit packs do not count."), "the rebate excludes credit packs, and says so");
+  assert.ok(page.includes("The ChatGPT Operator or Operator Academy all access") && terms.includes("The ChatGPT Operator course or Operator Academy all access"), "Learn It names what qualifies");
+  assert.ok(!/any paid Operator Academy course|a paid Operator Academy course/.test(page + terms), "no promise the Content Engine course does not keep");
+  assert.ok(terms.includes("is an existing client and does") && terms.includes("never a second bonus"), "the terms say who is not a founder and that the bonus is once");
   assert.ok(card.includes("founding_bonus:") && card.includes("founding_rebate:") && card.includes("founding_reversed:"), "the ledger rows read in plain words");
   for (const [name, source] of [["page", page], ["card", card], ["terms", terms]] as const) {
     assert.ok(!/[–—]/.test(source), `${name} carries no en or em dash`);

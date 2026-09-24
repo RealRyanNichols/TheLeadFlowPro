@@ -40,7 +40,7 @@ function FoundingSeat({ founding }: { founding: NonNullable<TlfpAccountView["fou
         <p className="mt-1 font-bold text-[var(--heading)]">{formatCredits(tier.monthlyCredits)} every month you run with us.</p>
       ) : null}
       <p className="mt-1 text-[var(--muted)]">{TLFP_FOUNDING.valueLine}</p>
-      <p className="mt-1 text-[var(--muted)]">{TLFP_FOUNDING.rebatePercent}% back in credits on everything you pay for.</p>
+      <p className="mt-1 text-[var(--muted)]">{TLFP_FOUNDING.rebatePercent}% back in credits on what you pay us. Credit packs do not count.</p>
     </div>
   );
 }

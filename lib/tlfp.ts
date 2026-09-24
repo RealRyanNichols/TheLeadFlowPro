@@ -7,8 +7,13 @@ import {
   TLFP_FOUNDING,
   earnRule,
   foundingRebateCredits,
+  foundingNetTaken,
+  foundingReversalPlan,
   foundingTierFor,
+  qualifiedBefore,
   referralCredits,
+  type FoundingAwardRow,
+  type FoundingMoveRow,
   type FoundingTierId,
   type TlfpPack,
 } from "@/lib/tlfpCredits";
@@ -289,6 +294,8 @@ export type FoundingOutcome = {
   claimedHere: boolean;
   /** True when this purchase qualified but all seats were already taken. */
   soldOut: boolean;
+  /** True when this purchase qualified but the buyer already had a qualifying purchase before the program opened. */
+  existingClient: boolean;
   /** One-time bonus on the seat (only reported when claimedHere). */
   bonus: number;
   /** Operations Partner month credits posted for this purchase. */
@@ -298,54 +305,136 @@ export type FoundingOutcome = {
 };
 
 /**
- * Founding 100 on one paid purchase. `key` is the Stripe checkout session or
- * invoice id that paid. Every award carries it as its stripe_session_id, so a
- * refund can find it and take it back, and every ref is built from it, so a
- * retried event posts nothing twice.
+ * Thrown when the founding migration is not in the database yet (the claim
+ * function or the seats table is missing). The webhook treats it as "not
+ * live" instead of failing every paid event.
+ */
+export class FoundingNotInstalledError extends Error {}
+
+const NOT_INSTALLED_CODES = new Set(["PGRST202", "PGRST205", "42P01", "42883"]);
+
+function foundingError(what: string, error: { code?: string; message?: string }): Error {
+  const code = error.code ?? error.message ?? "unknown";
+  return NOT_INSTALLED_CODES.has(error.code ?? "")
+    ? new FoundingNotInstalledError(`TLFP founding not installed (${what}: ${code})`)
+    : new Error(`TLFP founding ${what} failed: ${code}`);
+}
+
+function escapeLike(value: string): string {
+  return value.replace(/[\\%_]/g, (c) => `\\${c}`);
+}
+
+/**
+ * True when this email paid for something that would have qualified before
+ * the program opened: an existing client, not a founder. Checks purchases
+ * (checkouts, renewals, dashboard invoices) and paid Sales Desk invoices.
+ */
+async function isExistingClient(service: SupabaseClient, email: string, key: string): Promise<boolean> {
+  const opened = `${TLFP_FOUNDING.startsAt}T00:00:00Z`;
+  const [purchases, invoices] = await Promise.all([
+    service
+      .from("purchases")
+      .select("kind, amount_cents")
+      .ilike("email", escapeLike(email))
+      .eq("status", "paid")
+      .lt("created_at", opened)
+      .neq("stripe_session_id", key)
+      .limit(200),
+    service
+      .from("sales_invoices")
+      .select("subtotal_cents")
+      .ilike("customer_email", escapeLike(email))
+      .eq("status", "paid")
+      .lt("paid_at", opened)
+      .neq("stripe_invoice_id", key)
+      .limit(50),
+  ]);
+  if (purchases.error) throw foundingError("existing client check", purchases.error);
+  if (invoices.error) throw foundingError("existing client invoice check", invoices.error);
+  if (qualifiedBefore((purchases.data ?? []) as { kind: string | null; amount_cents: number | null }[])) return true;
+  return qualifiedBefore(
+    ((invoices.data ?? []) as { subtotal_cents: number | null }[]).map((row) => ({ kind: "stripe_invoice", amount_cents: row.subtotal_cents })),
+  );
+}
+
+/**
+ * Founding 100 on one paid purchase. `key` is the Stripe id the money maps to
+ * (a checkout's invoice when it has one, else the checkout session; an
+ * invoice id for renewals and Sales Desk invoices). Every award carries it as
+ * its stripe_session_id, so a refund finds it, and every ref is built from
+ * it, so a retried event posts nothing twice.
  *
- * In order: when the purchase qualifies (lib/tlfpCredits.ts foundingTierFor)
- * and a seat is free, claim one and post its one-time bonus (the database
- * does both in one transaction and refuses seat 101). Then, for any seat
- * holder: an Operations Partner month posts its monthly credits, and every
- * paid purchase posts the standing rebate. All of it under the 1,999 cap.
+ * In order: when the purchase qualifies (lib/tlfpCredits.ts foundingTierFor,
+ * on `tierKind`/`tierCents` when the qualifying part differs from the whole
+ * payment), the buyer holds no seat, and was not already a client before the
+ * program opened, claim a seat and post its one-time bonus (the database does
+ * both in one transaction and refuses seat 101). Then, for any seat holder:
+ * an Operations Partner month posts its monthly credits, and every paid
+ * purchase posts the standing rebate on the whole cash amount. All of it
+ * under the 1,999 cap.
  */
 export async function applyFoundingPerks(
   service: SupabaseClient,
-  input: { email: string; kind: string; amountCents: number | null; key: string; billing?: string | null },
+  input: {
+    email: string;
+    kind: string;
+    amountCents: number | null;
+    key: string;
+    billing?: string | null;
+    tierKind?: string;
+    tierCents?: number | null;
+  },
 ): Promise<FoundingOutcome> {
   const email = normalizeEmail(input.email);
   const key = input.key.trim().slice(0, 200);
-  const outcome: FoundingOutcome = { tier: null, seatNo: null, claimedHere: false, soldOut: false, bonus: 0, monthly: 0, rebate: 0 };
+  const outcome: FoundingOutcome = {
+    tier: null,
+    seatNo: null,
+    claimedHere: false,
+    soldOut: false,
+    existingClient: false,
+    bonus: 0,
+    monthly: 0,
+    rebate: 0,
+  };
   if (!isEmail(email) || key.length < 3) return outcome;
 
-  const tier = foundingTierFor({ kind: input.kind, amountCents: input.amountCents, billing: input.billing ?? null });
+  const tier = foundingTierFor({
+    kind: input.tierKind ?? input.kind,
+    amountCents: input.tierCents === undefined ? input.amountCents : input.tierCents,
+    billing: input.billing ?? null,
+  });
   outcome.tier = tier?.id ?? null;
 
-  if (tier) {
-    const { data, error } = await service.rpc("tlfp_founding_claim", {
-      p_email: email,
-      p_tier: tier.id,
-      p_ref: key,
-      p_bonus: tier.oneTimeCredits,
-      p_memo: null,
-    });
-    if (error) throw new Error(`TLFP founding claim failed: ${error.code ?? error.message}`);
-    const claim = (data ?? {}) as { ok?: boolean; error?: string; seat_no?: number; ref?: string; bonus_applied?: number };
-    if (claim.ok && typeof claim.seat_no === "number") {
-      outcome.seatNo = claim.seat_no;
-      outcome.claimedHere = claim.ref === key;
-      if (outcome.claimedHere) outcome.bonus = Number(claim.bonus_applied ?? 0);
-    } else if (claim.error === "sold_out") {
-      outcome.soldOut = true;
+  const seat = await service.from("tlfp_founding_seats").select("seat_no, ref, bonus_applied").eq("email", email).maybeSingle();
+  if (seat.error) throw foundingError("seat lookup", seat.error);
+  if (seat.data) {
+    outcome.seatNo = Number(seat.data.seat_no);
+    outcome.claimedHere = seat.data.ref === key;
+    if (outcome.claimedHere) outcome.bonus = Number(seat.data.bonus_applied ?? 0);
+  } else if (tier) {
+    if (await isExistingClient(service, email, key)) {
+      outcome.existingClient = true;
     } else {
-      throw new Error(`TLFP founding claim refused: ${claim.error ?? "unknown"}`);
+      const { data, error } = await service.rpc("tlfp_founding_claim", {
+        p_email: email,
+        p_tier: tier.id,
+        p_ref: key,
+        p_bonus: tier.oneTimeCredits,
+        p_memo: null,
+      });
+      if (error) throw foundingError("claim", error);
+      const claim = (data ?? {}) as { ok?: boolean; error?: string; seat_no?: number; ref?: string; bonus_applied?: number };
+      if (claim.ok && typeof claim.seat_no === "number") {
+        outcome.seatNo = claim.seat_no;
+        outcome.claimedHere = claim.ref === key;
+        if (outcome.claimedHere) outcome.bonus = Number(claim.bonus_applied ?? 0);
+      } else if (claim.error === "sold_out") {
+        outcome.soldOut = true;
+      } else {
+        throw new Error(`TLFP founding claim refused: ${claim.error ?? "unknown"}`);
+      }
     }
-  }
-
-  if (outcome.seatNo === null && !tier) {
-    const { data, error } = await service.from("tlfp_founding_seats").select("seat_no").eq("email", email).maybeSingle();
-    if (error) throw new Error(`TLFP founding seat lookup failed: ${error.code}`);
-    outcome.seatNo = typeof data?.seat_no === "number" ? data.seat_no : null;
   }
   if (outcome.seatNo === null) return outcome;
 
@@ -382,69 +471,78 @@ export async function applyFoundingPerks(
   return outcome;
 }
 
+function cleanKeys(keys: string[]): string[] {
+  return [...new Set(keys.map((k) => k.trim().slice(0, 200)).filter((k) => k.length >= 3))];
+}
+
 /**
- * A refund or dispute takes back every founding award that rode on the money
- * (bonus, month, rebate); a dispute won puts back what was taken. `keys` are
- * the checkout session or invoice ids the money maps to. Idempotent on the
- * original row, so a retried event moves nothing twice. Returns the credits
- * moved by this call.
+ * A refund or dispute takes back what is still on the account from every
+ * founding award that rode on the money (bonus, month, rebate); a dispute won
+ * puts back what is still taken. `keys` are the ids the money maps to;
+ * `eventTag` names the money-back event (lib/tlfpCredits.ts
+ * foundingReversalPlan), so a retry moves nothing twice and a later event (a
+ * refund after a dispute was won) still does. The seat's bonus_applied follows
+ * the bonus, so the client's card and the admin table show what is really
+ * there. Returns the credits moved by this call.
  */
 export async function reverseFoundingCredits(
   service: SupabaseClient,
-  input: { keys: string[]; restore: boolean },
+  input: { keys: string[]; restore: boolean; eventTag: string },
 ): Promise<number> {
-  const keys = [...new Set(input.keys.map((k) => k.trim().slice(0, 200)).filter((k) => k.length >= 3))];
+  const keys = cleanKeys(input.keys);
   if (!keys.length) return 0;
-  const { data, error } = await service
-    .from("tlfp_ledger")
-    .select("id, email, delta, stripe_session_id")
-    .in("stripe_session_id", keys)
-    .in("reason", [...FOUNDING_AWARD_REASONS])
-    .eq("status", "posted")
-    .gt("delta", 0);
-  if (error) throw new Error(`TLFP founding lookup failed: ${error.code}`);
+  const [awardsRes, movesRes] = await Promise.all([
+    service
+      .from("tlfp_ledger")
+      .select("id, email, delta, reason, stripe_session_id")
+      .in("stripe_session_id", keys)
+      .in("reason", [...FOUNDING_AWARD_REASONS])
+      .eq("status", "posted")
+      .gt("delta", 0),
+    service
+      .from("tlfp_ledger")
+      .select("ref, delta")
+      .in("stripe_session_id", keys)
+      .in("reason", ["founding_reversed", "founding_restored"]),
+  ]);
+  if (awardsRes.error) throw foundingError("award lookup", awardsRes.error);
+  if (movesRes.error) throw foundingError("reversal lookup", movesRes.error);
+  const awards = (awardsRes.data ?? []) as FoundingAwardRow[];
+  const moves: FoundingMoveRow[] = [...((movesRes.data ?? []) as FoundingMoveRow[])];
 
   let moved = 0;
-  for (const row of (data ?? []) as { id: string; email: string; delta: number; stripe_session_id: string | null }[]) {
-    if (input.restore) {
-      const { data: reversal, error: reversalError } = await service
-        .from("tlfp_ledger")
-        .select("delta")
-        .eq("ref", `founding_reversed:${row.id}`)
-        .maybeSingle();
-      if (reversalError) throw new Error(`TLFP founding reversal lookup failed: ${reversalError.code}`);
-      if (!reversal) continue;
-      const put = await postCredits(service, {
-        email: row.email,
-        delta: Math.abs(Number(reversal.delta)),
-        reason: "founding_restored",
-        ref: `founding_restored:${row.id}`,
-        memo: "Dispute closed in our favour; founding credits restored",
-        stripeSessionId: row.stripe_session_id,
-        actor: "webhook",
-        requireFunds: false,
-      });
-      if (put.ok && !put.duplicate) moved += Number(put.applied ?? 0);
-    } else {
-      const took = await postCredits(service, {
-        email: row.email,
-        delta: -Math.abs(Number(row.delta)),
-        reason: "founding_reversed",
-        ref: `founding_reversed:${row.id}`,
-        memo: "Purchase refunded or disputed; founding credits taken back",
-        stripeSessionId: row.stripe_session_id,
-        actor: "webhook",
-        requireFunds: false,
-      });
-      if (took.ok && !took.duplicate) moved += Math.abs(Number(took.applied ?? 0));
+  for (const step of foundingReversalPlan(awards, moves, input.restore, input.eventTag)) {
+    const result = await postCredits(service, {
+      email: step.email,
+      delta: step.delta,
+      reason: step.reason,
+      ref: step.ref,
+      memo: input.restore ? "Dispute closed in our favour; founding credits restored" : "Purchase refunded or disputed; founding credits taken back",
+      stripeSessionId: step.key,
+      actor: "webhook",
+      requireFunds: false,
+    });
+    if (!result.ok) continue;
+    if (!result.duplicate) moved += Math.abs(Number(result.applied ?? 0));
+    moves.push({ ref: step.ref, delta: Number(result.applied ?? step.delta) });
+    const award = awards.find((a) => a.id === step.awardId);
+    if (award?.reason === "founding_bonus") {
+      // The seat shows what is still on it: the bonus minus what is taken back.
+      const stillOn = Math.max(0, award.delta - foundingNetTaken(award.id, moves));
+      const updated = await service.from("tlfp_founding_seats").update({ bonus_applied: stillOn }).eq("email", award.email);
+      if (updated.error) throw foundingError("seat bonus update", updated.error);
     }
   }
   return moved;
 }
 
-/** Founding awards that rode on these keys, summed. For the refund alert; stable across retries. */
+/**
+ * Founding awards that rode on these keys, summed, for the refund alert.
+ * Throws on a read error, so the alert body never differs between a failed
+ * attempt and its retry.
+ */
 export async function foundingAwardedOn(service: SupabaseClient, keys: string[]): Promise<number> {
-  const clean = [...new Set(keys.map((k) => k.trim().slice(0, 200)).filter((k) => k.length >= 3))];
+  const clean = cleanKeys(keys);
   if (!clean.length) return 0;
   const { data, error } = await service
     .from("tlfp_ledger")
@@ -452,7 +550,10 @@ export async function foundingAwardedOn(service: SupabaseClient, keys: string[])
     .in("stripe_session_id", clean)
     .in("reason", [...FOUNDING_AWARD_REASONS])
     .eq("status", "posted");
-  if (error) return 0;
+  if (error) {
+    if (NOT_INSTALLED_CODES.has(error.code ?? "")) return 0;
+    throw foundingError("award sum", error);
+  }
   return ((data ?? []) as { delta: number }[]).reduce((sum, row) => sum + Math.max(0, Number(row.delta)), 0);
 }
 

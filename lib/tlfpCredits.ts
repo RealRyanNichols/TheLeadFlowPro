@@ -186,14 +186,18 @@ export type FoundingTier = {
   kinds: readonly string[];
   /** The cash paid on the purchase must be at least this many cents to claim a seat. */
   minPaidCents: number;
-  /** Client-facing line, short. */
-  line: string;
 };
 
 export const TLFP_FOUNDING = {
   name: "Founding 100",
   /** Seats, ever. The migration's check constraint holds the same number. */
   seats: 100,
+  /**
+   * The day the program opens (UTC). Set it to the merge date. An email with a
+   * qualifying paid purchase before this day is an existing client and does
+   * not take a seat; the terms print this date.
+   */
+  startsAt: "2026-09-24",
   /** Standing rebate for a seat holder, as a percentage of cash paid. Ryan picks 5 or 10. */
   rebatePercent: 5,
   /** Kinds that never earn a rebate or claim a seat: buying credits with credits' own bonus. */
@@ -217,7 +221,6 @@ export const TLFP_FOUNDING_TIERS: readonly FoundingTier[] = [
     kinds: ["build_deposit", "package_deposit", "package_full", "agency_payment", "tool_studio_order", "stripe_invoice"],
     // The Website Launch deposit is the smallest real build start.
     minPaidCents: PRICES.websiteLaunchDeposit * 100,
-    line: "Start a build",
   },
   {
     id: "learn",
@@ -228,7 +231,6 @@ export const TLFP_FOUNDING_TIERS: readonly FoundingTier[] = [
     // training sold today.
     kinds: ["learn_it", "chatgpt_operator_course", "operator_academy_all_access"],
     minPaidCents: 1,
-    line: "Buy the training",
   },
   {
     id: "operations",
@@ -238,7 +240,6 @@ export const TLFP_FOUNDING_TIERS: readonly FoundingTier[] = [
     // A monthly agency retainer: month one on the checkout, every month after on its invoice.
     kinds: ["agency_payment"],
     minPaidCents: 1,
-    line: "Run it with us every month",
   },
 ];
 
@@ -284,4 +285,80 @@ export function foundingRebateCredits(kind: string, amountCents: number | null):
 /** "7 of 100 seats taken" arithmetic, never negative. */
 export function foundingSeatsLeft(taken: number): number {
   return Math.max(0, TLFP_FOUNDING.seats - Math.max(0, Math.floor(taken)));
+}
+
+/** "September 24, 2026", from TLFP_FOUNDING.startsAt, for the terms. */
+export function foundingStartLabel(): string {
+  return new Date(`${TLFP_FOUNDING.startsAt}T00:00:00Z`).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+/**
+ * True when an earlier paid purchase would itself have qualified, which makes
+ * the buyer an existing client, not a founder. purchases does not store an
+ * agency payment's billing, so any paid agency payment counts (monthly at any
+ * amount qualifies).
+ */
+export function qualifiedBefore(rows: readonly { kind: string | null; amount_cents: number | null }[]): boolean {
+  return rows.some((row) =>
+    !!row.kind && foundingTierFor({ kind: row.kind, amountCents: row.amount_cents, billing: row.kind === "agency_payment" ? "monthly" : null }) !== null,
+  );
+}
+
+export type FoundingAwardRow = { id: string; email: string; delta: number; reason: string; stripe_session_id: string | null };
+export type FoundingMoveRow = { ref: string; delta: number };
+export type FoundingMove = {
+  awardId: string;
+  email: string;
+  key: string | null;
+  reason: "founding_reversed" | "founding_restored";
+  delta: number;
+  ref: string;
+};
+
+/** Credits of one founding award currently taken back: its reversals minus its restores, never negative. */
+export function foundingNetTaken(awardId: string, moves: readonly FoundingMoveRow[]): number {
+  const mine = (prefix: string) =>
+    moves.filter((m) => m.ref === `${prefix}:${awardId}` || m.ref.startsWith(`${prefix}:${awardId}:`));
+  const taken = mine("founding_reversed").reduce((sum, m) => sum + Math.abs(Number(m.delta)), 0);
+  const putBack = mine("founding_restored").reduce((sum, m) => sum + Math.abs(Number(m.delta)), 0);
+  return Math.max(0, taken - putBack);
+}
+
+/**
+ * What a refund, dispute, or dispute won does to the founding awards on the
+ * money. Each award's net taken back is its founding_reversed rows minus its
+ * founding_restored rows (refs `founding_reversed:<award id>:<event>`). A take
+ * back removes what is still on the account; a put back returns what is still
+ * taken. `eventTag` names the money-back event (status and charge), so a
+ * retry of the same event posts nothing twice while a later event (a refund
+ * after a dispute was won) still moves the credits. Pure.
+ */
+export function foundingReversalPlan(
+  awards: readonly FoundingAwardRow[],
+  moves: readonly FoundingMoveRow[],
+  restore: boolean,
+  eventTag: string,
+): FoundingMove[] {
+  const plan: FoundingMove[] = [];
+  for (const award of awards) {
+    if (!(award.delta > 0)) continue;
+    const netTaken = foundingNetTaken(award.id, moves);
+    const amount = restore ? netTaken : Math.max(0, award.delta - netTaken);
+    if (amount <= 0) continue;
+    const reason = restore ? "founding_restored" : "founding_reversed";
+    plan.push({
+      awardId: award.id,
+      email: award.email,
+      key: award.stripe_session_id,
+      reason,
+      delta: restore ? amount : -amount,
+      ref: `${reason}:${award.id}:${eventTag}`.slice(0, 200),
+    });
+  }
+  return plan;
 }
