@@ -49,6 +49,8 @@ const BACK_OFFICE_LINKS: readonly BackOfficeLink[] = [
   { href: "/admin/connections", label: "Connections" },
   { href: "/dashboard", label: "Member portal" },
   { href: "https://sites.theleadflowpro.com", label: "Sites ↗", external: true },
+  // The live RN-1 trading desk on its own server. The Command page frames it too.
+  { href: "https://trading.theleadflowpro.com/", label: "RN-1 Desk ↗", external: true },
 ];
 
 /** The id the phone menu's <details> carries, so AdminMenuCloser can find it. */
