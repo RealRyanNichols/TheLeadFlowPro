@@ -140,14 +140,14 @@ test("the partial flag is carried through and said out loud", () => {
 
 test("the line reads exactly as the call sheet shows it", () => {
   const base: SpeedToLead = { windowDays: 7, leads: 9, reachedIn24h: 4, stillInside24h: 2, missed: 3, partial: false };
-  assert.equal(speedToLeadLine(base), "Last 7 days: 4 of 9 new leads heard from a person within 24 hours. 2 are still inside their first 24 hours.");
-  assert.equal(speedToLeadLine({ ...base, stillInside24h: 1, missed: 4 }), "Last 7 days: 4 of 9 new leads heard from a person within 24 hours. 1 is still inside their first 24 hours.");
-  assert.equal(speedToLeadLine({ ...base, stillInside24h: 0, missed: 5 }), "Last 7 days: 4 of 9 new leads heard from a person within 24 hours.");
+  assert.equal(speedToLeadLine(base), "Last 7 days: a person reached out to 4 of 9 new leads within 24 hours. 2 are still inside their first 24 hours.");
+  assert.equal(speedToLeadLine({ ...base, stillInside24h: 1, missed: 4 }), "Last 7 days: a person reached out to 4 of 9 new leads within 24 hours. 1 is still inside their first 24 hours.");
+  assert.equal(speedToLeadLine({ ...base, stillInside24h: 0, missed: 5 }), "Last 7 days: a person reached out to 4 of 9 new leads within 24 hours.");
   assert.equal(
     speedToLeadLine({ windowDays: 7, leads: 1, reachedIn24h: 0, stillInside24h: 0, missed: 1, partial: false }),
-    "Last 7 days: 0 of 1 new lead heard from a person within 24 hours.",
+    "Last 7 days: a person reached out to 0 of 1 new lead within 24 hours.",
   );
-  assert.equal(speedToLeadLine({ ...base, windowDays: 1 }), "Last 1 day: 4 of 9 new leads heard from a person within 24 hours. 2 are still inside their first 24 hours.");
+  assert.equal(speedToLeadLine({ ...base, windowDays: 1 }), "Last 1 day: a person reached out to 4 of 9 new leads within 24 hours. 2 are still inside their first 24 hours.");
 });
 
 test("no leads in the window gives its own line", () => {

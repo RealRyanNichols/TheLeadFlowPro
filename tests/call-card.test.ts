@@ -23,6 +23,7 @@ import * as businessTime from "../lib/businessTime.ts";
 import * as callCloser from "../lib/callCloser.ts";
 import * as callCloserFixtures from "../lib/callCloserFixtures.ts";
 import * as callSheet from "../lib/callSheet.ts";
+import * as contactGaps from "../lib/contactGaps.ts";
 import * as leadMessageAuthor from "../lib/leadMessageAuthor.ts";
 import * as leadTimeline from "../lib/leadTimeline.ts";
 import * as payDoors from "../lib/payDoors.ts";
@@ -38,6 +39,7 @@ import {
   PANEL_OUTCOMES,
   closerOffersFor,
   countPriorAttempts,
+  isPayableToday,
   parseNextStepRequest,
   planCallOutcome,
   type CallOutcome,
@@ -281,22 +283,44 @@ test("the preview is the planner's own list, drawn from the same JSON Save would
   assert.deepEqual(copyProblems(text), []);
 });
 
-test("ready to pay with offers that take no money online explains why instead of saving", () => {
+test("ready to pay lists what can be paid today first and never starts on an offer that takes no money", () => {
+  // The sample is a free-website lead: none of its suggestions takes money online today.
+  assert.ok(SAMPLE_SUGGESTIONS.every((id) => !isPayableToday(payDoors.payDoorFor(id)!, SAMPLE_LEAD.status)), "fixture assumption");
   const html = render(sampleProps({ initialOutcome: "ready_to_pay" }));
   assert.match(html, /What are they paying for\? Pick up to three\./);
-  // Only the primary suggestion is preselected; the add-ons are listed, unchecked, one tap away. Each is a labelled checkbox.
   const boxes = inputs(html, "checkbox");
-  assert.ok(boxes.length >= SAMPLE_SUGGESTIONS.length);
   for (const { id } of boxes) assert.ok(html.includes(`for="${id}"`), id);
-  const checked = boxes.filter((b) => /\bchecked=""/.test(b.tag));
+  // Nothing unpayable starts checked, so the hint asks for what they are paying for today.
+  assert.equal(boxes.filter((b) => /\bchecked=""/.test(b.tag)).length, 0);
+  assert.match(textOf(html), /Before you save: Pick what they are paying for today\./);
+  assert.ok(!/Before you save: No online payment for/.test(textOf(html)), "not blocked by default");
+  // Every offer payable today is listed before the fold, in order, ahead of every one that is not.
+  const order = boxes.map((b) => b.id.replace(/^.*-offer-/, ""));
+  const payable = order.filter((id) => isPayableToday(payDoors.payDoorFor(id)!, SAMPLE_LEAD.status));
+  assert.ok(payable.length >= 3, order.join());
+  assert.deepEqual(order.slice(0, payable.length), payable, "payable offers come first");
+  for (const id of ["website_launch", "system_map"]) assert.ok(payable.includes(id), id);
+  // Each payable line says "online today" and "Pays" once, never as a stutter.
+  const listed = textOf(html);
+  assert.ok(!/online today\.\s*Pays [^.]*online today/i.test(listed), listed);
+  assert.ok(!/\bPays online today\.\s*Pays\b/.test(listed), listed);
+  // The rest wait under a summary that says why, still one tap away.
+  assert.match(html, /<summary[^>]*>Offers that cannot be paid online today/);
+  const fold = html.indexOf("Offers that cannot be paid online today");
+  for (const id of SAMPLE_SUGGESTIONS) assert.ok(html.indexOf(`-offer-${id}`) > fold, `${id} is under the fold`);
+  // A lead whose suggestions include a payable offer starts with the first payable one checked.
+  const withPayable = render(sampleProps({ initialOutcome: "ready_to_pay", suggestedOffers: ["free_website_program", "system_map", "website_launch"] }));
+  const checked = inputs(withPayable, "checkbox").filter((b) => /\bchecked=""/.test(b.tag));
   assert.equal(checked.length, 1);
-  assert.ok(checked[0].id.endsWith(`-offer-${SAMPLE_SUGGESTIONS[0]}`), checked[0].id);
-  for (const id of SAMPLE_SUGGESTIONS.slice(1)) {
-    const box = boxes.find((b) => b.id.endsWith(`-offer-${id}`));
-    assert.ok(box, `${id} is listed`);
-    assert.ok(!/\bchecked=""/.test(box.tag), `${id} is not preselected`);
-  }
-  assert.match(textOf(html), /Before you save: No online payment for .+ yet\. Choose Wants a proposal so the number goes in writing first\./);
+  assert.ok(checked[0].id.endsWith("-offer-system_map"), checked[0].id);
+  assert.ok(textOf(withPayable).includes("Shows the pay link and a message you can send Dana yourself."), textOf(withPayable));
+  // Offers named on the last call still start checked; one that takes no money online is explained, never saved.
+  const named = textOf(render(sampleProps({ initialOutcome: "ready_to_pay", initialOffers: ["free_website_program"] })));
+  assert.match(named, /Before you save: No online payment for .+ yet\. Choose Wants a proposal so the number goes in writing first\./);
+  // Wants a proposal keeps its own list: the primary suggestion, checked.
+  const proposal = inputs(render(sampleProps({ initialOutcome: "wants_proposal" })), "checkbox").filter((b) => /\bchecked=""/.test(b.tag));
+  assert.equal(proposal.length, 1);
+  assert.ok(proposal[0].id.endsWith(`-offer-${SAMPLE_SUGGESTIONS[0]}`), proposal[0].id);
 });
 
 test("ready to pay for an agency service: the link once the number is in writing, never a false no online payment", () => {
@@ -373,15 +397,22 @@ test("Talked about an offer? starts with nothing ticked, so opening it never rec
       assert.ok(boxes[0].id.endsWith(`-offer-${(initialOffers ?? SAMPLE_SUGGESTIONS)[0]}`), `${label}: ${boxes[0].id}`);
     }
   }
-  // The required pickers keep their preselection (see the ready to pay and proposal tests above).
-  assert.equal(inputs(render(sampleProps({ initialOutcome: "ready_to_pay" })), "checkbox").filter((b) => /\bchecked=""/.test(b.tag)).length, 1);
+  // The required pickers keep their preselection (see the ready to pay and proposal tests above): the
+  // offers named on the last call, and for Ready to pay now nothing that takes no money online.
+  assert.equal(inputs(render(sampleProps({ initialOutcome: "ready_to_pay" })), "checkbox").filter((b) => /\bchecked=""/.test(b.tag)).length, 0);
+  assert.equal(inputs(render(sampleProps({ initialOutcome: "ready_to_pay", initialOffers: lastCall })), "checkbox").filter((b) => /\bchecked=""/.test(b.tag)).length, 2);
   assert.equal(inputs(render(sampleProps({ initialOutcome: "wants_proposal", initialOffers: lastCall })), "checkbox").filter((b) => /\bchecked=""/.test(b.tag)).length, 2);
-  // What Save sends: the optional list for a sit-down or a call back, the required one otherwise. Log another call clears both.
+  // What Save sends: the optional list for a sit-down or a call back, Ready to pay now's own list, the proposal
+  // list otherwise. Log another call resets all three.
   const panel = src(PANEL);
-  assert.match(panel, /offers: !sendsOffers \? \[\] : OFFER_REQUIRED\.has\(outcome\) \? offers : talkedOffers/);
+  assert.match(panel, /offers: !sendsOffers \? \[\] : outcome === "ready_to_pay" \? payOffers : OFFER_REQUIRED\.has\(outcome\) \? offers : talkedOffers/);
   assert.match(panel, /const \[talkedOffers, setTalkedOffers\] = useState<CloserOfferId\[\]>\(\[\]\);/);
+  assert.match(panel, /const \[payOffers, setPayOffers\] = useState<CloserOfferId\[\]>\(payStartingOffers\);/);
   const reset = panel.slice(panel.indexOf("function reset()"));
-  assert.ok(reset.slice(0, reset.indexOf("\n  }\n")).includes("setTalkedOffers([])"));
+  const resetBody = reset.slice(0, reset.indexOf("\n  }\n"));
+  assert.ok(resetBody.includes("setTalkedOffers([])"));
+  assert.ok(resetBody.includes("setPayOffers(payStartingOffers)"));
+  assert.ok(resetBody.includes("setOffers(startingOffers)"));
 });
 
 test("coming back from a call never moves the page; a button offers the way to log it", () => {
@@ -629,6 +660,7 @@ function loadPage(file: string, h: Harness, extra: Record<string, unknown>) {
     "@/lib/callCloserFixtures": callCloserFixtures,
     "@/lib/callSheet": callSheet,
     "@/lib/callSheetServer": callSheetServerModule(),
+    "@/lib/contactGaps": contactGaps,
     "@/lib/leadMessageAuthor": leadMessageAuthor,
     "@/lib/leadTimeline": leadTimeline,
     "@/lib/payDoors": payDoors,
@@ -766,9 +798,86 @@ test("call card harness: no text link after STOP or without consent, no email li
   assert.ok(!stopped.html.includes('href="sms:'));
   assert.ok(textOf(stopped.html).includes("Replied STOP. Call instead."));
   assert.ok(!stopped.html.includes('href="mailto:'));
+  // A missing email button says why, in muted text.
+  assert.ok(textOf(stopped.html).includes("Facebook did not share an email"), textOf(stopped.html));
+  assert.equal(stopped.panels[0].noTextReason, "they replied STOP");
+  assert.equal(stopped.panels[0].noEmailReason, "Facebook did not share an email");
   const noConsent = await callCard(LEAD_ID, { lead: realLead({ sms_consent: false }) });
   assert.ok(!noConsent.html.includes('href="sms:'));
   assert.ok(textOf(noConsent.html).includes("No text consent"));
+  assert.equal(noConsent.panels[0].noTextReason, "there is no text consent on file");
+  assert.equal(noConsent.panels[0].noEmailReason, null, "a real address has an email button");
+  const noEmail = await callCard(LEAD_ID, { lead: realLead({ email: null }) });
+  assert.ok(!noEmail.html.includes('href="mailto:'));
+  assert.ok(textOf(noEmail.html).includes("No email on file"));
+  assert.equal(noEmail.panels[0].noEmailReason, "there is no email on file");
+});
+
+test("contact gaps: the call sheet's texting words, and the two email cases that happen", () => {
+  assert.equal(contactGaps.textGap({ phone: "(903) 555-0101", sms_consent: true, sms_unsubscribed_at: null }), null);
+  assert.deepEqual(contactGaps.textGap({ phone: "(903) 555-0101", sms_consent: true, sms_unsubscribed_at: "2026-09-21T21:00:00.000Z" }), {
+    label: "Replied STOP. Call instead.",
+    reason: "they replied STOP",
+  });
+  assert.deepEqual(contactGaps.textGap({ phone: "(903) 555-0101", sms_consent: false, sms_unsubscribed_at: null }), {
+    label: "No text consent",
+    reason: "there is no text consent on file",
+  });
+  assert.equal(contactGaps.textGap({ phone: null, sms_consent: true, sms_unsubscribed_at: null })?.label, "No phone on file");
+  assert.equal(contactGaps.emailGap("dana@example.test"), null);
+  assert.equal(contactGaps.emailGap("123@no-email.facebook.lead")?.label, "Facebook did not share an email");
+  assert.equal(contactGaps.emailGap(null)?.label, "No email on file");
+  assert.equal(contactGaps.emailGap("not an email")?.label, "No email on file");
+});
+
+test("the pay-link card says why a text or an email button is missing", () => {
+  const panel = src(PANEL);
+  assert.match(panel, /There is no text button because \$\{noTextReason \|\| "there is no text consent on file"\}\./);
+  assert.match(panel, /There is no email button because \$\{noEmailReason \|\| "there is no email on file"\}\./);
+});
+
+test("a save error takes focus; a success is a success by icon and heading, not by color alone", () => {
+  const panel = src(PANEL);
+  assert.match(panel, /useEffect\(\(\) => \{\s*if \(error\) alertRef\.current\?\.focus\(\);\s*\}, \[error\]\);/);
+  assert.match(panel, /ref=\{alertRef\}\s*role="alert"\s*tabIndex=\{-1\}/);
+  assert.match(panel, /<CheckCircle2 aria-hidden="true"/);
+  assert.match(panel, /border-2 border-\[var\(--green\)\]/);
+  const button = src(SENT_BUTTON);
+  assert.match(button, /useEffect\(\(\) => \{\s*if \(error\) alertRef\.current\?\.focus\(\);\s*\}, \[error\]\);/);
+  assert.match(button, /<CheckCircle2 aria-hidden="true"/);
+});
+
+test("the keyboard focus ring outlines the whole outcome tile, not only the small radio", () => {
+  const html = render(sampleProps({ initialOutcome: "ready_to_pay" }));
+  const tiles = [...html.matchAll(/<label\b[^>]*class="([^"]*)"[^>]*>\s*<input[^>]*type="(radio|checkbox)"/g)];
+  assert.ok(tiles.length >= PANEL_OUTCOMES.length, String(tiles.length));
+  for (const [, cls] of tiles) {
+    assert.ok(cls.includes("has-[:focus-visible]:outline-2"), cls);
+    assert.ok(cls.includes("has-[:focus-visible]:outline-[var(--blue)]"), cls);
+  }
+  for (const input of [...html.matchAll(/<input\b[^>]*type="(?:radio|checkbox)"[^>]*>/g)]) {
+    assert.ok(input[0].includes("focus-visible:outline-none"), "no second ring on the control itself");
+  }
+});
+
+test("call card harness: on a phone, How did the call go? comes before the offers reference", async () => {
+  for (const out of [await callCard("sample"), await callCard(LEAD_ID, { lead: realLead() })]) {
+    const html = out.html;
+    const at = (needle: string) => {
+      const i = html.indexOf(needle);
+      assert.ok(i >= 0, needle);
+      return i;
+    };
+    const header = at("Call card</p>");
+    const words = at('id="call-card-words"');
+    const last = at('id="call-card-last"');
+    const panel = at("How did the call go?");
+    const offers = at('id="call-card-offers"');
+    assert.ok(header < words && words < last && last < panel && panel < offers, [header, words, last, panel, offers].join());
+    // The offers reference is compact: each offer is one summary row, its terms behind it.
+    const section = html.slice(offers);
+    assert.ok(/<details><summary[^>]*>[\s\S]*?<\/summary><p[^>]*>/.test(section), "terms sit behind each offer's summary");
+  }
 });
 
 test("call card harness: a failed read says it is a connection problem, never an empty lead", async () => {

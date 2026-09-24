@@ -130,6 +130,9 @@ export const MAX_PROPOSAL_SELECTION = 3;
 
 const CHOSEN_ON_CALL = "Chosen with you on the call.";
 
+/** A real lead's id. Sample intakes use ids like "sample-build", which never match. */
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 /** Closer offers only, deduped, never a retired one, first three in the order given. */
 function cleanSelection(selection: readonly unknown[] | null | undefined): CloserOfferId[] {
   const out: CloserOfferId[] = [];
@@ -338,7 +341,10 @@ export function buildProposal(intake: ProposalIntake, now: Date, options: BuildP
   // left out beside it, and two larger builds share one line: one System Map
   // covers both, so the page never reads as two map payments.
   const acceptance: string[] = ["Reply to this proposal with the word Approved, or sign the written agreement that follows it."];
-  const doors = recommended.map((r) => payDoorFor(r.offerId)).filter((door): door is PayDoor => door !== null);
+  // A real lead's pay links carry its id, so a payment on the agency pay page
+  // lands on this lead's record. Sample intakes ("sample-build") never match.
+  const leadId = UUID_RE.test(intake.leadId) ? intake.leadId : null;
+  const doors = recommended.map((r) => payDoorFor(r.offerId, { leadId })).filter((door): door is PayDoor => door !== null);
   const builds = doors.filter((door) => door.kind === "starts_with");
   const mapFirst = builds.length > 0;
   for (const door of doors) {

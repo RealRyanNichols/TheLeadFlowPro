@@ -1,5 +1,5 @@
-// Speed to lead: of the people who asked this week, how many heard from a
-// person within a day.
+// Speed to lead: of the people who asked this week, how many a person reached
+// out to within a day.
 //
 // Why this exists: docs/ceo-plan-2026-09-20.md traced $0 in revenue to leads
 // that got an automated email and never a call. The call sheet fixes the list;
@@ -11,10 +11,12 @@
 // The rules:
 // - A lead counts when it is not a test record and was created inside the
 //   window (the last seven days by default), measured back from `now`.
-// - "Heard from a person" uses the call sheet's definition of a human touch:
+// - "A person reached out" uses the call sheet's definition of a human touch:
 //   a note, a call, or an outbound message a person wrote. The welcome email
 //   and the automatic text-back are never touches (lib/callSheet.ts filters
 //   them out before they get here). A reply from the lead is not a touch.
+//   A logged call that went unanswered counts too: someone tried. So the line
+//   says a person reached out, never that the lead heard from one.
 // - Reached means the first human touch landed no later than 24 hours after
 //   the lead was created. Exactly 24 hours still counts.
 // - A lead with no touch yet and less than 24 hours old is still inside its
@@ -90,13 +92,13 @@ function plural(n: number, one: string, many: string): string {
 
 /**
  * The one line the call sheet shows, for example:
- * "Last 7 days: 4 of 9 new leads heard from a person within 24 hours. 2 are still inside their first 24 hours."
+ * "Last 7 days: a person reached out to 4 of 9 new leads within 24 hours. 2 are still inside their first 24 hours."
  */
 export function speedToLeadLine(s: SpeedToLead): string {
   const window = `${s.windowDays} ${plural(s.windowDays, "day", "days")}`;
   const partial = s.partial ? " Partial: some history did not load." : "";
   if (s.leads === 0) return `No new leads in the last ${window}.${partial}`;
-  let line = `Last ${window}: ${s.reachedIn24h} of ${s.leads} new ${plural(s.leads, "lead", "leads")} heard from a person within ${SPEED_TARGET_HOURS} hours.`;
+  let line = `Last ${window}: a person reached out to ${s.reachedIn24h} of ${s.leads} new ${plural(s.leads, "lead", "leads")} within ${SPEED_TARGET_HOURS} hours.`;
   if (s.stillInside24h > 0) {
     line += ` ${s.stillInside24h} ${plural(s.stillInside24h, "is", "are")} still inside their first ${SPEED_TARGET_HOURS} hours.`;
   }

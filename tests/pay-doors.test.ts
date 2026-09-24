@@ -289,3 +289,30 @@ test("pure leaf: the door module imports only the registry and sends nothing", (
   // No typed dollar figure: every amount is read from the registry.
   assert.ok(!/\$\d/.test(code));
 });
+
+test("a real lead's agency pay link carries the lead, so the payment lands on its record", () => {
+  const LEAD = "7d0c5a4e-1b2f-4c3d-8e9f-a0b1c2d3e4f5";
+  let checked = 0;
+  for (const service of AGENCY_SERVICES) {
+    if (!service.offerId) continue;
+    const id = service.offerId;
+    const plain = payDoorFor(id);
+    const withLead = payDoorFor(id, { leadId: LEAD });
+    if (!plain || !withLead || plain.kind !== "written_scope") continue;
+    checked += 1;
+    assert.equal(withLead.url, `${BUSINESS.siteUrl}${agencyPayHref(service.slug, LEAD)}`, id);
+    assert.ok(withLead.url!.endsWith(`lead=${LEAD}`), withLead.url!);
+    // Everything but the link is the same door.
+    assert.deepEqual({ ...withLead, url: null }, { ...plain, url: null }, id);
+    assert.equal(acceptanceLine(withLead), `Pay the amount in your written scope for ${withLead.offerName} at ${withLead.url}.`);
+  }
+  assert.ok(checked >= 5, `every agency service door was checked (${checked})`);
+  // Not a lead id (the sample card, a sample proposal, junk): the link is the plain one.
+  for (const leadId of ["sample", "sample-agency", "", null, "not-a-uuid"]) {
+    assert.equal(payDoorFor("agency_meta_ads", { leadId })!.url, payDoorFor("agency_meta_ads")!.url, String(leadId));
+  }
+  // Doors on the site's own pages never carry a lead: those pages do not read one.
+  for (const id of ["website_launch", "system_map", "lead_followup_campaign", "lead_engine", "free_website_program", "free_build_launch"]) {
+    assert.deepEqual(payDoorFor(id, { leadId: LEAD }), payDoorFor(id), id);
+  }
+});

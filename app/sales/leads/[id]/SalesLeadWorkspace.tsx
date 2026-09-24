@@ -26,6 +26,7 @@ import {
   isCallHistoryEntry,
   offerIdsFromDetail,
 } from "@/lib/callCloser";
+import { emailGap, textGap } from "@/lib/contactGaps";
 import { hasLeadEmailAddress } from "@/lib/leadMessageAuthor";
 import {
   clearTaskFollowUp,
@@ -513,6 +514,8 @@ export default function SalesLeadWorkspace({
         mailHref={emailable ? `mailto:${lead.email}` : null}
         canText={textable}
         hasEmail={emailable}
+        noTextReason={textable ? null : (textGap(lead)?.reason ?? null)}
+        noEmailReason={emailable ? null : (emailGap(lead.email)?.reason ?? null)}
         backHref="/admin/sales"
         backLabel="Back to Today"
         onSaved={() => router.refresh()}

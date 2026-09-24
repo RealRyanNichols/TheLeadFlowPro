@@ -393,3 +393,24 @@ test("never auto-sends: the proposal modules import no channel, email, or SMS co
     assert.ok(!/resend|sendEmail|sendSms|channels|leadNotify|api\.resend|fetch\(/i.test(src), f);
   }
 });
+
+test("a real lead's proposal puts the lead on its agency pay links; a sample proposal never does", () => {
+  const LEAD = "7d0c5a4e-1b2f-4c3d-8e9f-a0b1c2d3e4f5";
+  const real = buildProposal({ ...sampleAgencyIntake(), leadId: LEAD }, SAMPLE_NOW);
+  for (const id of ["agency_meta_ads", "agency_google_ads"]) {
+    const line = acceptanceLine(payDoorFor(id, { leadId: LEAD })!);
+    assert.ok(real.acceptance.includes(line), `${id}: ${real.acceptance.join("\n")}`);
+    assert.ok(line.includes(`lead=${LEAD}`), line);
+  }
+  const sample = buildProposal(sampleAgencyIntake(), SAMPLE_NOW);
+  assert.ok(!sample.acceptance.some((a) => a.includes("lead=")), sample.acceptance.join("\n"));
+  // Pay doors on the site's own pages are the same for a real lead.
+  const site = buildProposal({ ...sampleBuildIntake(), leadId: LEAD }, SAMPLE_NOW, { selection: ["website_launch"] });
+  assert.ok(site.acceptance.some((a) => a.includes(EXTERNAL_LINKS.stripeWebsiteLaunchDeposit)), site.acceptance.join("\n"));
+  assert.ok(!site.acceptance.some((a) => a.includes("lead=")), site.acceptance.join("\n"));
+});
+
+test("the proposal page wraps long links instead of scrolling sideways on a phone", () => {
+  const html = renderProposalHtml(buildProposal(sampleBuildIntake(), SAMPLE_NOW, { selection: ["website_launch"] }), { sample: true });
+  assert.match(html, /body \{[^}]*overflow-wrap: anywhere;[^}]*\}/);
+});

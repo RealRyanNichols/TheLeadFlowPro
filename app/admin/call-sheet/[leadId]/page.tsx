@@ -27,6 +27,7 @@ import {
   type LatestInbound,
 } from "@/lib/callSheet";
 import { loadLeadTouches } from "@/lib/callSheetServer";
+import { emailGap, textGap } from "@/lib/contactGaps";
 import { hasLeadEmailAddress, leadMessageAuthor } from "@/lib/leadMessageAuthor";
 import { safeLeadDiagnostic } from "@/lib/leadTimeline";
 import { closerOffers, payDoorFor, type CloserOfferId, type PayDoor } from "@/lib/payDoors";
@@ -36,14 +37,16 @@ import CallCardPanel from "./CallCardPanel";
 // The call card: one lead, everything Ryan needs on the phone, and the two
 // taps that record how the call went.
 //
-// Top to bottom it follows the call. Who they are and whether a call back is
-// due. What they sent, when they texted or called since a person last
-// reached them (the call sheet lists them under "They reached out" and links
-// here). The buttons to reach them (a text only with consent and no STOP). What
-// they wrote, in their own words. What he can offer them, with the published
-// price and exactly how they would pay. What was said last time. Then "How did
-// the call go?", which saves the outcome and sets when the lead comes back to
-// the call sheet.
+// Top to bottom it follows the call, ordered for a phone so "How did the call
+// go?" is close to the top. Who they are and whether a call back is due. What
+// they sent, when they texted or called since a person last reached them (the
+// call sheet lists them under "They reached out" and links here). The buttons
+// to reach them (a text only with consent and no STOP, an email only for a
+// real address), each missing one with the reason. What they wrote, in their
+// own words. What was said last time. Then "How did the call go?", which saves
+// the outcome and sets when the lead comes back to the call sheet. Last, what
+// he can offer, as a compact reference: name, price, and how they pay, one
+// row each, with the terms a tap away.
 //
 // Read-only until Save: this page reads the lead, its last three notes, its
 // last twenty call entries, and its recent Quo calls and texts through the
@@ -266,6 +269,17 @@ export default async function CallCardPage({ params }: { params: Promise<{ leadI
   return <CallCard view={view} />;
 }
 
+function CardNoteItem({ note }: { note: CardNote }) {
+  return (
+    <li className="min-w-0">
+      <p className="text-xs text-[var(--muted)]">
+        {note.at} · {note.author}
+      </p>
+      <p className="text-sm text-[var(--text)] [overflow-wrap:anywhere]">{note.summary}</p>
+    </li>
+  );
+}
+
 function ConnectionProblem({ leadId }: { leadId: string }) {
   return (
     <div className="mx-auto grid max-w-2xl grid-cols-1 gap-4">
@@ -297,10 +311,16 @@ function CallCard({ view }: { view: CardView }) {
   const sms = e164 && textable ? `sms:${e164}` : null;
   const hasEmail = hasLeadEmailAddress(lead.email);
   const mail = hasEmail ? `mailto:${lead.email}` : null;
+  // Why a button is missing, in the call sheet's own words.
+  const noText = sms ? null : textGap(lead);
+  const noEmail = mail ? null : emailGap(lead.email);
 
   const created = validDate(view.createdAt);
   const ageHours = created ? Math.max(0, (now.getTime() - created.getTime()) / 3_600_000) : null;
   const touched = view.notes.length > 0 || view.callDetails.length > 0 || Boolean(view.lastHumanTouchAt) || Boolean(view.lastContactedAt);
+  // The header says "This is the first call" only on a full load with nothing on file. Then an empty
+  // "Last time" would only repeat it, so it is left off and the outcome panel sits higher on a phone.
+  const firstCall = !touched && !view.partial;
   // The call sheet's own rule (lib/callSheet.ts callbackState): a past time is
   // a call back still owed only when the last human touch came before it.
   // Otherwise it was kept, or it is the diagnostic's stamp.
@@ -320,18 +340,25 @@ function CallCard({ view }: { view: CardView }) {
     // grid-cols-1 is minmax(0, 1fr): a long URL in the pay message or in their
     // words wraps inside the card instead of widening every card past a phone.
     <div className="mx-auto grid max-w-2xl grid-cols-1 gap-4">
-      <Link href="/admin/call-sheet" className={QUIET_LINK + " justify-self-start"}>
-        Back to the call sheet
-      </Link>
-
-      {sample ? (
-        <p className="card !p-4 text-sm" role="note">
-          <span className="font-bold">Sample call card.</span> {name} and the business are fictional. Try the outcomes below: the
-          list updates as you choose, and nothing is saved or sent.
-        </p>
-      ) : null}
+      {/* One row: back to the list, and the full record for a real lead. */}
+      <nav className="flex flex-wrap items-center gap-x-4" aria-label="Call card">
+        <Link href="/admin/call-sheet" className={QUIET_LINK}>
+          Back to the call sheet
+        </Link>
+        {!sample ? (
+          <Link href={`/admin/leads/${lead.id}`} className={QUIET_LINK}>
+            Full record
+          </Link>
+        ) : null}
+      </nav>
 
       <header className="card !p-4">
+        {sample ? (
+          // One line inside the header, so the sample reads like a real card on a phone.
+          <p className="mb-2 text-sm text-[var(--muted)]" role="note">
+            <span className="font-bold text-[var(--text)]">Sample call card.</span> {name} is fictional. Nothing is saved or sent.
+          </p>
+        ) : null}
         <p className="hq-eyebrow">Call card</p>
         <h2 className="mt-1 break-words text-2xl font-black text-[var(--heading)]">{name}</h2>
         {lead.business_name ? <p className="break-words font-semibold text-[var(--muted)]">{lead.business_name}</p> : null}
@@ -344,7 +371,7 @@ function CallCard({ view }: { view: CardView }) {
           {view.isTest ? " · test lead" : ""}
         </p>
         {/* "First call" only on a full load: missing history is a connection problem, not proof nobody called. */}
-        {!touched && !view.partial ? (
+        {firstCall ? (
           <p className="mt-3 rounded-lg border border-[var(--accent-line)] bg-[var(--accent-tint)] p-3 text-sm text-[var(--text)]">
             Nobody has logged a call or a note yet. This is the first call.
           </p>
@@ -396,15 +423,15 @@ function CallCard({ view }: { view: CardView }) {
             <a href={sms} className={`${BUTTON} border border-[var(--line-strong)] text-[var(--text)]`}>
               Text (consented)
             </a>
-          ) : lead.phone && lead.sms_unsubscribed_at ? (
-            <span className={`${BUTTON} border border-[var(--line)] font-normal text-[var(--muted)]`}>Replied STOP. Call instead.</span>
-          ) : lead.phone ? (
-            <span className={`${BUTTON} border border-[var(--line)] font-normal text-[var(--muted)]`}>No text consent</span>
+          ) : lead.phone && noText ? (
+            <span className={`${BUTTON} border border-[var(--line)] font-normal text-[var(--muted)]`}>{noText.label}</span>
           ) : null}
           {mail ? (
             <a href={mail} className={`${BUTTON} border border-[var(--line-strong)] text-[var(--text)]`}>
               Email
             </a>
+          ) : noEmail ? (
+            <span className={`${BUTTON} border border-[var(--line)] font-normal text-[var(--muted)]`}>{noEmail.label}</span>
           ) : null}
         </div>
       </header>
@@ -449,24 +476,82 @@ function CallCard({ view }: { view: CardView }) {
         ) : null}
       </section>
 
+      {firstCall ? null : (
+        <section className="card !p-4" aria-labelledby="call-card-last">
+          <h3 id="call-card-last" className={SECTION_TITLE}>
+            Last time
+          </h3>
+          {view.notes.length ? (
+            <>
+              {/* The latest note is what matters on the phone; the two before it are a tap away. */}
+              <ol className="mt-2 grid gap-3">
+                {view.notes.slice(0, 1).map((n, i) => (
+                  <CardNoteItem key={`${n.at}-${i}`} note={n} />
+                ))}
+              </ol>
+              {view.notes.length > 1 ? (
+                <details className="mt-1">
+                  <summary className={`flex min-h-[44px] cursor-pointer items-center rounded-lg px-1 text-sm font-bold text-[var(--blue)] ${FOCUS}`}>
+                    Earlier notes ({view.notes.length - 1})
+                  </summary>
+                  <ol className="mt-1 grid gap-3">
+                    {view.notes.slice(1).map((n, i) => (
+                      <CardNoteItem key={`${n.at}-${i}`} note={n} />
+                    ))}
+                  </ol>
+                </details>
+              ) : null}
+            </>
+          ) : view.notesFailed ? (
+            <p className="mt-2 text-sm text-[var(--muted)]">The notes did not load. Open the full record to check.</p>
+          ) : (
+            <p className="mt-2 text-sm text-[var(--muted)]">No notes yet.</p>
+          )}
+        </section>
+      )}
+
+      <CallCardPanel
+        lead={{ ...lead, diagnostic: null }}
+        suggestedOffers={suggested}
+        initialOffers={lastOffers}
+        priorAttempts={countPriorAttempts(view.callDetails)}
+        actorName={view.actorName}
+        smsHref={sms}
+        mailHref={mail}
+        canText={Boolean(sms)}
+        hasEmail={hasEmail}
+        noTextReason={noText?.reason ?? null}
+        noEmailReason={noEmail?.reason ?? null}
+        defaultMeetingPlace={meetingPlaceForLabel(words.meet)}
+        proposalAllowed
+        sample={sample}
+        fixedNow={sample ? now.toISOString() : null}
+      />
+
       <section className="card !p-4" aria-labelledby="call-card-offers">
         <h3 id="call-card-offers" className={SECTION_TITLE}>
           What you can offer
         </h3>
-        <p className="mt-1 text-sm text-[var(--muted)]">Prices and payment steps come straight from the published offers.</p>
-        <ul className="mt-3 grid gap-3">
+        <p className="mt-1 text-sm text-[var(--muted)]">
+          Prices and payment steps come straight from the published offers. Tap one for its terms.
+        </p>
+        <ul className="mt-2 grid">
           {suggestedDoors.map((door) => (
-            <li key={door.offerId} className="min-w-0 rounded-xl border border-[var(--line)] bg-[var(--panel)] p-3">
-              <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-                <span className="font-black text-[var(--heading)]">{door.offerName}</span>
-                <span className="font-bold text-[var(--blue)]">{door.priceLabel}</span>
-              </div>
-              <p className="mt-1 text-sm text-[var(--text)]">{door.terms}</p>
-              <p className="mt-1 text-sm text-[var(--muted)]">{withPeriod(door.howTheyPay)}</p>
+            <li key={door.offerId} className="min-w-0 border-b border-[var(--line)] last:border-b-0">
+              <details>
+                <summary className={`flex min-h-[44px] cursor-pointer flex-col justify-center rounded-lg px-1 py-2 text-sm ${FOCUS}`}>
+                  <span className="min-w-0">
+                    <span className="font-bold text-[var(--heading)]">{door.offerName}</span>{" "}
+                    <span className="font-semibold text-[var(--blue)]">{door.priceLabel}</span>
+                  </span>
+                  <span className="min-w-0 text-[var(--muted)]">{withPeriod(door.howTheyPay)}</span>
+                </summary>
+                <p className="px-1 pb-3 text-sm text-[var(--text)]">{door.terms}</p>
+              </details>
             </li>
           ))}
         </ul>
-        <details className="mt-3">
+        <details className="mt-2">
           <summary className={`flex min-h-[44px] cursor-pointer items-center rounded-lg px-1 text-sm font-bold text-[var(--blue)] ${FOCUS}`}>
             Show every published offer
           </summary>
@@ -481,49 +566,6 @@ function CallCard({ view }: { view: CardView }) {
           </ul>
         </details>
       </section>
-
-      <section className="card !p-4" aria-labelledby="call-card-last">
-        <h3 id="call-card-last" className={SECTION_TITLE}>
-          Last time
-        </h3>
-        {view.notes.length ? (
-          <ol className="mt-2 grid gap-3">
-            {view.notes.map((n, i) => (
-              <li key={`${n.at}-${i}`} className="min-w-0">
-                <p className="text-xs text-[var(--muted)]">
-                  {n.at} · {n.author}
-                </p>
-                <p className="text-sm text-[var(--text)] [overflow-wrap:anywhere]">{n.summary}</p>
-              </li>
-            ))}
-          </ol>
-        ) : view.notesFailed ? (
-          <p className="mt-2 text-sm text-[var(--muted)]">The notes did not load. Open the full record to check.</p>
-        ) : (
-          <p className="mt-2 text-sm text-[var(--muted)]">No notes yet.</p>
-        )}
-        {!sample ? (
-          <Link href={`/admin/leads/${lead.id}`} className={`${QUIET_LINK} mt-2`}>
-            Open the full record
-          </Link>
-        ) : null}
-      </section>
-
-      <CallCardPanel
-        lead={{ ...lead, diagnostic: null }}
-        suggestedOffers={suggested}
-        initialOffers={lastOffers}
-        priorAttempts={countPriorAttempts(view.callDetails)}
-        actorName={view.actorName}
-        smsHref={sms}
-        mailHref={mail}
-        canText={Boolean(sms)}
-        hasEmail={hasEmail}
-        defaultMeetingPlace={meetingPlaceForLabel(words.meet)}
-        proposalAllowed
-        sample={sample}
-        fixedNow={sample ? now.toISOString() : null}
-      />
     </div>
   );
 }

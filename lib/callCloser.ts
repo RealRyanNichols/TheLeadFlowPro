@@ -447,6 +447,25 @@ type Draft = {
   summary: string;
 };
 
+const LEAD_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/** A real lead's id, or null for the sample card (id "sample") and anything else that is not a UUID. */
+export function realLeadId(id: string | null | undefined): string | null {
+  return typeof id === "string" && LEAD_UUID_RE.test(id) ? id : null;
+}
+
+/**
+ * Whether "Ready to pay now" can hand over this door for a lead at this
+ * stage: the planner's own rule, also used by the panel to list what can be
+ * paid today first. A door that takes money online today always can. An
+ * agency service is paid on the agency pay page against its written scope,
+ * so it can once the lead is at the proposal stage (the number is in
+ * writing).
+ */
+export function isPayableToday(door: PayDoor, leadStatus: string): boolean {
+  return door.payableNow || (door.kind === "written_scope" && Boolean(door.url) && leadStatus === "proposal");
+}
+
 /**
  * What saving this outcome writes, and what the panel says it will write.
  * `priorAttempts` is countPriorAttempts over the lead's recent call activity.
@@ -474,7 +493,8 @@ export function planCallOutcome(input: {
   const first = firstName(lead.full_name);
   const who = first || "the lead";
   const nowIso = now.toISOString();
-  const doors = request.offers.map((id) => payDoorFor(id)).filter((d): d is PayDoor => d !== null);
+  // A real lead's pay links carry its id so the payment lands on its record. The sample never does.
+  const doors = request.offers.map((id) => payDoorFor(id, { leadId: realLeadId(lead.id) })).filter((d): d is PayDoor => d !== null);
   const names = doors.map((d) => d.offerName);
   const talkedAbout = names.length ? ` Talked about ${joinNames(names)}.` : "";
 
@@ -540,11 +560,8 @@ export function planCallOutcome(input: {
     }
 
     case "ready_to_pay": {
-      if (doors.length === 0) return bad("Pick what they are paying for, up to three offers.");
-      // The agency pay page takes the amount from the written scope. At the
-      // proposal stage that scope is in writing, so its link can go out.
-      const scopeInWriting = status === "proposal";
-      const blocked = doors.find((d) => !d.payableNow && !(d.kind === "written_scope" && d.url && scopeInWriting));
+      if (doors.length === 0) return bad("Pick what they are paying for today.");
+      const blocked = doors.find((d) => !isPayableToday(d, status));
       if (blocked) {
         return bad(
           blocked.kind === "written_scope"

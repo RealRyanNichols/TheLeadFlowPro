@@ -160,6 +160,8 @@ export default async function ProposalPage({
           ))}
         </ul>
       )}
+      {/* The document first, then "Sent it yourself? Log it.": Ryan reads it before he records that he sent it. */}
+      <iframe title="Proposal preview" srcDoc={html} sandbox="" className="h-[80vh] w-full rounded-xl border border-[var(--line)] bg-white" />
       <ProposalSentButton
         lead={found.lead}
         offers={sentOffers}
@@ -167,7 +169,6 @@ export default async function ProposalPage({
         fixedNow={found.sample ? SAMPLE_NOW.toISOString() : null}
         callCardHref={callCardHref}
       />
-      <iframe title="Proposal preview" srcDoc={html} sandbox="" className="h-[80vh] w-full rounded-xl border border-[var(--line)] bg-white" />
     </div>
   );
 }

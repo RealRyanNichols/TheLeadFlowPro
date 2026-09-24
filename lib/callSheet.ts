@@ -121,8 +121,18 @@ export const NOTE_SUMMARY_MAX = 140;
 const ACTIVITY_MARKER_TAIL =
   /(?:\s*\bOutcome: [a-z_]+\.)?(?:\s*\bOffer ids: [a-z0-9_]+(?:, [a-z0-9_]+)*\.)?(?:\s*\bRef [A-Za-z0-9-]{20,80})?\s*$/;
 
+/**
+ * At most `max` characters, ending in "..." when cut. The cut falls at the
+ * last space, so a word is never split ("afte..."). A single word longer
+ * than most of the room (a link, a long number) is cut where it has to be.
+ */
 function clip(text: string, max: number): string {
-  return text.length > max ? `${text.slice(0, max - 3).trimEnd()}...` : text;
+  if (text.length <= max) return text;
+  const room = max - 3;
+  const head = text.slice(0, room);
+  const space = /\s/.test(text.charAt(room)) ? room : head.lastIndexOf(" ");
+  const cut = space >= Math.floor(room * 0.6) ? head.slice(0, space) : head;
+  return `${cut.replace(/[\s,;:]+$/, "")}...`;
 }
 
 /**

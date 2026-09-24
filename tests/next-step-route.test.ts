@@ -751,6 +751,13 @@ test("the other outcomes write the stage, task, and links the planner promises",
     (pay.json.payDoors as { offerId: string; url: string | null }[]).map((d) => [d.offerId, Boolean(d.url)]),
     [["website_launch", true]],
   );
+  // An agency service at the proposal stage: the pay link carries this lead, so the payment lands on its record.
+  const agencyPay = await run({ body: bodyFor("ready_to_pay", { offers: ["agency_meta_ads"] }), lead: leadRow({ status: "proposal" }) });
+  assert.equal(agencyPay.status, 200);
+  const agencyDoors = agencyPay.json.payDoors as { offerId: string; url: string | null }[];
+  assert.deepEqual(agencyDoors.map((d) => d.offerId), ["agency_meta_ads"]);
+  assert.ok(agencyDoors[0].url?.endsWith(`/agency/pay?service=meta-ads&lead=${LEAD_ID}`), agencyDoors[0].url ?? "");
+  assert.ok(String(agencyPay.json.payMessage).includes(`&lead=${LEAD_ID}`), String(agencyPay.json.payMessage));
 
   const lost = await run({ body: bodyFor("not_a_fit") });
   assert.deepEqual(payloadOf(writeTo(lost, "leads", "update")), {

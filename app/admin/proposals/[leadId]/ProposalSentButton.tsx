@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { CheckCircle2 } from "lucide-react";
 import { planCallOutcome, type PlannerLead } from "@/lib/callCloser";
 import type { CloserOfferId } from "@/lib/payDoors";
 
@@ -79,6 +80,7 @@ export default function ProposalSentButton({
   const [done, setDone] = useState<Done | null>(null);
   const keyRef = useRef("");
   const statusRef = useRef<HTMLDivElement>(null);
+  const alertRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
     keyRef.current = mintKey();
@@ -88,6 +90,11 @@ export default function ProposalSentButton({
   useEffect(() => {
     if (done) statusRef.current?.focus();
   }, [done]);
+
+  // A failed tap: focus the message, not the page.
+  useEffect(() => {
+    if (error) alertRef.current?.focus();
+  }, [error]);
 
   const plan = useMemo(() => {
     if (nowMs === null) return null;
@@ -141,7 +148,7 @@ export default function ProposalSentButton({
   }
 
   return (
-    <section className="card mb-4 !p-4" aria-labelledby={`${uid}-heading`}>
+    <section className="card mt-4 !p-4" aria-labelledby={`${uid}-heading`}>
       <h2 id={`${uid}-heading`} className="text-base font-black text-[var(--heading)]">
         Sent it yourself? Log it.
       </h2>
@@ -154,9 +161,12 @@ export default function ProposalSentButton({
           ref={statusRef}
           role="status"
           tabIndex={-1}
-          className="mt-3 rounded-xl border border-[var(--green-line)] bg-[var(--green-tint)] p-4 text-sm focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-[var(--blue)]"
+          className="mt-3 rounded-xl border-2 border-[var(--green)] p-4 text-sm [background:linear-gradient(var(--green-tint),var(--green-tint)),var(--panel)] focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-[var(--blue)]"
         >
-          <p className="font-black text-[var(--heading)]">{done.duplicate ? "Already recorded." : "Recorded."}</p>
+          <p className="flex items-center gap-2 font-black text-[var(--green)]">
+            <CheckCircle2 aria-hidden="true" className="h-6 w-6 shrink-0" />
+            {done.duplicate ? "Already recorded." : "Recorded."}
+          </p>
           <p className="mt-1">{done.summary}</p>
           {done.nextFollowUpLabel ? (
             <p className="mt-1">
@@ -193,7 +203,12 @@ export default function ProposalSentButton({
             </p>
           ) : null}
           {error ? (
-            <p role="alert" className="mt-3 rounded-lg border border-[var(--danger-line)] bg-[var(--danger-tint)] p-3 text-sm text-[var(--danger)]">
+            <p
+              ref={alertRef}
+              role="alert"
+              tabIndex={-1}
+              className="mt-3 rounded-lg border border-[var(--danger-line)] bg-[var(--danger-tint)] p-3 text-sm text-[var(--danger)] focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-[var(--blue)]"
+            >
               {error}
             </p>
           ) : null}

@@ -19,6 +19,9 @@
 //                           separate secure checkout after the written scope is
 //                           approved, so Ryan sends one from Sales invoices.
 //   agency_*                /agency/pay?service=<slug>, the amount in the written scope.
+//                           For a real lead the link also carries &lead=<id>, so the
+//                           payment lands on that lead's record (lib/agencyPayment.ts).
+//                           The sample card and sample proposals never pass one.
 //
 // An offer that is not live never shows an amount and is never payable now.
 // Leaf module: registry reads only. Nothing here sends, charges, or stores anything.
@@ -93,8 +96,16 @@ function findOffer(id: string): Offer | null {
   return OFFERS.find((o) => o.id === id) ?? null;
 }
 
-/** The pay door for one offer. Null for an unknown id, an offer outside the closer list, or a retired offer. */
-export function payDoorFor(offerId: string): PayDoor | null {
+/** Who the door is for. Only a real lead's id is passed, never a sample's. */
+export type PayDoorContext = { leadId?: string | null };
+
+/**
+ * The pay door for one offer. Null for an unknown id, an offer outside the
+ * closer list, or a retired offer. With a lead id, a door that can tie the
+ * payment to the lead (the agency pay page) carries it; agencyPayHref drops
+ * anything that is not a UUID, so a sample id never reaches a link.
+ */
+export function payDoorFor(offerId: string, context: PayDoorContext = {}): PayDoor | null {
   if (!isCloserOfferId(offerId)) return null;
   const o = findOffer(offerId);
   if (!o || o.status === "retired") return null;
@@ -173,7 +184,7 @@ export function payDoorFor(offerId: string): PayDoor | null {
   return {
     ...base,
     kind: "written_scope",
-    url: absolute(agencyPayHref(service?.slug ?? null)),
+    url: absolute(agencyPayHref(service?.slug ?? null, context.leadId ?? null)),
     dueNowLabel: fixed ? o.priceLabel : null,
     howTheyPay: live
       ? "Pays the amount in the written scope on the agency pay page"

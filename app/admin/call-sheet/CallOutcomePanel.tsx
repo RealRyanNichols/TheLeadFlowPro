@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
+import { CheckCircle2 } from "lucide-react";
 import CopyButton from "@/app/hq/_components/CopyButton";
 import { centralDate, quickCallbackChoices } from "@/lib/businessTime";
 import {
@@ -14,6 +15,7 @@ import {
   OUTCOME_LABELS,
   PANEL_OUTCOMES,
   firstName,
+  isPayableToday,
   parseNextStepRequest,
   planCallOutcome,
   type CallOutcome,
@@ -39,10 +41,16 @@ import { closerOffers, payDoorFor, type CloserOfferId, type PayDoor } from "@/li
 //   after an edit: the route then says "already saved" instead of writing the
 //   call twice, and the panel says the later edits were not saved. Any save
 //   after a success gets a new key.
-// - For Wants a proposal and Ready to pay now, only the primary suggestion (or
-//   the offers named on the last call) starts checked. The rest are listed
-//   first, one tap away, so a quick save never names offers nobody talked
-//   about. The optional "Talked about an offer?" list on a sit-down or a call
+// - For Wants a proposal, only the primary suggestion (or the offers named on
+//   the last call) starts checked. The rest are listed first, one tap away, so
+//   a quick save never names offers nobody talked about.
+// - Ready to pay now keeps its own list. The offers that can be paid today
+//   (isPayableToday, the planner's own rule) come first, and the first such
+//   suggestion starts checked, so a free-website lead is not stuck on an offer
+//   that takes no money. The offers named on the last call still start checked
+//   and are shown first. Everything else sits under "Offers that cannot be paid
+//   online today". The planner stays the authority: an unpayable pick is
+//   explained, never saved. The optional "Talked about an offer?" list on a sit-down or a call
 //   back starts with nothing ticked, so opening it to add one offer never
 //   records a second one nobody mentioned.
 // - An error keeps everything Ryan entered. A success is announced and gets
@@ -90,6 +98,10 @@ export type CallOutcomePanelProps = {
   mailHref: string | null;
   canText: boolean;
   hasEmail: boolean;
+  /** Why there is no text button (lib/contactGaps.ts textGap().reason), e.g. "they replied STOP". */
+  noTextReason?: string | null;
+  /** Why there is no email button (lib/contactGaps.ts emailGap().reason), e.g. "Facebook did not share an email". */
+  noEmailReason?: string | null;
   /** The sit-down place the lead asked for on the consultation form, as a MEETING_PLACES place. */
   defaultMeetingPlace?: string | null;
   /** Show "Draft the proposal now" after Wants a proposal (the proposal page is admin only). */
@@ -113,14 +125,18 @@ const CLOCK_TICK_MS = 30_000;
 const DAY_MS = 86_400_000;
 
 const FOCUS = "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--blue)]";
-const TILE_BASE = "flex min-h-[44px] cursor-pointer gap-3 rounded-xl border px-3 py-2.5 text-sm font-bold leading-snug";
+// The focus ring goes on the whole tile when its radio or checkbox has keyboard focus.
+const TILE_FOCUS =
+  "has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-[var(--blue)]";
+const TILE_BASE = `flex min-h-[44px] cursor-pointer gap-3 rounded-xl border px-3 py-2.5 text-sm font-bold leading-snug ${TILE_FOCUS}`;
 const TILE = `${TILE_BASE} items-center`;
 const TILE_ON = "border-[var(--blue)] bg-[var(--accent-tint)] text-[var(--heading)]";
 const TILE_OFF = "border-[var(--line-strong)] bg-[var(--panel)] text-[var(--text)]";
 const CHIP = `inline-flex min-h-[44px] items-center rounded-lg border px-3 py-2 text-sm font-semibold ${FOCUS}`;
 const BUTTON_QUIET = `inline-flex min-h-[44px] items-center justify-center rounded-lg border border-[var(--line-strong)] bg-[var(--panel)] px-4 py-2 text-sm font-bold text-[var(--text)] ${FOCUS}`;
 const LINK_ACCENT = `inline-flex min-h-[44px] items-center justify-center rounded-lg border border-[var(--accent-line)] bg-[var(--accent-tint)] px-4 py-2 text-sm font-bold text-[var(--blue)] ${FOCUS}`;
-const RADIO = `h-5 w-5 shrink-0 accent-[var(--blue)] ${FOCUS}`;
+// The tile around it draws the focus ring (TILE_FOCUS), so the control itself does not draw a second one.
+const RADIO = "h-5 w-5 shrink-0 accent-[var(--blue)] focus-visible:outline-none";
 const SUBLEGEND = "mb-2 text-sm font-bold text-[var(--heading)]";
 const SUMMARY = `flex min-h-[44px] cursor-pointer items-center rounded-lg px-1 text-sm font-bold text-[var(--blue)] ${FOCUS}`;
 
@@ -157,7 +173,11 @@ function withPeriod(text: string): string {
  * the planner allows once the lead is at the proposal stage.
  */
 function payTodayLabel(door: PayDoor, status: string): string {
-  if (door.payableNow) return "Pays online today. ";
+  // Most payable doors already say "online today" or "Pays ..." in their own words; saying it twice reads like a stutter.
+  if (door.payableNow) {
+    if (/online today/i.test(door.howTheyPay)) return "";
+    return /^pays /i.test(door.howTheyPay) ? "Online today. " : "Pays online today. ";
+  }
   if (door.kind === "written_scope" && door.url) {
     return status === "proposal" ? "Pays online against the written scope. " : "Pays online once the number is in writing. ";
   }
@@ -320,6 +340,8 @@ export default function CallOutcomePanel({
   mailHref,
   canText,
   hasEmail,
+  noTextReason = null,
+  noEmailReason = null,
   defaultMeetingPlace = null,
   proposalAllowed = false,
   compact = false,
@@ -349,6 +371,18 @@ export default function CallOutcomePanel({
         : uniqueOffers(suggestedOffers).slice(0, 1),
     [initialOffers, suggestedOffers],
   );
+  // Ready to pay now: the offers named on the last call, else the first
+  // suggestion that can be paid today, else nothing ("Pick what they are
+  // paying for today"). Never an offer that takes no money online.
+  const payStartingOffers = useMemo(() => {
+    const named = uniqueOffers(initialOffers ?? []);
+    if (named.length) return named.slice(0, MAX_CALL_OFFERS);
+    const payable = uniqueOffers(suggestedOffers).find((id) => {
+      const door = payDoorFor(id);
+      return door !== null && isPayableToday(door, lead.status);
+    });
+    return payable ? [payable] : [];
+  }, [initialOffers, suggestedOffers, lead.status]);
   const startingPlace = MEETING_PLACES.find((p) => p.place === defaultMeetingPlace)?.id ?? "";
 
   const [outcome, setOutcome] = useState<CallOutcome | null>(initialOutcome);
@@ -362,6 +396,8 @@ export default function CallOutcomePanel({
   const [talkedOpen, setTalkedOpen] = useState(false);
   // The offers a proposal or a payment is for. Starts with the last call's offers or the primary suggestion.
   const [offers, setOffers] = useState<CloserOfferId[]>(startingOffers);
+  // What Ready to pay now is for: its own list, so a proposal pick never blocks a payment.
+  const [payOffers, setPayOffers] = useState<CloserOfferId[]>(payStartingOffers);
   // What "Talked about an offer?" records on a sit-down or a call back. Starts
   // empty: opening the list must not claim an offer nobody mentioned.
   const [talkedOffers, setTalkedOffers] = useState<CloserOfferId[]>([]);
@@ -382,6 +418,7 @@ export default function CallOutcomePanel({
   const legendRef = useRef<HTMLLegendElement>(null);
   const statusRef = useRef<HTMLDivElement>(null);
   const hintRef = useRef<HTMLParagraphElement>(null);
+  const alertRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
     if (!memoryRef.current.key) memoryRef.current = { ...memoryRef.current, key: mintKey() };
@@ -425,6 +462,12 @@ export default function CallOutcomePanel({
     if (saved) statusRef.current?.focus();
   }, [saved]);
 
+  // A failed save: take focus to the message, so a screen reader and the
+  // keyboard land on what went wrong instead of on the page itself.
+  useEffect(() => {
+    if (error) alertRef.current?.focus();
+  }, [error]);
+
   const now = nowMs === null ? null : new Date(nowMs);
   const first = firstName(lead.full_name);
   const who = first || "the lead";
@@ -437,7 +480,8 @@ export default function CallOutcomePanel({
   const place = placeChoice === "other" ? placeOther : (MEETING_PLACES.find((p) => p.id === placeChoice)?.place ?? "");
   // The list the offer picker shows and changes: the optional "Talked about an offer?" list, or the required one.
   const talking = outcome !== null && OFFER_OPTIONAL.has(outcome);
-  const picked = talking ? talkedOffers : offers;
+  const paying = outcome === "ready_to_pay";
+  const picked = talking ? talkedOffers : paying ? payOffers : offers;
 
   // Exactly what Save posts, minus the key.
   const body = useMemo(() => {
@@ -445,7 +489,7 @@ export default function CallOutcomePanel({
     return {
       outcome,
       note: note.trim() ? note : null,
-      offers: !sendsOffers ? [] : OFFER_REQUIRED.has(outcome) ? offers : talkedOffers,
+      offers: !sendsOffers ? [] : outcome === "ready_to_pay" ? payOffers : OFFER_REQUIRED.has(outcome) ? offers : talkedOffers,
       meeting_date: outcome === "booked" ? meetingDate || null : null,
       meeting_time: outcome === "booked" ? meetingTime || null : null,
       meeting_place: outcome === "booked" ? place.trim() || null : null,
@@ -453,7 +497,7 @@ export default function CallOutcomePanel({
       callback_time: sendsCallback ? callbackTime || null : null,
       lost_reason: outcome === "not_a_fit" ? lostReason || null : null,
     };
-  }, [outcome, note, sendsOffers, offers, talkedOffers, meetingDate, meetingTime, place, sendsCallback, callbackDate, callbackTime, lostReason]);
+  }, [outcome, note, sendsOffers, offers, payOffers, talkedOffers, meetingDate, meetingTime, place, sendsCallback, callbackDate, callbackTime, lostReason]);
 
   const plan: CallPlan | { ok: false; error: string } | null = useMemo(() => {
     if (!body || nowMs === null) return null;
@@ -476,7 +520,7 @@ export default function CallOutcomePanel({
   }
 
   function toggleOffer(id: CloserOfferId, on: boolean) {
-    const setPicked = talking ? setTalkedOffers : setOffers;
+    const setPicked = talking ? setTalkedOffers : paying ? setPayOffers : setOffers;
     setPicked((current) => (on ? (current.includes(id) || current.length >= MAX_CALL_OFFERS ? current : [...current, id]) : current.filter((x) => x !== id)));
   }
 
@@ -493,6 +537,7 @@ export default function CallOutcomePanel({
     setRetryOpen(false);
     setTalkedOpen(false);
     setOffers(startingOffers);
+    setPayOffers(payStartingOffers);
     setTalkedOffers([]);
     setLostReason("");
     setNote("");
@@ -568,11 +613,14 @@ export default function CallOutcomePanel({
           ref={statusRef}
           role="status"
           tabIndex={-1}
-          className="rounded-xl border border-[var(--green-line)] bg-[var(--green-tint)] p-4 focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-[var(--blue)]"
+          className="rounded-xl border-2 border-[var(--green)] p-4 [background:linear-gradient(var(--green-tint),var(--green-tint)),var(--panel)] focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-[var(--blue)]"
         >
-          <HeadingTag id={`${uid}-saved`} className="text-base font-black text-[var(--heading)]">
-            {saved.duplicate ? "Already saved" : "Saved"}
-          </HeadingTag>
+          <div className="flex items-center gap-2">
+            <CheckCircle2 aria-hidden="true" className="h-6 w-6 shrink-0 text-[var(--green)]" />
+            <HeadingTag id={`${uid}-saved`} className="text-base font-black text-[var(--green)]">
+              {saved.duplicate ? "Already saved" : "Saved"}
+            </HeadingTag>
+          </div>
           <p className="mt-1 text-sm text-[var(--text)]">{saved.summary}</p>
           {saved.nextFollowUpLabel ? (
             <p className="mt-2 text-sm text-[var(--text)]">
@@ -634,7 +682,8 @@ export default function CallOutcomePanel({
                 </div>
                 <p className="mt-2 text-xs text-[var(--muted)]">
                   Nothing goes to {who} until you send it from your own phone or email.
-                  {canText ? "" : " There is no text consent on file, so there is no text button."}
+                  {textHref ? "" : ` There is no text button because ${noTextReason || "there is no text consent on file"}.`}
+                  {emailHref ? "" : ` There is no email button because ${noEmailReason || "there is no email on file"}.`}
                 </p>
               </div>
             ) : null}
@@ -659,7 +708,24 @@ export default function CallOutcomePanel({
   }
 
   const featuredDoors = featured.map((id) => payDoorFor(id)).filter((d): d is PayDoor => d !== null);
-  const chosenElsewhere = picked.filter((id) => !featured.includes(id)).length;
+  // Ready to pay now lists what can be paid today first (the planner's rule):
+  // the offers named on the last call, then payable suggestions, then every
+  // other payable offer. The rest wait under a summary that says why.
+  const payableToday = (door: PayDoor) => isPayableToday(door, lead.status);
+  const namedDoors = uniqueOffers(initialOffers ?? [])
+    .map((id) => payDoorFor(id))
+    .filter((d): d is PayDoor => d !== null);
+  const shownDoors = paying
+    ? [...namedDoors, ...featuredDoors.filter(payableToday), ...others.filter(payableToday)].filter(
+        (door, i, all) => all.findIndex((d) => d.offerId === door.offerId) === i,
+      )
+    : featuredDoors;
+  const shownIds = shownDoors.map((d) => d.offerId);
+  const hiddenDoors = paying
+    ? [...featuredDoors, ...others].filter((door) => !shownIds.includes(door.offerId))
+    : others;
+  const chosenElsewhere = picked.filter((id) => !shownIds.includes(id)).length;
+  const moreLabel = paying ? "Offers that cannot be paid online today" : "More offers";
   const offerLegend =
     outcome === "wants_proposal"
       ? "What goes in the proposal? Pick up to three."
@@ -699,13 +765,14 @@ export default function CallOutcomePanel({
   const offerPicker = (
     <fieldset className="min-w-0">
       <legend className={SUBLEGEND}>{offerLegend}</legend>
-      <ul className="grid gap-2">{featuredDoors.map(offerRow)}</ul>
-      {others.length > 0 ? (
+      <ul className="grid gap-2">{shownDoors.map(offerRow)}</ul>
+      {hiddenDoors.length > 0 ? (
         <details className="mt-2">
           <summary className={SUMMARY}>
-            More offers{chosenElsewhere ? ` (${chosenElsewhere} chosen)` : ""}
+            {moreLabel}
+            {chosenElsewhere ? ` (${chosenElsewhere} chosen)` : ""}
           </summary>
-          <ul className="mt-2 grid gap-2">{others.map(offerRow)}</ul>
+          <ul className="mt-2 grid gap-2">{hiddenDoors.map(offerRow)}</ul>
         </details>
       ) : null}
       {picked.length >= MAX_CALL_OFFERS ? (
@@ -963,7 +1030,12 @@ export default function CallOutcomePanel({
         </SavingLock>
 
         {error ? (
-          <p role="alert" className="mt-4 rounded-lg border border-[var(--danger-line)] bg-[var(--danger-tint)] p-3 text-sm text-[var(--danger)]">
+          <p
+            ref={alertRef}
+            role="alert"
+            tabIndex={-1}
+            className="mt-4 rounded-lg border border-[var(--danger-line)] bg-[var(--danger-tint)] p-3 text-sm text-[var(--danger)] focus:outline focus:outline-2 focus:outline-offset-2 focus:outline-[var(--blue)]"
+          >
             {error}
           </p>
         ) : null}

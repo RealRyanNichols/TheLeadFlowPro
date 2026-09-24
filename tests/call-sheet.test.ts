@@ -513,6 +513,16 @@ test("note summaries are the first line, markers removed, never longer than the 
   assert.ok(long.startsWith("Talked about the website") && long.endsWith("..."));
   const reply = touchesFromRows({ notes: [], calls: [], messages: [{ lead_id: "x", direction: "in", channel: "note", body: "y".repeat(400), created_at: hoursAgo(1) }] });
   assert.equal(reply[0].summary!.length, NOTE_SUMMARY_MAX);
+  // A clipped summary ends on a whole word, never mid-word ("afte...").
+  const sentence =
+    "Talked with Tomas for about ten minutes. Wants the system map but is on a roof all week. Said to call him back at 10 in the morning, after the roof job.";
+  const clipped = noteSummary(sentence)!;
+  assert.ok(clipped.length <= NOTE_SUMMARY_MAX, String(clipped.length));
+  assert.ok(clipped.endsWith("..."), clipped);
+  const kept = clipped.slice(0, -3);
+  assert.ok(sentence.startsWith(kept), clipped);
+  assert.ok(/[\s,.;:]/.test(sentence.charAt(kept.length)) || /[,.;:]$/.test(kept), `cut mid-word: ${clipped}`);
+  assert.equal(clipped, "Talked with Tomas for about ten minutes. Wants the system map but is on a roof all week. Said to call him back at 10 in the morning...");
 });
 
 test("the email counts call backs in the subject, prints the tier, and links each row to its call card", () => {

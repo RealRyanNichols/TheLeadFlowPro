@@ -15,10 +15,12 @@ import {
   closerOffersFor,
   countPriorAttempts,
   firstName,
+  isPayableToday,
   meetingPlaceForLabel,
   offerIdsFromDetail,
   parseNextStepRequest,
   planCallOutcome,
+  realLeadId,
   refMarker,
   stageAfter,
   theirWords,
@@ -457,7 +459,29 @@ test("ready_to_pay is refused for an offer with no online payment today", () => 
   // One blocked offer blocks the whole save, named in the error.
   assert.equal(refused(plan(request("ready_to_pay", { offers: ["website_launch", "agency_meta_ads"] }))), scopeMessage("Meta ads management"));
   assert.equal(refused(plan(request("ready_to_pay", { offers: ["website_launch", "free_build_launch"] }))), message(payDoorFor("free_build_launch")!.offerName));
-  refused(plan(request("ready_to_pay")));
+  // With nothing picked, the hint asks for what they are paying for today.
+  assert.equal(refused(plan(request("ready_to_pay"))), "Pick what they are paying for today.");
+});
+
+test("isPayableToday is the planner's own rule: online today, or an agency scope once it is in writing", () => {
+  for (const id of CLOSER_OFFER_IDS) {
+    const door = payDoorFor(id);
+    if (!door) continue;
+    for (const status of ["new", "contacted", "call_booked", "proposal"]) {
+      const allowed = isPayableToday(door, status);
+      const planned = plan(request("ready_to_pay", { offers: [id] }), { lead: lead({ status }) });
+      assert.equal(planned.ok, allowed, `${id} at ${status}`);
+    }
+  }
+  assert.equal(isPayableToday(payDoorFor("website_launch")!, "new"), true);
+  assert.equal(isPayableToday(payDoorFor("free_website_program")!, "proposal"), false);
+  assert.equal(isPayableToday(payDoorFor("agency_meta_ads")!, "contacted"), false);
+  assert.equal(isPayableToday(payDoorFor("agency_meta_ads")!, "proposal"), true);
+});
+
+test("realLeadId: a lead's UUID, never the sample card's id", () => {
+  assert.equal(realLeadId("7d0c5a4e-1b2f-4c3d-8e9f-a0b1c2d3e4f5"), "7d0c5a4e-1b2f-4c3d-8e9f-a0b1c2d3e4f5");
+  for (const id of ["sample", "", "sample-build", "7d0c5a4e", null, undefined]) assert.equal(realLeadId(id as string | null | undefined), null, String(id));
 });
 
 test("ready_to_pay hands over an agency pay link once the lead is at the proposal stage, never with an amount", () => {
@@ -468,7 +492,9 @@ test("ready_to_pay hands over an agency pay link once the lead is at the proposa
     assert.equal(door.kind, "written_scope");
     const p = ok(plan(request("ready_to_pay", { offers: [id] }), { lead: lead({ status: "proposal" }) }));
     assert.deepEqual(p.payDoors.map((d) => d.offerId), [id]);
-    assert.equal(p.payDoors[0].url, door.url);
+    // A real lead's link carries its id, so the payment lands on this lead's record.
+    assert.equal(p.payDoors[0].url, `${door.url}&lead=${lead().id}`);
+    assert.equal(p.payDoors[0].url, payDoorFor(id, { leadId: lead().id })!.url);
     assert.ok(p.payMessage?.includes(door.url!), p.payMessage ?? "no message");
     assert.ok(p.payMessage?.includes("the amount in your written scope"), p.payMessage ?? "");
     assert.ok(!/\$\d/.test(p.payMessage ?? ""), "no amount for a price Ryan has not set");
@@ -478,6 +504,14 @@ test("ready_to_pay hands over an agency pay link once the lead is at the proposa
   }
   const meta = ok(plan(request("ready_to_pay", { offers: ["agency_meta_ads"] }), { lead: lead({ status: "proposal" }) }));
   assert.ok(meta.payMessage?.includes("/agency/pay?service=meta-ads"), meta.payMessage ?? "");
+  assert.ok(meta.payMessage?.includes(`/agency/pay?service=meta-ads&lead=${lead().id}`), meta.payMessage ?? "");
+  // The sample card never attaches a lead to a link.
+  const sample = ok(plan(request("ready_to_pay", { offers: ["agency_meta_ads"] }), { lead: lead({ id: "sample", status: "proposal" }) }));
+  assert.equal(sample.payDoors[0].url, payDoorFor("agency_meta_ads")!.url);
+  assert.ok(!sample.payMessage?.includes("lead="), sample.payMessage ?? "");
+  // Doors that are not the agency pay page never carry a lead: their pages do not read one.
+  const site = ok(plan(request("ready_to_pay", { offers: ["website_launch", "system_map"] }), { lead: lead({ status: "proposal" }) }));
+  assert.deepEqual(site.payDoors.map((d) => d.url), [payDoorFor("website_launch")!.url, payDoorFor("system_map")!.url]);
   // Earlier stages still put the number in writing first.
   for (const status of ["new", "contacted", "call_booked"]) {
     assert.match(refused(plan(request("ready_to_pay", { offers: ["agency_meta_ads"] }), { lead: lead({ status }) })), /has no set price/);
