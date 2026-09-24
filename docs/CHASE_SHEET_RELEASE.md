@@ -53,7 +53,20 @@ The Stripe webhook endpoint already receives every event this needs (`checkout.s
 
 ## The Stripe payment links
 
-The sales page and the locked sheet sell through `/api/checkout`, which needs no Stripe dashboard work. For a link Ryan can paste into a text, a post, or an email, `npm run chasesheet:stripe` creates one Product with two Prices and two hosted Payment Links in the account `STRIPE_SECRET_KEY` points at, with the same `kind` and `plan` metadata and the same after-payment redirect to the claim route, so a sale through a link is fulfilled exactly like a sale through the page. It is idempotent (looks the product up by metadata before creating) and prints the two links. Paste them into `EXTERNAL_LINKS` if the pages should offer them too. Not run from this session: creating live Stripe objects is Ryan's action.
+The sales page and the locked sheet sell through `/api/checkout`, which needs no Stripe dashboard work. For a link to paste into a text, a post, or an email, the live account also holds one Product with two Prices and two hosted Payment Links, created September 24, 2026 on Ryan's instruction to make the product live. Both links carry the same `kind` and `plan` metadata as the page checkout and redirect to the claim route, so a sale through a link is fulfilled exactly like a sale through the page. They are recorded in `EXTERNAL_LINKS` and on the two offers in `lib/site/offers.ts`.
+
+| Plan | Price | Payment Link |
+| --- | --- | --- |
+| Monthly, $20/mo | `price_1UJ3OkBHH7tuNwAAXTuTLLg1` | https://buy.stripe.com/aFa3cu8eK9QUesMdUW5AQ0d |
+| One payment, $97 | `price_1UJ3VOBHH7tuNwAAyRurjLcf` | https://buy.stripe.com/28EcN4bqWbZ2esM4km5AQ0e |
+
+Product: `prod_VJgdpQoFYS70Re`. `npm run chasesheet:stripe` finds these by metadata and creates nothing new; it exists for a fresh account or a test-mode copy.
+
+## Go-live record
+
+- September 24, 2026: PR #73 squash-merged to `main` (commit `08d3611`); Vercel production deployment `dpl_DGJE9vDAGhwbUdqPPDJToPw1Cxhy` reached READY.
+- September 24, 2026: migration `chase_sheet` applied to the live Supabase project (`hpzpwfymwfgwspaixrxi`) through the Supabase MCP; the three tables exist with RLS on and no browser grants.
+- September 24, 2026: the Stripe product, prices, and payment links above created in the live account.
 
 ## Validation
 

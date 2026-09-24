@@ -525,14 +525,14 @@ only Ryan can do. Nothing has been deployed, charged, or created in Stripe.
     apply before merging.
     Done September 24: applied through the Supabase MCP before #73 went
     live. Three tables, row level security on, no anon or authenticated
-    access.
+    access. The repo file is the same SQL and is idempotent, so a later
+    `supabase db push` is harmless.
 
-71. **The Stripe payment links.** The page sells through `/api/checkout` and
-    needs nothing in the dashboard. For a link to paste into a text or a
-    post, run `npm run chasesheet:stripe` with the live `STRIPE_SECRET_KEY`
-    exported in a local shell. It prints two hosted links that fulfil
-    exactly like the page. Then, optionally, paste them into
-    `EXTERNAL_LINKS`. Ryan-only: it creates objects in the live account.
+71. **The Stripe payment links.** Done September 24, 2026: product, both
+    prices, and both hosted Payment Links created in the live account and
+    recorded in `EXTERNAL_LINKS` and `docs/CHASE_SHEET_RELEASE.md`. The page
+    buttons still sell through `/api/checkout`; the links are for texts,
+    posts, and emails.
 
 72. **Refund window.** `/chase-sheet/terms` promises a full refund within
     seven days of a first purchase, and no refund on renewal months. Decision:
