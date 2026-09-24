@@ -217,10 +217,13 @@ test("while a save is in flight the form is frozen, so nothing typed during Savi
     createElement("textarea", { id: "n" }),
     createElement("details", null, createElement("summary", null, "Pick the next try yourself")),
   );
+  // SavingLock types children as a required prop, so it is passed as one here.
+  // eslint-disable-next-line react/no-children-prop
   const locked = renderToStaticMarkup(createElement(SavingLock, { busy: true, children: child }));
   assert.match(locked, /^<fieldset[^>]*\sdisabled=""/);
   assert.match(locked, /^<fieldset[^>]*\sinert=""/);
   assert.match(locked, /^<fieldset[^>]*aria-busy="true"/);
+  // eslint-disable-next-line react/no-children-prop
   const open = renderToStaticMarkup(createElement(SavingLock, { busy: false, children: child }));
   assert.ok(!/^<fieldset[^>]*\s(disabled|inert)=/.test(open), open);
 
