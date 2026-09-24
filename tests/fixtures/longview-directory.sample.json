@@ -1,0 +1,1120 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-24T18:00:00Z",
+  "batchId": "2026-09-24T18:00Z",
+  "sample": true,
+  "indexable": false,
+  "scope": "City of Longview, Texas",
+  "counts": {
+    "published": 10,
+    "inArchive": 16,
+    "heldForPrivacy": 3,
+    "needsReview": 3
+  },
+  "sources": [
+    {
+      "id": "tx_sales_tax",
+      "name": "Sample sales-tax permit list",
+      "publisher": "Texas Comptroller of Public Accounts",
+      "license": "Sample licence text",
+      "url": "https://data.texas.example/d/sample-permits",
+      "lastSyncedAt": "2026-09-24"
+    },
+    {
+      "id": "tx_tabc",
+      "name": "Sample alcohol license list",
+      "publisher": "Texas Alcoholic Beverage Commission",
+      "license": "Sample licence text",
+      "url": "https://data.texas.example/d/sample-tabc-licenses",
+      "lastSyncedAt": "2026-09-24"
+    },
+    {
+      "id": "npi",
+      "name": "Sample NPI registry extract",
+      "publisher": "Centers for Medicare & Medicaid Services",
+      "license": "Sample licence text",
+      "url": "https://npiregistry.example/sample",
+      "lastSyncedAt": "2026-09-23"
+    }
+  ],
+  "categories": [
+    {
+      "slug": "restaurants",
+      "name": "Restaurants & Food",
+      "count": 1
+    },
+    {
+      "slug": "auto",
+      "name": "Auto",
+      "count": 2
+    },
+    {
+      "slug": "health-dental",
+      "name": "Health & Dental",
+      "count": 2
+    },
+    {
+      "slug": "beauty",
+      "name": "Beauty & Personal Care",
+      "count": 1
+    },
+    {
+      "slug": "home-services",
+      "name": "Home Services",
+      "count": 1
+    },
+    {
+      "slug": "retail",
+      "name": "Retail & Shopping",
+      "count": 1
+    },
+    {
+      "slug": "professional",
+      "name": "Professional Services",
+      "count": 1
+    },
+    {
+      "slug": "industrial",
+      "name": "Industrial, Wholesale & Transport",
+      "count": 1
+    }
+  ],
+  "businesses": [
+    {
+      "id": "lv-sampl00001",
+      "slug": "example-auto-glass",
+      "name": "Example Auto Glass",
+      "category": "auto",
+      "categoryLabel": "Automotive glass replacement",
+      "address": {
+        "street": "250 Sample Ave",
+        "city": "Longview",
+        "state": "TX",
+        "zip": "75602"
+      },
+      "permitSince": "2008-10-01",
+      "website": {
+        "url": "https://www.exampleautoglass.example/",
+        "status": "dead"
+      },
+      "phone": null,
+      "email": null,
+      "hours": null,
+      "social": {
+        "facebook": null,
+        "instagram": null
+      },
+      "careersUrl": null,
+      "hiringRoles": [],
+      "services": [],
+      "facts": [
+        {
+          "field": "name",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "category",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "address",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "permitSince",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "website",
+          "source": "website",
+          "url": "https://www.exampleautoglass.example/",
+          "checkedAt": "2026-09-20"
+        }
+      ],
+      "updatedAt": "2026-09-24",
+      "indexable": false
+    },
+    {
+      "id": "lv-sampl00002",
+      "slug": "example-bookkeeping-office",
+      "name": "Example Bookkeeping Office",
+      "category": "professional",
+      "categoryLabel": "Accounting and bookkeeping",
+      "address": {
+        "street": null,
+        "city": "Longview",
+        "state": "TX",
+        "zip": null
+      },
+      "permitSince": "2021-07-01",
+      "website": {
+        "url": "https://www.examplebookkeeping.example/",
+        "status": "ok"
+      },
+      "phone": {
+        "e164": "+19035550107",
+        "display": "(903) 555-0107"
+      },
+      "email": "hello@examplebookkeeping.example",
+      "hours": {
+        "mon": [
+          [
+            "09:00",
+            "17:00"
+          ]
+        ],
+        "tue": [
+          [
+            "09:00",
+            "17:00"
+          ]
+        ],
+        "wed": [
+          [
+            "09:00",
+            "17:00"
+          ]
+        ],
+        "thu": [
+          [
+            "09:00",
+            "17:00"
+          ]
+        ],
+        "fri": [
+          [
+            "09:00",
+            "17:00"
+          ]
+        ]
+      },
+      "social": {
+        "facebook": null,
+        "instagram": null
+      },
+      "careersUrl": null,
+      "hiringRoles": [],
+      "services": [
+        "bookkeeping",
+        "payroll"
+      ],
+      "facts": [
+        {
+          "field": "name",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "category",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "permitSince",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "website",
+          "source": "website",
+          "url": "https://www.examplebookkeeping.example/",
+          "checkedAt": "2026-09-22"
+        },
+        {
+          "field": "phone",
+          "source": "website",
+          "url": "https://www.examplebookkeeping.example/contact",
+          "checkedAt": "2026-09-22"
+        },
+        {
+          "field": "email",
+          "source": "website",
+          "url": "https://www.examplebookkeeping.example/contact",
+          "checkedAt": "2026-09-22"
+        },
+        {
+          "field": "hours",
+          "source": "website",
+          "url": "https://www.examplebookkeeping.example/contact",
+          "checkedAt": "2026-09-22"
+        },
+        {
+          "field": "services",
+          "source": "website",
+          "url": "https://www.examplebookkeeping.example/services",
+          "checkedAt": "2026-09-22"
+        }
+      ],
+      "updatedAt": "2026-09-24",
+      "indexable": false
+    },
+    {
+      "id": "lv-sampl00003",
+      "slug": "example-books-and-gifts",
+      "name": "Example Books & Gifts",
+      "category": "retail",
+      "categoryLabel": "Book and gift store",
+      "address": {
+        "street": "18 Placeholder Ln",
+        "city": "Longview",
+        "state": "TX",
+        "zip": "75605"
+      },
+      "permitSince": "2026-09-01",
+      "website": {
+        "url": "https://examplebooks.example/",
+        "status": "ok"
+      },
+      "phone": {
+        "e164": "+19035550103",
+        "display": "(903) 555-0103"
+      },
+      "email": null,
+      "hours": {
+        "mon": [],
+        "tue": [
+          [
+            "10:00",
+            "18:00"
+          ]
+        ],
+        "wed": [
+          [
+            "10:00",
+            "18:00"
+          ]
+        ],
+        "thu": [
+          [
+            "10:00",
+            "18:00"
+          ]
+        ],
+        "fri": [
+          [
+            "10:00",
+            "18:00"
+          ]
+        ],
+        "sat": [
+          [
+            "10:00",
+            "18:00"
+          ]
+        ],
+        "sun": [
+          [
+            "12:00",
+            "17:00"
+          ]
+        ]
+      },
+      "social": {
+        "facebook": null,
+        "instagram": "https://www.instagram.com/examplebooks"
+      },
+      "careersUrl": null,
+      "hiringRoles": [],
+      "services": [
+        "gift wrapping",
+        "special orders"
+      ],
+      "facts": [
+        {
+          "field": "name",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "category",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "address",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "permitSince",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "website",
+          "source": "website",
+          "url": "https://examplebooks.example/",
+          "checkedAt": "2026-09-22"
+        },
+        {
+          "field": "phone",
+          "source": "website",
+          "url": "https://examplebooks.example/contact",
+          "checkedAt": "2026-09-22"
+        },
+        {
+          "field": "hours",
+          "source": "website",
+          "url": "https://examplebooks.example/contact",
+          "checkedAt": "2026-09-22"
+        },
+        {
+          "field": "instagram",
+          "source": "website",
+          "url": "https://examplebooks.example/",
+          "checkedAt": "2026-09-22"
+        },
+        {
+          "field": "services",
+          "source": "website",
+          "url": "https://examplebooks.example/services",
+          "checkedAt": "2026-09-22"
+        }
+      ],
+      "updatedAt": "2026-09-24",
+      "indexable": false
+    },
+    {
+      "id": "lv-sampl00004",
+      "slug": "example-family-dental-studio",
+      "name": "Example Family Dental Studio",
+      "category": "health-dental",
+      "categoryLabel": "Dental office",
+      "address": {
+        "street": "401 Fixture Rd Ste 2",
+        "city": "Longview",
+        "state": "TX",
+        "zip": "75601"
+      },
+      "permitSince": "2015-05-01",
+      "website": {
+        "url": "https://www.exampledental.example/",
+        "status": "ok"
+      },
+      "phone": {
+        "e164": "+19035550104",
+        "display": "(903) 555-0104"
+      },
+      "email": "office@exampledental.example",
+      "hours": {
+        "mon": [
+          [
+            "07:30",
+            "16:30"
+          ]
+        ],
+        "tue": [
+          [
+            "07:30",
+            "16:30"
+          ]
+        ],
+        "wed": [
+          [
+            "07:30",
+            "16:30"
+          ]
+        ],
+        "thu": [
+          [
+            "07:30",
+            "16:30"
+          ]
+        ]
+      },
+      "social": {
+        "facebook": null,
+        "instagram": null
+      },
+      "careersUrl": "https://www.exampledental.example/careers",
+      "hiringRoles": [
+        "dental_assistant",
+        "front_desk",
+        "office_manager"
+      ],
+      "services": [
+        "teeth cleaning",
+        "fillings",
+        "crowns"
+      ],
+      "facts": [
+        {
+          "field": "name",
+          "source": "npi",
+          "url": "https://npiregistry.example/sample",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "category",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "address",
+          "source": "npi",
+          "url": "https://npiregistry.example/sample",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "permitSince",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "website",
+          "source": "website",
+          "url": "https://www.exampledental.example/",
+          "checkedAt": "2026-09-22"
+        },
+        {
+          "field": "phone",
+          "source": "website",
+          "url": "https://www.exampledental.example/contact",
+          "checkedAt": "2026-09-22"
+        },
+        {
+          "field": "email",
+          "source": "website",
+          "url": "https://www.exampledental.example/contact",
+          "checkedAt": "2026-09-22"
+        },
+        {
+          "field": "hours",
+          "source": "website",
+          "url": "https://www.exampledental.example/contact",
+          "checkedAt": "2026-09-22"
+        },
+        {
+          "field": "careers",
+          "source": "website",
+          "url": "https://www.exampledental.example/careers",
+          "checkedAt": "2026-09-22"
+        },
+        {
+          "field": "services",
+          "source": "website",
+          "url": "https://www.exampledental.example/services",
+          "checkedAt": "2026-09-22"
+        }
+      ],
+      "updatedAt": "2026-09-24",
+      "indexable": false
+    },
+    {
+      "id": "lv-sampl00005",
+      "slug": "example-hair-loft",
+      "name": "Example Hair Loft",
+      "category": "beauty",
+      "categoryLabel": "Hair salon",
+      "address": {
+        "street": "77 Sample Ave",
+        "city": "Longview",
+        "state": "TX",
+        "zip": "75604"
+      },
+      "permitSince": "2026-04-15",
+      "website": {
+        "url": "https://www.examplehairloft.example/",
+        "status": "moved"
+      },
+      "phone": null,
+      "email": null,
+      "hours": null,
+      "social": {
+        "facebook": null,
+        "instagram": "https://www.instagram.com/examplehairloft"
+      },
+      "careersUrl": null,
+      "hiringRoles": [],
+      "services": [],
+      "facts": [
+        {
+          "field": "name",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "category",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "address",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "permitSince",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "website",
+          "source": "website",
+          "url": "https://www.examplehairloft.example/",
+          "checkedAt": "2026-09-22"
+        },
+        {
+          "field": "instagram",
+          "source": "website",
+          "url": "https://www.examplehairloft.example/",
+          "checkedAt": "2026-09-22"
+        }
+      ],
+      "updatedAt": "2026-09-24",
+      "indexable": false
+    },
+    {
+      "id": "lv-sampl00006",
+      "slug": "example-lawn-crew",
+      "name": "Example Lawn Crew",
+      "category": "home-services",
+      "categoryLabel": "Landscaping services",
+      "address": {
+        "street": null,
+        "city": "Longview",
+        "state": "TX",
+        "zip": null
+      },
+      "permitSince": "2026-06-15",
+      "website": null,
+      "phone": null,
+      "email": null,
+      "hours": null,
+      "social": {
+        "facebook": null,
+        "instagram": null
+      },
+      "careersUrl": null,
+      "hiringRoles": [],
+      "services": [],
+      "facts": [
+        {
+          "field": "name",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "category",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "permitSince",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        }
+      ],
+      "updatedAt": "2026-09-24",
+      "indexable": false
+    },
+    {
+      "id": "lv-sampl00007",
+      "slug": "example-night-owl-diner",
+      "name": "Example Night Owl Diner",
+      "category": "restaurants",
+      "categoryLabel": "Full-service restaurant",
+      "address": {
+        "street": "100 Example St",
+        "city": "Longview",
+        "state": "TX",
+        "zip": "75601"
+      },
+      "permitSince": "2026-08-03",
+      "website": {
+        "url": "https://www.examplediner.example/",
+        "status": "ok"
+      },
+      "phone": {
+        "e164": "+19035550106",
+        "display": "(903) 555-0106"
+      },
+      "email": null,
+      "hours": {
+        "mon": [
+          [
+            "11:00",
+            "22:00"
+          ]
+        ],
+        "tue": [
+          [
+            "11:00",
+            "22:00"
+          ]
+        ],
+        "wed": [
+          [
+            "11:00",
+            "22:00"
+          ]
+        ],
+        "thu": [
+          [
+            "11:00",
+            "24:00"
+          ]
+        ],
+        "fri": [
+          [
+            "11:00",
+            "02:00"
+          ]
+        ],
+        "sat": [
+          [
+            "17:00",
+            "02:00"
+          ]
+        ],
+        "sun": []
+      },
+      "social": {
+        "facebook": "https://www.facebook.com/examplenightowldiner",
+        "instagram": null
+      },
+      "careersUrl": null,
+      "hiringRoles": [],
+      "services": [
+        "breakfast",
+        "catering"
+      ],
+      "facts": [
+        {
+          "field": "name",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "category",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "address",
+          "source": "tx_tabc",
+          "url": "https://data.texas.example/d/sample-tabc-licenses",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "permitSince",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "website",
+          "source": "website",
+          "url": "https://www.examplediner.example/",
+          "checkedAt": "2026-09-22"
+        },
+        {
+          "field": "phone",
+          "source": "website",
+          "url": "https://www.examplediner.example/contact",
+          "checkedAt": "2026-09-22"
+        },
+        {
+          "field": "hours",
+          "source": "website",
+          "url": "https://www.examplediner.example/hours",
+          "checkedAt": "2026-09-22"
+        },
+        {
+          "field": "facebook",
+          "source": "website",
+          "url": "https://www.examplediner.example/",
+          "checkedAt": "2026-09-22"
+        },
+        {
+          "field": "services",
+          "source": "website",
+          "url": "https://www.examplediner.example/services",
+          "checkedAt": "2026-09-22"
+        }
+      ],
+      "updatedAt": "2026-09-24",
+      "indexable": false
+    },
+    {
+      "id": "lv-sampl00008",
+      "slug": "example-storage-and-freight",
+      "name": "Example Storage & Freight",
+      "category": "industrial",
+      "categoryLabel": "General freight trucking",
+      "address": {
+        "street": null,
+        "city": "Longview",
+        "state": "TX",
+        "zip": null
+      },
+      "permitSince": "2012-02-01",
+      "website": {
+        "url": "https://www.examplestorage.example/",
+        "status": "ok"
+      },
+      "phone": {
+        "e164": "+19035550108",
+        "display": "(903) 555-0108"
+      },
+      "email": null,
+      "hours": null,
+      "social": {
+        "facebook": null,
+        "instagram": null
+      },
+      "careersUrl": "https://www.examplestorage.example/jobs",
+      "hiringRoles": [],
+      "services": [],
+      "facts": [
+        {
+          "field": "name",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "category",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "permitSince",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "website",
+          "source": "website",
+          "url": "https://www.examplestorage.example/",
+          "checkedAt": "2026-09-22"
+        },
+        {
+          "field": "phone",
+          "source": "website",
+          "url": "https://www.examplestorage.example/contact",
+          "checkedAt": "2026-09-22"
+        },
+        {
+          "field": "careers",
+          "source": "website",
+          "url": "https://www.examplestorage.example/jobs",
+          "checkedAt": "2026-09-22"
+        }
+      ],
+      "updatedAt": "2026-09-24",
+      "indexable": false
+    },
+    {
+      "id": "lv-sampl00009",
+      "slug": "example-tire-and-lube",
+      "name": "Example Tire & Lube",
+      "category": "auto",
+      "categoryLabel": "Automotive repair and maintenance",
+      "address": {
+        "street": "100 Example St Ste 4",
+        "city": "Longview",
+        "state": "TX",
+        "zip": "75601"
+      },
+      "permitSince": "2019-03-01",
+      "website": {
+        "url": "https://www.exampletire.example/",
+        "status": "ok"
+      },
+      "phone": {
+        "e164": "+19035550100",
+        "display": "(903) 555-0100"
+      },
+      "email": "info@exampletire.example",
+      "hours": {
+        "mon": [
+          [
+            "08:00",
+            "17:30"
+          ]
+        ],
+        "tue": [
+          [
+            "08:00",
+            "17:30"
+          ]
+        ],
+        "wed": [
+          [
+            "08:00",
+            "17:30"
+          ]
+        ],
+        "thu": [
+          [
+            "08:00",
+            "17:30"
+          ]
+        ],
+        "fri": [
+          [
+            "08:00",
+            "17:30"
+          ]
+        ],
+        "sat": [
+          [
+            "08:00",
+            "12:00"
+          ]
+        ],
+        "sun": []
+      },
+      "social": {
+        "facebook": "https://www.facebook.com/exampletire",
+        "instagram": null
+      },
+      "careersUrl": "https://www.exampletire.example/careers",
+      "hiringRoles": [
+        "front_desk"
+      ],
+      "services": [
+        "brake repair",
+        "oil change",
+        "tire rotation"
+      ],
+      "facts": [
+        {
+          "field": "name",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "category",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "address",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "permitSince",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "website",
+          "source": "website",
+          "url": "https://www.exampletire.example/",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "phone",
+          "source": "website",
+          "url": "https://www.exampletire.example/contact",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "email",
+          "source": "website",
+          "url": "https://www.exampletire.example/contact",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "hours",
+          "source": "website",
+          "url": "https://www.exampletire.example/contact",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "facebook",
+          "source": "website",
+          "url": "https://www.exampletire.example/",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "careers",
+          "source": "website",
+          "url": "https://www.exampletire.example/careers",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "services",
+          "source": "website",
+          "url": "https://www.exampletire.example/services",
+          "checkedAt": "2026-09-24"
+        }
+      ],
+      "updatedAt": "2026-09-24",
+      "indexable": false
+    },
+    {
+      "id": "lv-sampl00010",
+      "slug": "example-walk-in-clinic",
+      "name": "Example Walk-In Clinic",
+      "category": "health-dental",
+      "categoryLabel": "Urgent care clinic",
+      "address": {
+        "street": "9 Fixture Rd",
+        "city": "Longview",
+        "state": "TX",
+        "zip": "75605"
+      },
+      "permitSince": "2026-03-01",
+      "website": {
+        "url": "https://www.examplewalkin.example/",
+        "status": "ok"
+      },
+      "phone": {
+        "e164": "+19035550110",
+        "display": "(903) 555-0110"
+      },
+      "email": null,
+      "hours": {
+        "mon": [
+          [
+            "00:00",
+            "24:00"
+          ]
+        ],
+        "tue": [
+          [
+            "00:00",
+            "24:00"
+          ]
+        ],
+        "wed": [
+          [
+            "00:00",
+            "24:00"
+          ]
+        ],
+        "thu": [
+          [
+            "00:00",
+            "24:00"
+          ]
+        ],
+        "fri": [
+          [
+            "00:00",
+            "24:00"
+          ]
+        ],
+        "sat": [
+          [
+            "00:00",
+            "24:00"
+          ]
+        ],
+        "sun": [
+          [
+            "00:00",
+            "24:00"
+          ]
+        ]
+      },
+      "social": {
+        "facebook": null,
+        "instagram": null
+      },
+      "careersUrl": "https://www.examplewalkin.example/careers",
+      "hiringRoles": [
+        "medical_assistant",
+        "receptionist"
+      ],
+      "services": [
+        "flu shots",
+        "sports physicals"
+      ],
+      "facts": [
+        {
+          "field": "name",
+          "source": "npi",
+          "url": "https://npiregistry.example/sample",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "category",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "address",
+          "source": "npi",
+          "url": "https://npiregistry.example/sample",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "permitSince",
+          "source": "tx_sales_tax",
+          "url": "https://data.texas.example/d/sample-permits",
+          "checkedAt": "2026-09-24"
+        },
+        {
+          "field": "website",
+          "source": "website",
+          "url": "https://www.examplewalkin.example/",
+          "checkedAt": "2026-09-22"
+        },
+        {
+          "field": "phone",
+          "source": "website",
+          "url": "https://www.examplewalkin.example/contact",
+          "checkedAt": "2026-09-22"
+        },
+        {
+          "field": "hours",
+          "source": "website",
+          "url": "https://www.examplewalkin.example/contact",
+          "checkedAt": "2026-09-22"
+        },
+        {
+          "field": "careers",
+          "source": "website",
+          "url": "https://www.examplewalkin.example/careers",
+          "checkedAt": "2026-09-22"
+        },
+        {
+          "field": "services",
+          "source": "website",
+          "url": "https://www.examplewalkin.example/services",
+          "checkedAt": "2026-09-22"
+        }
+      ],
+      "updatedAt": "2026-09-24",
+      "indexable": false
+    }
+  ]
+}

@@ -11,6 +11,7 @@ import { PRICES, usd } from "@/lib/site/prices";
 import { TOOL_COUNT } from "@/lib/tools";
 import { CALL_LABEL, TEXT_LABEL, smsHref } from "@/lib/site/textLinks";
 import { breadcrumbJsonLd, graph, jsonLdText, localBusinessJsonLd, organizationJsonLd, webPageJsonLd, websiteJsonLd } from "@/lib/site/structuredData";
+import { hasDirectory } from "@/lib/longviewDirectory/data";
 
 // The one local landing page. Not a city-page farm: Longview is where the
 // office is and East Texas is where Ryan drives to, so one page carries both.
@@ -190,6 +191,12 @@ export default function LongviewPage() {
               All the free tools <ArrowRight aria-hidden="true" />
             </Link>
           </div>
+          {/* Shown only once a reviewed batch of the directory is published. */}
+          {hasDirectory() ? (
+            <p className="cb-lead mt-6">
+              Looking for a business in town? <Link href="/longview/businesses">Browse Longview businesses</Link>, each listing with its sources.
+            </p>
+          ) : null}
         </div>
       </section>
     </main>

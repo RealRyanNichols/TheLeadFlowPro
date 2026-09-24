@@ -34,6 +34,10 @@ const nextConfig: NextConfig = {
       "./public/images/social/free-build-20260907.jpg",
       "./public/images/social/scoreboard-20260907.jpg",
     ],
+    // The Longview directory and the sitemap read the committed publish
+    // export and the removal list at request time.
+    "/longview/**": ["./content/longview-directory/*.json"],
+    "/sitemap.xml": ["./content/longview-directory/*.json"],
   },
 };
 
