@@ -22,10 +22,17 @@ const PAYLOAD: NurtureResendPayload = {
 };
 
 test("nurture uses one stable provider key per sequence, lead, and step", () => {
-  assert.equal(NURTURE_SEQUENCE_VERSION, "v2");
+  // v3: tags on every send and the Rent Receipt series (2026-09-23).
+  assert.equal(NURTURE_SEQUENCE_VERSION, "v3");
   assert.equal(
     nurtureEmailIdempotencyKey(LEAD_ID, 101),
-    `nurture-free_build-v2-${LEAD_ID}-101`,
+    `nurture-free_build-v3-${LEAD_ID}-101`,
+  );
+  // The Rent Receipt series keys on its own campaign name, so a lead moved
+  // between sequences could never collide on a step number anyway.
+  assert.equal(
+    nurtureEmailIdempotencyKey(LEAD_ID, 501, "rent_receipt"),
+    `nurture-rent_receipt-v3-${LEAD_ID}-501`,
   );
   assert.equal(
     nurtureEmailIdempotencyKey(LEAD_ID, 101),
@@ -106,7 +113,9 @@ test("nurture route retains failed claims and finalizes only accepted sends", as
     "utf8",
   );
   assert.match(route, /delivery_status:\s*"pending"/);
-  assert.match(route, /nurtureEmailIdempotencyKey\(lead\.id, next\.step\)/);
+  assert.match(route, /nurtureEmailIdempotencyKey\(lead\.id, next\.step, sequence\.campaign\)/);
+  // Text and the designed HTML on every thirty day send, so Resend can count opens and clicks.
+  assert.match(route, /html:\s*renderNurtureHtml\(\{ step: next, firstName: context\.first, unsubUrl, context \}\)/);
   assert.match(route, /nurtureRetryWindowExpired\(pendingRow\.first_attempt_at\)/);
   assert.match(route, /delivery_status:\s*"sent"/);
   assert.doesNotMatch(route, /\.from\("lead_emails"\)[\s\S]{0,120}\.delete\(\)/);
