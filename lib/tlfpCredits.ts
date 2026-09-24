@@ -160,3 +160,226 @@ export const TLFP_REDEEMABLE_KINDS: ReadonlySet<string> = new Set([
 export function formatCredits(n: number): string {
   return `${Math.round(n).toLocaleString("en-US")} ${Math.abs(Math.round(n)) === 1 ? "credit" : "credits"}`;
 }
+
+// Founding 100. The first 100 distinct emails whose first qualifying paid
+// purchase clears after this ships get a numbered seat and a one-time
+// founding bonus by what they bought. Seat holders then earn a standing
+// rebate on every paid purchase, and an Operations Partner month pays a
+// monthly bonus. All of it is credits today: posted to the same ledger,
+// under the same 1,999 cap. The seat counter lives in the database
+// (supabase/migrations/20260924200000_tlfp_founding.sql), which refuses seat
+// 101 on its own; tests/tlfp-founding.test.ts checks the numbers match.
+//
+// The numbers are the client playbook's proposal (2026-09-24). Ryan confirms
+// them, and picks the rebate (5 or 10), before this goes live.
+
+export type FoundingTierId = "build" | "learn" | "operations";
+
+export type FoundingTier = {
+  id: FoundingTierId;
+  label: string;
+  /** Posted once, when the seat is claimed. */
+  oneTimeCredits: number;
+  /** Posted on every paid month of this tier, for any seat holder. */
+  monthlyCredits: number;
+  /** purchases.kind values (or invoice kinds) that count as this tier. */
+  kinds: readonly string[];
+  /** The cash paid on the purchase must be at least this many cents to claim a seat. */
+  minPaidCents: number;
+};
+
+export const TLFP_FOUNDING = {
+  name: "Founding 100",
+  /** Seats, ever. The migration's check constraint holds the same number. */
+  seats: 100,
+  /**
+   * The day the program opens (UTC). Set it to the merge date. An email with a
+   * qualifying paid purchase before this day is an existing client and does
+   * not take a seat; the terms print this date.
+   */
+  startsAt: "2026-09-24",
+  /** Standing rebate for a seat holder, as a percentage of cash paid. Ryan picks 5 or 10. */
+  rebatePercent: 5,
+  /** Kinds that never earn a rebate or claim a seat: buying credits with credits' own bonus. */
+  rebateExcludedKinds: ["tlfp_credit_pack"] as readonly string[],
+  /**
+   * The value sentence for anything founding a client sees. No price talk,
+   * ever. "Send" joins when earned credits can be claimed as TLFP; until
+   * then credits stay on the email that earned them (terms, section 2).
+   */
+  valueLine: "A dollar of our work each. Yours to spend or hold.",
+} as const;
+
+export const TLFP_FOUNDING_TIERS: readonly FoundingTier[] = [
+  {
+    id: "build",
+    label: "Build client",
+    oneTimeCredits: 1000,
+    monthlyCredits: 0,
+    // Deposits and full payments on a build, a one-time agency scope, a Tool
+    // Studio build, and a Sales Desk or Stripe dashboard invoice.
+    kinds: ["build_deposit", "package_deposit", "package_full", "agency_payment", "tool_studio_order", "stripe_invoice"],
+    // The Website Launch deposit is the smallest real build start.
+    minPaidCents: PRICES.websiteLaunchDeposit * 100,
+  },
+  {
+    id: "learn",
+    label: "Learn It",
+    oneTimeCredits: 250,
+    monthlyCredits: 0,
+    // learn_it has no live checkout; the paid Operator Academy courses are the
+    // training sold today.
+    kinds: ["learn_it", "chatgpt_operator_course", "operator_academy_all_access"],
+    minPaidCents: 1,
+  },
+  {
+    id: "operations",
+    label: "Operations Partner",
+    oneTimeCredits: 0,
+    monthlyCredits: 100,
+    // A monthly agency retainer: month one on the checkout, every month after on its invoice.
+    kinds: ["agency_payment"],
+    minPaidCents: 1,
+  },
+];
+
+export function foundingTier(id: FoundingTierId): FoundingTier {
+  const tier = TLFP_FOUNDING_TIERS.find((t) => t.id === id);
+  if (!tier) throw new Error(`Unknown founding tier: ${id}`);
+  return tier;
+}
+
+/**
+ * Which founding tier a paid purchase counts as, or null. A monthly agency
+ * retainer is an Operations Partner month; a one-time agency payment is a
+ * build. Cash paid is what counts: a checkout covered by credits claims no
+ * seat and earns no rebate.
+ */
+export function foundingTierFor(purchase: {
+  kind: string;
+  amountCents: number | null;
+  billing?: string | null;
+}): FoundingTier | null {
+  const kind = purchase.kind;
+  const cents = Number(purchase.amountCents);
+  if (!Number.isFinite(cents) || cents <= 0) return null;
+  if (TLFP_FOUNDING.rebateExcludedKinds.includes(kind)) return null;
+  const monthly = purchase.billing === "monthly";
+  for (const tier of TLFP_FOUNDING_TIERS) {
+    if (!tier.kinds.includes(kind)) continue;
+    if (kind === "agency_payment" && (tier.id === "operations") !== monthly) continue;
+    if (cents < tier.minPaidCents) continue;
+    return tier;
+  }
+  return null;
+}
+
+/** The standing rebate on one paid purchase, whole credits, floor. */
+export function foundingRebateCredits(kind: string, amountCents: number | null): number {
+  const cents = Number(amountCents);
+  if (!Number.isFinite(cents) || cents <= 0) return 0;
+  if (TLFP_FOUNDING.rebateExcludedKinds.includes(kind)) return 0;
+  return Math.floor((cents / TLFP_CREDITS.creditValueCents) * (TLFP_FOUNDING.rebatePercent / 100));
+}
+
+/** "7 of 100 seats taken" arithmetic, never negative. */
+export function foundingSeatsLeft(taken: number): number {
+  return Math.max(0, TLFP_FOUNDING.seats - Math.max(0, Math.floor(taken)));
+}
+
+/** "September 24, 2026", from TLFP_FOUNDING.startsAt, for the terms. */
+export function foundingStartLabel(): string {
+  return new Date(`${TLFP_FOUNDING.startsAt}T00:00:00Z`).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+/**
+ * True when earlier paid purchases make this email an existing client, not a
+ * founder. Wider than the seat tiers on purpose: anything that would have
+ * qualified, the September Special and the retired free builds (both build
+ * work), and any other payment of the build floor or more. Credit packs never
+ * count. purchases does not store an agency payment's billing, so any paid
+ * agency payment counts (monthly at any amount qualifies).
+ */
+export function qualifiedBefore(rows: readonly { kind: string | null; amount_cents: number | null }[]): boolean {
+  const floor = foundingTier("build").minPaidCents;
+  return rows.some((row) => {
+    const kind = row.kind ?? "";
+    const cents = Number(row.amount_cents);
+    if (!kind || TLFP_FOUNDING.rebateExcludedKinds.includes(kind)) return false;
+    if (kind === "september_special_2026" || kind.startsWith("free_build_")) return true;
+    if (Number.isFinite(cents) && cents >= floor) return true;
+    return foundingTierFor({ kind, amountCents: row.amount_cents, billing: kind === "agency_payment" ? "monthly" : null }) !== null;
+  });
+}
+
+export type FoundingAwardRow = { id: string; email: string; delta: number; reason: string; stripe_session_id: string | null };
+export type FoundingMoveRow = { ref: string; delta: number };
+export type FoundingMove = {
+  awardId: string;
+  email: string;
+  key: string | null;
+  reason: "founding_reversed" | "founding_restored";
+  delta: number;
+  ref: string;
+};
+
+/** Credits of one founding award currently taken back: its reversals minus its restores, never negative. */
+export function foundingNetTaken(awardId: string, moves: readonly FoundingMoveRow[]): number {
+  const mine = (prefix: string) =>
+    moves.filter((m) => m.ref === `${prefix}:${awardId}` || m.ref.startsWith(`${prefix}:${awardId}:`));
+  const taken = mine("founding_reversed").reduce((sum, m) => sum + Math.abs(Number(m.delta)), 0);
+  const putBack = mine("founding_restored").reduce((sum, m) => sum + Math.abs(Number(m.delta)), 0);
+  return Math.max(0, taken - putBack);
+}
+
+/**
+ * What a refund, dispute, or dispute won does to the founding awards on the
+ * money. Refs are `founding_reversed:<award id>:<event>` and
+ * `founding_restored:<award id>:<event>`, where the event names the Stripe
+ * cause (`refunded:<charge>`, `disputed:<dispute>`, `dispute_won:<dispute>`).
+ *
+ * A take back removes what is still on the account: the award minus
+ * everything taken, plus everything put back. A put back (a dispute won)
+ * returns only what that same dispute took (`takenBy`, e.g.
+ * `disputed:du_1`), so a refund's take back is never undone by a later
+ * dispute result. A retry of the same event posts nothing twice. Pure.
+ */
+export function foundingReversalPlan(
+  awards: readonly FoundingAwardRow[],
+  moves: readonly FoundingMoveRow[],
+  restore: boolean,
+  eventTag: string,
+  takenBy?: string,
+): FoundingMove[] {
+  const plan: FoundingMove[] = [];
+  if (restore && !takenBy) return plan;
+  for (const award of awards) {
+    if (!(award.delta > 0)) continue;
+    let amount: number;
+    if (restore) {
+      const tagged = (prefix: string, tag: string) =>
+        moves
+          .filter((m) => m.ref === `${prefix}:${award.id}:${tag}`)
+          .reduce((sum, m) => sum + Math.abs(Number(m.delta)), 0);
+      amount = Math.max(0, tagged("founding_reversed", takenBy as string) - tagged("founding_restored", eventTag));
+    } else {
+      amount = Math.max(0, award.delta - foundingNetTaken(award.id, moves));
+    }
+    if (amount <= 0) continue;
+    const reason = restore ? "founding_restored" : "founding_reversed";
+    plan.push({
+      awardId: award.id,
+      email: award.email,
+      key: award.stripe_session_id,
+      reason,
+      delta: restore ? amount : -amount,
+      ref: `${reason}:${award.id}:${eventTag}`.slice(0, 200),
+    });
+  }
+  return plan;
+}

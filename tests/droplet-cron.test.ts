@@ -35,6 +35,11 @@ test("every job in vercel.json loads, so the droplet runs the same registry", ()
   );
 });
 
+test("Vercel builds nothing from git: every build and deploy happens on the droplet", () => {
+  const config = JSON.parse(readFileSync("vercel.json", "utf8")) as { git?: { deploymentEnabled?: unknown } };
+  assert.equal(config.git?.deploymentEnabled, false, "no preview or production deploys on Vercel from a push or a merge");
+});
+
 test("the five-minute polls fire 288 times a day, on the fives", () => {
   assert.equal(firesPerDay("*/5 * * * *", "2026-09-24"), 288);
   const parsed = parseSchedule("*/5 * * * *");

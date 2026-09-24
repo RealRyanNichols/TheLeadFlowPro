@@ -20,7 +20,7 @@ import {
   redeemableCredits,
   wouldExceedCap,
 } from "@/lib/tlfpCredits";
-import { holdCredits, holdRef, isEmail, normalizeEmail, readTlfpBalance, settleHold } from "@/lib/tlfp";
+import { holdCredits, holdRef, isEmail, normalizeEmail, readTlfpCapBasis, settleHold } from "@/lib/tlfp";
 
 // Stripe Checkout for fixed products, approved package payments, and paid event seats. Activates when
 // STRIPE_SECRET_KEY is set in Vercel env vars (same pattern as RESEND_API_KEY).
@@ -148,7 +148,9 @@ export async function POST(request: Request) {
       // credits go to the login email when there is one, else the typed
       // email, and the webhook posts them to that account. A pack that would
       // push the balance past the cap is refused here so nobody pays for
-      // credits the ledger would then cut.
+      // credits the ledger would then cut. The check uses the same number the
+      // ledger caps against: posted credits, with any open checkout hold
+      // counted back in.
       const pack = findPack(body.pack);
       if (!pack) return NextResponse.json({ error: "Unknown pack" }, { status: 400 });
       const buyerEmail = (await loginEmail()) || normalizeEmail(body.email);
@@ -156,8 +158,8 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "Enter the email the credits should go to." }, { status: 400 });
       }
       try {
-        const balance = await readTlfpBalance(createServiceClient(), buyerEmail);
-        if (wouldExceedCap(balance, pack.credits)) {
+        const capBasis = await readTlfpCapBasis(createServiceClient(), buyerEmail);
+        if (wouldExceedCap(capBasis, pack.credits)) {
           return NextResponse.json(
             { error: `That pack would take this balance past ${TLFP_CREDITS.maxBalance} credits. Spend some first.` },
             { status: 400 },
