@@ -1,6 +1,7 @@
 """Go-live regressions for profile slugs (c6, c8): a repeated or reserved name
 is told apart by the end of its public id, never by its street, because a
 home address is shown as "Longview, TX" only and a slug never changes once set.
+A name (and so its slug) that spells out that street itself waits for a person.
 
 Rows go through the real sales-tax projection, writer, matching, publish,
 contract check and site renderer. All data is fictional: made-up streets,
@@ -11,7 +12,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from longview_archive import config, matching as m, publish, site, validate
+from longview_archive import config, facts, matching as m, privacy, publish, site, validate
 from longview_archive.sources import comptroller
 from longview_archive.sources.http import RecordWriter
 from tests.fixtures import builders as b
@@ -36,7 +37,9 @@ def key_of(row):
     return f"{row['taxpayer_number']}:{row['outlet_number']}"
 
 
-class SlugNeverCarriesTheStreet(unittest.TestCase):
+class PipelineCase(unittest.TestCase):
+    """Fresh fictional archive; rows go through the real pipeline."""
+
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory(prefix="lva-slug-")
         self.addCleanup(self.tmp.cleanup)
@@ -72,11 +75,14 @@ class SlugNeverCarriesTheStreet(unittest.TestCase):
             for street in STREETS:
                 with self.subTest(file=rel, street=street):
                     self.assertNotIn(street, rel)
-                    self.assertNotIn(street, text)
+                    self.assertNotIn(street, text.casefold())
+                    self.assertNotIn(street.replace("-", " "), text.casefold())  # names, titles, headings
 
     def suffixed(self, base, row):
         return f"{base}-{expected_public_id('tx_sales_tax', key_of(row))[-4:]}"
 
+
+class SlugNeverCarriesTheStreet(PipelineCase):
     def test_repeated_home_based_names_c6(self):
         rows = [outlet("30000000011", "SCENTSY", "4100 EXAMPLE LN"),
                 outlet("30000000022", "SCENTSY", "77 SAMPLE CT", owner="ROE, MARY"),
@@ -143,6 +149,96 @@ class SlugNeverCarriesTheStreet(unittest.TestCase):
         rebuilt = b.make_db()
         self.sync(list(reversed(rows)), conn=rebuilt)
         self.assertEqual([self.slug(r, rebuilt) for r in rows], before)
+
+
+class NameThatSpellsTheHomeStreet(PipelineCase):
+    """The outlet's own registered name carries its home address (review round 1)."""
+
+    def assert_waits_for_a_person(self, row):
+        biz = business_of(self.conn, "tx_sales_tax", key_of(row))
+        self.assertEqual((biz["publish_state"], biz["publish_reason"]), ("review", "name_contains_address"))
+        items = self.conn.execute(
+            "SELECT status FROM review_queue WHERE business_id=? AND kind='name_contains_address'", (biz["id"],)
+        ).fetchall()
+        self.assertEqual([i["status"] for i in items], ["open"])
+        return biz
+
+    def test_names_that_are_the_address_are_held_from_the_directory(self):
+        rows = [outlet("30000000101", "SCENTSY - 4100 EXAMPLE LN", "4100 EXAMPLE LN"),
+                outlet("30000000102", "77 SAMPLE CT", "77 SAMPLE CT", owner="ROE, MARY")]
+        self.sync(rows)
+        self.assertEqual([self.slug(r) for r in rows], ["scentsy-4100-example-ln", "77-sample-ct"])
+        self.assert_no_street_in_any_url([])  # evaluates, builds, checks and renders
+        for row in rows:
+            self.assert_waits_for_a_person(row)
+
+    def test_name_with_the_street_after_a_taken_name(self):
+        taken = outlet("30000000111", "SCENTSY", "4100 EXAMPLE LN")
+        home = outlet("30000000112", "SCENTSY 77 SAMPLE CT", "77 SAMPLE CT", owner="ROE, MARY")
+        self.sync([taken, home])
+        self.assertEqual((self.slug(taken), self.slug(home)), ("scentsy", "scentsy-77-sample-ct"))
+        self.assert_no_street_in_any_url(["scentsy"])
+        self.assert_waits_for_a_person(home)
+
+    def test_spelled_out_suffix_house_number_and_direction(self):
+        rows = [outlet("30000000121", "SAMPLE COURT CANDLE SHOP", "77 SAMPLE CT"),
+                outlet("30000000122", "SCENTSY 4100 EXAMPLE", "4100 EXAMPLE LN", owner="ROE, MARY"),
+                outlet("30000000123", "907 NORTH PLACEHOLDER DRIVE", "907 N PLACEHOLDER DR", owner="POE, ANN")]
+        self.sync(rows)
+        self.assert_no_street_in_any_url([])
+        for row in rows:
+            self.assert_waits_for_a_person(row)
+
+    def test_a_person_decides_and_the_answer_sticks(self):
+        yes = outlet("30000000131", "77 SAMPLE CT", "77 SAMPLE CT")
+        no = outlet("30000000132", "SCENTSY - 4100 EXAMPLE LN", "4100 EXAMPLE LN", owner="ROE, MARY")
+        self.sync([yes, no])
+        publish.evaluate(self.conn, self.settings, now=NOW)
+        item = {}
+        for row in (yes, no):
+            item[key_of(row)] = self.conn.execute(
+                "SELECT id FROM review_queue WHERE business_id=? AND kind='name_contains_address'",
+                (self.assert_waits_for_a_person(row)["id"],)).fetchone()["id"]
+        facts.accept_review(self.conn, item[key_of(yes)], "owner")
+        facts.reject_review(self.conn, item[key_of(no)], "owner")
+        directory, _ = self.published()
+        self.assertEqual([biz["slug"] for biz in directory["businesses"]], ["77-sample-ct"])
+        held = business_of(self.conn, "tx_sales_tax", key_of(no))
+        self.assertEqual((held["publish_state"], held["publish_reason"]), ("held", "name_address_rejected"))
+        count = self.conn.execute("SELECT COUNT(*) FROM review_queue WHERE kind='name_contains_address'")
+        self.assertEqual(count.fetchone()[0], 2)  # no new item on the next evaluate
+
+    def test_a_slug_fixed_before_a_rename_still_waits(self):
+        row = outlet("30000000141", "77 SAMPLE CT", "77 SAMPLE CT")
+        self.sync([row])
+        self.sync([dict(row, outlet_name="SCENTSY")], now=LATER)
+        biz = business_of(self.conn, "tx_sales_tax", key_of(row))
+        self.assertEqual((biz["name"], biz["slug"]), ("Scentsy", "77-sample-ct"))
+        self.assert_no_street_in_any_url([])
+        self.assert_waits_for_a_person(row)
+
+    def test_a_storefront_may_carry_its_street_in_its_name(self):
+        grill = dict(outlet("30000000151", "SAMPLE CT GRILL", "77 SAMPLE CT", owner="SAMPLE GRILL LLC",
+                            naics="722511"), taxpayer_org_type="Texas Limited Liability Company")
+        self.sync([grill])
+        directory, _ = self.published()
+        self.assertEqual([biz["slug"] for biz in directory["businesses"]], ["sample-ct-grill"])
+        self.assertEqual(site.address_line(directory["businesses"][0]), "77 Sample Ct, Longview, TX 75605")
+
+    def test_what_spells_a_street(self):
+        spells = [("77 Sample CT", "77 sample ct"), ("Scentsy - 4100 Example LN", "4100 example ln"),
+                  ("scentsy-77-sample-ct", "77 sample ct"), ("Sample Court Candles", "77 sample ct"),
+                  ("Scentsy 77 Sample", "77 sample ct"), ("1200 West Example Avenue Crafts", "1200 w example ave"),
+                  ("Farm to Market 1845 Storage", "4100 fm 1845"), ("Candles at 3 Fixture Cir", "3 fixture cir")]
+        for name, street in spells:
+            with self.subTest(name=name):
+                self.assertTrue(privacy.name_spells_street(name, street))
+        # A street's name alone, or a bare suffix, is not an address.
+        for name, street in [("Sample Candles", "77 sample ct"), ("Example Tire and Lube", "1200 w example ave"),
+                             ("Scentsy", "77 sample ct"), ("St Example Crafts", "100 n st"),
+                             ("77 Sample Ct", None), ("77 Candles", "77 sample ct")]:
+            with self.subTest(name=name):
+                self.assertFalse(privacy.name_spells_street(name, street))
 
 
 if __name__ == "__main__":
