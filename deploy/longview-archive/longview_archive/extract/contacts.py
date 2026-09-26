@@ -21,6 +21,10 @@ _PHONE_TEXT = re.compile(
     r"(?<![\d\w])(?:\+?1[\s.\-]?)?\(?\s*[2-9]\d{2}\s*\)?[\s.\-]?[2-9]\d{2}[\s.\-]?\d{4}(?![\d])"
 )
 _FAX_BEFORE = re.compile(r"\bfax\b[^\d]{0,12}$", re.I)
+# A _FAX_BEFORE match and the character before it fit in 17 characters, so only the text just
+# before a number is searched: searching the whole line again for every number on it took time
+# with the square of the line's length.
+_FAX_WINDOW = 32
 _EMAIL_TEXT = re.compile(r"(?<![\w.+-])[a-z0-9][a-z0-9._%+\-]{0,63}@[a-z0-9](?:[a-z0-9\-]{0,62}\.)+[a-z]{2,24}(?![\w-])", re.I)
 
 
@@ -74,7 +78,7 @@ def phones(page: Page, allow_fictional: bool = False) -> List[Candidate]:
             order += 1
     for line in page.lines:
         for m in _PHONE_TEXT.finditer(line):
-            if _FAX_BEFORE.search(line[: m.start()]):
+            if _FAX_BEFORE.search(line[max(0, m.start() - _FAX_WINDOW): m.start()]):
                 continue
             e164 = normalize.norm_phone(m.group(0), allow_fictional=allow_fictional)
             if e164:
@@ -87,8 +91,11 @@ _OBFUSCATED = [
     (re.compile(r"\s*[\[\(\{<]\s*at\s*[\]\)\}>]\s*", re.I), "@"),
     (re.compile(r"\s*[\[\(\{<]\s*dot\s*[\]\)\}>]\s*", re.I), "."),
 ]
+# Bounded like a real address (a local part of up to 64 characters, up to 9 labels of up to 63):
+# unbounded, one long run such as 'a-a-a-...' on a hostile page was rescanned from every word
+# boundary in it, which took time with the square of its length (hours for one 2.5 MB page).
 _SPELLED = re.compile(
-    r"\b([a-z0-9][a-z0-9._\-]*)\s+at\s+([a-z0-9\-]+(?:\s+dot\s+[a-z0-9\-]+)+)\b", re.I
+    r"\b([a-z0-9][a-z0-9._\-]{0,63})\s+at\s+([a-z0-9\-]{1,63}(?:\s+dot\s+[a-z0-9\-]{1,63}){1,8})\b", re.I
 )
 
 

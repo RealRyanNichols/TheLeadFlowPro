@@ -12,6 +12,7 @@ import json
 import re
 from collections import Counter
 from dataclasses import dataclass, field
+from functools import lru_cache
 from html.parser import HTMLParser
 from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import unquote, urljoin
@@ -64,6 +65,18 @@ _SCOPE_LIMIT = {"li": {"ul", "ol", "menu"}, "tr": {"table"}, "td": {"table"}, "t
 _HEAD_CONTENT = {"head", "title", "meta", "link", "script", "style", "base", "noscript", "template", "object"}
 
 _INLINE_TAGS = {"span", "a", "b", "i", "em", "strong", "small", "font", "u", "label", "abbr", "time", "sup", "sub"}
+
+# Implied closes that can stop short of the open tag: walking back through the open tags, the
+# search ends at the open tag itself, at its scope limit, or (for <p>) at anything not inline.
+_BOUNDED_CLOSE = ("p", *_SCOPE_LIMIT)
+
+
+@lru_cache(maxsize=256)
+def _searches_ended_by(tag: str) -> Tuple[str, ...]:
+    """The _BOUNDED_CLOSE tags whose search stops at an open ``tag``."""
+    return tuple(open_tag for open_tag in _BOUNDED_CLOSE if (
+        tag not in _INLINE_TAGS if open_tag == "p" else tag == open_tag or tag in _SCOPE_LIMIT[open_tag]))
+
 
 _WS = re.compile(r"\s+")
 
@@ -145,6 +158,10 @@ class _Parser(HTMLParser):
         # Each open element: (tag, counts_as_nav).
         self.stack: List[Tuple[str, bool]] = []
         self.open_counts: Counter = Counter()  # how many of each tag are open, without scanning the stack
+        # For each _BOUNDED_CLOSE tag, the open tags that end the search for it, innermost last,
+        # so _implied_close need not rescan the stack: on a hostile page with thousands of open
+        # tags under a nested list, that rescan on every <li> took time with the square of its size.
+        self.search_ends: Dict[str, List[str]] = {tag: [] for tag in _BOUNDED_CLOSE}
         self.skip_depth = 0
         self.nav_depth = 0
         self.line_buf: List[str] = []
@@ -176,6 +193,8 @@ class _Parser(HTMLParser):
     def _push(self, tag: str, is_nav: bool) -> None:
         self.stack.append((tag, is_nav))
         self.open_counts[tag] += 1
+        for open_tag in _searches_ended_by(tag):
+            self.search_ends[open_tag].append(tag)
         if tag in SKIP_TAGS:
             self.skip_depth += 1
         if is_nav:
@@ -184,6 +203,8 @@ class _Parser(HTMLParser):
     def _close_one(self) -> str:
         tag, is_nav = self.stack.pop()
         self.open_counts[tag] -= 1
+        for open_tag in _searches_ended_by(tag):
+            self.search_ends[open_tag].pop()
         if tag in SKIP_TAGS:
             self.skip_depth = max(0, self.skip_depth - 1)
             if tag == "script" and self.script_buf is not None:
@@ -221,15 +242,12 @@ class _Parser(HTMLParser):
         for open_tag, closers in _IMPLIED_CLOSE.items():
             if tag not in closers or not self._is_open(open_tag):
                 continue
-            limit = _SCOPE_LIMIT.get(open_tag, set())
-            for current, _ in reversed(self.stack):
-                if current in limit:
-                    break
-                if current == open_tag:
-                    self._pop_to(open_tag)
-                    break
-                if open_tag == "p" and current not in _INLINE_TAGS:
-                    break
+            # Links, headings and options have no boundary, so the open one is always reached;
+            # the others only when nothing ends the search first. _pop_to closes every tag it
+            # passes, so its cost is paid once per opened tag.
+            ends = self.search_ends.get(open_tag)
+            if ends is None or ends[-1] == open_tag:
+                self._pop_to(open_tag)
 
     def _add_text(self, text: str) -> None:
         self.line_buf.append(text)
@@ -344,24 +362,26 @@ def parse_page(html: str, base_url: str) -> Page:
             base = joined
 
     links: List[Link] = []
-    nav_texts: List[str] = []
-    mailtos: List[str] = []
-    tels: List[str] = []
+    # dicts keep first-seen order and check "seen already?" in constant time; lists took time
+    # with the square of the count on a page with tens of thousands of distinct links.
+    nav_texts: Dict[str, None] = {}
+    mailtos: Dict[str, None] = {}
+    tels: Dict[str, None] = {}
     seen = set()
     for href, text, rel, in_nav in parser.raw_links:
         low = href.lower()
         if low.startswith("mailto:"):
             address = _split_mailto(href)
-            if address and address not in mailtos:
-                mailtos.append(address)
+            if address:
+                mailtos.setdefault(address)
             continue
         if low.startswith("tel:"):
             number = unquote(href.split(":", 1)[1]).strip()
-            if number and number not in tels:
-                tels.append(number)
+            if number:
+                tels.setdefault(number)
             continue
-        if in_nav and text and text not in nav_texts:
-            nav_texts.append(text)
+        if in_nav and text:
+            nav_texts.setdefault(text)
         if not href or low.startswith(("javascript:", "#", "data:", "sms:")):
             continue
         url = normalize.norm_url(urljoin(base, href))
@@ -387,9 +407,9 @@ def parse_page(html: str, base_url: str) -> Page:
         links=links,
         jsonld=jsonld,
         meta=parser.meta,
-        nav_texts=nav_texts,
+        nav_texts=list(nav_texts),
         list_items=parser.list_items,
-        mailtos=mailtos,
-        tels=tels,
+        mailtos=list(mailtos),
+        tels=list(tels),
         base_url=base,
     )
