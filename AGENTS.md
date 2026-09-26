@@ -19,7 +19,7 @@ LeadRep turns verified public and permissioned business signals into lead intell
 ## LeadRep Orchestration
 
 - GitHub issues and comments are the handoff log between Codex, Grok/xAI, GitHub Actions, Supabase, and the DigitalOcean droplet.
-- Supabase is the agent memory and task bus. Use service-role access only from server-side scripts, CI, or trusted admin runtimes.
+- Supabase is the agent memory and task bus. Use service-role access only from server-side scripts, CI, or trusted admin runtimes. Being retired: on Sep 26, 2026 the owner decided everything moves off Supabase (and Vercel) to the DigitalOcean droplet; see `CLAUDE.md`.
 - The DigitalOcean droplet is the runtime and deploy layer (docs/infrastructure/droplet.md): `sudo /opt/theleadflowpro/deploy/droplet/deploy.sh` after a merge. Nothing builds or deploys on Vercel (`vercel.json` sets `git.deploymentEnabled` to false). Production deploys stay approval-gated.
 - Default orchestration mode is dry-run. Grok/xAI API calls run only when `LEADREP_GROK_MODE=api`, `XAI_API_KEY` exists, and approval is cleared.
 - Any result that would publish, contact leads, change pricing, create a paid campaign, or affect a buyer-facing offer must stop in `approval_queue`.
