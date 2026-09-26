@@ -2,11 +2,11 @@
 
 The directory shows hours only as the business states them. This parser never
 guesses: a time without am/pm (unless written on a 24-hour clock), a lunch
-note, two different hours blocks, an appointment-only listing, or a day given
-twice with different times returns ``hours=None`` with the issue, and the
-worker sends the candidate to a person instead of publishing it. A day the
-business does not mention is left out (not stated); only an explicit
-"closed" becomes ``[]``.
+note, two different hours blocks, holiday or seasonal hours, a 00:00-00:00
+day, an appointment-only listing, or a day given twice with different times
+returns ``hours=None`` with the issue, and the worker sends the candidate to a
+person instead of publishing it. A day the business does not mention is left
+out (not stated); only an explicit "closed" becomes ``[]``.
 
 Output: ``{"mon": [["08:00", "17:30"]], "sun": []}``; 24-hour clock, a close
 of ``"24:00"`` is midnight, a close earlier than the open runs past midnight.
@@ -30,7 +30,8 @@ ISSUES = (
     "multiple_blocks",     # two different hours blocks (locations, seasons, departments)
     "by_appointment",      # hours given only by appointment
     "conflicting_days",    # one day given twice with different times
-    "ambiguous_all_day",   # JSON-LD 00:00-00:00: "open 24 hours" or "closed" depending on convention
+    "ambiguous_all_day",   # 00:00-00:00 (JSON-LD or text): "open 24 hours" or "closed" depending on convention
+    "seasonal_hours",      # holiday, seasonal, or temporary hours, never the regular week
     "unparsed",            # a line that clearly states hours but not in a form we can read exactly
 )
 
@@ -192,6 +193,10 @@ class _Invalid(Exception):
     pass
 
 
+class _AllDay(Exception):
+    pass
+
+
 def _to_24(t: _Time) -> Tuple[int, int]:
     if not (0 <= t.minute <= 59):
         raise _Invalid()
@@ -225,7 +230,7 @@ def _is_24h_pair(a: _Time, b: _Time, line_24h: bool = False) -> bool:
 
 
 def _range(a: _Time, b: _Time, force_24h: bool = False, line_24h: bool = False) -> List[str]:
-    """One ['HH:MM','HH:MM'] pair, or raise _Ambiguous / _Invalid.
+    """One ['HH:MM','HH:MM'] pair, or raise _Ambiguous / _Invalid / _AllDay.
 
     ``force_24h`` is the JSON-LD ``openingHours`` path (24-hour by definition);
     ``line_24h`` means the same text line carries an unmistakable 24-hour time.
@@ -240,6 +245,10 @@ def _range(a: _Time, b: _Time, force_24h: bool = False, line_24h: bool = False) 
                 raise _Ambiguous()
     oh, om = _to_24(a)
     ch, cm = _to_24(b)
+    if (oh, om) == (0, 0) and (ch, cm) in ((0, 0), (24, 0)) and not a.special and not b.special:
+        # "00:00-00:00", "0:00-24:00", "12am-12am": open 24 hours or closed all
+        # day depending on the publisher, as in openingHoursSpecification.
+        raise _AllDay()
     if (a.suffix is None and b.suffix is None and not a.special and not b.special
             and 1 <= a.hour <= 12 and 1 <= b.hour <= 12 and (ch, cm) < (oh, om)):
         # "08:00-05:00" / "Mo-Fr 8:00-5:00": 8 AM-5 PM written on a 12-hour
@@ -330,6 +339,8 @@ def _read_values(toks: List[_Tok], i: int, force_24h: bool, out: _LineParse, lin
                     out.issues.add("ambiguous_ampm")
                 except _Invalid:
                     out.issues.add("unparsed")
+                except _AllDay:
+                    out.issues.add("ambiguous_all_day")
                 got = True
                 i += 3
             else:
@@ -483,6 +494,25 @@ def _result(hours: Hours, issues: Set[str], appointment_only: bool, confidence: 
 
 _LABEL_RE = re.compile(r"\b(?:hours|hrs)\b", re.I)
 
+_MONTH = (r"(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sept?(?:ember)?"
+          r"|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)")
+# Hours for a holiday, a season, or a stretch of time, never the regular week:
+# "Holiday Hours", "Summer Hours", "Temporary Hours", "Christmas Eve",
+# "closed Thursday & Friday for the holidays", "Dec 24", "12/24", "July 4th".
+# A general note ("except holidays", "closed on major holidays") is not one.
+_SEASONAL_RE = re.compile(
+    r"""
+    \b(?:holiday|the\s+holidays|christmas|xmas|thanksgiving|easter|new\s+years?|memorial\s+day|labor\s+day
+        |independence\s+day|fourth\s+of\s+july|veterans'?\s+day|presidents'?\s+day|juneteenth
+        |good\s+friday|black\s+friday|summer|winter|autumn|(?:spring|fall)\s+(?:hours|hrs|schedule|break|season)
+        |season|seasonal|seasonally|temporary|temporarily|special\s+hours|inclement|weather|interim|covid)\b
+  | \b""" + _MONTH + r"""\.?\s*\d{1,2}(?:st|nd|rd|th)?\b(?![\d:]|\s*[ap]\.?m?\b)
+  | \b\d{1,2}(?:st|nd|rd|th)\s+of\s+""" + _MONTH + r"""\b
+  | (?<![\d:/.])(?:0?[1-9]|1[0-2])/(?:0?[1-9]|[12]\d|3[01])(?:/\d{2,4})?(?![\d:/])
+    """,
+    re.I | re.X,
+)
+
 
 def _label_split(line: str) -> Optional[Tuple[str, str]]:
     """('Store Hours', 'Mon-Fri 8am-5pm') for 'Store Hours: Mon-Fri 8am-5pm'; None when not a label."""
@@ -510,6 +540,7 @@ def hours_from_lines(lines: Iterable[str]) -> HoursResult:
     blocks: List[Hours] = []
     current: Optional[Hours] = None
     in_label_block = False
+    seasonal = False  # after a holiday or seasonal line, until a plain hours label
     pending_days: Optional[List[str]] = None
     appointment_seen = False
 
@@ -531,9 +562,16 @@ def hours_from_lines(lines: Iterable[str]) -> HoursResult:
             close_block()
             current = {}
             in_label_block = True
+            # "Holiday Hours", "Summer Hours (June-August)" open a block that is
+            # not the regular week; a plain "Store Hours" label ends it.
+            seasonal = bool(_SEASONAL_RE.search(label[0]))
             content = label[1]
-            if not content:
-                continue
+        if _SEASONAL_RE.search(content):
+            # A heading ("Holiday Schedule", "Christmas Eve", "Dec 24") or a
+            # line ("Closed Thursday & Friday for the holidays").
+            seasonal = True
+        if not content:
+            continue
         parsed = _parse_line(content)
         if label is not None and not (parsed.stated or parsed.days_only):
             continue  # "Hours of operation", "Hours may vary": the block stays open
@@ -547,6 +585,9 @@ def hours_from_lines(lines: Iterable[str]) -> HoursResult:
             continue
         if current is None:
             current = {}
+        if seasonal:
+            # Holiday or seasonal hours are never published as the regular week.
+            issues.add("seasonal_hours")
         if parsed.lunch:
             issues.add("lunch_break")
             continue
