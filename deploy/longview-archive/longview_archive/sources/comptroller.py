@@ -113,11 +113,14 @@ def project_row(row: Mapping[str, Any], fields: Mapping[str, Optional[str]]) -> 
     naics = re.sub(r"\D", "", _get(row, fields, "outlet_naics")) or None
     # The taxpayer name is private: it only decides the two flags below.
     taxpayer_name = _get(row, fields, "taxpayer_name")
-    is_individual = privacy.is_individual_taxpayer(taxpayer_name or None, _get(row, fields, "taxpayer_org_type") or None)
+    is_individual = privacy.is_individual_taxpayer(
+        taxpayer_name or None, _get(row, fields, "taxpayer_org_type") or None, outlet_name
+    )
     personal = privacy.outlet_is_personal_name(outlet_name, taxpayer_name or None, is_individual)
     limits = city_limits(_get(row, fields, "inside_city_limits"))
     record = {
-        "name": normalize.title_case_name(outlet_name),
+        # "Owner Name DBA Trade Name" shows only the trade name, for every taxpayer.
+        "name": normalize.title_case_name(normalize.trade_name(outlet_name)),
         "name_norm": normalize.norm_name(outlet_name),
         "street": normalize.display_street(address) or None,
         "street_norm": street_norm or None,

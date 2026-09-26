@@ -251,11 +251,16 @@ def _decide(conn: sqlite3.Connection, settings, business, now: str) -> Tuple[str
     if business["scope"] not in settings.publish_scopes:
         return "held", "out_of_scope"
     records = _linked_records(conn, bid)
-    if any(r["personal_name"] for r in records) and not privacy.has_public_presence(conn, bid):
+    personal = any(r["personal_name"] for r in records)
+    if personal and not privacy.has_public_presence(conn, bid):
         return "held", "personal_name_no_presence"
     if not any(r["source_id"] in PRIMARY_SOURCES and r["active"] for r in records):
         return "review", "osm_only_needs_primary_source"
-    if privacy.looks_like_person_name(business["name"]):
+    # A person looks: a name that looks like a person's, an owner-named listing
+    # that carries a given name, or a name still carrying "Owner Name DBA".
+    if (privacy.looks_like_person_name(business["name"])
+            or (personal and privacy.has_given_name(business["name"]))
+            or normalize.has_dba(business["name"])):
         decision = _person_name_decision(conn, business, now)
         if decision:
             return decision
@@ -362,7 +367,7 @@ def _non_site_evidence(business, active: list) -> bool:
     the website is not shown, so a website-sourced fact cannot be cited)."""
     if any(privacy.premises_record(r, business["street_norm"]) for r in active):
         return True
-    return bool(not business["is_individual"] and privacy.storefront_naics(business["naics"]))
+    return privacy.naics_storefront(business)
 
 
 def business_profile(conn: sqlite3.Connection, settings, business, sources=None) -> Optional[dict]:

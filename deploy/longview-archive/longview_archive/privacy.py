@@ -112,7 +112,9 @@ walter wanda warren wayne wendy wesley whitney willard william willie wilma yola
 # Establishments that cannot reasonably be run from a home, so the NAICS code
 # alone is storefront evidence. Kept short on purpose: salons, repair shops,
 # take-out kitchens and the 2022 retail subsectors (which absorbed online and
-# home-based sellers) all need another premises signal.
+# home-based sellers) all need another premises signal. So do car washes
+# (811192 also covers mobile detailing) and bars (7224 also covers mobile
+# bars); a real one shows its street through OSM, TABC, or its own website.
 STOREFRONT_NAICS_PREFIXES = (
     "721110",                                   # hotels and motels
     "622",                                      # hospitals
@@ -121,13 +123,16 @@ STOREFRONT_NAICS_PREFIXES = (
     "44512", "445131",                          # convenience stores (2017, 2022)
     "4521", "452210", "452311", "455110", "455211",  # department stores, warehouse clubs
     "4411",                                     # car dealers (Texas requires a place of business)
-    "811192",                                   # car washes
     "5221",                                     # banks and credit unions
     "512131",                                   # cinemas
     "71395",                                    # bowling centers
     "722511",                                   # full-service restaurants
-    "7224",                                     # bars
 )
+
+# A unit on the street that marks a dwelling (an apartment, a lot, space, or
+# trailer in a park, a bare unit number), so the NAICS code alone is not
+# storefront evidence there. Matches the display street ("Apt 4", "Spc 12", "#4").
+_RESIDENTIAL_UNIT = re.compile(r"(?:^|\s)#|\b(?:apt|apartment|unit|lot|spc|space|trlr|trailer)\b", re.IGNORECASE)
 
 # OSM tags that describe a public-facing premises. craft=*, office=*,
 # healthcare=* alone, childcare and the like are often mapped at a home.
@@ -148,24 +153,69 @@ GENERIC_EMAIL_LOCALS = frozenset({
 
 _PERSON_COMMA = re.compile(r"^\s*[A-Za-z'\-]{2,}\s*,\s*[A-Za-z'\-]{2,}(?:\s+[A-Za-z]\.?)*\s*$")
 
+# Comptroller "taxpayer organizational type": a description ("Sole Owner",
+# "Texas Limited Liability Company") or its two-letter code. The code for an
+# individual (IS, Individual - Sole Owner) decides like the words do; any other
+# code, a blank value, or a missing column leaves it to the name.
+INDIVIDUAL_ORG_CODES = frozenset({"is"})
+ENTITY_ORG_WORDS = ("corporation", "limited", "partnership", "association", "trust", "llc", "company",
+                    "government", "nonprofit", "non-profit", "church", "estate")
+
+# Joins two owners' names: 'SMITH JOHN & MARY', 'John and Mary Smith'.
+_JOINERS = re.compile(r"\s*(?:&|\+|\band\b)\s*", re.IGNORECASE)
+# Surname particles: 'Maria Elena De La Cruz' is three name words.
+_PARTICLES = frozenset({"de", "del", "la", "las", "los", "le", "da", "das", "dos", "di", "du", "van", "von",
+                        "der", "den", "y"})
+# Legal forms that rule out a person even when the name repeats as the outlet name.
+_LEGAL_FORMS = frozenset(normalize.LEGAL_SUFFIXES) | {"trust", "estate", "partnership", "partners", "holdings"}
+_GENERATIONAL = frozenset({"jr", "sr", "ii", "iii", "iv", "v"})
+
 
 def _tokens(name: str) -> list:
     return [t for t in re.split(r"[^a-z0-9'&-]+", normalize._ascii(name).casefold()) if t]
 
 
 def _has_business_word(tokens) -> bool:
-    return any(t.strip("'-") in BUSINESS_WORDS or "'s" in t for t in tokens)
+    # A possessive ("joe's") is a business word; O'Shea and La'Shonda are not.
+    return any(t.strip("'-") in BUSINESS_WORDS or t.endswith("'s") for t in tokens)
+
+
+def has_given_name(name: Optional[str]) -> bool:
+    return any(t in GIVEN_NAMES for t in _tokens(name or ""))
+
+
+def _joint_parts(name: str) -> Optional[list]:
+    """The word lists of each owner in 'SMITH JOHN & MARY' or 'John and Mary Smith';
+    None unless the name is two or more plain name parts joined by '&' or 'and'."""
+    pieces = [p for p in _JOINERS.split(name.replace(",", " ")) if p.strip()]
+    if len(pieces) < 2:
+        return None
+    parts = []
+    for piece in pieces:
+        words = [t for t in _tokens(piece) if not re.fullmatch(r"[a-z]\.?", t) and t not in _GENERATIONAL]
+        if not 1 <= len(words) <= 6 or _has_business_word(words):
+            return None
+        if any(not re.fullmatch(r"[a-z][a-z'\-]*", t) for t in words):
+            return None
+        parts.append(words)
+    return parts
 
 
 def looks_like_person_name(name: Optional[str]) -> bool:
-    """'SMITH, JOHN A' or 'John A Smith': True. 'Smith Family Dentistry': False."""
+    """'SMITH, JOHN A', 'John A Smith', 'Maria Elena De La Cruz', 'Smith John & Mary': True.
+    'Smith Family Dentistry', 'Smith & Wesson': False."""
     if not name or not name.strip():
         return False
     if _PERSON_COMMA.match(name):
         return not _has_business_word(_tokens(name.replace(",", " ")))
+    parts = _joint_parts(name)
+    if parts is not None:
+        return any(t in GIVEN_NAMES for words in parts for t in words)
     tokens = _tokens(name)
-    words = [t for t in tokens if not re.fullmatch(r"[a-z]\.?", t)]  # drop middle initials
-    if not 2 <= len(words) <= 3:
+    # Drop middle initials, suffixes (jr, ii), and surname particles (de, la).
+    words = [t for t in tokens if not re.fullmatch(r"[a-z]\.?", t) and t not in _GENERATIONAL
+             and t not in _PARTICLES]
+    if not 2 <= len(words) <= 4:
         return False
     if any(not re.fullmatch(r"[a-z][a-z'\-]*", t) for t in words):
         return False
@@ -174,64 +224,103 @@ def looks_like_person_name(name: Optional[str]) -> bool:
     return any(t in GIVEN_NAMES for t in words)
 
 
-def is_individual_taxpayer(taxpayer_name: Optional[str], org_type: Optional[str] = None) -> bool:
+def _org_kind(org_type: Optional[str]) -> Optional[bool]:
+    """True for an individual, False for an entity, None when the org type does not say."""
     kind = (org_type or "").strip().casefold()
-    if kind:
-        if "individual" in kind or "sole" in kind:
-            return True
-        if any(word in kind for word in ("corporation", "limited", "partnership", "association",
-                                         "trust", "llc", "company", "government", "nonprofit",
-                                         "non-profit", "church", "estate")):
-            return False
-    if not taxpayer_name:
-        return False
-    tokens = _tokens(taxpayer_name.replace(",", " "))
-    if any(t.strip(".") in ORG_MARKERS for t in tokens):
-        return False
-    if _PERSON_COMMA.match(taxpayer_name):
+    if kind in INDIVIDUAL_ORG_CODES or "individual" in kind or "sole" in kind:
         return True
-    words = [t for t in tokens if not re.fullmatch(r"[a-z]\.?", t)]
-    return 2 <= len(words) <= 4 and all(re.fullmatch(r"[a-z][a-z'\-]*", t) for t in words) and not _has_business_word(words)
+    if kind and any(word in kind for word in ENTITY_ORG_WORDS):
+        return False
+    return None
+
+
+def _repeats_person_name(outlet_name: str, taxpayer_name: str) -> bool:
+    """With no trade name the Comptroller repeats the taxpayer name as the outlet
+    name. Repeated that way, two to six plain words with a given name are a
+    person's name even when one of them (the surname: Temple, Glass, Church) is
+    a business word."""
+    outlet = set(_person_tokens(outlet_name))
+    owner = _person_tokens(taxpayer_name)
+    if not outlet or not outlet <= set(owner):
+        return False
+    if not 2 <= len(owner) <= 6 or any(not re.fullmatch(r"[a-z][a-z']*", t) for t in owner):
+        return False
+    if any(t in _LEGAL_FORMS for t in owner):
+        return False
+    business = [t for t in owner if t in BUSINESS_WORDS or t.endswith("'s")]
+    return len(business) <= 1 and any(t in GIVEN_NAMES for t in owner)
+
+
+def is_individual_taxpayer(taxpayer_name: Optional[str], org_type: Optional[str] = None,
+                           outlet_name: Optional[str] = None) -> bool:
+    """The taxpayer is a person, or people (a couple's partnership). When in doubt, True:
+    it only holds back an owner-named listing and a street shown by NAICS alone."""
+    kind = _org_kind(org_type)
+    if kind:
+        return True
+    # "SMITH JOHN DBA ACME ROOFING": the legal name before the marker decides.
+    name = normalize.split_dba(taxpayer_name)[0] or (taxpayer_name or "")
+    if not name.strip():
+        return False
+    parts = _joint_parts(name)
+    if parts is not None and (any(len(words) >= 2 for words in parts)
+                              or any(t in GIVEN_NAMES for words in parts for t in words)):
+        return True  # joint owners, whatever the partnership form
+    if kind is False:
+        return False
+    if _PERSON_COMMA.match(name) and not any(t.strip(".") in ORG_MARKERS for t in _tokens(name.split(",", 1)[1])):
+        return True  # 'CHURCH, JOHN': the surname may be a business word
+    tokens = _tokens(name.replace(",", " "))
+    if not any(t.strip(".") in ORG_MARKERS for t in tokens):
+        words = [t for t in tokens if not re.fullmatch(r"[a-z]\.?", t)]
+        if (2 <= len(words) <= 6 and all(re.fullmatch(r"[a-z][a-z'\-]*", t) for t in words)
+                and not _has_business_word(words)):
+            return True
+    return bool(outlet_name) and _repeats_person_name(outlet_name, name)
 
 
 def _name_set(name: Optional[str]) -> set:
     return {t.strip("'-.") for t in _tokens((name or "").replace(",", " ")) if len(t.strip("'-.")) > 1}
 
 
-_GENERATIONAL = frozenset({"jr", "sr", "ii", "iii", "iv", "v"})
-
-
 def _person_tokens(name: Optional[str]) -> list:
-    """Name tokens with hyphens split and suffixes (jr, ii) and initials dropped."""
+    """Name tokens with hyphens split and suffixes (jr, ii), initials, 'and', and 'dba' dropped."""
     out = []
     for token in _tokens((name or "").replace(",", " ")):
         for part in token.split("-"):
             part = part.strip("'.")
-            if len(part) > 1 and part not in _GENERATIONAL:
+            if len(part) > 1 and part not in _GENERATIONAL and part not in ("and", "dba"):
                 out.append(part)
     return out
+
+
+def _named_for_owner(name: str, owner: set) -> bool:
+    outlet = _person_tokens(name)
+    if outlet and owner and set(outlet) <= owner:
+        return True
+    # Two of the owner's names hold it back even next to a business word.
+    if len(set(outlet) & owner) >= 2:
+        return True
+    if (not _has_business_word(_tokens(name)) and 2 <= len(outlet) <= 6
+            and all(re.fullmatch(r"[a-z]+", t) for t in outlet)):
+        return True
+    return looks_like_person_name(name)
 
 
 def outlet_is_personal_name(outlet_name: Optional[str], taxpayer_name: Optional[str], is_individual: bool) -> bool:
     """The outlet is listed under the owner's own name (a sole proprietor).
 
-    Deliberately conservative: for an individual taxpayer any plain two-to-four
+    Deliberately conservative: for an individual taxpayer any plain two-to-six
     word name without a business word counts, so a trade name that merely
     looks like a person's is held back until it has a public presence. Holding
     back a real business is the safe failure; publishing an owner's name is not.
+    'Owner Name DBA Trade Name' is judged whole, and by each side of the marker.
     """
     if not is_individual or not outlet_name:
         return False
-    outlet = _person_tokens(outlet_name)
     owner = set(_person_tokens(taxpayer_name))
-    if outlet and owner and set(outlet) <= owner:
-        return True
-    if not _has_business_word(_tokens(outlet_name)):
-        if len(set(outlet) & owner) >= 2:
-            return True
-        if 2 <= len(outlet) <= 4 and all(re.fullmatch(r"[a-z]+", t) for t in outlet):
-            return True
-    return looks_like_person_name(outlet_name)
+    names = {outlet_name, *(part for part in normalize.split_dba(outlet_name) if part)}
+    return any(_named_for_owner(name, owner) for name in names)
 
 
 def _linked_sources(conn: sqlite3.Connection, business_id: int) -> list:
@@ -276,6 +365,17 @@ def storefront_naics(naics: Optional[str]) -> bool:
     return bool(code) and any(code.startswith(prefix) for prefix in STOREFRONT_NAICS_PREFIXES)
 
 
+def residential_unit(street: Optional[str]) -> bool:
+    return bool(street) and bool(_RESIDENTIAL_UNIT.search(street))
+
+
+def naics_storefront(business: Mapping) -> bool:
+    """The NAICS code alone is storefront evidence: a non-individual taxpayer, a
+    storefront code, and no dwelling unit (Apt, Lot, Trlr, #) on the street."""
+    return bool(not business["is_individual"] and storefront_naics(business["naics"])
+                and not residential_unit(business["street"]))
+
+
 def premises_record(rec: Mapping, street_norm: Optional[str]) -> bool:
     """A linked record that shows a public premises at this street: any TABC or
     NPI record there, or an OSM record whose tags describe a storefront."""
@@ -288,7 +388,7 @@ def premises_record(rec: Mapping, street_norm: Optional[str]) -> bool:
 
 def address_is_public(conn: sqlite3.Connection, business_id: int) -> Tuple[bool, str]:
     biz = conn.execute(
-        "SELECT street_norm, zip, naics, is_individual FROM businesses WHERE id=?", (business_id,)
+        "SELECT street, street_norm, zip, naics, is_individual FROM businesses WHERE id=?", (business_id,)
     ).fetchone()
     if not biz or not biz["street_norm"] or not biz["zip"]:
         return False, "no_street"
@@ -297,7 +397,7 @@ def address_is_public(conn: sqlite3.Connection, business_id: int) -> Tuple[bool,
     for rec in _linked_sources(conn, business_id):
         if premises_record(rec, biz["street_norm"]):
             return True, f"{rec['source_id']}_premises"
-    if not biz["is_individual"] and storefront_naics(biz["naics"]):
+    if naics_storefront(biz):
         return True, "storefront_naics"
     return False, "no_storefront_evidence"
 

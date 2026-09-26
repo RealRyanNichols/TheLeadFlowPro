@@ -173,7 +173,8 @@ class EndToEndTest(unittest.TestCase):
     def test_chain_outlets_are_two_profiles(self):
         a, b = self.by_slug["example-tire-and-lube"], self.by_slug["example-tire-and-lube-sample-ave"]
         self.assertNotEqual(a["id"], b["id"])
-        self.assertEqual((a["address"]["street"], b["address"]["street"]), ("500 Example St", "900 Sample Ave"))
+        # 900 Sample Ave has only its car-wash NAICS, which alone is not storefront evidence.
+        self.assertEqual((a["address"]["street"], b["address"]["street"]), ("500 Example St", None))
         self.assertEqual(a["name"], b["name"])
         self.assertIsNotNone(a["website"])
         self.assertIsNone(b["website"])  # the site belongs to the outlet OpenStreetMap placed it at

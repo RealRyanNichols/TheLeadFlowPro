@@ -54,6 +54,35 @@ def norm_name(s: Optional[str]) -> str:
     return " ".join(tokens)
 
 
+# "Legal Name DBA Trade Name", however the marker is written: DBA, D/B/A,
+# D.B.A., "doing business as".
+_DBA = re.compile(r"\bd\s*[./]?\s*b\s*[./]?\s*a\b\.?|\bdoing\s+business\s+as\b", re.IGNORECASE)
+
+
+def has_dba(s: Optional[str]) -> bool:
+    return bool(s) and bool(_DBA.search(s))
+
+
+def split_dba(s: Optional[str]) -> Tuple[str, str]:
+    """('JOHN SMITH', 'SMITH LAWN SERVICE') from 'JOHN SMITH DBA SMITH LAWN SERVICE'.
+
+    The legal name is the text before the first marker, the trade name the text
+    after the last one; the trade name is '' when there is no marker or nothing
+    follows it.
+    """
+    text = (s or "").strip()
+    parts = _DBA.split(text)
+    if len(parts) == 1:
+        return text, ""
+    return parts[0].strip(" ,;:-/"), parts[-1].strip(" ,;:-/")
+
+
+def trade_name(s: Optional[str]) -> str:
+    """The name to show: only the trade name of 'Legal Name DBA Trade Name'
+    (the legal name may be the owner's own), otherwise the name as given."""
+    return split_dba(s)[1] or (s or "").strip()
+
+
 def name_tokens(s: Optional[str]) -> Set[str]:
     """Distinctive tokens of a name (stop words and single letters removed)."""
     return {t for t in norm_name(s).split() if t not in NAME_STOP_WORDS and len(t) > 1}
