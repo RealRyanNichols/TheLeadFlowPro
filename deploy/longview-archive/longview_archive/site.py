@@ -61,6 +61,10 @@ SAMPLE_BANNER = "Sample data: fictional businesses for layout testing"
 FOOTER_RESOURCE = "A free community resource from The LeadFlow Pro."
 FOOTER_PITCH = "The LeadFlow Pro builds websites and follow-up systems for Longview businesses."
 CATEGORY_LEAD = "Every one we could verify, listed A to Z. Not ranked."
+# Bump whenever the pages' wording or markup changes: a site built with another
+# version is rebuilt at the next service start (``build_key``), so an upgrade
+# never leaves the old copy public until the next approval.
+COPY_VERSION = "2"
 
 SOURCE_LABELS = {
     "tx_sales_tax": "Texas Comptroller open data",
@@ -742,9 +746,10 @@ def about_page(d: Directory) -> str:
                 " a person reviews it before it is shown.</li>"
                 "<li>A missing fact stays missing. The page says so instead of guessing.</li>"
                 # True whether auto-approve is on or off: never claim a person looks at every batch.
+                # "More than a quarter" is approval.LARGE_REMOVAL_SHARE, the auto-approve hold.
                 "<li>Every batch is checked against these privacy and accuracy rules automatically before it"
-                " appears here. A batch that would take many listings off the directory waits for a person to"
-                " approve it.</li></ul>"),
+                " appears here. A batch that would take more than a quarter of the listings off the directory"
+                " waits for a person to approve it.</li></ul>"),
         section("never", "What it never does",
                 "<ul><li>No ratings, reviews, rankings, or endorsements.</li>"
                 "<li>No photos and no text copied from a business's website. Service tags come from a fixed word"
@@ -854,6 +859,20 @@ def site_dir(settings) -> Path:
 
 def site_exists(settings) -> bool:
     return (site_dir(settings) / "index.html").is_file()
+
+
+def build_key(settings) -> str:
+    """Everything the pages are rendered from besides the batch.
+
+    The copy version, the indexing switch, the public base URL (canonical tags,
+    the claim email's listing link), and the crawler settings the About page
+    shows (the user agent and its limits). When any of them changes, the built
+    site is out of date.
+    """
+    return "|".join(str(value) for value in (
+        COPY_VERSION, int(bool(settings.indexable)), str(settings.public_base_url).rstrip("/"),
+        settings.user_agent, settings.max_sites_concurrent, settings.min_host_delay_s,
+        settings.max_pages_per_visit, settings.max_page_bytes, settings.robots_ttl_s))
 
 
 def _write_file(folder: Path, rel: str, text: str) -> None:

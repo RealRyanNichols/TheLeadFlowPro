@@ -441,7 +441,9 @@ class ArchiveService:
 
         # The directory answers from the first minute: on a fresh install the "first
         # batch is being checked" page and the About page are written now, not after
-        # the syncs and the crawl (minutes). Local files only; a no-op once built.
+        # the syncs and the crawl (minutes). After an upgrade or a changed base URL the
+        # pages are rebuilt here too, before the crawler sends the new user agent.
+        # Local files only; a no-op while the built site is current.
         if not self._halted():
             self._site_step(start, report)
 
@@ -549,12 +551,14 @@ class ArchiveService:
             log.warning("auto-approve failed: %s at %s", type(exc).__name__, where(exc))
 
     def _site_step(self, now: datetime, report) -> None:
-        """Build the public directory when it does not exist yet or the indexing switch changed.
+        """Build the public directory when it does not exist yet or what it is rendered from changed.
 
         Approvals and removal requests rebuild it themselves; this covers a
         fresh install (the "first batch is being checked" page, built before the
-        first sync) and a restart with LVA_INDEXABLE flipped. A failure is
-        retried after a hold, not every loop.
+        first sync), an upgrade that changed the pages' copy, and a restart with
+        LVA_INDEXABLE, LVA_PUBLIC_BASE_URL, or a crawler setting the About page
+        shows changed (``site.build_key``). A failure is retried after a hold,
+        not every loop.
         """
         if self._held("site"):
             return

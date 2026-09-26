@@ -32,7 +32,7 @@ log = logging.getLogger(__name__)
 
 AUTO_KEY = "auto_approve"
 HELD_KEY = "approval_held_batch"
-LARGE_REMOVAL_SHARE = 0.25
+LARGE_REMOVAL_SHARE = 0.25  # the About page states it: "more than a quarter" (site.py)
 AUTO_ACTOR = "auto-approve"
 LOCK_NAME = ".approval.lock"
 
@@ -147,7 +147,7 @@ def rebuild_site(conn: sqlite3.Connection, settings, now: Any = None, _locked_al
         db.set_meta(conn, "site_batch_id", str((data or {}).get("batchId") or ""))
         db.set_meta(conn, "site_businesses", str(counts["businesses"]))
         db.set_meta(conn, "site_dropped", str(counts["dropped"]))
-        db.set_meta(conn, "site_indexable", "1" if settings.indexable else "0")
+        db.set_meta(conn, "site_build_key", site.build_key(settings))
         return counts
 
     if _locked_already:
@@ -157,10 +157,15 @@ def rebuild_site(conn: sqlite3.Connection, settings, now: Any = None, _locked_al
 
 
 def site_needs_build(conn: sqlite3.Connection, settings) -> bool:
-    """No site yet, or the indexing switch changed since the last build."""
+    """No site yet, or what the pages are rendered from changed since the last build (``site.build_key``).
+
+    The copy (an upgrade), the indexing switch, the public base URL, or the
+    crawler settings the About page shows. A site built by older code has no
+    key and is rebuilt once.
+    """
     if not site.site_exists(settings):
         return True
-    return db.get_meta(conn, "site_indexable") != ("1" if settings.indexable else "0")
+    return db.get_meta(conn, "site_build_key") != site.build_key(settings)
 
 
 # ---------------------------------------------------------------- approving
