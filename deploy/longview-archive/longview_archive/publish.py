@@ -583,7 +583,12 @@ def build_export(conn: sqlite3.Connection, settings, now: Any = None) -> dict:
             "heldForPrivacy": _count(
                 conn, "SELECT COUNT(*) FROM businesses WHERE publish_state='held'"
                       " AND publish_reason='personal_name_no_presence'"),
-            "needsReview": _count(conn, "SELECT COUNT(*) FROM businesses WHERE publish_state='review'"),
+            # Waiting for a person: held for review with an open review item a person can act on. A place
+            # known only from OpenStreetMap waits for a public record instead, not for a person.
+            "needsReview": _count(
+                conn, "SELECT COUNT(*) FROM businesses b WHERE b.publish_state='review' AND b.active=1"
+                      " AND b.scope='city' AND IFNULL(b.publish_reason,'')<>'osm_only_needs_primary_source'"
+                      " AND EXISTS (SELECT 1 FROM review_queue r WHERE r.business_id=b.id AND r.status='open')"),
         },
         "sources": source_list,
         "categories": category_list,

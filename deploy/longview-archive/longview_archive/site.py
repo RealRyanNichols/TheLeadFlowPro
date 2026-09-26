@@ -47,7 +47,6 @@ from .validate import ValidationResult, empty_directory, http_url, shown_fields,
 log = logging.getLogger(__name__)
 
 BASE = config.DIRECTORY_PATH + "/"            # /longview/businesses/
-CANONICAL_BASE = config.SITE_URL              # https://www.theleadflowpro.com
 LEADFLOW_LONGVIEW = config.SITE_URL + "/longview"
 PAGE_SIZE = 50
 NEW_WINDOW_DAYS = 180
@@ -132,8 +131,9 @@ def page_path(base_parts: Sequence[str], page: int) -> str:
     return path(*base_parts, f"page-{page}" if page > 1 else "")
 
 
-def canonical(site_path: str) -> str:
-    return CANONICAL_BASE + site_path
+def canonical(d: "Directory", site_path: str) -> str:
+    """The page's absolute address where the directory is actually served (``settings.public_base_url``)."""
+    return d.public_base_url + site_path
 
 
 def format_day(ymd: str) -> str:
@@ -212,10 +212,10 @@ def mailto(subject: str, body: str) -> str:
             f"&body={quote(body, safe='')}")
 
 
-def claim_mailto(b: Mapping) -> str:
+def claim_mailto(d: "Directory", b: Mapping) -> str:
     return mailto(
         f"Longview directory: {b['name']} ({b['id']})",
-        "\n".join([f"Listing: {canonical(path(b['slug']))}", "",
+        "\n".join([f"Listing: {canonical(d, path(b['slug']))}", "",
                    "I would like to claim, correct, or remove this listing.", "What should change:", ""]),
     )
 
@@ -252,6 +252,7 @@ class Directory:
         self.categories: List[dict] = data["categories"]
         self.names = {c["slug"]: c["name"] for c in self.categories}
         self.sample = bool(data["sample"])
+        self.public_base_url = str(settings.public_base_url).rstrip("/")
         # The owner's switch, never on for sample data or an empty batch.
         self.indexable = bool(settings.indexable) and not self.sample and bool(self.businesses)
         self.batch_date = local_date(data["generatedAt"]) if data.get("generatedAt") else None
@@ -318,7 +319,7 @@ def render_page(d: Directory, *, title: str, description: str, site_path: str, h
         '<meta name="referrer" content="no-referrer">\n'
         f"<title>{e(title)}</title>\n"
         f'<meta name="description" content="{e(description)}">\n'
-        f'<link rel="canonical" href="{e(canonical(site_path))}">\n'
+        f'<link rel="canonical" href="{e(canonical(d, site_path))}">\n'
         '<link rel="icon" href="data:,">\n'
         f'<link rel="stylesheet" href="{BASE}{CSS_NAME}">\n'
         f"{script_tag}"
@@ -448,7 +449,7 @@ def index_pages(d: Directory) -> Dict[str, str]:
     if not count:
         body = ('<section class="band" aria-labelledby="first-title"><div class="shell prose">'
                 '<h2 id="first-title">The first batch is being checked</h2>'
-                "<p>Listings appear here once a person approves the first batch. Nothing is guessed in the"
+                "<p>Listings appear here once the first batch is approved. Nothing is guessed in the"
                 " meantime.</p>"
                 f'<p><a href="{path("about")}">How the directory works</a></p></div></section>')
         out["index.html"] = render_page(
@@ -673,7 +674,7 @@ def profile_page(d: Directory, b: Mapping) -> str:
             f'<p class="disclaimer">{e(DISCLAIMER)}</p>'
             '<p class="note">A business can ask us to correct a fact, add one from its own website, or remove the'
             " listing. The button opens an email to The LeadFlow Pro.</p>"
-            f'<a class="btn btn-primary" href="{e(claim_mailto(b))}">Claim, correct, or remove this listing</a>'
+            f'<a class="btn btn-primary" href="{e(claim_mailto(d, b))}">Claim, correct, or remove this listing</a>'
             f'<p class="own">Own this business? <a href="{e(LEADFLOW_LONGVIEW)}">See what The LeadFlow Pro does for'
             " Longview businesses</a>.</p></div></section>")
     hero_extra = (f'<p class="where"><span>{e(address_line(b))}</span>'
@@ -699,7 +700,7 @@ def about_page(d: Directory) -> str:
                  " them.</p>")
     else:
         batch = "<p>No batch has been published yet. The first batch is being checked; listings appear here once" \
-                " a person approves it.</p>"
+                " it is approved.</p>"
     sources = "".join(
         f"<li><strong>{ext_link(href, name) if href else e(name)}.</strong> {e(what)} Used for: {e(use)}</li>"
         for name, what, use, href in ABOUT_SOURCES)
@@ -712,7 +713,7 @@ def about_page(d: Directory) -> str:
     else:
         datasets = ("<p>Each dataset's licence is recorded from the publisher's dataset page at every sync, and is"
                     " listed here with the first published batch.</p>")
-    token = config.USER_AGENT.split("/", 1)[0]
+    token = s.user_agent.split("/", 1)[0]
     megabytes = f"{s.max_page_bytes / 1_000_000:g}"
     robots_hours = f"{s.robots_ttl_s / 3600:g}"
     robots_when = "every day" if s.robots_ttl_s == 86_400 else f"every {robots_hours} hours"
@@ -740,7 +741,10 @@ def about_page(d: Directory) -> str:
                 "<li>A verified fact is never quietly overwritten. When sources disagree, or anything is uncertain,"
                 " a person reviews it before it is shown.</li>"
                 "<li>A missing fact stays missing. The page says so instead of guessing.</li>"
-                "<li>A person approves each batch before it appears here.</li></ul>"),
+                # True whether auto-approve is on or off: never claim a person looks at every batch.
+                "<li>Every batch is checked against these privacy and accuracy rules automatically before it"
+                " appears here. A batch that would take many listings off the directory waits for a person to"
+                " approve it.</li></ul>"),
         section("never", "What it never does",
                 "<ul><li>No ratings, reviews, rankings, or endorsements.</li>"
                 "<li>No photos and no text copied from a business's website. Service tags come from a fixed word"
@@ -753,7 +757,7 @@ def about_page(d: Directory) -> str:
                 " fills in forms or logs in.</li></ul>", tint=True),
         section("crawler", "The crawler",
                 "<p>The archive reads business websites with this user agent:</p>"
-                f'<code class="code">{e(config.USER_AGENT)}</code>'
+                f'<code class="code">{e(s.user_agent)}</code>'
                 f"<ul><li>At most {s.max_sites_concurrent:,} sites at a time.</li>"
                 f"<li>At least {s.min_host_delay_s:g} seconds between requests to the same site.</li>"
                 f"<li>At most {s.max_pages_per_visit:,} pages per visit.</li>"
@@ -812,7 +816,7 @@ def sitemap_xml(d: Directory) -> str:
         urls.append((path("hiring"), None))
     urls.append((path("about"), None))
     urls += [(path(b["slug"]), b["updatedAt"]) for b in d.businesses if d.profile_indexable(b)]
-    body = "".join(f"<url><loc>{e(canonical(p))}</loc>" + (f"<lastmod>{e(m)}</lastmod>" if m else "") + "</url>\n"
+    body = "".join(f"<url><loc>{e(canonical(d, p))}</loc>" + (f"<lastmod>{e(m)}</lastmod>" if m else "") + "</url>\n"
                    for p, m in urls)
     return ('<?xml version="1.0" encoding="UTF-8"?>\n'
             '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + body + "</urlset>\n")

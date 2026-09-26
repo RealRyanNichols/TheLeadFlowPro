@@ -439,6 +439,12 @@ class ArchiveService:
         self._set_state(state)
         report["state"] = state
 
+        # The directory answers from the first minute: on a fresh install the "first
+        # batch is being checked" page and the About page are written now, not after
+        # the syncs and the crawl (minutes). Local files only; a no-op once built.
+        if not self._halted():
+            self._site_step(start, report)
+
         # PAUSE is checked again before every step, so a pause during a long sync
         # also skips the crawl, the export, and the backup that would follow it.
         if not guard and not self._halted():
@@ -546,8 +552,9 @@ class ArchiveService:
         """Build the public directory when it does not exist yet or the indexing switch changed.
 
         Approvals and removal requests rebuild it themselves; this covers a
-        fresh install (the "first batch is being checked" page) and a restart
-        with LVA_INDEXABLE flipped. A failure is retried after a hold, not every loop.
+        fresh install (the "first batch is being checked" page, built before the
+        first sync) and a restart with LVA_INDEXABLE flipped. A failure is
+        retried after a hold, not every loop.
         """
         if self._held("site"):
             return

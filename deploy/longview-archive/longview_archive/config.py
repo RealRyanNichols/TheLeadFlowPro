@@ -10,6 +10,7 @@ on the droplet and served by Caddy from ``www/``.
 from __future__ import annotations
 
 import os
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Mapping, Tuple
@@ -18,17 +19,25 @@ VERSION = "1.0.0"
 
 TIMEZONE = "America/Chicago"
 CONTACT_EMAIL = "hello@theleadflowpro.com"
+# The LeadFlow Pro's own site (its /longview page); the directory is not served there yet.
 SITE_URL = "https://www.theleadflowpro.com"
 DIRECTORY_PATH = "/longview/businesses"
-DIRECTORY_URL = SITE_URL + DIRECTORY_PATH
-ABOUT_URL = DIRECTORY_URL + "/about"
 # The staging host Caddy serves on the droplet (status page and directory).
 STAGING_HOST = "longview.165-227-248-110.sslip.io"
+# Where the directory is actually served. Every absolute link to it (canonical
+# tags, the claim email's listing link) and the crawler's user agent are built
+# from this one value, ``Settings.public_base_url``. When the directory moves to
+# theleadflowpro.com, set LVA_PUBLIC_BASE_URL=https://www.theleadflowpro.com.
+PUBLIC_BASE_URL = f"https://{STAGING_HOST}"
+BASE_URL_RE = re.compile(r"https://[A-Za-z0-9.-]+(?::[0-9]{1,5})?")
 
-USER_AGENT = (
-    "LeadFlowPro-LongviewArchive/1.0 "
-    f"(+{ABOUT_URL}; {CONTACT_EMAIL})"
-)
+
+def user_agent_for(base_url: str) -> str:
+    """The crawler's name, the About page that explains it (where it is served), and the contact email."""
+    return f"LeadFlowPro-LongviewArchive/1.0 (+{base_url}{DIRECTORY_PATH}/about/; {CONTACT_EMAIL})"
+
+
+USER_AGENT = user_agent_for(PUBLIC_BASE_URL)
 
 # City of Longview delivery ZIPs. Other ZIPs seen with city LONGVIEW are
 # reported on the status page and kept in the hidden "nearby" bucket until a
@@ -60,10 +69,19 @@ def _env_flag(env: Mapping[str, str], key: str) -> bool:
     return env.get(key, "").strip().lower() in ("1", "true", "yes", "on")
 
 
+def _base_url(raw: str) -> str:
+    """``https://host`` (a port is allowed; no path, query, or login): the directory path is added to it."""
+    text = raw.strip().rstrip("/")
+    if not BASE_URL_RE.fullmatch(text):
+        raise ValueError("LVA_PUBLIC_BASE_URL must be https:// and a host name, with no path")
+    return text
+
+
 @dataclass(frozen=True)
 class Settings:
     data_dir: Path = Path("/var/lib/longview-archive")
-    user_agent: str = USER_AGENT
+    public_base_url: str = PUBLIC_BASE_URL
+    user_agent: str = ""  # empty: built from public_base_url (user_agent_for)
 
     # Crawl politeness (the rules in the brief; do not loosen).
     max_sites_concurrent: int = 2
@@ -106,6 +124,12 @@ class Settings:
     indexable: bool = False
 
     extra: Mapping[str, str] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "public_base_url", str(self.public_base_url).rstrip("/"))
+        # The user agent names the About page where the directory is served, so it follows the base URL.
+        if not self.user_agent:
+            object.__setattr__(self, "user_agent", user_agent_for(self.public_base_url))
 
     @property
     def db_path(self) -> Path:
@@ -174,6 +198,8 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
     kwargs = {}
     if env.get("LVA_DATA_DIR"):
         kwargs["data_dir"] = Path(env["LVA_DATA_DIR"])
+    if env.get("LVA_PUBLIC_BASE_URL"):
+        kwargs["public_base_url"] = _base_url(env["LVA_PUBLIC_BASE_URL"])
     if env.get("LVA_USER_AGENT"):
         kwargs["user_agent"] = env["LVA_USER_AGENT"]
     kwargs["max_sites_concurrent"] = _env_int(env, "LVA_MAX_SITES", 2)

@@ -29,7 +29,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PACKAGE = ROOT / "longview_archive"
 NOW = datetime(2026, 9, 24, 18, 0, 0, tzinfo=timezone.utc)
 BASE = "/longview/businesses/"
-CANON = "https://www.theleadflowpro.com/longview/businesses/"
+CANON = "https://longview.165-227-248-110.sslip.io/longview/businesses/"  # where the directory is served
 
 
 class Page(HTMLParser):

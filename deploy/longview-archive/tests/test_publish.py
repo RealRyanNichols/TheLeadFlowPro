@@ -375,7 +375,7 @@ class ExportContract(ContractAssertions):
             "published": 7,
             "inArchive": 13,  # active, city scope: 15 fixtures minus nearby and closed
             "heldForPrivacy": 1,
-            "needsReview": 1,
+            "needsReview": 0,  # the one in review is OpenStreetMap-only: it waits for a public record
         })
 
     def test_taxpayer_name_never_appears(self):
