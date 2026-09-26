@@ -30,16 +30,17 @@ import socket
 import ssl
 import threading
 import time
+import unicodedata
 import urllib.error
 import urllib.request
 import zlib
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Callable, Dict, Iterable, Iterator, List, Mapping, Optional, Tuple
-from urllib.parse import urljoin, urlsplit
+from urllib.parse import unquote, urljoin, urlsplit
 
 from . import db, normalize
-from .config import FORBIDDEN_SITE_EXCEPTIONS, FORBIDDEN_SITES, Settings
+from .config import FORBIDDEN_SITE_EXCEPTIONS, FORBIDDEN_SITES, FORBIDDEN_SITES_IN_DOUBT, Settings
 
 log = logging.getLogger(__name__)
 
@@ -193,25 +194,63 @@ def host_name_is_unsafe(host: str) -> bool:
     return False
 
 
+def host_spellings(host: str) -> set:
+    """``host`` as it is written and as DNS, TLS, and the Host header will see it.
+
+    Sockets, ``http.client``, and browsers use a name's IDNA form, so
+    ``www.yelp。com`` (an ideographic or fullwidth full stop), fullwidth
+    letters, a percent-encoded dot, or a soft hyphen or zero-width space inside
+    a label all reach www.yelp.com. The NFKC form, without invisible format
+    characters, stands in when the name has no IDNA form.
+    """
+    spellings = set()
+    for text in {host or "", unquote(host or "")}:
+        folded = "".join(ch for ch in unicodedata.normalize("NFKC", text) if unicodedata.category(ch) != "Cf")
+        spellings.update((text, folded.replace("\u3002", ".")))
+        try:
+            spellings.add(text.encode("idna").decode("ascii"))
+        except UnicodeError:
+            pass
+    return {spelling.lower().rstrip(".") for spelling in spellings}
+
+
+def _forbidden_entries(url: Optional[str]) -> set:
+    """The ``config.FORBIDDEN_SITES`` entries the URL's host matches (none when excepted)."""
+    text = normalize.norm_url(url) or str(url or "").strip()
+    if text and "://" not in text and not text.startswith("//"):
+        text = "//" + text  # a bare host
+    try:
+        host = urlsplit(text).hostname or ""
+    except ValueError:
+        return set()
+
+    def listed(names: List[str], patterns: Tuple[str, ...]) -> set:
+        return {pattern for pattern in patterns if any(fnmatch.fnmatchcase(name, pattern) for name in names)}
+
+    entries: set = set()
+    for spelling in host_spellings(host):
+        labels = [label for label in spelling.split(".") if label]
+        names = [".".join(labels[i:]) for i in range(len(labels) - 1)]  # the host, then each parent domain
+        if not listed(names, FORBIDDEN_SITE_EXCEPTIONS):
+            entries |= listed(names, FORBIDDEN_SITES)
+    return entries
+
+
 def forbidden_site(url: Optional[str]) -> bool:
     """True for a URL (or bare host) on a directory, map, or social site (``config.FORBIDDEN_SITES``).
 
     Such a page is never a business's own website: the website candidate
-    (``sources.osm``, ``worker.snapshot``) and every request (``check_url``)
-    go through this one test.
+    (``sources.osm``, ``worker.snapshot``), the website the export shows
+    (``publish``), and every request (``check_url``) go through this one test.
     """
-    text = normalize.norm_url(url) or str(url or "").strip()
-    try:
-        host = (urlsplit(text).hostname or "").lower().rstrip(".")
-    except ValueError:
-        return False
-    labels = [label for label in host.split(".") if label]
-    names = [".".join(labels[i:]) for i in range(len(labels) - 1)]  # the host, then each parent domain
+    return bool(_forbidden_entries(url))
 
-    def listed(patterns: Tuple[str, ...]) -> bool:
-        return any(fnmatch.fnmatchcase(name, pattern) for name in names for pattern in patterns)
 
-    return listed(FORBIDDEN_SITES) and not listed(FORBIDDEN_SITE_EXCEPTIONS)
+def forbidden_site_in_doubt(url: Optional[str]) -> bool:
+    """True when the URL is forbidden only by an entry a business's own name can also match
+    (``config.FORBIDDEN_SITES_IN_DOUBT``: "The Chamber" is a bar, not a chamber of commerce)."""
+    entries = _forbidden_entries(url)
+    return bool(entries) and entries <= set(FORBIDDEN_SITES_IN_DOUBT)
 
 
 def resolve_checked(host: str, port: int, resolver: Callable = socket.getaddrinfo) -> List[Tuple]:

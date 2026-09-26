@@ -7,6 +7,14 @@ a bot challenge on robots.txt closes the site like one on a page.
   redirect or a "same-site" link.
 * s3: a Cloudflare challenge answering robots.txt is a 14-day challenge block,
   not a 1-day 429/503 backoff.
+* Repair round 1: a forbidden host spelled with a Unicode full stop, fullwidth
+  letters, a soft hyphen, a zero-width space, or a percent-encoded dot is the
+  same host to DNS, TLS, and the Host header, so it is refused too; a website
+  fact already stored on a forbidden page is not exported, nor is anything read
+  there; share.google, ig.me, and the hyphenated and "chamber of ..." chamber
+  names are forbidden; a site forbidden only because its name looks like a
+  chamber's (a business can be called The Chamber) goes to review instead of
+  vanishing, and a confirmed exception brings it back.
 
 No network. Every resolver here answers every name with a public-looking
 address, so an unguarded fetcher would really request the directory pages.
@@ -18,17 +26,20 @@ All data is fictional: '.example' businesses, 903-555-01xx phones,
 
 from __future__ import annotations
 
+import http.client
+import json
 import socket
 import unittest
 from pathlib import Path
+from unittest import mock
 from urllib.parse import urlsplit
 
-from longview_archive import config, fetcher as f, matching, worker
+from longview_archive import config, fetcher as f, matching, publish, worker
 from longview_archive.sources import osm
 from tests.fixtures import builders as b
 from tests.fixtures.e2e.pipeline import PUBLIC_IP
 from tests.test_fetcher import make, redirect, robots
-from tests.test_sources import NOW1, NoWaitCase, make_settings as source_settings, overpass_transport
+from tests.test_sources import NOW1, NOW2, NoWaitCase, make_settings as source_settings, overpass_transport
 from tests.test_worker import WorkerCase, plus_days
 
 DAY = 86_400
@@ -61,6 +72,20 @@ FORBIDDEN_URLS = (
     "https://www.mapquest.com/us/texas/example-plumbing",
     "HTTPS://WWW.YELP.COM./biz/example-plumbing",
     "www.bbb.org/us/tx/longview/profile/plumber/example",
+    # Spellings DNS, TLS, and the Host header all read as the directory itself (IDNA).
+    "https://www.yelp\u3002com/biz/example-plumbing-longview",      # ideographic full stop
+    "https://www.yelp\uff0ecom/biz/example-plumbing-longview",      # fullwidth full stop
+    "https://www.yelp\uff61com/biz/example-plumbing-longview",      # halfwidth ideographic full stop
+    "https://\uff59\uff45\uff4c\uff50.com/biz/example-plumbing-longview",  # fullwidth letters
+    "https://www.\uff42\uff42\uff42.org/us/tx/longview/profile/plumber/example-plumbing-0875-9",
+    "https://www.ye\u00adlp.com/biz/example-plumbing-longview",      # soft hyphen
+    "https://www.face\u200bbook.com/exampleplumbing",              # zero-width space
+    "https://www.yelp%2Ecom/biz/example-plumbing-longview",         # percent-encoded dot
+    # Google's share links, Instagram's short links, and more chamber spellings.
+    "https://share.google/AbCdEf",
+    "https://ig.me/exampleplumbing",
+    "https://www.longview-chamber-of-commerce.org/directory/example-plumbing",
+    "https://www.chamberofgreaterlongview.example/directory/example-plumbing",
 )
 OWN_SITES = (
     "https://www.exampleplumbing.example/",
@@ -68,6 +93,22 @@ OWN_SITES = (
     "https://www.chambersplumbing.example/",   # a business named Chambers, not a chamber of commerce
     "https://www.notyelp.example/",
     "https://www.facebookfans.example/",
+    "https://www.caf\u00e9-example.example/",   # an international name stays allowed
+    "https://xn--caf-example-dbb.example/",
+)
+# Forbidden (never read), but a business's own name can look like this, so a person decides.
+IN_DOUBT_URLS = (
+    "https://www.hyperbaricchamber.example/",
+    "https://www.longviewsaltchamber.example/",
+    "https://www.thechamber.example/",
+    "https://www.chamberofhorrors.example/",
+)
+# Known chambers of commerce and directories: nothing for a person to decide.
+NOT_IN_DOUBT_URLS = (
+    "https://www.longviewchamber.com/list/member/example-plumbing",
+    "https://www.longview-chamber-of-commerce.org/directory/example-plumbing",
+    "https://www.chamberofcommerce.com/united-states/texas/longview/example-plumbing",
+    BBB,
 )
 
 
@@ -95,8 +136,37 @@ class ForbiddenSiteTest(unittest.TestCase):
 
     def test_the_list_lives_in_config(self):
         for entry in ("google.*", "yelp.*", "facebook.com", "instagram.com", "bbb.org", "*chamber.*",
-                      "yellowpages.com", "nextdoor.com", "indeed.com", "manta.com", "mapquest.com"):
+                      "yellowpages.com", "nextdoor.com", "indeed.com", "manta.com", "mapquest.com",
+                      "share.google", "ig.me", "longviewchamber.com", "chamberof*", "*chamber-of-commerce*"):
             self.assertIn(entry, config.FORBIDDEN_SITES)
+        self.assertLessEqual(set(config.FORBIDDEN_SITES_IN_DOUBT), set(config.FORBIDDEN_SITES))
+
+    def test_unicode_spellings_are_the_host_dns_and_tls_see(self):
+        # What the production transport would really reach: http.client and getaddrinfo use the
+        # IDNA form, so each of these spellings is www.yelp.com (or www.bbb.org) on the wire.
+        for spelling, wire in (("www.yelp\u3002com", "www.yelp.com"), ("www.yelp\uff0ecom", "www.yelp.com"),
+                               ("www.ye\u00adlp.com", "www.yelp.com"), ("www.\uff42\uff42\uff42.org", "www.bbb.org"),
+                               ("www.face\u200bbook.com", "www.facebook.com")):
+            with self.subTest(spelling=spelling):
+                self.assertEqual(spelling.encode("idna").decode("ascii"), wire)
+                self.assertIn(wire, f.host_spellings(spelling))
+                self.assertTrue(f.forbidden_site(f"https://{spelling}/biz/example-plumbing"))
+        self.assertTrue(f.forbidden_site("www.yelp\u3002com/biz/example-plumbing"))  # a bare host too
+        conn = http.client.HTTPSConnection("www.yelp\u3002com")
+        sent = []
+        conn.sock = type("Sock", (), {"sendall": lambda self, data: sent.append(data)})()
+        conn.putrequest("GET", "/biz/example-plumbing")
+        conn.endheaders()
+        self.assertIn(b"Host: www.yelp.com", b"".join(sent))
+
+    def test_chamber_like_names_are_forbidden_but_in_doubt(self):
+        for url in IN_DOUBT_URLS:
+            with self.subTest(url=url):
+                self.assertTrue(f.forbidden_site(url))
+                self.assertTrue(f.forbidden_site_in_doubt(url))
+        for url in NOT_IN_DOUBT_URLS + OWN_SITES + ("https://www.yelp.com/biz/example-plumbing",):
+            with self.subTest(url=url):
+                self.assertFalse(f.forbidden_site_in_doubt(url))
 
 
 # ---------------------------------------------------------------- the fetcher
@@ -120,7 +190,8 @@ class FetcherRefusesForbiddenSitesTest(unittest.TestCase):
 
     def test_redirect_to_a_directory_stops_before_it(self):
         for target in ("https://www.yelp.com/biz/joes-bbq-longview", "https://www.facebook.com/joesbbq",
-                       "https://www.google.com/maps/place/Joes+BBQ"):
+                       "https://www.google.com/maps/place/Joes+BBQ", "https://share.google/AbCdEf",
+                       "https://www.yelp\u3002com/biz/joes-bbq-longview"):
             with self.subTest(target=target):
                 fetcher, transport, _, _ = make({"https://www.joesbbq.example/": redirect(target)})
                 result = fetcher.fetch("https://www.joesbbq.example/")
@@ -144,11 +215,11 @@ class FetcherRefusesForbiddenSitesTest(unittest.TestCase):
 
 # ---------------------------------------------------------------- website candidates
 
-def _element(website_tags: dict, name="Example Plumbing") -> dict:
+def _element(website_tags: dict, name="Example Plumbing", osm_id=7001) -> dict:
     tags = {"name": name, "craft": "plumber", "addr:housenumber": "4411", "addr:street": "Example Lane",
             "addr:postcode": "75601"}
     tags.update(website_tags)
-    return {"type": "node", "id": 7001, "lat": 32.5, "lon": -94.7, "tags": tags}
+    return {"type": "node", "id": osm_id, "lat": 32.5, "lon": -94.7, "tags": tags}
 
 
 class OsmWebsiteCandidateTest(NoWaitCase):
@@ -186,6 +257,121 @@ class OsmWebsiteCandidateTest(NoWaitCase):
         self.assertIsNone(row["website"])  # ... but its BBB page did not become the website
         self.assertEqual(worker.due_businesses(conn, self.settings, NOW1, 5), [])
         conn.close()
+
+
+class OsmWebsiteInDoubtTest(NoWaitCase):
+    def setUp(self):
+        super().setUp()
+        self.settings = source_settings()
+        self.conn = b.make_db()
+        self.addCleanup(self.conn.close)
+
+    def sync(self, *elements, now=NOW1):
+        osm.sync_osm(self.conn, self.settings, now=now, transport=overpass_transport({"elements": list(elements)}))
+
+    def reviews(self):
+        return [dict(r) for r in self.conn.execute(
+            "SELECT r.*, s.source_key FROM review_queue r JOIN source_records s ON s.id=r.source_record_id"
+            " ORDER BY r.id")]
+
+    def website(self, key):
+        return self.conn.execute("SELECT website FROM source_records WHERE source_key=?", (key,)).fetchone()[0]
+
+    def test_a_chamber_like_website_goes_to_review_not_away(self):
+        site = "https://www.hyperbaricchamber.example/"
+        chamber = "https://www.longviewchamber.com/list/member/example-cafe"
+        self.sync(_element({"website": site}, name="Example Hyperbaric Chamber", osm_id=7101),
+                  _element({"website": BBB}, osm_id=7102),
+                  _element({"website": chamber}, name="Example Cafe", osm_id=7103))
+        self.assertIsNone(self.website("node/7101"))  # never taken, never crawled ...
+        items = self.reviews()  # ... but a person sees it; the BBB and the Longview Chamber need no look
+        self.assertEqual([(i["kind"], i["field"], i["source_key"], json.loads(i["proposed_json"]), i["status"])
+                          for i in items], [("website_in_doubt", "website", "node/7101", site, "open")])
+        self.assertEqual(items[0]["source_url"], site)
+        self.assertIn("FORBIDDEN_SITE_EXCEPTIONS", items[0]["detail"])
+        self.sync(_element({"website": site}, name="Example Hyperbaric Chamber", osm_id=7101), now=NOW2)
+        self.assertEqual(len(self.reviews()), 1)  # asked once
+
+    def test_own_site_is_still_taken_next_to_a_chamber_like_one(self):
+        tags = {"website": "https://www.thechamber.example/", "url": "https://www.exampleplumbing.example/"}
+        self.sync(_element(tags, osm_id=7104))
+        self.assertEqual(self.website("node/7104"), "https://www.exampleplumbing.example/")
+        self.assertEqual([json.loads(i["proposed_json"]) for i in self.reviews()],
+                         ["https://www.thechamber.example/"])
+
+    def test_a_confirmed_exception_brings_the_website_back(self):
+        site = "https://www.hyperbaricchamber.example/"
+        bid = b.add_business(self.conn, "Example Hyperbaric Chamber", street="4411 Example Ln", naics="621399")
+        b.add_record(self.conn, bid, "tx_sales_tax")
+        self.sync(_element({"website": site}, name="Example Hyperbaric Chamber", osm_id=7101))
+        matching.match_pending(self.conn, NOW1)
+        self.assertIsNone(self.conn.execute("SELECT website FROM businesses WHERE id=?", (bid,)).fetchone()[0])
+        # The person finds it is the business's own site and lists its host as an exception.
+        with mock.patch.object(f, "FORBIDDEN_SITE_EXCEPTIONS",
+                               config.FORBIDDEN_SITE_EXCEPTIONS + ("hyperbaricchamber.example",)):
+            self.assertFalse(f.forbidden_site(site))
+            self.sync(_element({"website": site}, name="Example Hyperbaric Chamber", osm_id=7101), now=NOW2)
+            matching.match_pending(self.conn, NOW2)
+            row = self.conn.execute("SELECT * FROM businesses WHERE id=?", (bid,)).fetchone()
+            self.assertEqual(row["website"], site)
+            self.assertEqual(worker.snapshot(self.conn, row).website, site)
+
+
+# ---------------------------------------------------------------- publish: rows stored before the guard
+
+class PublishForbiddenWebsiteTest(unittest.TestCase):
+    def setUp(self):
+        self.conn = b.make_db()
+        self.addCleanup(self.conn.close)
+        b.standard_sources(self.conn)
+        self.settings = config.Settings(data_dir=Path("/nonexistent-test-dir"))
+
+    def business(self, site, page=None):
+        page = page or site
+        n = self.conn.execute("SELECT COUNT(*) FROM businesses").fetchone()[0] + 1
+        bid = b.add_business(self.conn, "Example Plumbing", slug=f"example-plumbing-{n}", street="4411 Example Ln",
+                             naics="238220")
+        b.add_record(self.conn, bid, "tx_sales_tax")
+        b.add_site(self.conn, bid, site)
+        b.add_fact(self.conn, bid, "phone", "+19035550177", source_url=page)
+        b.add_fact(self.conn, bid, "address_listed", True, source_url=page)
+        return bid
+
+    def row(self, bid):
+        return self.conn.execute("SELECT * FROM businesses WHERE id=?", (bid,)).fetchone()
+
+    def profile(self, bid):
+        return publish.business_profile(self.conn, self.settings, self.row(bid))
+
+    def test_a_directory_page_stored_as_the_website_is_not_exported(self):
+        for site in (BBB, "https://www.yelp\u3002com/biz/example-plumbing-longview",
+                     "https://www.longviewchamber.com/list/member/example-plumbing"):
+            with self.subTest(site=site):
+                bid = self.business(site)
+                self.assertIsNone(worker.snapshot(self.conn, self.row(bid)))  # never visited again ...
+                profile = self.profile(bid)
+                self.assertIsNotNone(profile)  # ... and listed from its sales-tax record only
+                self.assertIsNone(profile["website"])
+                self.assertIsNone(profile["phone"])
+                self.assertEqual(profile["address"], {"street": None, "city": "Longview", "state": "TX", "zip": None})
+                self.assertEqual({fact["source"] for fact in profile["facts"]}, {"tx_sales_tax"})
+
+    def test_facts_read_on_a_forbidden_page_are_not_exported(self):
+        # A Google Sites business whose phone was read, before the guard, on a Google Maps page.
+        home = "https://sites.google.com/view/exampleplumbinglongview"
+        bid = self.business(home, page="https://www.google.com/maps/place/Example+Plumbing")
+        profile = self.profile(bid)
+        self.assertEqual(profile["website"], {"url": home, "status": "ok"})
+        self.assertIsNone(profile["phone"])
+        self.assertIsNone(profile["address"]["street"])
+
+    def test_own_site_still_exported(self):
+        site = "https://www.exampleplumbing.example/"
+        bid = self.business(site, page=site + "contact")
+        profile = self.profile(bid)
+        self.assertEqual(profile["website"], {"url": site, "status": "ok"})
+        self.assertEqual(profile["phone"]["e164"], "+19035550177")
+        self.assertEqual(profile["address"]["street"], "4411 Example Ln")
 
 
 # ---------------------------------------------------------------- the worker

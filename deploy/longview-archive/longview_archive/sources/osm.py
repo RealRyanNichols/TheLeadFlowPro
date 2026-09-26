@@ -12,10 +12,10 @@ from __future__ import annotations
 import logging
 import re
 import sqlite3
-from typing import Any, Dict, Mapping, Optional, Tuple
+from typing import Any, Dict, Iterator, List, Mapping, Optional, Tuple
 
 from .. import db, normalize
-from ..fetcher import forbidden_site
+from ..fetcher import forbidden_site, forbidden_site_in_doubt
 from .http import ApiError, EmptyResult, RecordWriter, as_now, bump, finish_failed, finish_ok, get_json
 
 logger = logging.getLogger(__name__)
@@ -68,13 +68,48 @@ def _first_phone(tags: Mapping[str, str], allow_fictional: bool) -> Optional[str
     return None
 
 
-def _first_website(tags: Mapping[str, str]) -> Optional[str]:
+def _website_values(tags: Mapping[str, str]) -> Iterator[str]:
     for key in ("website", "contact:website", "url"):
         for part in str(tags.get(key) or "").split(";"):
             url = normalize.norm_url(part.strip())
-            if url and not forbidden_site(url):  # a Yelp, BBB, or Facebook page is not the business's site
-                return url
+            if url:
+                yield url
+
+
+def _first_website(tags: Mapping[str, str]) -> Optional[str]:
+    for url in _website_values(tags):
+        if not forbidden_site(url):  # a Yelp, BBB, or Facebook page is not the business's site
+            return url
     return None
+
+
+def _websites_in_doubt(tags: Mapping[str, str]) -> List[str]:
+    """Website values dropped only because the name looks like a chamber of commerce's
+    (``fetcher.forbidden_site_in_doubt``): the business may be called The Chamber."""
+    return [url for url in _website_values(tags) if forbidden_site_in_doubt(url)]
+
+
+def _review_websites_in_doubt(conn: sqlite3.Connection, items: List[Tuple[str, str]], now: str) -> int:
+    """One review item per such value, so a person sees it instead of it vanishing.
+
+    The site is never read. A person who finds it is the business's own adds
+    its host to ``config.FORBIDDEN_SITE_EXCEPTIONS``; the next sync takes it.
+    """
+    filed = 0
+    with db.transaction(conn):
+        for key, url in items:
+            row = conn.execute(
+                "SELECT id FROM source_records WHERE source_id=? AND source_key=?", (SOURCE_ID, key)
+            ).fetchone()
+            if row is not None and db.add_review(
+                conn, kind="website_in_doubt", source_record_id=row["id"], field="website", proposed=url,
+                source_url=url, now=now,
+                detail=(f"OpenStreetMap {key} lists this website. Its name looks like a chamber of commerce"
+                        " listing, so it was not taken as the website and is never read. If it is the"
+                        " business's own site, add its host to FORBIDDEN_SITE_EXCEPTIONS in config.py."),
+            ):
+                filed += 1
+    return filed
 
 
 def element_record(element: Mapping[str, Any], settings) -> Tuple[Optional[str], Optional[Dict[str, Any]], str]:
@@ -141,6 +176,7 @@ def sync_osm(conn: sqlite3.Connection, settings, now=None, transport=None) -> Di
             # Overpass reports timeouts and memory limits here with a partial result.
             raise ApiError(200, "overpass_remark", "overpass")
         writer = RecordWriter(conn, SOURCE_ID, now, counts)
+        in_doubt: List[Tuple[str, str]] = []
         for element in payload.get("elements") or []:
             if not isinstance(element, dict):
                 continue
@@ -155,9 +191,12 @@ def sync_osm(conn: sqlite3.Connection, settings, now=None, transport=None) -> Di
             counts["with_website"] += 1 if record["website"] else 0
             counts["with_phone"] += 1 if record["phone"] else 0
             counts["with_street"] += 1 if record["street_norm"] else 0
+            in_doubt.extend((key, url) for url in _websites_in_doubt(element.get("tags") or {}))
         if counts["fetched"] == 0:
             raise EmptyResult()
         writer.deactivate_unseen()
+        if in_doubt:
+            bump(counts, "websites_to_review", _review_websites_in_doubt(conn, in_doubt, now))
         finish_ok(conn, run_id, SOURCE_ID, counts, now, license=LICENSE, dataset_url=DATASET_URL)
         return counts
     except Exception as exc:

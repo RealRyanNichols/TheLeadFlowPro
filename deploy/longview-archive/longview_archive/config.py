@@ -47,23 +47,25 @@ SCOPE_LABEL = "City of Longview, Texas"
 # redirect hops included), so nothing is read from it or published as the
 # business's website. A Facebook or Instagram link on the business's own site
 # is still kept as that social fact; it is never fetched. Each entry is
-# matched against the host and each of its parent domains, with "*" as a
-# wildcard: "facebook.com" also covers m.facebook.com, "google.*" is
-# google.com and google.co.uk, "*chamber.*" is longviewchamber.com and any
-# other chamber. ``fetcher.forbidden_site`` is the one place it is applied.
+# matched against the host (in the IDNA form DNS and TLS use, so "www.yelp。com"
+# is www.yelp.com) and each of its parent domains, with "*" as a wildcard:
+# "facebook.com" also covers m.facebook.com, "google.*" is google.com and
+# google.co.uk, "*chamber.*" is any town's <town>chamber.com or .org.
+# ``fetcher.forbidden_site`` is the one place it is applied.
 FORBIDDEN_SITES: Tuple[str, ...] = (
-    # Google Maps, Search, and Business Profile pages, and their short links.
-    "google.*", "goo.gl", "g.page", "g.co", "business.site",
+    # Google Maps, Search, and Business Profile pages, and their short links
+    # (share.google and the rest of Google's own .google names included).
+    "google.*", "*.google", "share.google", "goo.gl", "g.page", "g.co", "business.site",
     # Other maps.
-    "maps.apple.com", "mapquest.com", "waze.com", "bing.com",
+    "maps.apple.com", "maps.apple", "mapquest.com", "waze.com", "bing.com",
     # Yelp.
     "yelp.*",
     # Facebook, Messenger, Instagram, and other social networks.
-    "facebook.com", "fb.com", "fb.me", "fb.watch", "m.me", "instagram.com", "instagr.am",
-    "twitter.com", "x.com", "tiktok.com", "youtube.com", "youtu.be", "pinterest.com", "threads.net",
+    "facebook.com", "fb.com", "fb.me", "fb.watch", "m.me", "messenger.com", "instagram.com", "instagr.am",
+    "ig.me", "twitter.com", "x.com", "tiktok.com", "youtube.com", "youtu.be", "pinterest.com", "threads.net",
     # The BBB, chambers of commerce, and the member-directory services chambers use.
-    "bbb.org", "*chamber.*", "*chamberofcommerce*", "chambermaster.com", "growthzoneapp.com",
-    "micronetonline.com",
+    "bbb.org", "longviewchamber.com", "*chamber.*", "chamberof*", "*chamberofcommerce*",
+    "*chamber-of-commerce*", "chambermaster.com", "growthzoneapp.com", "micronetonline.com",
     # YellowPages and its sister directories.
     "yellowpages.com", "yp.com", "superpages.com", "dexknows.com",
     # Nextdoor.
@@ -71,13 +73,21 @@ FORBIDDEN_SITES: Tuple[str, ...] = (
     # Indeed and other job boards.
     "indeed.com", "glassdoor.com", "ziprecruiter.com", "linkedin.com",
     # Other business directories, reviews, and ordering or booking listings.
-    "manta.com", "bizapedia.com", "buzzfile.com", "opencorporates.com", "hotfrog.com",
-    "merchantcircle.com", "cylex.us.com", "loc8nearme.com", "foursquare.com", "tripadvisor.com",
+    "manta.com", "bizapedia.com", "buzzfile.com", "opencorporates.com", "hotfrog.com", "citysearch.com",
+    "local.com", "merchantcircle.com", "cylex.us.com", "loc8nearme.com", "foursquare.com", "tripadvisor.com",
     "angi.com", "angieslist.com", "homeadvisor.com", "thumbtack.com", "houzz.com", "porch.com",
     "healthgrades.com", "vitals.com", "zocdoc.com", "webmd.com", "npino.com", "npidb.org",
     "doordash.com", "grubhub.com", "ubereats.com", "opentable.com",
 )
+# Entries of FORBIDDEN_SITES that a business's own name can match too (a bar
+# called The Chamber, a hyperbaric or salt chamber, a "Chamber of Horrors"). A
+# site matched only by these is still never read, but an OpenStreetMap website
+# value dropped for it goes to review (kind "website_in_doubt") instead of
+# vanishing. A person who finds it is the business's own site adds its host to
+# FORBIDDEN_SITE_EXCEPTIONS; the next sync then takes it as the website.
+FORBIDDEN_SITES_IN_DOUBT: Tuple[str, ...] = ("*chamber.*", "chamberof*")
 # Google Sites is a site builder: a business can publish its own website there.
+# Hosts a person confirmed as a business's own site go here too.
 FORBIDDEN_SITE_EXCEPTIONS: Tuple[str, ...] = ("sites.google.*",)
 
 GIB = 1024 ** 3

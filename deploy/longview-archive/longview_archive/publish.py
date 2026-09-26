@@ -25,6 +25,7 @@ from urllib.parse import urlsplit
 
 from . import config, db, normalize, privacy
 from .categories import CATEGORIES, CATEGORY_NAMES
+from .fetcher import forbidden_site
 
 log = logging.getLogger(__name__)
 
@@ -395,11 +396,13 @@ def business_profile(conn: sqlite3.Connection, settings, business, sources=None)
         return None
     category = business["category"] if business["category"] in CATEGORY_NAMES else "other"
 
-    # The website, and with it everything read from the website.
+    # The website, and with it everything read from the website. Nothing on a directory, map, or
+    # social site (a row read before fetcher.forbidden_site existed) is shown as read from it.
     site = facts.get("website")
     website = None
     if (site and site["source_id"] == "website" and business["website_status"] in SHOWN_WEBSITE_STATUSES
-            and http_url(site["value"])):
+            and http_url(site["value"]) and not forbidden_site(site["value"])
+            and not forbidden_site(site["source_url"])):
         entry = _site_fact("website", site)
         if entry:
             website = {"url": site["value"], "status": business["website_status"]}
@@ -409,7 +412,7 @@ def business_profile(conn: sqlite3.Connection, settings, business, sources=None)
 
     def site_value(field: str):
         fact = facts.get(field)
-        if website is None or not fact or fact["source_id"] != "website":
+        if website is None or not fact or fact["source_id"] != "website" or forbidden_site(fact["source_url"]):
             return None, None
         return fact["value"], fact
 
