@@ -9,7 +9,7 @@ flags only the five roles the directory's hiring view knows about.
 from __future__ import annotations
 
 import re
-from typing import List
+from typing import List, Tuple
 from urllib.parse import urlsplit
 
 from .. import normalize
@@ -39,6 +39,29 @@ _PATH_RE = re.compile(
     r"work[-_]?with[-_]?us|openings|job[-_]?opportunities|hiring)(?:$|[/_\-.])",
     re.I,
 )
+# Never a careers page, whatever job word the link also has: payroll and HR
+# logins ("Employee Login" to Paycom's /ee/ or ADP's login.html, "Team Login"),
+# and review or employment-verification pages. Checked on text and path.
+_NOT_CAREERS_RE = re.compile(
+    r"(?:^|[^a-z])(?:log[\s_-]?(?:in|on)|sign[\s_-]?in|portal|self[\s_-]?service|intranet|payroll|"
+    r"pay[\s_-]?stubs?|time[\s_-]?clock|ee|reviews?|verification|verify)(?:$|[^a-z])",
+    re.I,
+)
+# A contractor's portfolio ("Job Gallery", "Our Jobs", "Recent Jobs", "Project
+# Gallery") is about jobs done, not jobs open: never a same-site careers page.
+_PORTFOLIO_RE = re.compile(
+    r"(?:^|[^a-z])(?:galler(?:y|ies)|photos?|pictures?|portfolio|projects?|completed|recent|past|"
+    r"our[\s_-]+(?:work|jobs)|before[\s_-]+(?:and|&)[\s_-]+after)(?:$|[^a-z])",
+    re.I,
+)
+# Most applicant-tracking hosts are payroll/HR suites that also serve employee
+# logins (login.ultipro.com, access.paylocity.com) and vendor pages, so a link
+# to one counts only when it says jobs, is an application, or goes to the
+# host's recruiting pages. The job-board hosts serve job listings only.
+_JOB_BOARD_HOSTS = ("jobs.lever.co", "boards.greenhouse.io", "applytojob.com", "myworkdayjobs.com")
+_LOGIN_HOST_RE = re.compile(r"^(?:log[-_]?in|sign[-_]?in|sso|access)\d*\.", re.I)
+_RECRUITING_RE = re.compile(r"recruit|requisition|job[\s_-]?board|candidate|(?:^|[/.])(?:ats|jobs|careers)[/.]",
+                            re.I)
 
 
 def is_ats_host(host: str) -> bool:
@@ -46,20 +69,45 @@ def is_ats_host(host: str) -> bool:
     return any(host == ats or host.endswith("." + ats) for ats in ATS_HOSTS)
 
 
+def _page_key(url: str) -> Tuple[str, str, str]:
+    """Host (without ``www.``), path (without a trailing ``/``), and query: a ``#section`` is the same page."""
+    parts = urlsplit(url)
+    host = (parts.hostname or "").lower()
+    if host.startswith("www."):
+        host = host[4:]
+    return host, (parts.path or "/").rstrip("/") or "/", parts.query
+
+
+def _ats_job_link(host: str, text: str, path: str) -> bool:
+    if any(host == board or host.endswith("." + board) for board in _JOB_BOARD_HOSTS):
+        return True
+    if _LOGIN_HOST_RE.match(host):
+        return False
+    return bool(_TEXT_RE.search(text) or _JOB_WORD_RE.search(text) or _APPLY_RE.search(text)
+                or _PATH_RE.search(path) or _RECRUITING_RE.search(host + path))
+
+
 def careers_links(page: Page) -> List[str]:
-    """Same-site careers pages and applicant-tracking links, in page order."""
+    """Same-site careers pages and applicant-tracking links, in page order.
+
+    A link back to the page itself (``/#careers`` on a one-page site) is a
+    section of that page, not a careers page, and is skipped.
+    """
     site = normalize.registrable_domain(page.url)
+    own = _page_key(normalize.norm_url(page.url) or page.url)
     out: List[str] = []
     for link in page.links:
         parts = urlsplit(link.url)
         host = (parts.hostname or "").lower()
+        text, path = link.text or "", parts.path or ""
+        if _page_key(link.url) == own or _NOT_CAREERS_RE.search(text) or _NOT_CAREERS_RE.search(path):
+            continue
         if is_ats_host(host):
-            if link.url not in out:
+            if _ats_job_link(host, text, path) and link.url not in out:
                 out.append(link.url)
             continue
-        if normalize.registrable_domain(host) != site:
+        if normalize.registrable_domain(host) != site or _PORTFOLIO_RE.search(text) or _PORTFOLIO_RE.search(path):
             continue
-        text, path = link.text or "", parts.path or ""
         if (_TEXT_RE.search(text) or _PATH_RE.search(path)
                 or (_APPLY_RE.search(text) and (_JOB_WORD_RE.search(text) or _JOB_WORD_RE.search(path)))):
             if link.url not in out:

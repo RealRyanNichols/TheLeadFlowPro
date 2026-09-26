@@ -423,6 +423,14 @@ def _extract(result: VisitResult, snap: BusinessSnapshot, pages: List[Tuple[Opti
     result.emails = sorted(emails.values(), key=lambda f: -f.confidence)
     result.socials = list(socials.values())
 
+    # A careers link back to the home page ("/#careers" on a one-page site) is a
+    # section of that page, not a careers page: it is never taken, so roles are
+    # never read from the whole home page. The root of the home's host counts too.
+    home_keys = set()
+    for url in (all_pages[0].url, snap.website):
+        key = _page_key(url)
+        home_keys.update((key, (key[0], "/", "")))
+    links = [(u, src) for u, src in links if _page_key(u) not in home_keys]
     fetched_keys = {_page_key(p.url): p for p in all_pages}
     same_site = [(u, src) for u, src in links if normalize.registrable_domain(_host_of(u)) == site_domain]
     ats = [(u, src) for u, src in links if careers.is_ats_host(_host_of(u))]
@@ -508,7 +516,9 @@ def choose_phone(phones: Sequence[Found], known: Optional[str],
     number is not assumed to be this location's:
 
     1. the number the business's own public record (or the accepted fact)
-       already has, when the site lists it;
+       already has, when the site lists it; outside 903/430 it still goes to
+       review as ``phone_out_of_area`` (a TABC, NPI, or OSM record is not a
+       person's check; a fact a person accepted is only confirmed again);
     2. else the one local number in the site's own structured data (JSON-LD);
     3. else the only local (903/430) number;
     4. several local numbers and no way to choose: the first goes to review as
@@ -517,7 +527,8 @@ def choose_phone(phones: Sequence[Found], known: Optional[str],
     if known:
         for found in phones:
             if found.value == known:
-                return found, None
+                local = _area_code(known) in config.EAST_TEXAS_AREA_CODES
+                return found, (None if local else "phone_out_of_area")
     local = [p for p in phones if _area_code(p.value) in config.EAST_TEXAS_AREA_CODES]
     in_jsonld = [p for p in local if p.method == "jsonld" or p.value in structured]
     if len(in_jsonld) == 1:
