@@ -245,10 +245,6 @@ def _range(a: _Time, b: _Time, force_24h: bool = False, line_24h: bool = False) 
                 raise _Ambiguous()
     oh, om = _to_24(a)
     ch, cm = _to_24(b)
-    if (oh, om) == (0, 0) and (ch, cm) in ((0, 0), (24, 0)) and not a.special and not b.special:
-        # "00:00-00:00", "0:00-24:00", "12am-12am": open 24 hours or closed all
-        # day depending on the publisher, as in openingHoursSpecification.
-        raise _AllDay()
     if (a.suffix is None and b.suffix is None and not a.special and not b.special
             and 1 <= a.hour <= 12 and 1 <= b.hour <= 12 and (ch, cm) < (oh, om)):
         # "08:00-05:00" / "Mo-Fr 8:00-5:00": 8 AM-5 PM written on a 12-hour
@@ -266,6 +262,11 @@ def _range(a: _Time, b: _Time, force_24h: bool = False, line_24h: bool = False) 
     close_s = f"{ch:02d}:{cm:02d}"
     if close_s == "00:00":
         close_s = "24:00"
+    if open_s == "00:00" and close_s == "24:00":
+        # "00:00-00:00", "0:00-24:00", "12am-12am", "12am - midnight",
+        # "midnight-midnight": open 24 hours or closed all day depending on the
+        # publisher, as in openingHoursSpecification. ("Open 24 hours" is not a range.)
+        raise _AllDay()
     if open_s == close_s:
         raise _Invalid()
     return [open_s, close_s]
@@ -496,22 +497,100 @@ _LABEL_RE = re.compile(r"\b(?:hours|hrs)\b", re.I)
 
 _MONTH = (r"(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sept?(?:ember)?"
           r"|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)")
-# Hours for a holiday, a season, or a stretch of time, never the regular week:
-# "Holiday Hours", "Summer Hours", "Temporary Hours", "Christmas Eve",
-# "closed Thursday & Friday for the holidays", "Dec 24", "12/24", "July 4th".
-# A general note ("except holidays", "closed on major holidays") is not one.
-_SEASONAL_RE = re.compile(
+# A street, not a holiday: "123 Holiday Dr", "1200 MLK Blvd".
+_STREET = (r"\s+(?:dr|drive|st|street|rd|road|ln|lane|ave|avenue|blvd|boulevard|ct|court|cir|circle"
+           r"|pkwy|parkway|trl|trail|pl|place|hwy|highway|loop)\b")
+# A holiday, never the regular week, wherever it appears near hours: "Holiday
+# Hours", "Christmas Eve", "Mother's Day", "Closed Thursday & Friday for the
+# holidays", a "Holidays" heading or row, "Closed Thu-Fri (holidays)". A general
+# note ("except holidays", "closed Sundays & holidays") is not one.
+_HOLIDAY_RE = re.compile(
     r"""
-    \b(?:holiday|the\s+holidays|christmas|xmas|thanksgiving|easter|new\s+years?|memorial\s+day|labor\s+day
-        |independence\s+day|fourth\s+of\s+july|veterans'?\s+day|presidents'?\s+day|juneteenth
-        |good\s+friday|black\s+friday|summer|winter|autumn|(?:spring|fall)\s+(?:hours|hrs|schedule|break|season)
-        |season|seasonal|seasonally|temporary|temporarily|special\s+hours|inclement|weather|interim|covid)\b
-  | \b""" + _MONTH + r"""\.?\s*\d{1,2}(?:st|nd|rd|th)?\b(?![\d:]|\s*[ap]\.?m?\b)
-  | \b\d{1,2}(?:st|nd|rd|th)\s+of\s+""" + _MONTH + r"""\b
-  | (?<![\d:/.])(?:0?[1-9]|1[0-2])/(?:0?[1-9]|[12]\d|3[01])(?:/\d{2,4})?(?![\d:/])
+    \b(?:holiday\b(?!""" + _STREET + r""")|the\s+holidays|(?:for|over|during)\s+(?:the\s+)?holidays?
+        |christmas\w*|x\s*-?\s*mas|thanksgiving|easter|new\s+years?|memorial\s+day|labor\s+day
+        |independence\s+day|fourth\s+of\s+july|veterans?['’]?s?\s+day|presidents?['’]?s?\s+day|juneteenth
+        |good\s+friday|black\s+friday|halloween|valentine['’]?s|valentine\s+day
+        |mothers?['’]?s?\s+day(?!\s+out\b)|fathers?['’]?s?\s+day
+        |(?:mlk|martin\s+luther)(?!(?:\s+king)?(?:,?\s+jr)?\.?""" + _STREET + r""")
+        |columbus\s+day|(?:st\.?|saint)\s+patrick['’]?s?\s+day|mardi\s+gras)\b
+  | ^\s*holidays?\s*(?::|$)
+  | \(\s*holidays?\s*\)
     """,
     re.I | re.X,
 )
+# A season, a stretch of time, or a date: "Summer Hours", "Temporarily closed",
+# "Hours this week", "Dec 24", "12/24", "July 4th". These words also turn up in
+# ordinary copy ("Summer Grove Dental", "Rated 5/5"), so a line that is not a
+# label or an hours line counts only when it reads as a heading (_seasonal_heading).
+_SEASONAL_RE = re.compile(
+    r"""
+    \b(?:summer|winter|autumn|(?:spring|fall)\s+(?:hours|hrs|schedule|break|season)
+        |season|seasonal|seasonally|temporary|temporarily|special\s+hours|inclement|weather|interim|covid
+        |this\s+week)\b
+  | \b""" + _MONTH + r"""\.?\s*\d{1,2}(?:st|nd|rd|th)?\b(?!\d|:\d|\s*[ap]\.?m?\b)
+  | \b\d{1,2}(?:st|nd|rd|th)\s+of\s+""" + _MONTH + r"""\b
+  | (?<![\d:/.])(?:0?[1-9]|1[0-2])/(?:0?[1-9]|[12]\d|3[01])(?:/\d{2,4})?(?![\d/]|:\d)
+    """,
+    re.I | re.X,
+)
+# Label words ("<words> Hours") are dropped before parsing, so a label may use a
+# broader list: "Holidays Hours", "Founders Day Hours", "Modified Hours", "Temp
+# Hours", "This Week's Hours", "Snow Day Hours", "December Hours".
+_SEASONAL_LABEL_RE = re.compile(
+    r"""
+    \b(?:holidays?\b(?!""" + _STREET + r""")
+        |\w+['’]?s?\s+day\b(?!\s*-?\s*(?:care|spa|camp|school|program|surgery|services?|out)\b)
+        |temp|modified|reduced|limited|adjusted|vacation|special|snow(?!\s*-?\s*cones?\b)|storm|icy
+        |(?:january|february|march|april|june|july|august|september|october|november|december)
+            (?!\s*,?\s*(?:19|20)\d\d\b))\b
+    """,
+    re.I | re.X,
+)
+# Besides the holiday, season or date itself, a heading or notice uses only these
+# words: "Christmas Eve", "Holiday Schedule", "Dec 24 & 25", "Happy Holidays!",
+# "Temporarily closed due to weather", "Closed Friday, Dec 24", "Hours of
+# operation (March - October)".
+_HEADING_WORDS = frozenset(_DAY_WORDS) | frozenset((
+    "hours", "hour", "hrs", "schedule", "schedules", "week", "weeks", "weekend", "weekends", "eve", "day", "days",
+    "closure", "closures", "closed", "closing", "close", "closes", "open", "opens", "opening", "reopen", "reopens",
+    "reopening", "early", "late", "now", "notice", "update", "updates", "announcement", "note", "operation",
+    "operations", "effective", "starting", "beginning", "out", "back",
+    "please", "our", "the", "and", "or", "of", "for", "on", "at", "to", "in", "from", "through", "thru", "until",
+    "till", "we", "we're", "we’re", "we'll", "we’ll", "will", "be", "are", "is", "this", "next", "upcoming",
+    "happy", "merry", "season", "only", "all", "due", "a", "an", "office", "store", "shop", "business", "break",
+    "am", "pm", "noon", "midnight",
+))
+# A standing policy, not a heading: "Closed holidays", "Closed on major holidays".
+_HOLIDAY_POLICY_RE = re.compile(
+    r"^\W*(?:closed|open)\s+(?:on\s+)?(?:all\s+|most\s+|major\s+|federal\s+|national\s+)?holidays\W*$", re.I)
+
+
+def _seasonal(text: str, label: bool = False) -> bool:
+    """An hours line (or, with ``label``, a label's words) names a holiday, a season, or a date."""
+    text = _DASHES.sub("-", text)
+    return bool(_HOLIDAY_RE.search(text) or _SEASONAL_RE.search(text)
+                or (label and _SEASONAL_LABEL_RE.search(text)))
+
+
+def _seasonal_heading(text: str) -> bool:
+    """A line that is not hours marks what follows: any holiday, or a season or
+    date in a short heading ("Dec 24", "Summer Schedule"), not in ordinary copy
+    ("Summer Grove Dental", "Temporary crowns", "Serving East Texas since 1/1/1998")."""
+    text = _DASHES.sub("-", text)
+    if _HOLIDAY_RE.search(text):
+        return True
+    if _HOLIDAY_POLICY_RE.match(text):
+        return False
+    rest, found = text, 0
+    for pattern in (_SEASONAL_RE, _SEASONAL_LABEL_RE):
+        rest, n = pattern.subn(" ", rest)
+        found += n
+    return bool(found) and all(w in _HEADING_WORDS for w in re.findall(r"\b[a-z][a-z'’]*", _normalize_line(rest)))
+
+
+# A holiday or date heading covers the hours right after it; this many ordinary
+# lines in between (copy, a service list) end it. Labels and hours lines do not.
+_SEASONAL_GAP = 2
 
 
 def _label_split(line: str) -> Optional[Tuple[str, str]]:
@@ -540,7 +619,8 @@ def hours_from_lines(lines: Iterable[str]) -> HoursResult:
     blocks: List[Hours] = []
     current: Optional[Hours] = None
     in_label_block = False
-    seasonal = False  # after a holiday or seasonal line, until a plain hours label
+    seasonal = False  # a holiday, season, or date was just named (see _SEASONAL_GAP)
+    marker_gap = 0
     pending_days: Optional[List[str]] = None
     appointment_seen = False
 
@@ -551,10 +631,21 @@ def hours_from_lines(lines: Iterable[str]) -> HoursResult:
         current = None
         pending_days = None
 
+    def note(marker: bool, ordinary: bool = False) -> None:
+        """A marker restarts the count; an ordinary line that is not hours adds to it."""
+        nonlocal seasonal, marker_gap
+        if marker:
+            seasonal, marker_gap = True, 0
+        elif ordinary:
+            marker_gap += 1
+            if marker_gap > _SEASONAL_GAP:
+                seasonal = False
+
     for raw in lines:
         if len(raw) > 200:
             close_block()
             in_label_block = False
+            note(bool(_HOLIDAY_RE.search(_DASHES.sub("-", raw))), ordinary=True)  # prose: only a holiday counts
             continue
         label = _label_split(raw)
         content = raw
@@ -562,19 +653,18 @@ def hours_from_lines(lines: Iterable[str]) -> HoursResult:
             close_block()
             current = {}
             in_label_block = True
-            # "Holiday Hours", "Summer Hours (June-August)" open a block that is
-            # not the regular week; a plain "Store Hours" label ends it.
-            seasonal = bool(_SEASONAL_RE.search(label[0]))
+            # "Holiday Hours", "Summer Hours (June-August)", "Mother's Day Hours",
+            # "Modified Hours" open a block that is not the regular week. A plain
+            # "Hours" or "Store Hours" label under a holiday heading does not end it.
+            note(_seasonal(label[0], label=True))
             content = label[1]
-        if _SEASONAL_RE.search(content):
-            # A heading ("Holiday Schedule", "Christmas Eve", "Dec 24") or a
-            # line ("Closed Thursday & Friday for the holidays").
-            seasonal = True
         if not content:
             continue
         parsed = _parse_line(content)
         if label is not None and not (parsed.stated or parsed.days_only):
-            continue  # "Hours of operation", "Hours may vary": the block stays open
+            # "Hours of operation", "Hours may vary", "Hours for the holidays": the block stays open
+            note(_seasonal_heading(content))
+            continue
         toks = _tokenize(content)
         starts_with_day = bool(toks) and toks[0].kind in ("days", "open24")
         belongs = in_label_block or starts_with_day or (current is not None and parsed.stated)
@@ -582,9 +672,13 @@ def hours_from_lines(lines: Iterable[str]) -> HoursResult:
             if current is not None or in_label_block:
                 close_block()
                 in_label_block = False
+            # A heading ("Christmas Eve", "Holiday Schedule", "Dec 24") or ordinary copy.
+            note(_seasonal_heading(content), ordinary=True)
             continue
         if current is None:
             current = {}
+        # "Closed Thursday & Friday for the holidays", "Dec 24: Closed".
+        note(_seasonal(content))
         if seasonal:
             # Holiday or seasonal hours are never published as the regular week.
             issues.add("seasonal_hours")
