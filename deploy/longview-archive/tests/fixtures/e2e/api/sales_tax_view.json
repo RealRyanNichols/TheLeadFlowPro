@@ -1,0 +1,19 @@
+{
+  "id": "lvex-0001",
+  "name": "Active Sales Tax Permit Holders",
+  "license": {"name": "Public Domain"},
+  "rowsUpdatedAt": 1790000000,
+  "columns": [
+    {"fieldName": "taxpayer_number", "name": "Taxpayer Number"},
+    {"fieldName": "taxpayer_name", "name": "Taxpayer Name"},
+    {"fieldName": "taxpayer_organizational_type", "name": "Taxpayer Organizational Type"},
+    {"fieldName": "outlet_number", "name": "Outlet Number"},
+    {"fieldName": "outlet_name", "name": "Outlet Name"},
+    {"fieldName": "outlet_address", "name": "Outlet Address"},
+    {"fieldName": "outlet_city", "name": "Outlet City"},
+    {"fieldName": "outlet_zip_code", "name": "Outlet Zip Code"},
+    {"fieldName": "outlet_naics_code", "name": "Outlet NAICS Code"},
+    {"fieldName": "outlet_inside_outside_city_limits_indicator", "name": "Outlet Inside/Outside City Limits Indicator"},
+    {"fieldName": "outlet_permit_issue_date", "name": "Outlet Permit Issue Date"}
+  ]
+}

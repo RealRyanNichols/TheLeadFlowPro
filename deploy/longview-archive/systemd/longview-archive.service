@@ -1,0 +1,82 @@
+# The Longview Business Archive engine (The LeadFlow Pro).
+#
+# One long-running service on the LeadFlow droplet. It shares the box with the
+# Central Brain, the Call Desk, and the Premier staging site, so it runs as
+# the unprivileged user lvarchive, can write only its own data directory, and
+# is capped to half a CPU and 700 MB so it can never starve them.
+#
+# Installed by deploy/longview-archive/install.sh; removed by uninstall.sh.
+# Pause without stopping: touch /var/lib/longview-archive/PAUSE
+
+[Unit]
+Description=The LeadFlow Pro Longview Business Archive engine
+Documentation=https://github.com/RealRyanNichols/TheLeadFlowPro/tree/main/deploy/longview-archive
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=lvarchive
+Group=lvarchive
+WorkingDirectory=/opt/longview-archive/app
+Environment=PYTHONPATH=/opt/longview-archive/app PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
+ExecStart=/opt/longview-archive/venv/bin/python -m longview_archive run
+Restart=always
+RestartSec=30
+TimeoutStopSec=60
+KillSignal=SIGTERM
+
+# Caps: a background job that always yields to the droplet's other services.
+Nice=10
+IOSchedulingClass=idle
+CPUQuota=50%
+MemoryMax=700M
+TasksMax=64
+
+# Sandbox: read-only system, private /tmp, no devices, no privileges.
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/longview-archive
+UMask=0022
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+SystemCallArchitectures=native
+CapabilityBoundingSet=
+AmbientCapabilities=
+
+# Network defence in depth, behind the crawler's own guard. fetcher.py refuses
+# any private, loopback, link-local, or reserved address and any port other
+# than 80/443, on every redirect hop; that guard is what actually keeps the
+# engine off the droplet's other services. This kernel filter is a second
+# layer that works by ADDRESS ONLY: systemd's IPAddressDeny/IPAddressAllow
+# have no port setting, and short of a custom BPF program
+# (IPEgressFilterPath=) no directive filters outgoing ports.
+# Denied: loopback (localhost), the private VPC network (IPv4 and IPv6),
+# link-local (so the cloud metadata service at 169.254.169.254), multicast,
+# carrier NAT, and the droplet's own public IPv4 address, 165.227.248.110,
+# which the kernel would otherwise deliver over loopback to anything listening
+# on all addresses. If IPv6 is ever turned on for the droplet, add its public
+# address as a /128 here too.
+# The one exception is 127.0.0.53, the systemd-resolved stub, so DNS keeps
+# working. In systemd a matching IPAddressAllow= wins over IPAddressDeny=, so
+# this re-opens that one address, but on EVERY port: a local service bound to
+# 0.0.0.0 or [::] (any port) is still reachable at 127.0.0.53:<port>. Only the
+# crawler's port and address checks stand in front of that residual gap.
+IPAddressDeny=localhost link-local multicast 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16 100.64.0.0/10 fc00::/7 165.227.248.110/32
+IPAddressAllow=127.0.0.53
+
+[Install]
+WantedBy=multi-user.target

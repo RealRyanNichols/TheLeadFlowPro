@@ -1,0 +1,18 @@
+{
+  "version": 0.6,
+  "generator": "fixture (fictional places only)",
+  "osm3s": {"timestamp_osm_base": "2026-09-24T00:00:00Z", "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."},
+  "elements": [
+    {"type": "node", "id": 9001, "lat": 32.5001, "lon": -94.7401, "tags": {"name": "Example Taqueria", "amenity": "restaurant", "addr:housenumber": "100", "addr:street": "Example Street", "addr:postcode": "75601", "website": "https://www.taqueria.example/"}},
+    {"type": "node", "id": 9002, "lat": 32.5002, "lon": -94.7402, "tags": {"name": "Example Tire & Lube", "shop": "tyres", "addr:housenumber": "500", "addr:street": "Example Street", "addr:postcode": "75602", "website": "https://www.exampletire.example/"}},
+    {"type": "node", "id": 9003, "lat": 32.5003, "lon": -94.7403, "tags": {"name": "Example Auto Glass", "shop": "car_repair", "addr:housenumber": "300", "addr:street": "Fixture Road", "addr:postcode": "75605", "website": "https://www.autoglass.example/"}},
+    {"type": "node", "id": 9004, "lat": 32.5004, "lon": -94.7404, "tags": {"name": "Example Barber Shop", "shop": "hairdresser", "addr:housenumber": "210", "addr:street": "Fixture Road", "addr:postcode": "75602", "website": "https://www.barbershop.example/"}},
+    {"type": "node", "id": 9005, "lat": 32.5005, "lon": -94.7405, "tags": {"name": "Example Florist", "shop": "florist", "addr:housenumber": "40", "addr:street": "Sample Avenue", "addr:postcode": "75601", "website": "https://www.oldflorist.example/"}},
+    {"type": "node", "id": 9006, "lat": 32.5006, "lon": -94.7406, "tags": {"name": "Example Pawn & Jewelry", "shop": "pawnbroker", "addr:housenumber": "60", "addr:street": "Example Street", "addr:postcode": "75601", "website": "https://www.guarded.example/"}},
+    {"type": "node", "id": 9007, "lat": 32.5007, "lon": -94.7407, "tags": {"name": "Example Insurance Agency", "office": "insurance", "addr:housenumber": "88", "addr:street": "Placeholder Drive", "addr:unit": "5", "addr:postcode": "75601", "contact:website": "https://www.insurance.example/"}},
+    {"type": "node", "id": 9008, "lat": 32.5008, "lon": -94.7408, "tags": {"name": "Example Family Dental", "amenity": "dentist", "healthcare": "dentist", "addr:housenumber": "700", "addr:street": "Sample Avenue", "addr:unit": "200", "addr:postcode": "75605", "website": "https://www.examplefamilydental.example/"}},
+    {"type": "node", "id": 9009, "lat": 32.5009, "lon": -94.7409, "tags": {"name": "Example Bakery", "shop": "bakery", "addr:housenumber": "15", "addr:street": "Placeholder Drive", "addr:postcode": "75601", "website": "https://www.bakery.example/"}},
+    {"type": "node", "id": 9010, "lat": 32.5010, "lon": -94.7410, "tags": {"name": "Example Coffee Cart", "amenity": "cafe", "addr:housenumber": "5", "addr:street": "Fixture Road", "addr:postcode": "75602"}},
+    {"type": "way", "id": 9101, "center": {"lat": 32.5011, "lon": -94.7411}, "tags": {"shop": "vacant"}}
+  ]
+}
