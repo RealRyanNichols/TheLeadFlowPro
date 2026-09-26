@@ -3,9 +3,9 @@
 Every storefront, restaurant, and shop that collects sales tax in Longview has
 an outlet row here, which makes it the backbone of the archive. The rows also
 name the taxpayer, and for a sole proprietor that is a person, so the taxpayer
-name is read only to set two flags (``is_individual``, ``personal_name``) and
-otherwise stays inside ``raw_json``. Scope follows the Comptroller's own
-inside/outside-city-limits indicator first, then the ZIP.
+name is read only to set flags (``is_individual``, ``personal_name``, and the
+``owner_named`` tag) and otherwise stays inside ``raw_json``. Scope follows the
+Comptroller's own inside/outside-city-limits indicator first, then the ZIP.
 """
 
 from __future__ import annotations
@@ -111,16 +111,23 @@ def project_row(row: Mapping[str, Any], fields: Mapping[str, Optional[str]]) -> 
     street_norm, suite = normalize.parse_street(address)
     zip_code = normalize.zip5(_get(row, fields, "outlet_zip"))
     naics = re.sub(r"\D", "", _get(row, fields, "outlet_naics")) or None
-    # The taxpayer name is private: it only decides the two flags below.
+    # The taxpayer name is private: it only decides the flags below.
     taxpayer_name = _get(row, fields, "taxpayer_name")
     is_individual = privacy.is_individual_taxpayer(
         taxpayer_name or None, _get(row, fields, "taxpayer_org_type") or None, outlet_name
     )
     personal = privacy.outlet_is_personal_name(outlet_name, taxpayer_name or None, is_individual)
+    # "Owner Name DBA Trade Name" shows only the trade name, for every taxpayer.
+    shown = normalize.trade_name(outlet_name)
     limits = city_limits(_get(row, fields, "inside_city_limits"))
+    tags: Dict[str, Any] = {"city_limits": limits}
+    if personal and privacy.carries_owner_name(shown, taxpayer_name or None):
+        # The shown name itself carries the owner's name ('Dalix Quillfeather
+        # Lawn'), not only the legal part before a DBA: a person checks it
+        # even once the listing has a public presence.
+        tags["owner_named"] = True
     record = {
-        # "Owner Name DBA Trade Name" shows only the trade name, for every taxpayer.
-        "name": normalize.title_case_name(normalize.trade_name(outlet_name)),
+        "name": normalize.title_case_name(shown),
         "name_norm": normalize.norm_name(outlet_name),
         "street": normalize.display_street(address) or None,
         "street_norm": street_norm or None,
@@ -132,7 +139,7 @@ def project_row(row: Mapping[str, Any], fields: Mapping[str, Optional[str]]) -> 
         "is_individual": is_individual,
         "personal_name": personal,
         "scope": decide_scope(limits, zip_code),
-        "tags_json": db.dumps({"city_limits": limits}),
+        "tags_json": db.dumps(tags),
     }
     return f"{taxpayer_number}:{outlet_number}", record, limits
 

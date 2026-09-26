@@ -130,9 +130,11 @@ STOREFRONT_NAICS_PREFIXES = (
 )
 
 # A unit on the street that marks a dwelling (an apartment, a lot, space, or
-# trailer in a park, a bare unit number), so the NAICS code alone is not
-# storefront evidence there. Matches the display street ("Apt 4", "Spc 12", "#4").
-_RESIDENTIAL_UNIT = re.compile(r"(?:^|\s)#|\b(?:apt|apartment|unit|lot|spc|space|trlr|trailer)\b", re.IGNORECASE)
+# trailer in a park, a mobile home, a bare unit number), so the NAICS code
+# alone is not storefront evidence there. Matches the display street ("Apt 4",
+# "Spc 12", "#4"), also run together or abbreviated ("Apt4", "Sp 12", "Mh 5").
+_RESIDENTIAL_UNIT = re.compile(r"(?:^|\s)#|\b(?:apts?|apartment|unit|lot|spc?|space|trlr|trailer|mh)(?=\d|\b)",
+                               re.IGNORECASE)
 
 # OSM tags that describe a public-facing premises. craft=*, office=*,
 # healthcare=* alone, childcare and the like are often mapped at a home.
@@ -236,9 +238,11 @@ def _org_kind(org_type: Optional[str]) -> Optional[bool]:
 
 def _repeats_person_name(outlet_name: str, taxpayer_name: str) -> bool:
     """With no trade name the Comptroller repeats the taxpayer name as the outlet
-    name. Repeated that way, two to six plain words with a given name are a
-    person's name even when one of them (the surname: Temple, Glass, Church) is
-    a business word."""
+    name. Repeated that way, two to six plain words are a person's name even
+    when one of them (the surname: Temple, Glass, Church) is a business word:
+    when another is a given name, or when that business word leads the
+    taxpayer's 'LAST FIRST' name ('TEMPLE JAMAL': not every given name is in
+    GIVEN_NAMES)."""
     outlet = set(_person_tokens(outlet_name))
     owner = _person_tokens(taxpayer_name)
     if not outlet or not outlet <= set(owner):
@@ -247,8 +251,23 @@ def _repeats_person_name(outlet_name: str, taxpayer_name: str) -> bool:
         return False
     if any(t in _LEGAL_FORMS for t in owner):
         return False
-    business = [t for t in owner if t in BUSINESS_WORDS or t.endswith("'s")]
-    return len(business) <= 1 and any(t in GIVEN_NAMES for t in owner)
+    # One business word, though a couple may repeat it ('JOHN TEMPLE & MARY TEMPLE').
+    business = {t for t in owner if t in BUSINESS_WORDS or t.endswith("'s")}
+    if len(business) > 1:
+        return False
+    if any(t in GIVEN_NAMES for t in owner):
+        return True
+    # A name, not '&', follows a surname ('TEMPLE JAMAL'; 'TIRE & WHEEL' is a trade name).
+    words = _tokens(taxpayer_name.replace(",", " "))
+    return owner[0] in business and len(words) > 1 and words[1] not in ("&", "and")
+
+
+def _outlet_repeats(outlet_name: Optional[str], taxpayer_name: str) -> bool:
+    """The outlet name, or its part before a DBA marker, repeats the taxpayer's own name."""
+    if not outlet_name:
+        return False
+    return any(_repeats_person_name(part, taxpayer_name)
+               for part in {outlet_name, normalize.split_dba(outlet_name)[0]} if part)
 
 
 def is_individual_taxpayer(taxpayer_name: Optional[str], org_type: Optional[str] = None,
@@ -267,7 +286,9 @@ def is_individual_taxpayer(taxpayer_name: Optional[str], org_type: Optional[str]
                               or any(t in GIVEN_NAMES for words in parts for t in words)):
         return True  # joint owners, whatever the partnership form
     if kind is False:
-        return False
+        # A couple's partnership named after them, even when the surname is a
+        # business word ('TEMPLE JOHN & MARY', 'JOHN & MARY BARBER').
+        return bool(_JOINERS.search(name)) and _outlet_repeats(outlet_name, name)
     if _PERSON_COMMA.match(name) and not any(t.strip(".") in ORG_MARKERS for t in _tokens(name.split(",", 1)[1])):
         return True  # 'CHURCH, JOHN': the surname may be a business word
     tokens = _tokens(name.replace(",", " "))
@@ -276,7 +297,7 @@ def is_individual_taxpayer(taxpayer_name: Optional[str], org_type: Optional[str]
         if (2 <= len(words) <= 6 and all(re.fullmatch(r"[a-z][a-z'\-]*", t) for t in words)
                 and not _has_business_word(words)):
             return True
-    return bool(outlet_name) and _repeats_person_name(outlet_name, name)
+    return _outlet_repeats(outlet_name, name)
 
 
 def _name_set(name: Optional[str]) -> set:
@@ -292,6 +313,11 @@ def _person_tokens(name: Optional[str]) -> list:
             if len(part) > 1 and part not in _GENERATIONAL and part not in ("and", "dba"):
                 out.append(part)
     return out
+
+
+def _owner_tokens(taxpayer_name: Optional[str]) -> set:
+    # 'SMITH JOHN DBA ACE LAWN': the owner's name is the part before the marker.
+    return set(_person_tokens(normalize.split_dba(taxpayer_name)[0] or taxpayer_name))
 
 
 def _named_for_owner(name: str, owner: set) -> bool:
@@ -318,9 +344,24 @@ def outlet_is_personal_name(outlet_name: Optional[str], taxpayer_name: Optional[
     """
     if not is_individual or not outlet_name:
         return False
-    owner = set(_person_tokens(taxpayer_name))
+    owner = _owner_tokens(taxpayer_name)
     names = {outlet_name, *(part for part in normalize.split_dba(outlet_name) if part)}
     return any(_named_for_owner(name, owner) for name in names)
+
+
+def carries_owner_name(name: Optional[str], taxpayer_name: Optional[str]) -> bool:
+    """The name carries two of the owner's own name words, not just a surname:
+    'Dalix Quillfeather Lawn', 'Thanh & Hoa Nguyen'; not 'Quillfeather Lawn'."""
+    return len(set(_person_tokens(name)) & _owner_tokens(taxpayer_name)) >= 2
+
+
+def may_name_owner(name: Optional[str]) -> bool:
+    """For an owner-named listing: the shown name may still be the owner's own,
+    because it has a given name, or two or more words and no trade word ('Hoa
+    Nguyen', 'Thanh & Hoa Nguyen'). 'Smith Lawn Service', "Maria's Bakery",
+    and a bare surname do not."""
+    words = [t for t in _tokens(name or "") if t.strip("'-&") and t != "and"]
+    return has_given_name(name) or (len(words) >= 2 and not _has_business_word(words))
 
 
 def _linked_sources(conn: sqlite3.Connection, business_id: int) -> list:

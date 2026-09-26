@@ -155,7 +155,8 @@ def _load(row: sqlite3.Row) -> _Rec:
     if street_line and not street_norm:
         street_norm, parsed_suite = normalize.parse_street(street_line)
         suite = suite or parsed_suite
-    name = (row["name"] or "").strip()
+    # "Legal Name DBA Trade Name" from any source shows only the trade name.
+    name = normalize.trade_name(row["name"])
     website = normalize.norm_url(row["website"]) if row["website"] else None
     domain = (row["website_domain"] or "").strip().lower()
     if website and not domain:
@@ -473,7 +474,11 @@ def _refresh_identity(conn: sqlite3.Connection, business_id: int, rec: _Rec, sta
     biz = _business(conn, business_id)
     if biz is None or not rec.is_primary or _is_suppressed(conn, biz):
         return []
-    name_differs = bool(rec.name) and rec.name_norm != (biz["name_norm"] or "")
+    # A name kept from before only the trade name was shown ('John Smith Dba
+    # Smith Lawn Service') compares equal, since norm_name drops the legal
+    # part, but it is renamed too, and its slug is chosen again from the trade name.
+    dba_dropped = bool(rec.name) and normalize.has_dba(biz["name"]) and not normalize.has_dba(rec.name)
+    name_differs = bool(rec.name) and (rec.name_norm != (biz["name_norm"] or "") or dba_dropped)
     street_differs = bool(rec.street_norm) and rec.street_norm != (biz["street_norm"] or "")
 
     if _identity_source(conn, business_id) != rec.id:
@@ -497,7 +502,12 @@ def _refresh_identity(conn: sqlite3.Connection, business_id: int, rec: _Rec, sta
     values: dict = {}
     if name_differs:
         values["name"], values["name_norm"] = rec.name, rec.name_norm
-    if rec.street_norm and (street_differs or (rec.suite or None) != biz["suite"]):
+    if dba_dropped:
+        values["slug"] = None
+    # The shown street follows too when only its units changed ('Bldg 2' now
+    # 'Bldg 2 Apt 4'): the dwelling unit decides whether it may be shown.
+    if rec.street_norm and (street_differs or (rec.suite or None) != biz["suite"]
+                            or (rec.street_display() or None) != biz["street"]):
         values["street"] = rec.street_display() or None
         values["street_norm"] = rec.street_norm
         values["suite"] = rec.suite or None
@@ -530,6 +540,8 @@ def _refresh_identity(conn: sqlite3.Connection, business_id: int, rec: _Rec, sta
         notes.append(f"It now uses the {rec.label} record's current street.")
     values["updated_at"] = stamp
     _update(conn, business_id, values)
+    if dba_dropped:
+        assign_identity(conn, business_id)  # keeps public_id; the old slug carried the legal name
     return notes
 
 
@@ -765,6 +777,19 @@ def match_record(conn: sqlite3.Connection, source_record_id: int, now: Now = Non
     return result
 
 
+def _drop_dba_names(conn: sqlite3.Connection, stamp: str) -> int:
+    """A business an older version named 'Legal Name DBA Trade Name' takes its
+    identity record's trade name, even when that record has not changed."""
+    renamed = 0
+    for biz in conn.execute("SELECT id, name FROM businesses ORDER BY id").fetchall():
+        source = _identity_source(conn, biz["id"]) if normalize.has_dba(biz["name"]) else None
+        if source is not None:
+            rec = _load(conn.execute("SELECT * FROM source_records WHERE id=?", (source,)).fetchone())
+            if rec.name and not normalize.has_dba(rec.name):
+                renamed += bool(_refresh_identity(conn, biz["id"], rec, stamp))
+    return renamed
+
+
 def match_pending(conn: sqlite3.Connection, now: Now = None) -> Dict[str, int]:
     """Match every active record in state 'new', 500 per transaction, then refresh activity."""
     stamp = _stamp(now)
@@ -779,6 +804,10 @@ def match_pending(conn: sqlite3.Connection, now: Now = None) -> Dict[str, int]:
             with db.transaction(conn):
                 for record_id in ids[start:start + BATCH_SIZE]:
                     counts[_match(conn, record_id, stamp).action] += 1
+    with db.transaction(conn):
+        renamed = _drop_dba_names(conn, stamp)
+    if renamed:
+        logger.info("matching: %d businesses renamed to their trade name", renamed)
     changed = refresh_activity(conn, now=stamp)
     logger.info("matching: %d matched, %d created, %d review, %d ignored; %d businesses changed activity",
                 counts["matched"], counts["created"], counts["review"], counts["ignored"], changed)
