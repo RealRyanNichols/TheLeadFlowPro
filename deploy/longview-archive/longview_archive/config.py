@@ -39,6 +39,47 @@ EAST_TEXAS_AREA_CODES: Tuple[str, ...] = ("903", "430")
 
 SCOPE_LABEL = "City of Longview, Texas"
 
+# Sites that are never a business's own website: the listings the brief
+# forbids reading (Google Maps, Yelp, Facebook, the BBB, chambers of commerce,
+# YellowPages, Nextdoor, Indeed) and directories, maps, social networks, and
+# job boards of the same kind. A URL on one of them is never taken as a
+# website candidate from any source and never requested (robots.txt and
+# redirect hops included), so nothing is read from it or published as the
+# business's website. A Facebook or Instagram link on the business's own site
+# is still kept as that social fact; it is never fetched. Each entry is
+# matched against the host and each of its parent domains, with "*" as a
+# wildcard: "facebook.com" also covers m.facebook.com, "google.*" is
+# google.com and google.co.uk, "*chamber.*" is longviewchamber.com and any
+# other chamber. ``fetcher.forbidden_site`` is the one place it is applied.
+FORBIDDEN_SITES: Tuple[str, ...] = (
+    # Google Maps, Search, and Business Profile pages, and their short links.
+    "google.*", "goo.gl", "g.page", "g.co", "business.site",
+    # Other maps.
+    "maps.apple.com", "mapquest.com", "waze.com", "bing.com",
+    # Yelp.
+    "yelp.*",
+    # Facebook, Messenger, Instagram, and other social networks.
+    "facebook.com", "fb.com", "fb.me", "fb.watch", "m.me", "instagram.com", "instagr.am",
+    "twitter.com", "x.com", "tiktok.com", "youtube.com", "youtu.be", "pinterest.com", "threads.net",
+    # The BBB, chambers of commerce, and the member-directory services chambers use.
+    "bbb.org", "*chamber.*", "*chamberofcommerce*", "chambermaster.com", "growthzoneapp.com",
+    "micronetonline.com",
+    # YellowPages and its sister directories.
+    "yellowpages.com", "yp.com", "superpages.com", "dexknows.com",
+    # Nextdoor.
+    "nextdoor.com",
+    # Indeed and other job boards.
+    "indeed.com", "glassdoor.com", "ziprecruiter.com", "linkedin.com",
+    # Other business directories, reviews, and ordering or booking listings.
+    "manta.com", "bizapedia.com", "buzzfile.com", "opencorporates.com", "hotfrog.com",
+    "merchantcircle.com", "cylex.us.com", "loc8nearme.com", "foursquare.com", "tripadvisor.com",
+    "angi.com", "angieslist.com", "homeadvisor.com", "thumbtack.com", "houzz.com", "porch.com",
+    "healthgrades.com", "vitals.com", "zocdoc.com", "webmd.com", "npino.com", "npidb.org",
+    "doordash.com", "grubhub.com", "ubereats.com", "opentable.com",
+)
+# Google Sites is a site builder: a business can publish its own website there.
+FORBIDDEN_SITE_EXCEPTIONS: Tuple[str, ...] = ("sites.google.*",)
+
 GIB = 1024 ** 3
 
 

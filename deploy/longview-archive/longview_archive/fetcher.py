@@ -5,7 +5,9 @@ every request and every redirect hop passes an SSRF guard (http/https only,
 ports 80/443, no internal names or IP literals, no host that resolves to a
 non-public address). The default transport repeats the address check at
 connect time and connects to the address it checked, so a DNS answer cannot
-change between the check and the connection.
+change between the check and the connection. The same check refuses every
+directory, map, and social site in ``config.FORBIDDEN_SITES`` before any
+request, robots.txt included.
 
 Politeness is enforced here, not by callers: robots.txt is obeyed, requests to
 one host start at least ``min_host_delay_s`` apart (robots.txt fetches
@@ -19,6 +21,7 @@ and handed to the main thread through ``export_host_state`` /
 from __future__ import annotations
 
 import codecs
+import fnmatch
 import http.client
 import ipaddress
 import logging
@@ -36,7 +39,7 @@ from typing import Callable, Dict, Iterable, Iterator, List, Mapping, Optional, 
 from urllib.parse import urljoin, urlsplit
 
 from . import db, normalize
-from .config import Settings
+from .config import FORBIDDEN_SITE_EXCEPTIONS, FORBIDDEN_SITES, Settings
 
 log = logging.getLogger(__name__)
 
@@ -188,6 +191,27 @@ def host_name_is_unsafe(host: str) -> bool:
     if re.fullmatch(r"[0-9.]+", host) or re.fullmatch(r"(?:0x[0-9a-f]+|[0-9]+)(?:\.(?:0x[0-9a-f]+|[0-9]+))*", host):
         return True
     return False
+
+
+def forbidden_site(url: Optional[str]) -> bool:
+    """True for a URL (or bare host) on a directory, map, or social site (``config.FORBIDDEN_SITES``).
+
+    Such a page is never a business's own website: the website candidate
+    (``sources.osm``, ``worker.snapshot``) and every request (``check_url``)
+    go through this one test.
+    """
+    text = normalize.norm_url(url) or str(url or "").strip()
+    try:
+        host = (urlsplit(text).hostname or "").lower().rstrip(".")
+    except ValueError:
+        return False
+    labels = [label for label in host.split(".") if label]
+    names = [".".join(labels[i:]) for i in range(len(labels) - 1)]  # the host, then each parent domain
+
+    def listed(patterns: Tuple[str, ...]) -> bool:
+        return any(fnmatch.fnmatchcase(name, pattern) for name in names for pattern in patterns)
+
+    return listed(FORBIDDEN_SITES) and not listed(FORBIDDEN_SITE_EXCEPTIONS)
 
 
 def resolve_checked(host: str, port: int, resolver: Callable = socket.getaddrinfo) -> List[Tuple]:
@@ -872,7 +896,7 @@ class PoliteFetcher:
 
     # ------------------------------------------------------------ SSRF
     def check_url(self, url: str) -> Optional[str]:
-        """None when the URL may be requested, else 'unsafe_host' or 'dns'."""
+        """None when the URL may be requested, else 'unsafe_host', 'forbidden', or 'dns'."""
         try:
             parts = urlsplit(url)
             port = parts.port
@@ -885,6 +909,8 @@ class PoliteFetcher:
         host = (parts.hostname or "").lower().rstrip(".")
         if not host:
             return "unsafe_host"
+        if forbidden_site(url):
+            return "forbidden"  # a directory, map, or social site: never read, not even robots.txt
         if self.settings.allow_private_hosts:
             return None
         if port not in (None, 80, 443):
@@ -966,6 +992,11 @@ class PoliteFetcher:
             if raw.status in REDIRECT_CODES and raw.headers.get("Location"):
                 url = urljoin(url, raw.headers["Location"].strip())
                 continue
+            if is_challenge(raw.status, raw.headers, raw.body):
+                # A bot check on robots.txt is a challenge like one on a page (not a 429/503
+                # backoff): the site is closed for CHALLENGE_DAYS and nothing is requested.
+                self._note_challenge(host)
+                return _Robots(None, raw.status, now)
             if raw.status in (429, 503):
                 self._note_backoff(host)
             if raw.status == 200:
@@ -1008,8 +1039,8 @@ class PoliteFetcher:
         raw: Optional[RawResponse] = None
         for hop in range(self.settings.max_redirects + 1):
             problem = self.check_url(current)
-            if problem == "unsafe_host":
-                return result(blocked="unsafe_host")
+            if problem in ("unsafe_host", "forbidden"):
+                return result(blocked=problem)  # on every hop, so a redirect never reaches one either
             if problem == "dns":
                 return result(error="dns")
             host = (urlsplit(current).hostname or "").lower()

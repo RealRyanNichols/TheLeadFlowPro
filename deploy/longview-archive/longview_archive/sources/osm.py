@@ -15,6 +15,7 @@ import sqlite3
 from typing import Any, Dict, Mapping, Optional, Tuple
 
 from .. import db, normalize
+from ..fetcher import forbidden_site
 from .http import ApiError, EmptyResult, RecordWriter, as_now, bump, finish_failed, finish_ok, get_json
 
 logger = logging.getLogger(__name__)
@@ -71,7 +72,7 @@ def _first_website(tags: Mapping[str, str]) -> Optional[str]:
     for key in ("website", "contact:website", "url"):
         for part in str(tags.get(key) or "").split(";"):
             url = normalize.norm_url(part.strip())
-            if url:
+            if url and not forbidden_site(url):  # a Yelp, BBB, or Facebook page is not the business's site
                 return url
     return None
 
