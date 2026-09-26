@@ -29,8 +29,8 @@ This applies to every project: The LeadFlow Pro and Premier Dental Academy of Lo
 
 ## LeadRep Orchestration
 
-- GitHub issues and comments are the handoff log between Codex, Grok/xAI, GitHub Actions, and the droplet.
+- GitHub issues and comments are the handoff log between Codex, Grok/xAI, GitHub Actions, and the DigitalOcean droplet.
 - The agent memory and task bus move from Supabase to the droplet. Until that exists, don't build new pieces on Supabase. Use privileged database access only from server-side scripts, CI, or trusted admin runtimes.
-- The DigitalOcean droplet is the runtime and deploy layer. Production deploys stay approval-gated.
+- The DigitalOcean droplet is the runtime and deploy layer (docs/infrastructure/droplet.md): `sudo /opt/theleadflowpro/deploy/droplet/deploy.sh` after a merge. Nothing builds or deploys on Vercel (`vercel.json` sets `git.deploymentEnabled` to false). Production deploys stay approval-gated.
 - Default orchestration mode is dry-run. Grok/xAI API calls run only when `LEADREP_GROK_MODE=api`, `XAI_API_KEY` exists, and approval is cleared.
 - Any result that would publish, contact leads, change pricing, create a paid campaign, or affect a buyer-facing offer must stop in `approval_queue`.

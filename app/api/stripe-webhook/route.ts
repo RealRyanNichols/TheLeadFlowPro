@@ -48,8 +48,18 @@ import { classifyStripeInvoice, dollars, renewalAction } from "@/lib/stripeInvoi
 import { refundOutcome } from "@/lib/stripeRefunds";
 import { BUSINESS } from "@/lib/site/business";
 import { PRICES, usd } from "@/lib/site/prices";
-import { TLFP_CREDITS, findPack } from "@/lib/tlfpCredits";
-import { awardReferralPurchase, creditPackPaid, creditPackReversed, settleHold } from "@/lib/tlfp";
+import { TLFP_CREDITS, TLFP_FOUNDING, findPack, foundingSeatsLeft, foundingTier } from "@/lib/tlfpCredits";
+import { findToolBuild } from "@/lib/toolStudio";
+import {
+  FoundingNotInstalledError,
+  applyFoundingPerks,
+  awardReferralPurchase,
+  creditPackPaid,
+  creditPackReversed,
+  foundingAwardedOn,
+  reverseFoundingCredits,
+  settleHold,
+} from "@/lib/tlfp";
 
 // Stripe webhook: records paid checkouts and unlocks training access.
 // Needs STRIPE_WEBHOOK_SECRET (from Stripe dashboard → Webhooks) and
@@ -503,10 +513,20 @@ async function ensureCreditPackPaid(supabase: SupabaseClient, session: StripeChe
   const posted = await creditPackPaid(supabase, { email: customer.email, pack, sessionId, amountCents: amount });
   if (!posted.ok && posted.error !== "balance_cap") throw new Error(`Credit pack post failed: ${posted.error ?? "unknown"}`);
   const first = String(customer.fullName || "").trim().split(" ")[0] || "Hey";
-  const acknowledged = await sendBuyerAcknowledgement(supabase, sessionId, "tlfp-pack:buyer", customer.email, `${pack.credits} ${TLFP_CREDITS.name} are on your account.`, [
+  // Say what really posted: the ledger caps at the balance limit. A retry
+  // reads the same number (a duplicate post returns the original row).
+  const credited = posted.ok ? Math.max(0, Number(posted.applied ?? pack.credits)) : 0;
+  const cap = TLFP_CREDITS.maxBalance.toLocaleString("en-US");
+  const landed =
+    credited >= pack.credits
+      ? `and ${pack.credits} credits are on the account for ${customer.email}.`
+      : credited > 0
+        ? `and ${credited} of its ${pack.credits} credits are on the account for ${customer.email}. A balance tops out at ${cap} credits, so the rest could not post. Reply to this email and we will make it right.`
+        : `but the account for ${customer.email} is already at the ${cap} credit limit, so the credits could not post. Reply to this email and we will make it right.`;
+  const acknowledged = await sendBuyerAcknowledgement(supabase, sessionId, "tlfp-pack:buyer", customer.email, credited > 0 ? `${credited} ${TLFP_CREDITS.name} are on your account.` : `Your ${pack.name} is paid.`, [
     `${first},`,
     "",
-    `Your ${pack.name} is paid (${dollarsOrUnknown(amount)}) and ${pack.credits} credits are on the account for ${customer.email}.`,
+    `Your ${pack.name} is paid (${dollarsOrUnknown(amount)}) ${landed}`,
     "",
     "How to use them:",
     "",
@@ -531,6 +551,84 @@ async function ensureCreditPackPaid(supabase: SupabaseClient, session: StripeChe
     "",
     `Credits admin: ${BUSINESS.siteUrl}/admin/tlfp`,
   ], { acknowledged });
+}
+
+/**
+ * Founding 100 on a paid checkout or invoice (lib/tlfp.ts applyFoundingPerks):
+ * a qualifying purchase claims a seat and its bonus while seats last, and a
+ * seat holder earns the monthly bonus and the standing rebate. Runs after
+ * fulfilment. Every award is idempotent on `key`, so on a real failure the
+ * owner is told once and the error is rethrown: Stripe redelivers the event,
+ * fulfilment replays as a no-op, and the redelivery posts what was missed and
+ * nothing twice. A hand grant would not record the seat, so the alert says
+ * not to. The one failure that does not throw is the founding migration not
+ * being applied yet, so merging first can never turn every paid event into a
+ * 500. The seat alert to the owner is best effort; nothing goes to the buyer.
+ */
+async function foundingPerksOnPaid(
+  supabase: SupabaseClient,
+  input: {
+    email: string;
+    kind: string;
+    amountCents: number | null;
+    key: string;
+    purchaseKey?: string;
+    billing?: string | null;
+    tierKind?: string;
+    tierCents?: number | null;
+    renewal?: boolean;
+  },
+) {
+  let outcome: Awaited<ReturnType<typeof applyFoundingPerks>>;
+  try {
+    outcome = await applyFoundingPerks(supabase, input);
+  } catch (error) {
+    if (error instanceof FoundingNotInstalledError) {
+      // Never fail a paid event over it, but never lose the purchase either.
+      console.warn("TLFP founding skipped, migration not applied:", error.message);
+      try {
+        await internalAlert(supabase, input.key, "founding-not-installed:internal", `FOUNDING 100 NOT INSTALLED: ${input.email}`, [
+          `A paid ${input.kind.replace(/_/g, " ")} (${dollarsOrUnknown(input.amountCents)}, ${input.key}) was not checked for Founding 100: the founding migration is not in the database.`,
+          "Apply supabase/migrations/20260924200000_tlfp_founding.sql, then resend this event from the Stripe dashboard (Developers, Events). It posts once.",
+        ]);
+      } catch {
+        // The log line above is the record.
+      }
+      return;
+    }
+    console.error("TLFP founding perks failed:", error instanceof Error ? error.message : "unknown");
+    try {
+      await internalAlert(supabase, input.key, "founding-failed:internal", `FOUNDING 100 CHECK FAILED: ${input.email}`, [
+        `A paid ${input.kind.replace(/_/g, " ")} (${dollarsOrUnknown(input.amountCents)}, ${input.key}) could not finish the Founding 100 check.`,
+        "The webhook answered Stripe with an error, so Stripe retries the event on its own and the retry posts whatever was missed, once.",
+        "If Stripe gives up, fix the cause and resend the event from the Stripe dashboard (Developers, Events).",
+        "Do not grant founding credits by hand: a hand grant does not record the seat, and a later retry would pay the bonus again.",
+        `Credits admin: ${BUSINESS.siteUrl}/admin/tlfp`,
+      ]);
+    } catch {
+      // The log line above is the record.
+    }
+    throw error;
+  }
+  if (!outcome.claimedHere || outcome.seatNo === null || !outcome.tier) return;
+  const tier = foundingTier(outcome.tier);
+  try {
+    await internalAlert(supabase, input.key, "founding-seat:internal", `FOUNDING SEAT ${outcome.seatNo} of ${TLFP_FOUNDING.seats}: ${input.email}`, [
+      `${input.email} took founding seat ${outcome.seatNo} of ${TLFP_FOUNDING.seats} as a ${tier.label}.`,
+      `Purchase: ${input.kind.replace(/_/g, " ")} ${dollarsOrUnknown(input.amountCents)} (${input.key})`,
+      `Founding bonus posted: ${outcome.bonus} credits.${tier.monthlyCredits ? ` Monthly: ${outcome.monthly} credits.` : ""}`,
+      `Rebate on this purchase: ${outcome.rebate} credits (${TLFP_FOUNDING.rebatePercent}%).`,
+      `Seats left: ${foundingSeatsLeft(outcome.seatNo)}.`,
+      "",
+      "Nothing was sent to the client. Their balance card shows the seat when they log in.",
+      `Credits admin: ${BUSINESS.siteUrl}/admin/tlfp`,
+    ]);
+  } catch (error) {
+    // Best effort: the seat and its credits are already posted, and a retry
+    // with a different body (a refund can change the bonus) must never wedge
+    // the event. The admin page lists every seat.
+    console.error("TLFP founding seat alert failed:", error instanceof Error ? error.message : "unknown");
+  }
 }
 
 async function ensureSystemMapPaid(supabase: SupabaseClient, session: StripeCheckoutSession) {
@@ -1664,6 +1762,18 @@ async function recordSubscriptionInvoice(
     const leadId = await findAgencyLeadByEmail(supabase, invoice.email);
     if (leadId) await markLeadActivity(supabase, leadId, `Agency retainer renewed: ${meta.service_name ?? meta.service ?? "service"}, ${dollars(invoice.amountPaidCents)}. Stripe invoice: ${invoiceId}.`, "Agency renewal");
   }
+  // A retainer month is an Operations Partner month; every renewal earns a
+  // seat holder the rebate. Month one was handled on the checkout session. A
+  // renewal never claims a seat: a client who paid before launch buys in with
+  // a new purchase, not with the renewal of what they already had.
+  await foundingPerksOnPaid(supabase, {
+    email,
+    kind,
+    amountCents: invoice.amountPaidCents,
+    key: invoiceId,
+    billing: invoice.family === "agency_payment" ? "monthly" : null,
+    renewal: true,
+  });
   return true;
 }
 
@@ -1701,18 +1811,21 @@ async function finishPaidInvoice(
   if (!matched) {
     await recordPurchase(supabase, { email, kind: "stripe_invoice", amount_cents: invoice.amountPaidCents, stripe_session_id: invoiceId, status: "paid" });
   }
-  if (!leadId) return;
-
-  const won = await supabase.from("leads").update({ status: "won" }).eq("id", leadId).is("deleted_at", null);
-  if (won.error) throw new Error(`Invoice lead update failed: ${won.error.code}`);
-  await markLeadActivity(supabase, leadId, `Invoice ${number} paid through Stripe (${amount}). Stripe invoice: ${invoiceId}.`, "Invoice");
-  const taskTitle = `Start paid scope: invoice ${number}`;
-  const openTask = await supabase.from("lead_tasks").select("id").eq("lead_id", leadId).eq("title", taskTitle).is("completed_at", null).limit(1).maybeSingle();
-  if (openTask.error) throw new Error(`Invoice task lookup failed: ${openTask.error.code}`);
-  if (!openTask.data) {
-    const taskInsert = await supabase.from("lead_tasks").insert({ lead_id: leadId, title: taskTitle, due_date: new Date().toISOString().slice(0, 10) });
-    if (taskInsert.error) throw new Error(`Invoice task insert failed: ${taskInsert.error.code}`);
+  if (leadId) {
+    const won = await supabase.from("leads").update({ status: "won" }).eq("id", leadId).is("deleted_at", null);
+    if (won.error) throw new Error(`Invoice lead update failed: ${won.error.code}`);
+    await markLeadActivity(supabase, leadId, `Invoice ${number} paid through Stripe (${amount}). Stripe invoice: ${invoiceId}.`, "Invoice");
+    const taskTitle = `Start paid scope: invoice ${number}`;
+    const openTask = await supabase.from("lead_tasks").select("id").eq("lead_id", leadId).eq("title", taskTitle).is("completed_at", null).limit(1).maybeSingle();
+    if (openTask.error) throw new Error(`Invoice task lookup failed: ${openTask.error.code}`);
+    if (!openTask.data) {
+      const taskInsert = await supabase.from("lead_tasks").insert({ lead_id: leadId, title: taskTitle, due_date: new Date().toISOString().slice(0, 10) });
+      if (taskInsert.error) throw new Error(`Invoice task insert failed: ${taskInsert.error.code}`);
+    }
   }
+  // Last, after the sale is finished: a paid Sales Desk or dashboard invoice
+  // counts as build work for Founding 100.
+  await foundingPerksOnPaid(supabase, { email, kind: "stripe_invoice", amountCents: invoice.amountPaidCents, key: invoiceId });
 }
 
 /**
@@ -1786,6 +1899,20 @@ async function handleMoneyBack(supabase: SupabaseClient, eventType: string, obje
   }
 
   const restoring = outcome.status === "dispute_won";
+  // Founding awards carry the key the money maps to: the purchase row's key,
+  // or an invoice id with no purchases row (a Sales Desk invoice, a
+  // subscription's first month). Every candidate is tried.
+  const foundingKeys = [...new Set([...(purchase ? [purchase.stripe_session_id] : []), ...candidates])];
+  // A dispute inquiry (status warning_*) moves no money, and its close is not
+  // reported as a win, so founding credits stay put for it.
+  const disputeObject = object && typeof object === "object" ? (object as { status?: unknown; id?: unknown }) : {};
+  const disputeStatus = disputeObject.status;
+  const inquiry = eventType === "charge.dispute.created" && typeof disputeStatus === "string" && disputeStatus.startsWith("warning_");
+  // Founding moves are tagged with their cause: the dispute for dispute
+  // events (so a dispute won returns only what that dispute took, and a
+  // second dispute on the same charge still acts), else the charge.
+  const disputeId = eventType.startsWith("charge.dispute.") && typeof disputeObject.id === "string" ? disputeObject.id.slice(0, 80) : null;
+  const foundingCause = disputeId ?? outcome.chargeId ?? outcome.paymentIntent ?? "unknown";
   const fromStatus = restoring ? "disputed" : "paid";
   const toStatus = restoring ? "paid" : outcome.status;
   const willFlip = !outcome.partial && purchase !== null && purchase.status === fromStatus;
@@ -1819,6 +1946,7 @@ async function handleMoneyBack(supabase: SupabaseClient, eventType: string, obje
           ? `The purchase is marked ${purchase.status ?? "unknown"}, not ${fromStatus}, so nothing was changed.`
           : "No purchase row could be matched, so nothing was changed in the database.",
     await creditsAppliedLine(supabase, purchase?.stripe_session_id ?? null),
+    await foundingAppliedLine(supabase, foundingKeys, outcome.partial, restoring, inquiry),
     "Purchases: https://www.theleadflowpro.com/admin/purchases",
   ].filter(Boolean));
   if (willFlip && purchase) {
@@ -1838,7 +1966,32 @@ async function handleMoneyBack(supabase: SupabaseClient, eventType: string, obje
     if (updated.error) throw new Error(`Purchase status flip failed: ${updated.error.code}`);
     if (!updated.data?.length) console.warn(`No ${fromStatus} purchase matched ${purchase.stripe_session_id} for ${toStatus}`);
   }
+  // Founding awards (seat bonus, partner month, rebate) ride on the money: a
+  // full refund or a dispute takes them back, a dispute won puts back what
+  // was taken. Each move is tagged with this event, so a retry moves nothing
+  // twice and a later event (a refund after a dispute was won) still moves
+  // the credits. Taking back runs on every full refund or dispute event;
+  // putting back runs when the purchase flips back to paid, or already has
+  // (a retry after the flip). The seat itself stays taken.
+  if (!outcome.partial && !inquiry && (!restoring || willFlip || !purchase || purchase.status === "paid")) {
+    await reverseFoundingCredits(supabase, {
+      keys: foundingKeys,
+      restore: restoring,
+      eventTag: `${outcome.status}:${foundingCause}`,
+      takenBy: restoring ? `disputed:${foundingCause}` : undefined,
+    });
+  }
   return true;
+}
+
+/** "This purchase carried N founding credits" for the money-back alert; "" when none. Stable across retries. */
+async function foundingAppliedLine(supabase: SupabaseClient, keys: string[], partial: boolean, restoring: boolean, inquiry: boolean): Promise<string> {
+  const awarded = await foundingAwardedOn(supabase, keys);
+  if (awarded <= 0) return "";
+  if (inquiry) return `This purchase carried ${awarded} founding credits (${TLFP_FOUNDING.name}). An inquiry moves no money, so they stay. If it becomes a chargeback, take them back at /admin/tlfp.`;
+  if (partial) return `This purchase carried ${awarded} founding credits (${TLFP_FOUNDING.name}). A partial refund leaves them; take some back at /admin/tlfp if that is the deal.`;
+  if (restoring) return `This purchase carried ${awarded} founding credits (${TLFP_FOUNDING.name}). Any taken back when it was disputed are put back automatically.`;
+  return `This purchase carried ${awarded} founding credits (${TLFP_FOUNDING.name}). They are taken back automatically. The founding seat stays taken.`;
 }
 
 /** An agency retainer or Tool Studio menu ended or was set to end. The plugin's own handler runs first and claims its subscriptions. */
@@ -2179,6 +2332,33 @@ export async function POST(request: Request) {
       // and a buyer acknowledgement.
       await notifyUnhandledPurchase(supabase, customer.email, kind, amountCentsOf(session), session.id);
     }
+
+    // After fulfilment, so a founding problem can never hold up the order.
+    // A subscription's first month is keyed on its first invoice, the id a
+    // refund or dispute on that charge maps to; everything else on the
+    // session. A Tool Studio build bought with a monthly menu qualifies on
+    // the build's share of the cash actually paid (discounts included), not
+    // the whole first charge.
+    const sessionExtra = session as { invoice?: unknown; mode?: unknown };
+    const subscriptionInvoice =
+      sessionExtra.mode === "subscription" && typeof sessionExtra.invoice === "string" && sessionExtra.invoice ? sessionExtra.invoice : null;
+    const bundledBuild = kind === "tool_monthly_menu" ? findToolBuild(String(session.metadata?.build_id ?? "")) : null;
+    const paidCents = amountCentsOf(session) ?? 0;
+    const monthlyCents = Math.max(0, Math.round(Number(session.metadata?.renews_monthly_usd ?? 0) * 100)) || 0;
+    await foundingPerksOnPaid(supabase, {
+      email: customer.email,
+      kind,
+      amountCents: amountCentsOf(session),
+      key: (subscriptionInvoice ?? session.id).slice(0, 200),
+      purchaseKey: session.id.slice(0, 200),
+      billing: typeof session.metadata?.billing === "string" ? session.metadata.billing : null,
+      ...(bundledBuild
+        ? {
+            tierKind: "tool_studio_order",
+            tierCents: Math.floor((paidCents * bundledBuild.priceUsd * 100) / (bundledBuild.priceUsd * 100 + monthlyCents)),
+          }
+        : {}),
+    });
 
     return NextResponse.json({ received: true });
   } catch (error) {

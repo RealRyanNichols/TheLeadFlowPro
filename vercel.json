@@ -1,4 +1,7 @@
 {
+  "git": {
+    "deploymentEnabled": false
+  },
   "crons": [
     {
       "path": "/api/cron/followups",
@@ -52,10 +55,5 @@
       "path": "/api/cron/speed-to-lead",
       "schedule": "* * * * *"
     }
-  ],
-  "git": {
-    "deploymentEnabled": {
-      "claude/serene-edison-daodg6": false
-    }
-  }
+  ]
 }
