@@ -77,6 +77,7 @@ class Link:
     url: str
     text: str
     rel: str = ""
+    fragment: bool = False  # the href named a section ("/about#careers"); ``url`` drops it
 
 
 @dataclass
@@ -367,11 +368,12 @@ def parse_page(html: str, base_url: str) -> Page:
         url = normalize.norm_url(urljoin(base, href))
         if not url:
             continue
-        key = (url, text)
+        fragment = bool(href.partition("#")[2].strip())
+        key = (url, text, fragment)
         if key in seen:
             continue
         seen.add(key)
-        links.append(Link(url=url, text=text, rel=rel))
+        links.append(Link(url=url, text=text, rel=rel, fragment=fragment))
 
     jsonld: List[Dict[str, Any]] = []
     for raw in parser.jsonld_raw:

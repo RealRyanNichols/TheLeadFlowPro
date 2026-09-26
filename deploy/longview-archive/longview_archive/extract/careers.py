@@ -40,58 +40,95 @@ _PATH_RE = re.compile(
     re.I,
 )
 # Never a careers page, whatever job word the link also has: payroll and HR
-# logins ("Employee Login" to Paycom's /ee/ or ADP's login.html, "Team Login"),
-# and review or employment-verification pages. Checked on text and path.
+# logins ("Employee Login" to Paycom's /ee/ or ADP's login.html, "Team Login",
+# "Employee Portal", "Team Member Access"), and review or employment-verification
+# pages. Checked on text and path. A bare "portal" or "payroll" is not enough:
+# "Career Portal" and "Now hiring: Payroll Specialist" are careers links.
 _NOT_CAREERS_RE = re.compile(
-    r"(?:^|[^a-z])(?:log[\s_-]?(?:in|on)|sign[\s_-]?in|portal|self[\s_-]?service|intranet|payroll|"
+    r"(?:^|[^a-z])(?:log[\s_-]?(?:in|on)|sign[\s_-]?in|self[\s_-]?service|intranet|"
+    r"(?:employees?|staff|team(?:[\s_-]+members?)?)[\s_-]+(?:portal|access|center|resources)|"
     r"pay[\s_-]?stubs?|time[\s_-]?clock|ee|reviews?|verification|verify)(?:$|[^a-z])",
     re.I,
 )
-# A contractor's portfolio ("Job Gallery", "Our Jobs", "Recent Jobs", "Project
-# Gallery") is about jobs done, not jobs open: never a same-site careers page.
+# A contractor's portfolio ("Job Gallery", "Our Jobs", "Recent Jobs", "Job
+# Pics", "Jobs We've Done", "Project Gallery") is about jobs done, not jobs
+# open: never a same-site careers page, unless the text or path also clearly
+# says hiring ("Now hiring: Project Manager", "Recent job openings", /careers/).
 _PORTFOLIO_RE = re.compile(
-    r"(?:^|[^a-z])(?:galler(?:y|ies)|photos?|pictures?|portfolio|projects?|completed|recent|past|"
-    r"our[\s_-]+(?:work|jobs)|before[\s_-]+(?:and|&)[\s_-]+after)(?:$|[^a-z])",
+    r"(?:^|[^a-z])(?:galler(?:y|ies)|photos?|pictures?|pics?|images?|videos?|showcase|portfolio|projects?|"
+    r"completed|finished|done|recent|past|previous|our[\s_-]+(?:work|jobs)|before[\s_-]+(?:and|&)[\s_-]+after)"
+    r"(?:$|[^a-z])",
+    re.I,
+)
+_HIRING_RE = re.compile(
+    r"(?:^|[^a-z])(?:careers?|employment|hiring|openings?|positions?|apply|applicants?|"
+    r"join[\s_-]+our[\s_-]+team)(?:$|[^a-z])",
     re.I,
 )
 # Most applicant-tracking hosts are payroll/HR suites that also serve employee
 # logins (login.ultipro.com, access.paylocity.com) and vendor pages, so a link
 # to one counts only when it says jobs, is an application, or goes to the
-# host's recruiting pages. The job-board hosts serve job listings only.
+# host's recruiting pages. The job-board hosts serve job listings only. On the
+# payroll/HR suites only the recruiting pages count: their root and other pages
+# are employee logins ("Employment Portal" to workforcenow.adp.com/).
 _JOB_BOARD_HOSTS = ("jobs.lever.co", "boards.greenhouse.io", "applytojob.com", "myworkdayjobs.com")
+_HR_SUITE_HOSTS = ("workforcenow.adp.com", "paycomonline.net", "paylocity.com", "ultipro.com", "dayforcehcm.com",
+                   "bamboohr.com")
 _LOGIN_HOST_RE = re.compile(r"^(?:log[-_]?in|sign[-_]?in|sso|access)\d*\.", re.I)
 _RECRUITING_RE = re.compile(r"recruit|requisition|job[\s_-]?board|candidate|(?:^|[/.])(?:ats|jobs|careers)[/.]",
                             re.I)
 
 
+def _on(host: str, hosts: Tuple[str, ...]) -> bool:
+    return any(host == known or host.endswith("." + known) for known in hosts)
+
+
 def is_ats_host(host: str) -> bool:
-    host = (host or "").lower().rstrip(".")
-    return any(host == ats or host.endswith("." + ats) for ats in ATS_HOSTS)
+    return _on((host or "").lower().rstrip("."), ATS_HOSTS)
+
+
+_INDEX_RE = re.compile(r"/(?:index|default|home)(?:\.(?:html?|php|aspx?))?$", re.I)
 
 
 def _page_key(url: str) -> Tuple[str, str, str]:
-    """Host (without ``www.``), path (without a trailing ``/``), and query: a ``#section`` is the same page."""
+    """Host (without ``www.``), path (without a trailing ``/``), and query: a ``#section`` is the same page.
+
+    A directory's index file (``/index.html``, ``/index.php``, ``/default.aspx``,
+    ``/home``) is the directory itself.
+    """
     parts = urlsplit(url)
     host = (parts.hostname or "").lower()
     if host.startswith("www."):
         host = host[4:]
-    return host, (parts.path or "/").rstrip("/") or "/", parts.query
+    path = _INDEX_RE.sub("/", parts.path or "/")
+    return host, path.rstrip("/") or "/", parts.query
 
 
 def _ats_job_link(host: str, text: str, path: str) -> bool:
-    if any(host == board or host.endswith("." + board) for board in _JOB_BOARD_HOSTS):
+    if _on(host, _JOB_BOARD_HOSTS):
         return True
     if _LOGIN_HOST_RE.match(host):
         return False
-    return bool(_TEXT_RE.search(text) or _JOB_WORD_RE.search(text) or _APPLY_RE.search(text)
-                or _PATH_RE.search(path) or _RECRUITING_RE.search(host + path))
+    if _PATH_RE.search(path) or _RECRUITING_RE.search(host + path):
+        return True
+    return not _on(host, _HR_SUITE_HOSTS) and bool(
+        _TEXT_RE.search(text) or _JOB_WORD_RE.search(text) or _APPLY_RE.search(text))
+
+
+def _careers_page(host: str, path: str, site: str) -> bool:
+    """The page itself is a careers page: by its path, or a careers subdomain (``careers.brand.example``)."""
+    sub = host[:-len(site)] if site and host.endswith("." + site) else ""
+    return bool(_PATH_RE.search(path) or _PATH_RE.search(sub))
 
 
 def careers_links(page: Page) -> List[str]:
     """Same-site careers pages and applicant-tracking links, in page order.
 
     A link back to the page itself (``/#careers`` on a one-page site) is a
-    section of that page, not a careers page, and is skipped.
+    section of that page, not a careers page, and is skipped. So is any
+    same-site ``#section`` link (``/about#careers``, ``/index.html#careers``)
+    unless the page it lands on is itself a careers page (``/careers#openings``):
+    the rest of that page is not about jobs.
     """
     site = normalize.registrable_domain(page.url)
     own = _page_key(normalize.norm_url(page.url) or page.url)
@@ -106,7 +143,10 @@ def careers_links(page: Page) -> List[str]:
             if _ats_job_link(host, text, path) and link.url not in out:
                 out.append(link.url)
             continue
-        if normalize.registrable_domain(host) != site or _PORTFOLIO_RE.search(text) or _PORTFOLIO_RE.search(path):
+        if normalize.registrable_domain(host) != site or (link.fragment and not _careers_page(host, path, site)):
+            continue
+        if ((_PORTFOLIO_RE.search(text) or _PORTFOLIO_RE.search(path))
+                and not (_HIRING_RE.search(text) or _HIRING_RE.search(path))):
             continue
         if (_TEXT_RE.search(text) or _PATH_RE.search(path)
                 or (_APPLY_RE.search(text) and (_JOB_WORD_RE.search(text) or _JOB_WORD_RE.search(path)))):
