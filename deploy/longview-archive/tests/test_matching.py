@@ -531,9 +531,9 @@ class Identity(unittest.TestCase):
         add_record(conn, "tx_sales_tax", "S3", "Example Tire & Lube", street="900 Sample Ave", zip_code="75602")
         m.match_pending(conn, now=NOW)
         self.assertEqual(business_of(conn, "tx_sales_tax", "S1")["slug"], "example-tire-and-lube")
-        self.assertEqual(business_of(conn, "tx_sales_tax", "S2")["slug"], "example-tire-and-lube-sample-ave")
-        third = business_of(conn, "tx_sales_tax", "S3")
-        self.assertEqual(third["slug"], "example-tire-and-lube-" + third["public_id"][-4:])
+        for key in ("S2", "S3"):  # never the street: it may be a home shown as "Longview, TX"
+            other = business_of(conn, "tx_sales_tax", key)
+            self.assertEqual(other["slug"], "example-tire-and-lube-" + other["public_id"][-4:])
 
     def test_reserved_slugs_are_avoided(self):
         conn = make_db()
@@ -541,10 +541,9 @@ class Identity(unittest.TestCase):
         add_record(conn, "tx_sales_tax", "S2", "STATUS")
         add_record(conn, "tx_sales_tax", "S3", "New", street="12 Sample Trl")
         m.match_pending(conn, now=NOW)
-        self.assertEqual(business_of(conn, "tx_sales_tax", "S1")["slug"], "about-fictional-rd")
-        status = business_of(conn, "tx_sales_tax", "S2")
-        self.assertEqual(status["slug"], "status-" + status["public_id"][-4:])
-        self.assertEqual(business_of(conn, "tx_sales_tax", "S3")["slug"], "new-sample-trl")
+        for key, name in (("S1", "about"), ("S2", "status"), ("S3", "new")):
+            biz = business_of(conn, "tx_sales_tax", key)
+            self.assertEqual(biz["slug"], f"{name}-" + biz["public_id"][-4:])
         for (slug,) in conn.execute("SELECT slug FROM businesses"):
             self.assertNotIn(slug, m.RESERVED_SLUGS)
 
