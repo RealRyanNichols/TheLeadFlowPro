@@ -33,7 +33,7 @@ from urllib.parse import parse_qsl, urlsplit
 from . import config, db, facts, normalize, privacy
 from .extract import careers, contacts, hours as hours_mod, identity, services, social
 from .extract.html import Page, parse_page
-from .fetcher import site_key
+from .fetcher import forbidden_site, site_key
 from .publish import resolve_now
 
 log = logging.getLogger(__name__)
@@ -212,9 +212,14 @@ def _json(text: Optional[str]) -> Any:
 
 
 def snapshot(conn: sqlite3.Connection, business: sqlite3.Row) -> Optional[BusinessSnapshot]:
-    """A snapshot of one business row, or None when it has no usable website."""
+    """A snapshot of one business row, or None when it has no usable website.
+
+    A directory, map, or social page (``fetcher.forbidden_site``) is not the
+    business's own website, whichever source or review put it there: it is
+    never visited.
+    """
     url = normalize.norm_url(business["website"])
-    if not url:
+    if not url or forbidden_site(url):
         return None
     return BusinessSnapshot(
         id=int(business["id"]),
