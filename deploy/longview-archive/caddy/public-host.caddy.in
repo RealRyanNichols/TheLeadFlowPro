@@ -1,0 +1,34 @@
+
+# The directory's public host, @PUBLIC_HOST@ (LVA_PUBLIC_HOST).
+# Added by install.sh below the staging host only because this name already
+# pointed at this droplet when it ran, so Caddy can get its certificate. Only
+# the directory is served here: the status pages stay on the staging host.
+@PUBLIC_HOST@ {
+	import longview_archive_headers
+	@longview_public_not_directory not path /longview/businesses /longview/businesses/*
+	import longview_archive_csp_strict @longview_public_not_directory
+
+	import /etc/caddy/longview-archive/website.routes
+
+	handle /robots.txt {
+		header Content-Type "text/plain; charset=utf-8"
+		respond <<TXT
+			User-agent: *
+			Disallow: /
+			TXT 200
+	}
+
+	handle / {
+		redir * /longview/businesses/ 302
+	}
+
+	handle {
+		respond "Not found" 404
+	}
+
+	handle_errors {
+		import longview_archive_headers
+		import longview_archive_csp_strict *
+		respond "{err.status_code}" {err.status_code}
+	}
+}

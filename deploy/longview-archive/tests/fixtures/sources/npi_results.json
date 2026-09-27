@@ -1,0 +1,66 @@
+[
+  {
+    "number": "1000000001",
+    "enumeration_type": "NPI-2",
+    "basic": {
+      "organization_name": "FICTIONAL DENTAL HOLDINGS PLLC",
+      "organizational_subpart": "NO",
+      "status": "A",
+      "authorized_official_first_name": "JANE",
+      "authorized_official_last_name": "DOE",
+      "authorized_official_middle_name": "Q",
+      "authorized_official_title_or_position": "OWNER",
+      "authorized_official_telephone_number": "903-555-0190"
+    },
+    "other_names": [
+      {"code": "3", "type": "Doing Business As", "organization_name": "FICTIONAL FAMILY DENTAL"}
+    ],
+    "addresses": [
+      {"address_purpose": "MAILING", "address_type": "DOM", "address_1": "PO BOX 100", "city": "LONGVIEW", "state": "TX", "postal_code": "756060100", "country_code": "US", "telephone_number": "903-555-0191"},
+      {"address_purpose": "LOCATION", "address_type": "DOM", "address_1": "400 PLACEHOLDER AVE", "address_2": "SUITE 200", "city": "LONGVIEW", "state": "TX", "postal_code": "756011234", "country_code": "US", "telephone_number": "903-555-0110"}
+    ],
+    "taxonomies": [
+      {"code": "1223G0001X", "desc": "Dentist, General Practice", "primary": true, "state": "TX", "license": "EXAMPLE1"},
+      {"code": "122300000X", "desc": "Dentist", "primary": false, "state": "TX", "license": "EXAMPLE2"}
+    ]
+  },
+  {
+    "number": "1000000002",
+    "enumeration_type": "NPI-2",
+    "basic": {
+      "organization_name": "SAMPLE HEALTH CLINIC",
+      "status": "A",
+      "authorized_official_first_name": "RICHARD",
+      "authorized_official_last_name": "ROE"
+    },
+    "other_names": [
+      {"code": "5", "type": "Other Name", "organization_name": "SAMPLE HEALTH FORMER NAME"}
+    ],
+    "addresses": [
+      {"address_purpose": "LOCATION", "address_1": "600 SAMPLE PKWY", "city": "LONGVIEW", "state": "TX", "postal_code": "75605", "telephone_number": "(903) 555-0111"},
+      {"address_purpose": "MAILING", "address_1": "10 ELSEWHERE ST", "city": "SAMPLEVILLE", "state": "TX", "postal_code": "75799"}
+    ],
+    "taxonomies": [
+      {"desc": "Clinic/Center, Primary Care", "primary": true}
+    ]
+  },
+  {
+    "number": "1000000003",
+    "enumeration_type": "NPI-2",
+    "basic": {"organization_name": "EXAMPLE REMOTE BILLING LLC", "status": "A"},
+    "addresses": [
+      {"address_purpose": "MAILING", "address_1": "700 EXAMPLE BLVD", "city": "LONGVIEW", "state": "TX", "postal_code": "75602"},
+      {"address_purpose": "LOCATION", "address_1": "20 ELSEWHERE ST", "city": "SAMPLEVILLE", "state": "TX", "postal_code": "75799", "telephone_number": "903-555-0112"}
+    ],
+    "taxonomies": [{"desc": "Case Management", "primary": true}]
+  },
+  {
+    "number": "1000000004",
+    "enumeration_type": "NPI-2",
+    "basic": {"organization_name": "Example Care Partners", "status": "A"},
+    "addresses": [
+      {"address_purpose": "LOCATION", "address_1": "800 Fictional Dr", "city": "Longview", "state": "TX", "postal_code": "75603", "telephone_number": "9035550113"}
+    ],
+    "taxonomies": [{"desc": "Home Health", "primary": false}, {"desc": "Hospice Care", "primary": false}]
+  }
+]

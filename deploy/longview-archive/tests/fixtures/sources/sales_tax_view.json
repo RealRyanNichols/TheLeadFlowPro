@@ -1,0 +1,23 @@
+{
+  "id": "abcd-1234",
+  "name": "Active Sales Tax Permit Holders",
+  "rowsUpdatedAt": 1756702800,
+  "license": {"name": "Public Domain"},
+  "licenseId": "PUBLIC_DOMAIN",
+  "columns": [
+    {"id": 1, "fieldName": "taxpayer_number", "name": "Taxpayer Number"},
+    {"id": 2, "fieldName": "taxpayer_name", "name": "Taxpayer Name"},
+    {"id": 3, "fieldName": "taxpayer_address", "name": "Taxpayer Address"},
+    {"id": 4, "fieldName": "taxpayer_organizational_type", "name": "Taxpayer Organizational Type"},
+    {"id": 5, "fieldName": "outlet_number", "name": "Outlet Number"},
+    {"id": 6, "fieldName": "outlet_name", "name": "Outlet Name"},
+    {"id": 7, "fieldName": "outlet_address", "name": "Outlet Address"},
+    {"id": 8, "fieldName": "outlet_city", "name": "Outlet City"},
+    {"id": 9, "fieldName": "outlet_state", "name": "Outlet State"},
+    {"id": 10, "fieldName": "outlet_zip_code", "name": "Outlet Zip Code"},
+    {"id": 11, "fieldName": "outlet_naics_code", "name": "Outlet NAICS Code"},
+    {"id": 12, "fieldName": "outlet_inside_outside_city_limits_indicator", "name": "Outlet Inside/Outside City Limits Indicator"},
+    {"id": 13, "fieldName": "outlet_permit_issue_date", "name": "Outlet Permit Issue Date"},
+    {"id": 14, "fieldName": "outlet_first_sales_date", "name": "Outlet First Sales Date"}
+  ]
+}

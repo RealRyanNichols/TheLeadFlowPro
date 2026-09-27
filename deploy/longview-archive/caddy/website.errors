@@ -1,0 +1,29 @@
+# Longview business directory: errors Caddy raises on the directory's paths
+# (The LeadFlow Pro, hello@theleadflowpro.com).
+#
+# Installed by deploy/longview-archive/install.sh as
+# /etc/caddy/longview-archive/website.errors and removed by uninstall.sh. It is
+# imported INSIDE the handle_errors block of www.theleadflowpro.com
+# (deploy/droplet/theleadflowpro.caddy imports /etc/caddy/longview-archive/*.errors,
+# a glob, so it is a no-op until this file exists), never loaded on its own.
+#
+# website.routes answers a missing page itself, with a 404 and its headers. This
+# covers the rarer errors raised inside file_server (a file swapped away by the
+# engine's link switch mid-request, or a file Caddy may not read). Caddy answers
+# those without the route's headers, so the same noindex headers and the
+# directory's policy are set here. Self-contained: no snippet from another file.
+
+@longview_archive_directory_error path /longview/businesses /longview/businesses/*
+handle @longview_archive_directory_error {
+	header {
+		X-Robots-Tag "noindex, nofollow, noarchive, nosnippet"
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+		X-Frame-Options DENY
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		Cache-Control "no-store"
+		Content-Security-Policy "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+		-Server
+	}
+	respond "{err.status_code}" {err.status_code}
+}

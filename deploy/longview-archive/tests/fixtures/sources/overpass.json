@@ -1,0 +1,64 @@
+{
+  "version": 0.6,
+  "generator": "Overpass API (fictional fixture)",
+  "osm3s": {"timestamp_osm_base": "2026-09-24T00:00:00Z", "copyright": "The data included in this document is from www.openstreetmap.org. The data is made available under ODbL."},
+  "elements": [
+    {
+      "type": "node",
+      "id": 1001,
+      "lat": 32.5001,
+      "lon": -94.7401,
+      "tags": {
+        "name": "Example Tire & Lube",
+        "shop": "tyres",
+        "addr:housenumber": "100",
+        "addr:street": "Example Boulevard",
+        "addr:unit": "4",
+        "addr:postcode": "75601",
+        "phone": "+1 903-555-0101;+1 903-555-0102",
+        "website": "www.exampletire.example/?utm_source=osm&x=1"
+      }
+    },
+    {
+      "type": "way",
+      "id": 2002,
+      "center": {"lat": 32.5102, "lon": -94.7503},
+      "nodes": [1, 2, 3, 1],
+      "tags": {
+        "name": "Sample Street Tacos",
+        "amenity": "restaurant",
+        "addr:housenumber": "200",
+        "addr:street": "Sample Street",
+        "addr:city": "Longview",
+        "addr:postcode": "75604-1234",
+        "contact:phone": "555-1234; (903) 555-0104",
+        "contact:website": "https://SampleTacos.example/menu#top"
+      }
+    },
+    {
+      "type": "relation",
+      "id": 3003,
+      "center": {"lat": 32.5203, "lon": -94.7604},
+      "tags": {
+        "name": "Fictional Family Dental",
+        "healthcare": "dentist",
+        "addr:street": "Placeholder Avenue",
+        "url": "http://fictionaldental.example"
+      }
+    },
+    {
+      "type": "node",
+      "id": 1004,
+      "lat": 32.5304,
+      "lon": -94.7705,
+      "tags": {"shop": "convenience", "addr:street": "Example Road"}
+    },
+    {
+      "type": "node",
+      "id": 1005,
+      "lat": 32.5405,
+      "lon": -94.7806,
+      "tags": {"name": "Placeholder Pies", "amenity": "cafe", "website": "not a url", "phone": "call us"}
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "id": "tabc-0001",
+  "name": "TABC License Information",
+  "licenseId": "PUBLIC_DOMAIN",
+  "columns": [
+    {"fieldName": "license_id"},
+    {"fieldName": "license_type"},
+    {"fieldName": "license_status"},
+    {"fieldName": "trade_name"},
+    {"fieldName": "owner"},
+    {"fieldName": "address"},
+    {"fieldName": "address_2"},
+    {"fieldName": "city"},
+    {"fieldName": "state"},
+    {"fieldName": "zip"},
+    {"fieldName": "county"},
+    {"fieldName": "phone"}
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "result_count": 1,
+  "results": [
+    {
+      "number": "1999999900",
+      "enumeration_type": "NPI-2",
+      "basic": {
+        "organization_name": "EXAMPLE DENTAL HOLDINGS PLLC",
+        "organizational_subpart": "NO",
+        "status": "A",
+        "authorized_official_first_name": "RICHARD",
+        "authorized_official_last_name": "ROE",
+        "authorized_official_title_or_position": "OWNER",
+        "authorized_official_telephone_number": "903-555-0179"
+      },
+      "other_names": [
+        {"code": "3", "type": "Doing Business As", "organization_name": "EXAMPLE FAMILY DENTAL"}
+      ],
+      "addresses": [
+        {"address_purpose": "MAILING", "address_1": "PO BOX 0000", "city": "LONGVIEW", "state": "TX", "postal_code": "756010000", "telephone_number": "903-555-0170"},
+        {"address_purpose": "LOCATION", "address_1": "700 SAMPLE AVE", "address_2": "STE 200", "city": "LONGVIEW", "state": "TX", "postal_code": "756050000", "telephone_number": "903-555-0170"}
+      ],
+      "taxonomies": [{"code": "1223G0001X", "desc": "Dentist, General Practice", "primary": true, "state": "TX"}]
+    }
+  ]
+}

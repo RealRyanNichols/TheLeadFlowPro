@@ -1,0 +1,66 @@
+[
+  {
+    "license_id": "MB000001",
+    "license_type": "MB",
+    "license_status": "Active",
+    "trade_name": "SAMPLE STREET TACOS",
+    "owner": "DOE, JANE Q",
+    "address": "200 SAMPLE ST",
+    "city": "LONGVIEW",
+    "state": "TX",
+    "zip": "75604",
+    "county": "SAMPLE",
+    "phone": "(903) 555-0102"
+  },
+  {
+    "license_id": "BG000002",
+    "license_type": "BG",
+    "license_status": "Inactive",
+    "trade_name": "EXAMPLE TAPHOUSE",
+    "owner": "EXAMPLE TAPHOUSE LLC",
+    "address": "700 EXAMPLE BLVD",
+    "city": "LONGVIEW",
+    "state": "TX",
+    "zip": "75601",
+    "county": "SAMPLE",
+    "phone": "9035550103"
+  },
+  {
+    "license_id": "BQ000003",
+    "license_type": "BQ",
+    "license_status": "Expired",
+    "trade_name": "PLACEHOLDER PUB",
+    "owner": "PUBLIC, JOHN Q",
+    "address": "710 EXAMPLE BLVD",
+    "city": "LONGVIEW",
+    "state": "TX",
+    "zip": "75601",
+    "county": "SAMPLE"
+  },
+  {
+    "license_id": "P0000004",
+    "license_type": "P",
+    "license_status": "Active",
+    "trade_name": "FICTIONAL WINE & SPIRITS",
+    "owner": "FICTIONAL SPIRITS INC",
+    "address": "800 PLACEHOLDER AVE",
+    "city": "LONGVIEW",
+    "state": "TX",
+    "zip": "75662",
+    "county": "SAMPLE",
+    "phone": "not listed"
+  },
+  {
+    "license_id": "MB000005",
+    "license_type": "MB",
+    "license_status": "Current",
+    "trade_name": "EXAMPLE BISTRO",
+    "owner": "EXAMPLE BISTRO LLC",
+    "address": "900 SAMPLE PKWY STE 12",
+    "city": "LONGVIEW",
+    "state": "TX",
+    "zip": "75605",
+    "county": "SAMPLE",
+    "phone": "903.555.0105"
+  }
+]

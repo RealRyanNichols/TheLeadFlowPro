@@ -1,0 +1,67 @@
+{
+  "resultSetSize": 6,
+  "results": [
+    {
+      "resource": {
+        "id": "zzzz-0001",
+        "name": "Active Sales Tax Permit Holders",
+        "type": "dataset",
+        "updatedAt": "2026-09-22T05:00:00.000Z",
+        "columns_field_name": ["taxpayer_number", "taxpayer_name", "taxpayer_organizational_type", "outlet_number", "outlet_name", "outlet_address", "outlet_city", "outlet_zip_code", "outlet_naics_code", "outlet_inside_outside_city_limits_indicator", "outlet_permit_issue_date"]
+      },
+      "metadata": {"domain": "data.other.example", "license": "Public Domain"},
+      "permalink": "https://data.other.example/d/zzzz-0001"
+    },
+    {
+      "resource": {
+        "id": "map0-0001",
+        "name": "Active Sales Tax Permit Holders Map",
+        "type": "map",
+        "updatedAt": "2026-09-21T05:00:00.000Z",
+        "columns_field_name": ["taxpayer_number", "taxpayer_name", "outlet_number", "outlet_name", "outlet_address", "outlet_city", "outlet_zip_code"]
+      },
+      "metadata": {"domain": "data.texas.example"}
+    },
+    {
+      "resource": {
+        "id": "sum0-0001",
+        "name": "Active Sales Tax Permit Holders by County",
+        "type": "dataset",
+        "updatedAt": "2026-09-20T05:00:00.000Z",
+        "columns_field_name": ["county", "permit_count"]
+      },
+      "metadata": {"domain": "data.texas.example"}
+    },
+    {
+      "resource": {
+        "id": "old0-2019",
+        "name": "Active Sales Tax Permit Holders (2019 Snapshot)",
+        "type": "dataset",
+        "updatedAt": "2019-06-01T05:00:00.000Z",
+        "columns_field_name": ["taxpayer_number", "taxpayer_name", "taxpayer_organizational_type", "outlet_number", "outlet_name", "outlet_address", "outlet_city", "outlet_zip_code", "outlet_naics_code", "outlet_inside_outside_city_limits_indicator", "outlet_permit_issue_date"]
+      },
+      "metadata": {"domain": "data.texas.example"}
+    },
+    {
+      "resource": {
+        "id": "abcd-1234",
+        "name": "Active Sales Tax Permit Holders",
+        "type": "dataset",
+        "updatedAt": "2026-09-01T05:00:00.000Z",
+        "columns_field_name": ["taxpayer_number", "taxpayer_name", "taxpayer_address", "taxpayer_organizational_type", "outlet_number", "outlet_name", "outlet_address", "outlet_city", "outlet_state", "outlet_zip_code", "outlet_naics_code", "outlet_inside_outside_city_limits_indicator", "outlet_permit_issue_date", "outlet_first_sales_date"]
+      },
+      "metadata": {"domain": "data.texas.example", "license": "Public Domain"},
+      "permalink": "https://data.texas.example/d/abcd-1234"
+    },
+    {
+      "resource": {
+        "id": "mix0-0001",
+        "name": "Mixed Beverage Gross Receipts",
+        "type": "dataset",
+        "updatedAt": "2026-09-23T05:00:00.000Z",
+        "columns_field_name": ["taxpayer_number", "taxpayer_name", "location_name", "location_address", "location_city", "location_zip"]
+      },
+      "metadata": {"domain": "data.texas.example"}
+    }
+  ]
+}

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<!-- Fictional fixture: Example Tire & Lube is not a real business. -->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Example Tire &amp; Lube | Auto Repair</title>
+  <meta property="og:site_name" content="Example Tire &amp; Lube">
+  <meta name="description" content="Tires, brakes, and oil changes.">
+  <base href="https://www.exampletire.example/">
+  <style>.hours { color: red; } body::before { content: "Mon-Sun 1am-2am"; }</style>
+  <script>var fake = "Call 903-555-0199 or email owner@exampletire.example";</script>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "AutoRepair",
+        "name": "Example Tire & Lube",
+        "url": "https://www.exampletire.example/",
+        "telephone": "+1 (903) 555-0100",
+        "email": "mailto:service@exampletire.example",
+        "sameAs": ["https://www.facebook.com/ExampleTireLube", "https://www.instagram.com/example.tire/"],
+        "address": {"@type": "PostalAddress", "streetAddress": "1200 W Example Ave", "addressLocality": "Longview"},
+        "openingHoursSpecification": [
+          {"@type": "OpeningHoursSpecification", "dayOfWeek": ["https://schema.org/Monday", "https://schema.org/Tuesday", "https://schema.org/Wednesday", "https://schema.org/Thursday", "https://schema.org/Friday"], "opens": "08:00:00", "closes": "17:30:00"},
+          {"@type": "OpeningHoursSpecification", "dayOfWeek": "Saturday", "opens": "08:00", "closes": "12:00"}
+        ]
+      },
+      {"@type": "WebSite", "name": "Example Tire & Lube", "url": "https://www.exampletire.example/"}
+    ]
+  }
+  </script>
+</head>
+<body>
+  <header>
+    <nav aria-label="Main">
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="services/oil-change">Oil Changes</a></li>
+        <li><a href="services/brakes">Brake Repair</a></li>
+        <li><a href="services/tires">Tire Rotation &amp; Balancing</a></li>
+        <li><a href="/contact?utm_source=nav">Contact</a></li>
+        <li><a href="/careers">Careers</a></li>
+      </ul>
+    </nav>
+  </header>
+  <main>
+    <h1>Example Tire &amp; Lube</h1>
+    <p>Family owned since 2009. We handle wheel alignment, transmission repair, and state inspection for every kind of car.</p>
+    <h2>Free Estimates &amp; Financing</h2>
+    <ul class="features">
+      <li>Walk-Ins Welcome</li>
+      <li>Battery Replacement</li>
+      <li>We are proud to offer engine repair and diagnostics for all makes and models in East Texas today.</li>
+    </ul>
+    <noscript>Enable JavaScript for our coupon: 555-0100</noscript>
+    <template><p>Hidden template text Mon 1am-2am</p></template>
+    <svg><title>Wrench icon</title><text>Sunday 3am-4am</text></svg>
+    <iframe src="https://maps.example/embed"></iframe>
+  </main>
+  <footer>
+    <address>1200 W. Example Ave.<br>Longview, TX 75601</address>
+    <p>Call <a href="tel:+19035550100">(903) 555-0100</a> &middot; Fax: (903) 555-0101</p>
+    <p>Email <a href="mailto:Info@ExampleTire.example?subject=Question">Info@ExampleTire.example</a>
+       or parts [at] exampletire [dot] example.
+       Our manager: jane.doe@exampletire.example. Old address: info@examplemail.example</p>
+    <div class="hours">
+      <h3>Shop Hours</h3>
+      <table>
+        <tr><td>Monday - Friday</td><td>8:00 AM - 5:30 PM</td></tr>
+        <tr><td>Saturday</td><td>8:00 AM - 12:00 PM</td></tr>
+        <tr><td>Sunday</td><td>Closed</td></tr>
+      </table>
+    </div>
+    <p>Follow us:
+      <a href="https://www.facebook.com/ExampleTireLube?ref=footer">Facebook</a>
+      <a href="https://www.facebook.com/sharer/sharer.php?u=https://www.exampletire.example/">Share</a>
+      <a href="https://www.instagram.com/p/AbCdEf123/">Latest post</a>
+      <a href="https://www.instagram.com/sampledesignstudio/">Site by Sample Design Studio</a>
+    </p>
+  </footer>
+</body>
+</html>

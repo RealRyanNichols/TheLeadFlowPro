@@ -1,0 +1,35 @@
+{
+  "resultSetSize": 3,
+  "results": [
+    {
+      "resource": {
+        "id": "tdlr-0001",
+        "name": "Sample Occupational License Holders",
+        "type": "dataset",
+        "updatedAt": "2026-09-23T05:00:00.000Z",
+        "columns_field_name": ["license_number", "license_type", "holder_name", "county"]
+      },
+      "metadata": {"domain": "data.texas.example"}
+    },
+    {
+      "resource": {
+        "id": "tabc-0001",
+        "name": "TABC License Information",
+        "type": "dataset",
+        "updatedAt": "2026-09-15T05:00:00.000Z",
+        "columns_field_name": ["license_id", "license_type", "license_status", "trade_name", "owner", "address", "address_2", "city", "state", "zip", "county", "phone"]
+      },
+      "metadata": {"domain": "data.texas.example"}
+    },
+    {
+      "resource": {
+        "id": "tabc-9999",
+        "name": "TABC License Information",
+        "type": "dataset",
+        "updatedAt": "2026-09-24T05:00:00.000Z",
+        "columns_field_name": ["license_id", "license_status", "trade_name", "address", "city", "zip"]
+      },
+      "metadata": {"domain": "data.other.example"}
+    }
+  ]
+}

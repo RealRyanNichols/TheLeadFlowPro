@@ -1,0 +1,3 @@
+{
+  "/": {"status": 429, "headers": {"Retry-After": "3600", "Content-Type": "text/html"}, "file": "slow-down.html"}
+}

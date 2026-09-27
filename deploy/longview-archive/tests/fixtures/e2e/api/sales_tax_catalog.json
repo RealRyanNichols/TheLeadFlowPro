@@ -1,0 +1,40 @@
+{
+  "resultSetSize": 3,
+  "results": [
+    {
+      "resource": {
+        "id": "lvex-0002",
+        "name": "Active Sales Tax Permit Holders Summary by County",
+        "type": "dataset",
+        "updatedAt": "2026-09-23T05:00:00.000Z",
+        "columns_field_name": ["county", "permit_count"]
+      },
+      "metadata": {"domain": "data.texas.example"}
+    },
+    {
+      "resource": {
+        "id": "lvex-0001",
+        "name": "Active Sales Tax Permit Holders",
+        "type": "dataset",
+        "updatedAt": "2026-09-20T05:00:00.000Z",
+        "columns_field_name": [
+          "taxpayer_number", "taxpayer_name", "taxpayer_organizational_type", "outlet_number",
+          "outlet_name", "outlet_address", "outlet_city", "outlet_zip_code", "outlet_naics_code",
+          "outlet_inside_outside_city_limits_indicator", "outlet_permit_issue_date"
+        ]
+      },
+      "metadata": {"domain": "data.texas.example", "license": "Public Domain"},
+      "permalink": "https://data.texas.example/d/lvex-0001"
+    },
+    {
+      "resource": {
+        "id": "lvex-0003",
+        "name": "Mixed Beverage Gross Receipts",
+        "type": "dataset",
+        "updatedAt": "2026-09-22T05:00:00.000Z",
+        "columns_field_name": ["taxpayer_number", "location_name", "location_address", "location_city"]
+      },
+      "metadata": {"domain": "data.texas.example"}
+    }
+  ]
+}
