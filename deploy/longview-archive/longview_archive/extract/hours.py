@@ -529,6 +529,7 @@ _SEASONAL_RE = re.compile(
         |this\s+week)\b
   | \b""" + _MONTH + r"""\.?\s*\d{1,2}(?:st|nd|rd|th)?\b(?!\d|:\d|\s*[ap]\.?m?\b)
   | \b\d{1,2}(?:st|nd|rd|th)\s+of\s+""" + _MONTH + r"""\b
+  | \b""" + _MONTH + r"""\.?\s*(?:-|to|thru|through|until|till)\s*""" + _MONTH + r"""\b(?!['’])
   | (?<![\d:/.])(?:0?[1-9]|1[0-2])/(?:0?[1-9]|[12]\d|3[01])(?:/\d{2,4})?(?![\d/]|:\d)
     """,
     re.I | re.X,
@@ -542,7 +543,8 @@ _SEASONAL_LABEL_RE = re.compile(
         |\w+['’]?s?\s+day\b(?!\s*-?\s*(?:care|spa|camp|school|program|surgery|services?|out)\b)
         |temp|modified|reduced|limited|adjusted|vacation|special|snow(?!\s*-?\s*cones?\b)|storm|icy
         |(?:january|february|march|april|june|july|august|september|october|november|december)
-            (?!\s*,?\s*(?:19|20)\d\d\b))\b
+            (?!\s*,?\s*(?:19|20)\d\d\b)
+        |(?:jan|feb|mar|apr|jun|jul|aug|sept?|oct|nov|dec)(?=\.|\b)(?!['’])(?!\.?\s*,?\s*(?:19|20)\d\d\b))\b
     """,
     re.I | re.X,
 )
@@ -559,7 +561,11 @@ _HEADING_WORDS = frozenset(_DAY_WORDS) | frozenset((
     "till", "we", "we're", "we’re", "we'll", "we’ll", "will", "be", "are", "is", "this", "next", "upcoming",
     "happy", "merry", "season", "only", "all", "due", "a", "an", "office", "store", "shop", "business", "break",
     "am", "pm", "noon", "midnight",
+    # Sentence-style notices: "Summer schedule now in effect!", "Our summer schedule has changed!"
+    "effect", "new", "has", "changed", "change", "changes", "updated", "adjusted", "here",
 ))
+# "have" alone is ordinary copy ("Have a great day!"); "have changed" is a notice.
+_HEADING_PHRASE_RE = re.compile(r"\bhave\s+(?:been\s+)?(?:changed|updated|adjusted)\b", re.I)
 # A standing policy, not a heading: "Closed holidays", "Closed on major holidays".
 _HOLIDAY_POLICY_RE = re.compile(
     r"^\W*(?:closed|open)\s+(?:on\s+)?(?:all\s+|most\s+|major\s+|federal\s+|national\s+)?holidays\W*$", re.I)
@@ -581,16 +587,36 @@ def _seasonal_heading(text: str) -> bool:
         return True
     if _HOLIDAY_POLICY_RE.match(text):
         return False
-    rest, found = text, 0
-    for pattern in (_SEASONAL_RE, _SEASONAL_LABEL_RE):
+    return _pure_heading(text)
+
+
+def _pure_heading(text: str) -> bool:
+    """Only a holiday, season, or date plus heading words: "Holiday Schedule",
+    "Christmas Eve", "Happy Thanksgiving!", "Summer schedule now in effect!",
+    "Open Mar. - Oct.". Copy such as "Order your Thanksgiving pies early" is not one."""
+    text = _DASHES.sub("-", text)
+    rest, found = _HEADING_PHRASE_RE.sub(" ", text), 0
+    for pattern in (_HOLIDAY_RE, _SEASONAL_RE, _SEASONAL_LABEL_RE):
         rest, n = pattern.subn(" ", rest)
         found += n
     return bool(found) and all(w in _HEADING_WORDS for w in re.findall(r"\b[a-z][a-z'’]*", _normalize_line(rest)))
 
 
-# A holiday or date heading covers the hours right after it; this many ordinary
+def _block_heading(text: str) -> bool:
+    """A heading that covers a whole block of day rows (see _SEASONAL_BLOCK_GAP).
+    A closure statement ("Closed Thanksgiving & Christmas Day", "Closed on major
+    holidays") is a standing policy or a one-day note, not a heading."""
+    return not re.match(r"^\W*closed\b", text, re.I) and _pure_heading(text)
+
+
+# A holiday or date line covers the hours right after it; this many ordinary
 # lines in between (copy, a service list) end it. Labels and hours lines do not.
 _SEASONAL_GAP = 2
+# A holiday or seasonal HEADING ("Holiday Hours", "Christmas Eve", "Summer
+# schedule now in effect!") covers its whole block: a few sentences between the
+# heading and the day rows do not end it. It ends after this many ordinary lines,
+# or at a plain hours label ("Hours", "Store Hours") that comes after ordinary copy.
+_SEASONAL_BLOCK_GAP = 6
 
 
 def _label_split(line: str) -> Optional[Tuple[str, str]]:
@@ -620,31 +646,55 @@ def hours_from_lines(lines: Iterable[str]) -> HoursResult:
     current: Optional[Hours] = None
     in_label_block = False
     seasonal = False  # a holiday, season, or date was just named (see _SEASONAL_GAP)
+    strong = False    # ... by a heading that covers its whole block (see _SEASONAL_BLOCK_GAP)
     marker_gap = 0
+    closed_tail: Optional[int] = None  # ordinary lines since a block of only "Closed" rows ended
     pending_days: Optional[List[str]] = None
     appointment_seen = False
 
     def close_block() -> None:
-        nonlocal current, pending_days
+        nonlocal current, pending_days, closed_tail
         if current is not None:
             blocks.append(current)
+            if current and all(not ranges for ranges in current.values()):
+                closed_tail = 0
         current = None
         pending_days = None
 
-    def note(marker: bool, ordinary: bool = False) -> None:
-        """A marker restarts the count; an ordinary line that is not hours adds to it."""
-        nonlocal seasonal, marker_gap
+    def note(marker: bool, ordinary: bool = False, heading: bool = False, plain_label: bool = False) -> None:
+        """A marker restarts the count; an ordinary line that is not hours adds to it.
+
+        ``heading``: the marker is a block heading, which outlasts a few lines of copy.
+        ``plain_label``: an ordinary hours label ("Hours") after copy starts a new block.
+        """
+        nonlocal seasonal, strong, marker_gap
         if marker:
+            strong = heading or (strong and seasonal)
             seasonal, marker_gap = True, 0
         elif ordinary:
             marker_gap += 1
-            if marker_gap > _SEASONAL_GAP:
-                seasonal = False
+            if marker_gap > (_SEASONAL_BLOCK_GAP if strong else _SEASONAL_GAP):
+                seasonal = strong = False
+        elif plain_label and marker_gap > _SEASONAL_GAP:
+            seasonal = strong = False
+
+    def tail(text: str) -> None:
+        """"Thursday: Closed / Friday: Closed / Happy Thanksgiving!": a holiday line
+        right after rows that only close days makes those rows holiday closures.
+        A standing policy ("Closed Thanksgiving & Christmas Day") does not."""
+        nonlocal closed_tail
+        if closed_tail is None:
+            return
+        if (closed_tail <= _SEASONAL_GAP and not re.match(r"^\W*closed\b", text, re.I)
+                and (_HOLIDAY_RE.search(_DASHES.sub("-", text)) or _seasonal_heading(text))):
+            issues.add("seasonal_hours")
+        closed_tail += 1
 
     for raw in lines:
         if len(raw) > 200:
             close_block()
             in_label_block = False
+            tail(raw)
             note(bool(_HOLIDAY_RE.search(_DASHES.sub("-", raw))), ordinary=True)  # prose: only a holiday counts
             continue
         label = _label_split(raw)
@@ -655,15 +705,19 @@ def hours_from_lines(lines: Iterable[str]) -> HoursResult:
             in_label_block = True
             # "Holiday Hours", "Summer Hours (June-August)", "Mother's Day Hours",
             # "Modified Hours" open a block that is not the regular week. A plain
-            # "Hours" or "Store Hours" label under a holiday heading does not end it.
-            note(_seasonal(label[0], label=True))
+            # "Hours" or "Store Hours" label right under a holiday heading does not
+            # end it; after a few lines of other copy it starts a new block.
+            if _seasonal(label[0], label=True):
+                note(True, heading=True)
+            else:
+                note(False, plain_label=True)
             content = label[1]
         if not content:
             continue
         parsed = _parse_line(content)
         if label is not None and not (parsed.stated or parsed.days_only):
             # "Hours of operation", "Hours may vary", "Hours for the holidays": the block stays open
-            note(_seasonal_heading(content))
+            note(_seasonal_heading(content), heading=True)
             continue
         toks = _tokenize(content)
         starts_with_day = bool(toks) and toks[0].kind in ("days", "open24")
@@ -672,9 +726,11 @@ def hours_from_lines(lines: Iterable[str]) -> HoursResult:
             if current is not None or in_label_block:
                 close_block()
                 in_label_block = False
+            tail(content)
             # A heading ("Christmas Eve", "Holiday Schedule", "Dec 24") or ordinary copy.
-            note(_seasonal_heading(content), ordinary=True)
+            note(_seasonal_heading(content), ordinary=True, heading=_block_heading(content))
             continue
+        closed_tail = None
         if current is None:
             current = {}
         # "Closed Thursday & Friday for the holidays", "Dec 24: Closed".
