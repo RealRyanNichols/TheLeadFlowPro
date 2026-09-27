@@ -40,6 +40,9 @@ umask 022
 SERVICE=longview-archive
 SERVICE_USER=lvarchive
 STATUS_HOST=longview.165-227-248-110.sslip.io
+# The directory's public base URL: the engine's own setting (LVA_PUBLIC_BASE_URL), same default.
+PUBLIC_BASE_URL=${LVA_PUBLIC_BASE_URL:-https://$STATUS_HOST}
+PUBLIC_BASE_URL=${PUBLIC_BASE_URL%/}
 MIN_FREE_GB=10
 STATUS_WAIT_S=90
 # After the new engine's first status write, it must stay up this long with
@@ -616,7 +619,7 @@ summary() {
 		say "  Status:    $STATUS_JSON (no status page; installed with --no-caddy)"
 	else
 		say "  Status:    https://$STATUS_HOST/status/"
-		say "  Directory: https://$STATUS_HOST/longview/businesses/ (shows a batch once you run: lva approve)"
+		say "  Directory: $PUBLIC_BASE_URL/longview/businesses/ (shows a batch once you run: lva approve)"
 	fi
 	say "  Pause:     touch $DATA_DIR/PAUSE"
 	say "  Resume:    rm -f $DATA_DIR/PAUSE"

@@ -12,7 +12,6 @@ import json
 import re
 from collections import Counter
 from dataclasses import dataclass, field
-from functools import lru_cache
 from html.parser import HTMLParser
 from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import unquote, urljoin
@@ -71,11 +70,24 @@ _INLINE_TAGS = {"span", "a", "b", "i", "em", "strong", "small", "font", "u", "la
 _BOUNDED_CLOSE = ("p", *_SCOPE_LIMIT)
 
 
-@lru_cache(maxsize=256)
-def _searches_ended_by(tag: str) -> Tuple[str, ...]:
-    """The _BOUNDED_CLOSE tags whose search stops at an open ``tag``."""
+def _compute_searches_ended_by(tag: str) -> Tuple[str, ...]:
     return tuple(open_tag for open_tag in _BOUNDED_CLOSE if (
         tag not in _INLINE_TAGS if open_tag == "p" else tag == open_tag or tag in _SCOPE_LIMIT[open_tag]))
+
+
+# A fixed table, built once from the known tag names. A page can supply any tag name (as long
+# as the whole page), so nothing keyed by a page's tag names is ever stored across pages.
+_ENDED_BY: Dict[str, Tuple[str, ...]] = {
+    t: _compute_searches_ended_by(t)
+    for t in _INLINE_TAGS.union(_BOUNDED_CLOSE, *_SCOPE_LIMIT.values())
+}
+# Any other tag is not inline and bounds no scope, so it ends only the <p> search.
+_ENDED_BY_OTHER: Tuple[str, ...] = ("p",)
+
+
+def _searches_ended_by(tag: str) -> Tuple[str, ...]:
+    """The _BOUNDED_CLOSE tags whose search stops at an open ``tag``."""
+    return _ENDED_BY.get(tag, _ENDED_BY_OTHER)
 
 
 _WS = re.compile(r"\s+")

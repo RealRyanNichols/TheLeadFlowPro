@@ -241,7 +241,13 @@ def cmd_crawl_once(args, settings) -> int:
     return 1 if report["visit_errors"] else 0
 
 
-SITE_URL_HINT = f"https://{config.STAGING_HOST}{config.DIRECTORY_PATH}/"
+def site_url_hint(settings) -> str:
+    """The public directory's address, from the same setting the site uses (LVA_PUBLIC_BASE_URL)."""
+    return f"{settings.public_base_url}{config.DIRECTORY_PATH}/"
+
+
+# The default address (LVA_PUBLIC_BASE_URL unset); the commands print site_url_hint(settings).
+SITE_URL_HINT = site_url_hint(config.Settings())
 
 
 def cmd_publish(args, settings) -> int:
@@ -259,7 +265,7 @@ def cmd_publish(args, settings) -> int:
         f" {counts.get('updated', 0)} changed). Nothing is sent anywhere.")
     status_name = (auto or {}).get("status")
     if status_name == "approved":
-        out(f"Auto-approve is on: this batch was approved and the directory rebuilt ({SITE_URL_HINT}).")
+        out(f"Auto-approve is on: this batch was approved and the directory rebuilt ({site_url_hint(settings)}).")
     elif status_name == "held":
         err(f"Auto-approve is holding this batch: it would remove {auto['removed']} of the {auto['approved']}"
             " approved businesses. Check it, then run: lva approve")
@@ -313,7 +319,7 @@ def cmd_approve(args, settings) -> int:
     if result.get("dropped"):
         err(f"{result['dropped']} record(s) failed the site's own checks and are not shown (the log has the"
             " reasons).")
-    out(f"The directory was rebuilt: {SITE_URL_HINT}")
+    out(f"The directory was rebuilt: {site_url_hint(settings)}")
     return 0
 
 
