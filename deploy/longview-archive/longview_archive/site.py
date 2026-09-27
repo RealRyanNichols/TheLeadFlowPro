@@ -41,6 +41,7 @@ from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional, Seque
 from urllib.parse import quote, urlencode, urlsplit
 
 from . import config
+from .fetcher import ROBOTS_TOKEN
 from .publish import local_date, resolve_now
 from .validate import ValidationResult, empty_directory, http_url, shown_fields, validate_directory
 
@@ -717,7 +718,7 @@ def about_page(d: Directory) -> str:
     else:
         datasets = ("<p>Each dataset's licence is recorded from the publisher's dataset page at every sync, and is"
                     " listed here with the first published batch.</p>")
-    token = s.user_agent.split("/", 1)[0]
+    token = ROBOTS_TOKEN  # the product token the crawler obeys in robots.txt, whatever the user agent says
     megabytes = f"{s.max_page_bytes / 1_000_000:g}"
     robots_hours = f"{s.robots_ttl_s / 3600:g}"
     robots_when = "every day" if s.robots_ttl_s == 86_400 else f"every {robots_hours} hours"

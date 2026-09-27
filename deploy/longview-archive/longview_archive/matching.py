@@ -37,6 +37,7 @@ from datetime import datetime
 from typing import Dict, List, NamedTuple, Optional, Sequence, Tuple, Union
 
 from . import categories, db, normalize, privacy
+from .fetcher import forbidden_site, forbidden_site_in_doubt
 
 logger = logging.getLogger(__name__)
 
@@ -158,6 +159,8 @@ def _load(row: sqlite3.Row) -> _Rec:
     # "Legal Name DBA Trade Name" from any source shows only the trade name.
     name = normalize.trade_name(row["name"])
     website = normalize.norm_url(row["website"]) if row["website"] else None
+    if website and forbidden_site(website):
+        website = None  # a directory, map, or social page (stored before the guard) is never a candidate
     domain = (row["website_domain"] or "").strip().lower()
     if website and not domain:
         domain = normalize.registrable_domain(website)
@@ -426,16 +429,26 @@ def _enrich(conn: sqlite3.Connection, business_id: int, rec: _Rec, stamp: str, *
         values["is_individual"] = 1  # privacy-conservative: any individual taxpayer counts
 
     # The same registrable domain is the same site (http/https, www, a location page).
+    # A stored website on a directory, map, or social site (kept from before the guard) is no
+    # website: the new candidate replaces it. One that is certainly such a site is cleared even
+    # without a replacement; one only in doubt (a business called The Chamber) is kept for a
+    # person, and it is still never read or published while it stays forbidden.
+    existing_website = biz["website"]
+    if existing_website and forbidden_site(existing_website):
+        existing_website = None
+        if not rec.website and not forbidden_site_in_doubt(biz["website"]):
+            values["website"] = values["website_domain"] = values["website_source"] = None
     if rec.website:
-        existing_domain = (biz["website_domain"] or normalize.registrable_domain(biz["website"] or "")).lower()
-        if not biz["website"]:
+        existing_domain = ((biz["website_domain"] if existing_website else "")
+                           or normalize.registrable_domain(existing_website or "")).lower()
+        if not existing_website:
             values["website"] = rec.website
             values["website_domain"] = rec.website_domain
             values["website_source"] = WEBSITE_SOURCES.get(rec.source_id, rec.source_id)
         elif rec.website_domain and rec.website_domain != existing_domain:
             db.add_review(
                 conn, kind="website_conflict", business_id=business_id, source_record_id=rec.id,
-                field="website", proposed=rec.website, current=biz["website"], source_url=rec.source_url,
+                field="website", proposed=rec.website, current=existing_website, source_url=rec.source_url,
                 now=stamp,
                 detail=(
                     f"The {rec.label} record lists {rec.website_domain}, but the business already has"

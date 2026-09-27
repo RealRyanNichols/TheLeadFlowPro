@@ -64,7 +64,7 @@ SCOPE_LABEL = "City of Longview, Texas"
 FORBIDDEN_SITES: Tuple[str, ...] = (
     # Google Maps, Search, and Business Profile pages, and their short links
     # (share.google and the rest of Google's own .google names included).
-    "google.*", "*.google", "share.google", "goo.gl", "g.page", "g.co", "business.site",
+    "google.*", "*.google", "share.google", "posts.gle", "goo.gl", "g.page", "g.co", "business.site",
     # Other maps.
     "maps.apple.com", "maps.apple", "mapquest.com", "waze.com", "bing.com",
     # Yelp.
@@ -72,20 +72,31 @@ FORBIDDEN_SITES: Tuple[str, ...] = (
     # Facebook, Messenger, Instagram, and other social networks.
     "facebook.com", "fb.com", "fb.me", "fb.watch", "m.me", "messenger.com", "instagram.com", "instagr.am",
     "ig.me", "twitter.com", "x.com", "tiktok.com", "youtube.com", "youtu.be", "pinterest.com", "threads.net",
-    # The BBB, chambers of commerce, and the member-directory services chambers use.
+    # The BBB, chambers of commerce, and the member-directory services chambers use. The
+    # named chambers and platforms are certain; "*chamber.*" and "chamberof*" can also be a
+    # business's own name (see FORBIDDEN_SITES_IN_DOUBT), so a match only on those goes to review.
     "bbb.org", "longviewchamber.com", "*chamber.*", "chamberof*", "*chamberofcommerce*",
-    "*chamber-of-commerce*", "chambermaster.com", "growthzoneapp.com", "micronetonline.com",
+    "*chamber-of-commerce*", "chamberofcommerce.com", "chambermaster.com", "growthzoneapp.com",
+    "growthzonesites.com", "growthzonecms.com", "micronetonline.com", "chamberorganizer.com",
+    "chambernation.com", "memberclicks.net",
     # YellowPages and its sister directories.
     "yellowpages.com", "yp.com", "superpages.com", "dexknows.com",
     # Nextdoor.
     "nextdoor.com",
     # Indeed and other job boards.
-    "indeed.com", "glassdoor.com", "ziprecruiter.com", "linkedin.com",
+    "indeed.com", "glassdoor.com", "ziprecruiter.com", "linkedin.com", "careerbuilder.com", "monster.com",
+    "simplyhired.com", "snagajob.com",
     # Other business directories, reviews, and ordering or booking listings.
     "manta.com", "bizapedia.com", "buzzfile.com", "opencorporates.com", "hotfrog.com", "citysearch.com",
     "local.com", "merchantcircle.com", "cylex.us.com", "loc8nearme.com", "foursquare.com", "tripadvisor.com",
+    "whitepages.com", "dnb.com", "yellowbook.com", "birdeye.com", "alignable.com", "brownbook.net",
+    "ezlocal.com", "showmelocal.com", "cybo.com", "nicelocal.com",
     "angi.com", "angieslist.com", "homeadvisor.com", "thumbtack.com", "houzz.com", "porch.com",
-    "healthgrades.com", "vitals.com", "zocdoc.com", "webmd.com", "npino.com", "npidb.org",
+    "healthgrades.com", "vitals.com", "zocdoc.com", "webmd.com", "npino.com", "npidb.org", "npiprofile.com",
+    "sharecare.com", "doximity.com", "ratemds.com",
+    # Restaurant and menu aggregators.
+    "restaurantguru.com", "restaurantji.com", "allmenus.com", "menupix.com", "zmenu.com", "sirved.com",
+    "singleplatform.com",
     "doordash.com", "grubhub.com", "ubereats.com", "opentable.com",
 )
 # Entries of FORBIDDEN_SITES that a business's own name can match too (a bar

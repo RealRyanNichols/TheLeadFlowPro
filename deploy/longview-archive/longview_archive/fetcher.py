@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import codecs
 import fnmatch
+import functools
 import http.client
 import ipaddress
 import logging
@@ -214,6 +215,31 @@ def host_spellings(host: str) -> set:
     return {spelling.lower().rstrip(".") for spelling in spellings}
 
 
+# Host names are at most 253 characters; anything longer is looked up without caching,
+# so the cache holds at most _HOST_CACHE_SIZE short keys whatever the pages say.
+_HOST_CACHE_SIZE = 4096
+_HOST_CACHE_MAX_LEN = 253
+
+
+def _host_forbidden_entries(host: str, sites: Tuple[str, ...], exceptions: Tuple[str, ...]) -> frozenset:
+    """The ``sites`` entries a host (any spelling of it, or a parent domain) matches, none when excepted."""
+
+    def listed(names: List[str], patterns: Tuple[str, ...]) -> set:
+        return {pattern for pattern in patterns if any(fnmatch.fnmatchcase(name, pattern) for name in names)}
+
+    entries: set = set()
+    for spelling in host_spellings(host):
+        labels = [label for label in spelling.split(".") if label]
+        names = [".".join(labels[i:]) for i in range(len(labels) - 1)]  # the host, then each parent domain
+        if not listed(names, exceptions):
+            entries |= listed(names, sites)
+    return frozenset(entries)
+
+
+# Keyed on the lists too, so a changed (or test-patched) list is never answered from the cache.
+_cached_host_forbidden_entries = functools.lru_cache(maxsize=_HOST_CACHE_SIZE)(_host_forbidden_entries)
+
+
 def _forbidden_entries(url: Optional[str]) -> set:
     """The ``config.FORBIDDEN_SITES`` entries the URL's host matches (none when excepted)."""
     text = normalize.norm_url(url) or str(url or "").strip()
@@ -223,17 +249,10 @@ def _forbidden_entries(url: Optional[str]) -> set:
         host = urlsplit(text).hostname or ""
     except ValueError:
         return set()
-
-    def listed(names: List[str], patterns: Tuple[str, ...]) -> set:
-        return {pattern for pattern in patterns if any(fnmatch.fnmatchcase(name, pattern) for name in names)}
-
-    entries: set = set()
-    for spelling in host_spellings(host):
-        labels = [label for label in spelling.split(".") if label]
-        names = [".".join(labels[i:]) for i in range(len(labels) - 1)]  # the host, then each parent domain
-        if not listed(names, FORBIDDEN_SITE_EXCEPTIONS):
-            entries |= listed(names, FORBIDDEN_SITES)
-    return entries
+    sites, exceptions = tuple(FORBIDDEN_SITES), tuple(FORBIDDEN_SITE_EXCEPTIONS)
+    if len(host) > _HOST_CACHE_MAX_LEN:
+        return set(_host_forbidden_entries(host, sites, exceptions))
+    return set(_cached_host_forbidden_entries(host, sites, exceptions))
 
 
 def forbidden_site(url: Optional[str]) -> bool:
