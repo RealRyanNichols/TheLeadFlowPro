@@ -443,6 +443,35 @@ def address_is_public(conn: sqlite3.Connection, business_id: int) -> Tuple[bool,
     return False, "no_storefront_evidence"
 
 
+_SUFFIX_FORMS = frozenset(normalize.STREET_SUFFIXES.values())
+
+
+def _street_words(text: Optional[str]) -> list:
+    """Words as streets compare them: 'Sample Court' -> ['sample', 'ct']; directions dropped."""
+    text = re.sub(r"[^a-z0-9]+", " ", normalize._ascii(text or "").casefold())
+    return [normalize.STREET_SUFFIXES.get(t, t) for t in normalize._clean_street_text(text).split()
+            if t not in normalize.DIRECTIONALS]
+
+
+def _has_run(words: list, run: list) -> bool:
+    return any(words[i:i + len(run)] == run for i in range(len(words) - len(run) + 1))
+
+
+def name_spells_street(name: Optional[str], street_norm: Optional[str]) -> bool:
+    """True when a name (or slug) spells out this street, so it reads as an address.
+
+    At 77 Sample Ct: '77 Sample Ct', 'Sample Court Candles' and 'Scentsy 77
+    Sample' do; 'Sample Candles' does not (a street's name alone is not an address).
+    """
+    street = _street_words(street_norm)
+    number = street[0] if street and any(ch.isdigit() for ch in street[0]) else None
+    words = street[1:] if number else street
+    if all(w in _SUFFIX_FORMS for w in words):  # nothing but a suffix ('100 N St') is too little to match
+        return False
+    tokens = _street_words(name)
+    return _has_run(tokens, words) or bool(number and _has_run(tokens, [number, words[0]]))
+
+
 def generic_email_ok(email: Optional[str], site_domain: Optional[str]) -> bool:
     if not email or not site_domain or email.count("@") != 1:
         return False

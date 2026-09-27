@@ -31,10 +31,12 @@ from tests.fixtures.e2e import pipeline
 REPO_ROOT = Path(__file__).resolve().parents[3]
 RUN_DATE = "2026-09-24"  # START is 13:00 UTC, 08:00 in Longview
 
+# The chain's second outlet ends in its public id (lv-ewpoewe56t, from 32000000002:00002), never its street.
+SECOND_TIRE = "example-tire-and-lube-e56t"
 EXPECTED_SLUGS = [
     "example-auto-glass", "example-barber-shop", "example-family-dental", "example-florist",
     "example-insurance-agency", "example-lawn-care", "example-pawn-and-jewelry", "example-taqueria",
-    "example-tire-and-lube", "example-tire-and-lube-sample-ave",
+    "example-tire-and-lube", SECOND_TIRE,
 ]
 WEBSITE_ONLY = {"website", "phone", "email", "hours", "facebook", "instagram", "careers", "services"}
 FIXTURE_NAMES = (
@@ -171,7 +173,7 @@ class EndToEndTest(unittest.TestCase):
         self.assertEqual(self.pipe.sync_counts["tx_sales_tax"]["other_zips"], {"75606": 1})
 
     def test_chain_outlets_are_two_profiles(self):
-        a, b = self.by_slug["example-tire-and-lube"], self.by_slug["example-tire-and-lube-sample-ave"]
+        a, b = self.by_slug["example-tire-and-lube"], self.by_slug[SECOND_TIRE]
         self.assertNotEqual(a["id"], b["id"])
         # 900 Sample Ave has only its car-wash NAICS, which alone is not storefront evidence.
         self.assertEqual((a["address"]["street"], b["address"]["street"]), ("500 Example St", None))

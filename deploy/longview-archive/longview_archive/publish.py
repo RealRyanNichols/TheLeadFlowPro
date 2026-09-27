@@ -228,30 +228,33 @@ def _shows_owner_name(records: list) -> bool:
     return False
 
 
-def _person_name_decision(conn, business, now: str) -> Optional[Tuple[str, str]]:
-    """A name that may be a person's waits for a person; their answer sticks per name."""
+def _name_decision(conn, business, now: str, kind: str, rejected: str, detail: str) -> Optional[Tuple[str, str]]:
+    """A name a person must look at waits for them; their answer sticks per name."""
     name_hash = db.value_hash(business["name"])
     item = conn.execute(
-        "SELECT status FROM review_queue WHERE business_id=? AND kind='person_name_check'"
+        "SELECT status FROM review_queue WHERE business_id=? AND kind=?"
         " AND (proposed_hash=? OR proposed_hash='') ORDER BY id DESC LIMIT 1",
-        (business["id"], name_hash),
+        (business["id"], kind, name_hash),
     ).fetchone()
     if item is None:
-        db.add_review(
-            conn,
-            kind="person_name_check",
-            business_id=business["id"],
-            proposed=business["name"],
-            detail="The listed name may be a person's name. Accept to publish it as a business"
-                   " name; reject to keep it held.",
-            now=now,
-        )
-        return "review", "person_name_check"
+        db.add_review(conn, kind=kind, business_id=business["id"], proposed=business["name"], detail=detail,
+                      now=now)
+        return "review", kind
     if item["status"] == "open":
-        return "review", "person_name_check"
+        return "review", kind
     if item["status"] == "rejected":
-        return "held", "person_name_rejected"
+        return "held", rejected
     return None
+
+
+def _name_spells_hidden_street(conn, business, records: list) -> bool:
+    """The name or slug spells out a street of this business while its page
+    shows the address as "Longview, TX" only (a home address, most often)."""
+    streets = {business["street_norm"]} | {r["street_norm"] for r in records}
+    if not any(privacy.name_spells_street(text, street)
+               for text in (business["name"], business["slug"]) for street in streets if street):
+        return False
+    return not privacy.address_is_public(conn, business["id"])[0]
 
 
 def _decide(conn: sqlite3.Connection, settings, business, now: str) -> Tuple[str, Optional[str]]:
@@ -273,12 +276,22 @@ def _decide(conn: sqlite3.Connection, settings, business, now: str) -> Tuple[str
         return "held", "dba_legal_name"
     if not any(r["source_id"] in PRIMARY_SOURCES and r["active"] for r in records):
         return "review", "osm_only_needs_primary_source"
+    if _name_spells_hidden_street(conn, business, records):
+        decision = _name_decision(
+            conn, business, now, "name_contains_address", "name_address_rejected",
+            "The name or web address spells out the business's street, but its address is shown as"
+            " \"Longview, TX\" only. Accept to publish them as they are; reject to keep it held.")
+        if decision:
+            return decision
     # A person looks: a name that looks like a person's, or an owner-named
     # listing whose shown name may still be the owner's own (its source says
     # so, or it has a given name or no trade word).
     if privacy.looks_like_person_name(business["name"]) or (
             personal and (_shows_owner_name(records) or privacy.may_name_owner(business["name"]))):
-        decision = _person_name_decision(conn, business, now)
+        decision = _name_decision(
+            conn, business, now, "person_name_check", "person_name_rejected",
+            "The listed name may be a person's name. Accept to publish it as a business"
+            " name; reject to keep it held.")
         if decision:
             return decision
     if conn.execute(
@@ -295,9 +308,11 @@ def evaluate(conn: sqlite3.Connection, settings, now: Any = None) -> Dict[str, i
     """Set publish_state and publish_reason for every business.
 
     Order: suppressed; held (inactive, out_of_scope, personal_name_no_presence,
-    dba_legal_name); review (osm_only_needs_primary_source, person_name_check,
-    open_merge_review); otherwise ready. A reason starting with ``manual:`` was set by a person and
-    is never changed. Returns counts per state plus ``changed``.
+    dba_legal_name); review (osm_only_needs_primary_source, name_contains_address,
+    person_name_check, open_merge_review); otherwise ready. A person's "no" to a
+    name check holds it (name_address_rejected, person_name_rejected). A reason
+    starting with ``manual:`` was set by a person and is never changed. Returns
+    counts per state plus ``changed``.
     """
     counts = {state: 0 for state in STATES}
     counts["changed"] = 0

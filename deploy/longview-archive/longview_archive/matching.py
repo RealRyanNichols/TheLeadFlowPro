@@ -846,14 +846,6 @@ def _public_id(seed: str) -> str:
     return "lv-" + base64.b32encode(digest).decode("ascii").rstrip("=").lower()[:10]
 
 
-def _street_part(biz: sqlite3.Row) -> str:
-    """The display street without its house number: '1200 W Example Ave' -> 'W Example Ave'."""
-    words = normalize.display_street(biz["street_norm"] or biz["street"] or "").split()
-    if words and any(ch.isdigit() for ch in words[0]):
-        words = words[1:]
-    return " ".join(words)
-
-
 def _slug_taken(conn: sqlite3.Connection, slug: str, business_id: int) -> bool:
     return conn.execute(
         "SELECT 1 FROM businesses WHERE slug=? AND id != ?", (slug, business_id)
@@ -861,13 +853,16 @@ def _slug_taken(conn: sqlite3.Connection, slug: str, business_id: int) -> bool:
 
 
 def _choose_slug(conn: sqlite3.Connection, biz: sqlite3.Row, public_id: str) -> str:
+    """The name's slug; a taken or reserved one gets the end of the public id.
+
+    Never the street: the slug is fixed when the business is created, before
+    anyone knows whether its address may be shown, and a home address is shown
+    as "Longview, TX" only, so its street must not appear in the URL either.
+    """
     base = normalize.slugify(biz["name"])
-    street = _street_part(biz)
     candidates = []
     if base:
         candidates.append(base)
-        if street:
-            candidates.append(normalize.slugify(f"{biz['name']} {street}"))
         candidates.append(f"{base}-{public_id[-4:]}")
         candidates.append(f"{base}-{public_id[3:]}")
     else:
