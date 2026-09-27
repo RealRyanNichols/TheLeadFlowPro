@@ -152,6 +152,31 @@ Field names used in `facts` / `observations` / `review_queue.field`:
 
 ## Modules and their contracts
 
+### `places.py` (the towns)
+- `PLACES`: each town's slug, name, upper-case postal city names, street ZIPs,
+  PO-box ZIPs, and whether it is incorporated. Longview's values are the ones
+  the engine always used. A ZIP is listed only when certain; a town without a
+  ZIP list is matched by its postal city alone and every ZIP seen is reported.
+- `LVA_PLACES` (env or `/etc/longview-archive/env`; slugs or `all`; default
+  `longview`) selects the active towns. Sources query them all at once
+  (`upper(city) IN (...)`; one city keeps `= 'LONGVIEW'`), set
+  `source_records.place` from the postal city, and retire only the unseen
+  records of the towns they queried. OSM asks once per incorporated town (its
+  city boundary); NPI per street ZIP, or by city when a town has no ZIP list.
+- `Place.scope(zip, outside)`: Longview's rule for every town (`city`, `nearby`,
+  `out`); never `city` in an unincorporated town. `Place.mailing_scope` is the
+  franchise-tax rule.
+- Schema 2 adds `place` to `businesses` and `source_records` (default
+  `longview`). Matching compares a record only with businesses of its town; a
+  franchise company steps aside only for a sales-tax outlet in its own town; a
+  record whose town changes leaves its business. Publishing holds a business of
+  a town that is off (`place_not_active`). The export adds `place` to a listing
+  outside Longview and a top-level `places` list (per-town counts) only when a
+  town besides Longview is on, so a Longview batch keeps its exact shape.
+- The site builds `www/<slug>/businesses/` per active town and `www/places/`
+  (the hub) when several are on; a town turned off loses its pages. The Caddy
+  files match `places.path_pattern()` (every seeded slug, and `/places`).
+
 ### `normalize.py`
 - `norm_name(s) -> str`: casefold, `&`→`and`, strip punctuation, drop legal
   suffixes (llc, l l c, inc, incorporated, corp, corporation, co, company when

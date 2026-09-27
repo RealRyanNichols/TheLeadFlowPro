@@ -68,7 +68,7 @@ install -d -m 755 /etc/longview-archive
 if grep -q '^LVA_PUBLIC_BASE_URL=' "$ENV_FILE" 2>/dev/null; then
 	ok "kept the existing $(grep '^LVA_PUBLIC_BASE_URL=' "$ENV_FILE" | head -1)"
 else
-	[ -f "$ENV_FILE" ] || printf '# Only LVA_PUBLIC_HOST and LVA_PUBLIC_BASE_URL may be set here, one KEY=VALUE per line.\n' > "$ENV_FILE"
+	[ -f "$ENV_FILE" ] || printf '# Only LVA_PUBLIC_HOST, LVA_PUBLIC_BASE_URL and LVA_PLACES may be set here, one KEY=VALUE per line.\n' > "$ENV_FILE"
 	printf 'LVA_PUBLIC_BASE_URL=%s\n' "$BASE_URL" >> "$ENV_FILE"
 	chmod 644 "$ENV_FILE"
 	ok "LVA_PUBLIC_BASE_URL=$BASE_URL"

@@ -329,6 +329,47 @@ again with:
 lva approve --auto off
 ```
 
+The same 25% check is also made for each town with at least 20 approved
+listings, so one town losing many listings is not hidden by another town
+growing. Turning a town on only adds listings and never trips it; turning one
+off removes that town's listings, so that batch waits for a person.
+
+## More towns (rings around Longview)
+
+The towns are listed in `longview_archive/places.py`: Longview, then the first
+ring (Marshall, Kilgore, White Oak, Hallsville, Diana, Harleton, Gladewater,
+Clarksville City, Easton, Scottsville, Elysian Fields, Waskom, Ore City, Gilmer,
+Karnack, Jefferson, Tatum, Henderson, Carthage). Pine Tree and Spring Hill are
+parts of Longview (their mail says Longview), so they are already covered.
+Only Longview is on until you turn more on. Each town gets its own section at
+`/<town>/businesses/` (for example `/marshall/businesses/`), and a small hub at
+`/places/` links the towns that are on with their counts. A business belongs to
+one town, the one its address names; records from two towns are never joined.
+
+1. **Count the ring first.** Run the "Longview data probe" workflow on GitHub
+   (Actions, Longview data probe, Run workflow; the `places` box defaults to
+   `all`). It prints counts only, per town: listings ready, held, in review,
+   and the ZIP codes each town's rows carry that are not on its list.
+2. **Turn the towns on** in the droplet console:
+
+   ```bash
+   echo 'LVA_PLACES=longview,marshall,kilgore' >> /etc/longview-archive/env
+   systemctl restart longview-archive
+   ```
+
+   `LVA_PLACES=all` turns on every town in the file. An unknown name stops the
+   service with a settings problem, so a typo never goes live.
+3. The next weekly sync reads those towns (or run `lva sync` to read them now),
+   the next batch lists them, and after approval each town's section appears.
+   The status page has a "Towns" table with counts per town.
+
+To turn a town off, take it out of `LVA_PLACES` and restart: its pages come
+down at the next build (after that batch is approved), and its records stay in
+the archive, unpublished. The Caddy files already serve every town in
+`places.py`; a town that is not on has no pages, so its address answers 404.
+Adding a town that is not in `places.py` is a code change (the file says what
+to update), and must never take a path the website app already uses.
+
 ## Moving to theleadflowpro.com later
 
 The pages already use the final path, `/longview/businesses/`, and their

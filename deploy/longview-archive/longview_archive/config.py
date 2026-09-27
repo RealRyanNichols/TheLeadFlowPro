@@ -15,6 +15,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Mapping, Tuple
 
+from . import places as _places
+
 VERSION = "1.0.0"
 
 TIMEZONE = "America/Chicago"
@@ -44,12 +46,12 @@ USER_AGENT = user_agent_for(PUBLIC_BASE_URL)
 # reported on the status page (``other_zips``); a row whose ZIP is not a
 # Longview postal ZIP gets scope "out" and is never published until a person
 # verifies it against USPS and the data.
-LONGVIEW_ZIPS: Tuple[str, ...] = ("75601", "75602", "75603", "75604", "75605")
+LONGVIEW_ZIPS: Tuple[str, ...] = _places.LONGVIEW.zips
 # Every ZIP the Postal Service delivers to as "Longview, TX": the street ZIPs
 # above plus the PO-box ZIPs 75606, 75607, and 75608. Used only for sources that
 # give a mailing address and no business location (the franchise-tax list): a
 # company there has a Longview address, whatever side of the city limits it is on.
-LONGVIEW_POSTAL_ZIPS: Tuple[str, ...] = LONGVIEW_ZIPS + ("75606", "75607", "75608")
+LONGVIEW_POSTAL_ZIPS: Tuple[str, ...] = _places.LONGVIEW.all_zips
 
 
 def longview_scope(zip_code, outside_city_limits: bool = False) -> str:
@@ -61,9 +63,7 @@ def longview_scope(zip_code, outside_city_limits: bool = False) -> str:
     'out': a missing ZIP or any other ZIP (another town's, or Longview,
     Washington's 98632). Nothing shows the address is a Longview, Texas one, so
     it is never published; the sync reports it under ``other_zips``."""
-    if zip_code in LONGVIEW_ZIPS and not outside_city_limits:
-        return "city"
-    return "nearby" if zip_code in LONGVIEW_POSTAL_ZIPS else "out"
+    return _places.LONGVIEW.scope(zip_code, outside_city_limits)
 
 EAST_TEXAS_AREA_CODES: Tuple[str, ...] = ("903", "430")
 
@@ -231,6 +231,8 @@ class Settings:
     # goes back to the City of Longview only.
     publish_scopes: Tuple[str, ...] = DEFAULT_PUBLISH_SCOPES
     indexable: bool = False
+    # The towns the directory covers (places.py). LVA_PLACES turns them on ring by ring.
+    places: Tuple[str, ...] = _places.DEFAULT_PLACES
 
     extra: Mapping[str, str] = field(default_factory=dict)
 
@@ -239,6 +241,14 @@ class Settings:
         # The user agent names the About page where the directory is served, so it follows the base URL.
         if not self.user_agent:
             object.__setattr__(self, "user_agent", user_agent_for(self.public_base_url))
+
+    @property
+    def active_places(self) -> Tuple["_places.Place", ...]:
+        return _places.resolve(self.places)
+
+    def place_site_dir(self, slug: str) -> Path:
+        """The folder Caddy serves at /<slug>/businesses/ (a link to that town's live build)."""
+        return self.www_dir / slug / "businesses"
 
     @property
     def db_path(self) -> Path:
@@ -308,11 +318,12 @@ class Settings:
 # public host is chosen; nothing else is required to exist.
 ENV_FILE = Path("/etc/longview-archive/env")
 ENV_LINE_RE = re.compile(r"(LVA_[A-Z0-9_]+)=(.*)")
-# The only keys the file may set: where the directory is served. Crawl limits,
+# The only keys the file may set: where the directory is served, and which
+# towns it covers (LVA_PLACES, places.py). Crawl limits,
 # the indexing switch, the user agent, endpoints, paths, and the test-only
 # escape hatches (LVA_ALLOW_PRIVATE_HOSTS) are never read from it; a line
 # naming one is a settings problem, so it cannot slip in unnoticed.
-ENV_FILE_KEYS = frozenset({"LVA_PUBLIC_BASE_URL", "LVA_PUBLIC_HOST"})
+ENV_FILE_KEYS = frozenset({"LVA_PUBLIC_BASE_URL", "LVA_PUBLIC_HOST", "LVA_PLACES"})
 
 
 def _env_file_value(raw: str) -> str:
@@ -409,6 +420,8 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
     kwargs["indexable"] = _env_flag(env, "LVA_INDEXABLE")
     if env.get("LVA_PUBLISH_SCOPES", "").strip():
         kwargs["publish_scopes"] = _publish_scopes(env["LVA_PUBLISH_SCOPES"])
+    if env.get("LVA_PLACES", "").strip():
+        kwargs["places"] = _places.parse_places(env["LVA_PLACES"])
     settings = Settings(**kwargs)
     # The politeness floor is not configurable downward in production. Tests
     # lower it only together with the private-host escape hatch.

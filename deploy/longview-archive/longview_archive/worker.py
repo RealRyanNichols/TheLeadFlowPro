@@ -30,7 +30,7 @@ from datetime import timedelta
 from typing import Any, Dict, List, NamedTuple, Optional, Sequence, Tuple
 from urllib.parse import parse_qsl, urlsplit
 
-from . import config, db, facts, normalize, privacy
+from . import config, db, facts, normalize, places, privacy
 from .extract import careers, contacts, hours as hours_mod, identity, services, social
 from .extract.html import Page, parse_page
 from .fetcher import forbidden_site, site_key
@@ -248,12 +248,15 @@ def due_businesses(conn: sqlite3.Connection, settings, now: Any, limit: int) -> 
     if limit <= 0:
         return []
     now_s = _stamp(now)
+    # Only the towns that are on (LVA_PLACES): a town turned off is not read.
+    towns = [p.slug for p in places.active(settings)]
     rows = conn.execute(
         "SELECT * FROM businesses WHERE website IS NOT NULL AND website != '' AND active=1"
         " AND publish_state != 'suppressed' AND scope IN ('city','nearby')"
+        f" AND place IN ({','.join('?' * len(towns))})"
         " AND (next_crawl_at IS NULL OR next_crawl_at <= ?)"
         " ORDER BY next_crawl_at IS NOT NULL, next_crawl_at, id",
-        (now_s,),
+        (*towns, now_s),
     ).fetchall()
     in_backoff = {r["host"] for r in conn.execute(
         "SELECT host FROM host_state WHERE backoff_until IS NOT NULL AND backoff_until > ?", (now_s,)

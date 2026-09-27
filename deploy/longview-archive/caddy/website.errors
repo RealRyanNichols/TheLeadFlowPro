@@ -13,7 +13,8 @@
 # those without the route's headers, so the same noindex headers and the
 # directory's policy are set here. Self-contained: no snippet from another file.
 
-@longview_archive_directory_error path /longview/businesses /longview/businesses/*
+# The same paths as website.routes: every seeded town's section and the /places/ hub.
+@longview_archive_directory_error path_regexp ^/(?:(?:longview|marshall|kilgore|white-oak|hallsville|diana|harleton|gladewater|clarksville-city|easton|scottsville|elysian-fields|waskom|ore-city|gilmer|karnack|jefferson|tatum|henderson|carthage)/businesses|places)(?:/.*)?$
 handle @longview_archive_directory_error {
 	header {
 		X-Robots-Tag "noindex, nofollow, noarchive, nosnippet"

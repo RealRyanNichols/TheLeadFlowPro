@@ -3,8 +3,12 @@
 Run from a machine that can reach data.texas.gov (a GitHub Actions runner):
 
     cd deploy/longview-archive && python3 tools/probe_public_data.py
+    LVA_PLACES=all python3 tools/probe_public_data.py        # every seeded town (places.py)
+    LVA_PLACES=longview,marshall python3 tools/probe_public_data.py
 
-It runs the engine's own sync -> match -> publish on a throwaway data folder,
+It runs the engine's own sync -> match -> publish on a throwaway data folder
+for the towns in LVA_PLACES (Longview alone when it is unset) and prints the
+counts per town, so a ring of towns is measured before it is turned on,
 then counts what other public datasets would add, and checks where the website
 and the directory answer from. It prints dataset ids, column names and counts.
 It never prints a business name, an address, a phone or a taxpayer number: the
@@ -23,7 +27,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from longview_archive import config, db, matching, privacy, publish  # noqa: E402
+from longview_archive import config, db, matching, places, privacy, publish  # noqa: E402
 from longview_archive.sources import franchise as franchise_source  # noqa: E402
 from longview_archive.service import SYNC_JOBS, bootstrap, run_sync  # noqa: E402
 from longview_archive.sources import http as api_http  # noqa: E402
@@ -45,12 +49,19 @@ def numbers(counts) -> dict:
 
 
 def engine_run(settings) -> None:
+    towns = places.active(settings)
     say("== 1. The engine's own sync -> match -> publish against the live sources")
+    say(f"towns (LVA_PLACES): {', '.join(p.slug for p in towns)}")
     conn = bootstrap(settings)
     for job in SYNC_JOBS:
         outcome = run_sync(conn, settings, job, db.now_iso())
         say(f"sync {job.name}: {outcome.status} {numbers(outcome.counts)}"
             + (f" error={outcome.error}" if outcome.error else ""))
+        for slug, one in sorted(((outcome.counts or {}).get("places") or {}).items()):
+            say(f"    {slug}: {numbers(one)}")
+        for slug, zips in sorted(((outcome.counts or {}).get("other_zips_by_place") or {}).items()):
+            # ZIP codes are not personal data; they show which ZIPs a town's rows carry.
+            say(f"    {slug} ZIPs outside its list: {dict(sorted(zips.items()))}")
     say(f"match: {numbers(matching.match_pending(conn))}")
     counts = publish.run_publish(conn, settings)
     say(f"publish: {numbers(counts)}")
@@ -59,8 +70,23 @@ def engine_run(settings) -> None:
         say(f"  scope={row['scope']} state={row['publish_state']} reason={row['reason'] or '-'}: {row['n']}")
     shown = conn.execute("SELECT COUNT(*) FROM businesses WHERE publish_state='ready'").fetchone()[0]
     say(f"PROFILES READY TO PUBLISH (first batch): {shown}")
+    per_town(conn, towns)
     published_by_source(conn)
     conn.close()
+
+
+def per_town(conn, towns) -> None:
+    """Counts per town: businesses in the archive by scope, and ready to publish. Never a name."""
+    say("per town (active businesses: city / nearby / out; ready to publish):")
+    for p in towns:
+        row = conn.execute(
+            "SELECT SUM(active=1 AND scope='city') AS city, SUM(active=1 AND scope='nearby') AS nearby,"
+            " SUM(active=1 AND scope='out') AS out_, SUM(publish_state='ready') AS ready,"
+            " SUM(publish_state='held') AS held, SUM(publish_state='review') AS review"
+            " FROM businesses WHERE place=?", (p.slug,)).fetchone()
+        note = "" if p.zips_known else " (no ZIP list: matched by town name)"
+        say(f"  {p.slug}: city={row['city'] or 0} nearby={row['nearby'] or 0} out={row['out_'] or 0}"
+            f" ready={row['ready'] or 0} held={row['held'] or 0} review={row['review'] or 0}{note}")
 
 
 def published_by_source(conn) -> None:

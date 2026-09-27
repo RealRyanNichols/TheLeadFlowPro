@@ -6,7 +6,10 @@ directory.json``), but the public site renders only the APPROVED batch
 (``lva approve``); or, with auto-approve on (a setting kept in ``meta``, off by
 default), each new export is approved by itself EXCEPT one that would remove
 more than 25% of the approved businesses: that one waits for a person, and the
-status page says so.
+status page says so. The same share is checked for each town that has at least
+``PLACE_HOLD_MIN`` approved listings, so a large town's losses are never hidden
+by another town's gains. Turning a town ON only adds listings and never trips
+the hold; turning one OFF removes its listings and waits for a person.
 
 Removal requests do not wait: ``apply_suppressions`` takes a suppressed
 business out of the approved batch at once and the site is rebuilt. Every
@@ -26,13 +29,16 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Tuple
 
-from . import db, normalize, privacy, publish, site
+from . import db, normalize, places, privacy, publish, site
 
 log = logging.getLogger(__name__)
 
 AUTO_KEY = "auto_approve"
 HELD_KEY = "approval_held_batch"
 LARGE_REMOVAL_SHARE = 0.25  # the About page states it: "more than a quarter" (site.py)
+# A town with fewer approved listings than this is covered by the whole-batch check only
+# (in a town of eight, one closed shop is already an eighth).
+PLACE_HOLD_MIN = 20
 AUTO_ACTOR = "auto-approve"
 LOCK_NAME = ".approval.lock"
 
@@ -148,6 +154,7 @@ def rebuild_site(conn: sqlite3.Connection, settings, now: Any = None, _locked_al
         db.set_meta(conn, "site_businesses", str(counts["businesses"]))
         db.set_meta(conn, "site_dropped", str(counts["dropped"]))
         db.set_meta(conn, "site_build_key", site.build_key(settings))
+        db.set_meta(conn, "site_places", json.dumps(counts.get("places") or {}, sort_keys=True))
         return counts
 
     if _locked_already:
@@ -231,6 +238,36 @@ def removal_share(approved: Optional[dict], export: dict) -> Tuple[int, int]:
     return len(before - after), len(before)
 
 
+def place_removals(approved: Optional[dict], export: dict) -> List[dict]:
+    """Towns (with at least PLACE_HOLD_MIN approved listings) that would lose more than 25% of them.
+
+    A listing's town is its ``place`` key (none: Longview). Listings of a town
+    that is new in the export are not in the approved batch, so they never count."""
+    after = {b.get("id") for b in export.get("businesses") or [] if isinstance(b, dict)}
+    before: Dict[str, List[Any]] = {}
+    for b in (approved or {}).get("businesses") or []:
+        if isinstance(b, dict):
+            before.setdefault(str(b.get("place") or "longview"), []).append(b.get("id"))
+    out = []
+    for slug, ids in sorted(before.items()):
+        removed = sum(1 for i in ids if i not in after)
+        if len(ids) >= PLACE_HOLD_MIN and removed > LARGE_REMOVAL_SHARE * len(ids):
+            out.append({"place": slug, "removed": removed, "approved": len(ids)})
+    return out
+
+
+def large_removal(approved: Optional[dict], export: dict) -> Optional[dict]:
+    """Why auto-approve must wait, or None: the whole batch, or one town, loses more than 25%."""
+    removed, base = removal_share(approved, export)
+    towns = place_removals(approved, export)
+    if (base and removed > LARGE_REMOVAL_SHARE * base) or towns:
+        out = {"removed": removed, "approved": base}
+        if towns:
+            out["places"] = towns
+        return out
+    return None
+
+
 def auto_approve(conn: sqlite3.Connection, settings, now: Any = None) -> dict:
     """After an export: approve it when auto-approve is on, unless it removes more than 25%.
 
@@ -246,17 +283,19 @@ def auto_approve(conn: sqlite3.Connection, settings, now: Any = None) -> dict:
     approved = approved if is_export(approved) else None
     if approved is not None and approved.get("batchId") == export.get("batchId"):
         return {"status": "same"}
-    removed, base = removal_share(approved, export)
-    if base and removed > LARGE_REMOVAL_SHARE * base:
+    hold = large_removal(approved, export)
+    if hold is not None:
+        removed, base = hold["removed"], hold["approved"]
         batch_id = str(export.get("batchId") or "")
         if db.get_meta(conn, HELD_KEY) != batch_id:
             db.set_meta(conn, HELD_KEY, batch_id)
             stamp = db.now_iso(publish.resolve_now(now))
             run_id = db.start_run(conn, "approve", stamp)
-            db.finish_run(conn, run_id, "skipped", {"removed": removed, "approved": base, "auto": 1}, now=stamp)
-            log.warning("auto-approve held batch %s: it would remove %d of %d approved businesses",
-                        batch_id, removed, base)
-        return {"status": "held", "removed": removed, "approved": base}
+            db.finish_run(conn, run_id, "skipped", {"removed": removed, "approved": base, "auto": 1,
+                                                    "places": len(hold.get("places") or [])}, now=stamp)
+            log.warning("auto-approve held batch %s: it would remove %d of %d approved businesses"
+                        " (%d town(s) over the share)", batch_id, removed, base, len(hold.get("places") or []))
+        return dict(hold, status="held")
     result = approve(conn, settings, actor=AUTO_ACTOR, batch="latest", now=now, auto=True)
     return dict(result, status="approved")
 
@@ -302,7 +341,10 @@ def status_info(conn: sqlite3.Connection, settings) -> dict:
     if held and export is not None and held == export.get("batchId"):
         removed, base = removal_share(approved, export)
         held_info = {"batchId": held, "removed": removed, "approved": base}
-    return {
+        towns = place_removals(approved, export)
+        if towns:
+            held_info["places"] = towns
+    info = {
         "approvedBatchId": (approved or {}).get("batchId"),
         "approvedBusinesses": len(approved["businesses"]) if approved else 0,
         "approvedAt": db.get_meta(conn, "approved_at"),
@@ -314,3 +356,16 @@ def status_info(conn: sqlite3.Connection, settings) -> dict:
         "heldForPerson": held_info,
         "indexable": bool(settings.indexable),
     }
+    active = places.active(settings)
+    if tuple(p.slug for p in active) != (places.LONGVIEW.slug,):
+        # Per town: listings approved and on the site (counts only).
+        approved_per = places.counts_by_place((approved or {}).get("businesses") or [])
+        site_per = {}
+        try:
+            site_per = json.loads(db.get_meta(conn, "site_places") or "{}")
+        except ValueError:
+            site_per = {}
+        info["places"] = [{"slug": p.slug, "name": p.name, "approved": approved_per.get(p.slug, 0),
+                           "shown": site_per.get(p.slug) if isinstance(site_per, dict) else None}
+                          for p in active]
+    return info

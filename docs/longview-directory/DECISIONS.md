@@ -117,6 +117,30 @@ that location's scope. The next batch then holds the `nearby` listings as
 the listings for a person). Gregg County, or about 25 miles around Longview,
 would need new sources and is not built.
 
+## 6b. More towns, ring by ring (owner direction, Sept 27, 2026)
+
+"Expand out to Marshall, Harleton, Diana, Kilgore, Hallsville, Pine Tree, White
+Oak, Spring Hill ... keep working your way out until you get all of Texas."
+Built: a places registry (`deploy/longview-archive/longview_archive/places.py`)
+with Longview and the first ring seeded, and one setting, `LVA_PLACES`, that
+turns towns on. Pine Tree and Spring Hill are parts of Longview (their mail says
+Longview), so they are already covered. What holds in every town, exactly as in
+Longview: a business belongs to the one town its address names and is never
+joined with another town's records; "city" means inside that town's limits
+where the dataset says so, "nearby" a postal address of the town outside them
+(an unincorporated town such as Diana, Harleton, Elysian Fields or Karnack has
+no city limits, so everything there is "nearby"); a ZIP the town's list does not
+have is `out` and never published. The same privacy rules apply, and a
+residential or mailing address shows "<Town>, TX" only.
+
+ZIP codes were seeded only where certain. Clarksville City has none (its mail is
+mostly addressed to Gladewater or White Oak), so it is matched by its own name
+only; Gilmer's and Henderson's PO-box ZIPs are left out, so a row with one is
+`out` and shows on the status page to be checked. **Owner decisions:** which
+ring to turn on and when (each after the data probe has counted it), whether a
+town with few listings is worth a section, and whether the hub at `/places/` is
+the right address for the list of towns on theleadflowpro.com.
+
 ## 7. Network access for Claude sessions (optional)
 
 This cloud environment blocks `data.texas.gov`, `overpass-api.de`,

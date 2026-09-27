@@ -643,6 +643,7 @@ def cmd_check(args, settings) -> int:
 
     paused = settings.pause_file.exists()
     out(f"  PAUSE file: {'present, the engine stays idle' if paused else 'not present'} ({settings.pause_file})")
+    out(f"  Towns (LVA_PLACES): {', '.join(p.name for p in settings.active_places)}")
     out(f"  Crawl caps: {settings.max_sites_concurrent} sites at a time, {settings.min_host_delay_s:g} s between"
         f" requests to one host, {settings.max_pages_per_visit} pages per visit,"
         f" {settings.max_page_bytes / 1_000_000:g} MB per page, {settings.request_timeout_s:g} s timeout")

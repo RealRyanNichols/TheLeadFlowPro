@@ -90,7 +90,7 @@ class Basics(CliTestBase):
     def test_migrate(self):
         proc = self.lva("migrate")
         self.assertEqual(proc.returncode, 0, proc.stderr)
-        self.assertIn("schema version 1", proc.stdout)
+        self.assertIn(f"schema version {db.SCHEMA_VERSION}", proc.stdout)
         conn = self.conn()
         try:
             self.assertEqual(db.get_meta(conn, "schema_version"), str(db.SCHEMA_VERSION))
@@ -102,7 +102,7 @@ class Basics(CliTestBase):
     def test_check_passes_on_a_healthy_folder(self):
         proc = self.lva("check")
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
-        for needle in ("version 1.0.0", str(self.data), "schema version 1", "PAUSE file: not present",
+        for needle in ("version 1.0.0", str(self.data), f"schema version {db.SCHEMA_VERSION}", "PAUSE file: not present",
                        "Running under longview-archive.service: no", "Result: OK"):
             self.assertIn(needle, proc.stdout)
 

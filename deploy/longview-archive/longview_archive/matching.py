@@ -32,6 +32,12 @@ practice off the site (``_match_franchise_twins``).
 Nothing OpenStreetMap says about a franchise-only business (street, category,
 map point) is shown under the Comptroller's name.
 
+A business belongs to exactly one place (``places.py``): the town its records'
+postal city names. Every rule below compares a record only with businesses of
+its own place, so two towns' records are never joined, whatever they share (a
+chain's phone line, a name). A record whose place changes leaves its old
+business and is matched again in the new place.
+
 A batch is processed by source priority and then by source key, so the same
 records produce the same businesses, public ids, and slugs whatever order they
 were inserted in. Logs carry counts and row ids only.
@@ -45,7 +51,7 @@ import json
 import logging
 import re
 import sqlite3
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import datetime
 from typing import Dict, List, NamedTuple, Optional, Sequence, Tuple, Union
 
@@ -148,6 +154,7 @@ class _Rec:
     is_individual: int
     scope: str
     tags: dict
+    place: str = "longview"
 
     @property
     def is_primary(self) -> bool:
@@ -224,6 +231,7 @@ def _load(row: sqlite3.Row) -> _Rec:
         is_individual=1 if row["is_individual"] else 0,
         scope=row["scope"] or "city",
         tags=tags,
+        place=row["place"] or "longview",
     )
 
 
@@ -277,6 +285,24 @@ def _domains(conn: sqlite3.Connection, biz: sqlite3.Row) -> set:
 
 def _business(conn: sqlite3.Connection, business_id: int) -> Optional[sqlite3.Row]:
     return conn.execute("SELECT * FROM businesses WHERE id=?", (business_id,)).fetchone()
+
+
+def _same_place(biz: Optional[sqlite3.Row], rec: "_Rec") -> bool:
+    """A record only ever joins a business of its own town."""
+    return biz is not None and (biz["place"] or "longview") == rec.place
+
+
+def _leave_place(conn: sqlite3.Connection, rec: "_Rec", old: sqlite3.Row, stamp: str) -> "_Rec":
+    """The record now names another town: unlink it from its business, which is retired
+    when no other active record keeps it, and match it again as a new record."""
+    conn.execute("UPDATE source_records SET business_id=NULL, match_state='new' WHERE id=?", (rec.id,))
+    conn.execute(
+        "UPDATE businesses SET active=0, updated_at=? WHERE id=? AND active=1 AND NOT EXISTS"
+        " (SELECT 1 FROM source_records WHERE business_id=? AND active=1)",
+        (stamp, old["id"], old["id"]),
+    )
+    _resolve_merge_reviews(conn, rec.id, stamp)
+    return replace(rec, business_id=None)
 
 
 def _is_suppressed(conn: sqlite3.Connection, biz: sqlite3.Row) -> bool:
@@ -678,6 +704,7 @@ def _create(conn: sqlite3.Connection, rec: _Rec, stamp: str) -> MatchResult:
         "lat": rec.lat,
         "lon": rec.lon,
         "scope": rec.scope,
+        "place": rec.place,
         "naics": rec.naics or None,
         "category": category,
         "category_label": label,
@@ -769,7 +796,7 @@ def _franchise_step_aside(conn: sqlite3.Connection, rec: _Rec, stamp: str) -> Ma
     conn.execute("UPDATE source_records SET match_state='ignored' WHERE id=?", (rec.id,))
     _resolve_merge_reviews(conn, rec.id, stamp)
     explanation = ("Not listed from the franchise-tax record: the same taxpayer has an active sales-tax"
-                   " location in Longview, and that location is the listing.")
+                   " location in the same town, and that location is the listing.")
     if retired:
         explanation += " The listing made from the franchise-tax record was retired."
     return MatchResult("ignored", None, RULE_FRANCHISE_OUTLET, explanation)
@@ -779,7 +806,7 @@ def _franchise_step_aside(conn: sqlite3.Connection, rec: _Rec, stamp: str) -> Ma
 # record (the taxpayer number is the only link to a sales-tax outlet) and no
 # other franchise record (two registrations are two companies).
 _TWIN_SQL = (
-    "SELECT * FROM businesses b WHERE b.name_norm=? AND b.active=1"
+    "SELECT * FROM businesses b WHERE b.name_norm=? AND b.place=? AND b.active=1"
     " AND EXISTS (SELECT 1 FROM source_records p WHERE p.business_id=b.id AND p.active=1"
     "  AND p.source_id IN ('tx_tabc','npi'))"
     " AND NOT EXISTS (SELECT 1 FROM source_records t WHERE t.business_id=b.id AND t.source_id='tx_sales_tax')"
@@ -792,7 +819,8 @@ def _franchise_twins(conn: sqlite3.Connection, rec: _Rec, rejected: set) -> List
     """Licensed or registered practices (TABC, NPI) with the franchise record's exact name."""
     if not rec.name_norm:
         return []
-    return [b for b in conn.execute(_TWIN_SQL, (rec.name_norm, rec.id)).fetchall() if b["id"] not in rejected]
+    return [b for b in conn.execute(_TWIN_SQL, (rec.name_norm, rec.place, rec.id)).fetchall()
+            if b["id"] not in rejected]
 
 
 def _match_franchise_twins(conn: sqlite3.Connection, rec: _Rec, accepted: List[int], rejected: set,
@@ -831,14 +859,14 @@ def _requeue_franchise(conn: sqlite3.Connection) -> int:
     """Franchise records are matched again when their taxpayer gains or loses an
     active sales-tax outlet, or when a TABC- or NPI-backed business with the same
     name appears that no person has ruled out."""
-    with_outlet = franchise.sales_tax_taxpayers(conn)
+    with_outlet = franchise.sales_tax_taxpayer_places(conn)
     ids = []
     for row in conn.execute(
-        "SELECT id, source_key, business_id, match_state FROM source_records WHERE source_id=? AND active=1",
+        "SELECT id, source_key, business_id, match_state, place FROM source_records WHERE source_id=? AND active=1",
         (FRANCHISE,),
     ):
         state = row["match_state"]
-        if row["source_key"] in with_outlet:
+        if (row["source_key"], row["place"] or "longview") in with_outlet:
             if row["business_id"] is not None or state not in ("ignored", "new"):
                 ids.append(row["id"])
         elif state == "ignored" and row["business_id"] is None:
@@ -850,7 +878,7 @@ def _requeue_franchise(conn: sqlite3.Connection) -> int:
         " AND IFNULL(s.name_norm,'')<>''"
         " AND NOT EXISTS (SELECT 1 FROM source_records q WHERE q.business_id=s.business_id AND q.active=1"
         f"  AND q.source_id IN {_PREMISES_SQL})"
-        " AND EXISTS (SELECT 1 FROM businesses b WHERE b.name_norm=s.name_norm"
+        " AND EXISTS (SELECT 1 FROM businesses b WHERE b.name_norm=s.name_norm AND b.place=s.place"
         "  AND b.active=1 AND b.id<>IFNULL(s.business_id,0)"
         "  AND EXISTS (SELECT 1 FROM source_records p WHERE p.business_id=b.id AND p.active=1"
         "   AND p.source_id IN ('tx_tabc','npi'))"
@@ -915,16 +943,17 @@ def _name_candidates(conn: sqlite3.Connection, rec: _Rec, rejected: set) -> List
     if not rec.name_norm:
         return []
     if rec.source_id == FRANCHISE:
-        sql = ("SELECT * FROM businesses b WHERE b.name_norm=? AND b.active=1 AND NOT EXISTS"
+        sql = ("SELECT * FROM businesses b WHERE b.name_norm=? AND b.place=? AND b.active=1 AND NOT EXISTS"
                f" (SELECT 1 FROM source_records s WHERE s.business_id=b.id AND s.source_id IN {_PRIMARY_SQL})"
                " ORDER BY b.id")
-        params: tuple = (rec.name_norm,)
+        params: tuple = (rec.name_norm, rec.place)
     elif rec.source_id in ("osm", "tx_sales_tax"):
-        sql = ("SELECT * FROM businesses b WHERE b.name_norm=? AND b.active=1 AND IFNULL(b.street_norm,'')=''"
+        sql = ("SELECT * FROM businesses b WHERE b.name_norm=? AND b.place=? AND b.active=1"
+               " AND IFNULL(b.street_norm,'')=''"
                " AND EXISTS (SELECT 1 FROM source_records s WHERE s.business_id=b.id AND s.source_id=?"
                " AND s.active=1) AND NOT EXISTS (SELECT 1 FROM source_records s WHERE s.business_id=b.id"
                f" AND s.source_id IN {_PREMISES_SQL}) ORDER BY b.id")
-        params = (rec.name_norm, FRANCHISE)
+        params = (rec.name_norm, rec.place, FRANCHISE)
     else:
         return []
     candidates = [b for b in conn.execute(sql, params).fetchall() if b["id"] not in rejected]
@@ -967,8 +996,14 @@ def _match(conn: sqlite3.Connection, source_record_id: int, stamp: str) -> Match
         # Left as it is; an inactive record neither joins nor creates anything.
         return MatchResult("ignored", rec.business_id, "inactive", "The record is no longer in its source.")
 
-    # 0. A company with a Longview sales-tax outlet is listed by the outlet.
-    if rec.source_id == FRANCHISE and franchise.has_sales_tax_outlet(conn, rec.source_key):
+    # 00. A record that now names another town leaves its old business (a business has one place).
+    if rec.business_id is not None:
+        old = _business(conn, rec.business_id)
+        if old is not None and (old["place"] or "longview") != rec.place:
+            rec = _leave_place(conn, rec, old, stamp)
+
+    # 0. A company with a sales-tax outlet in its own town is listed by the outlet.
+    if rec.source_id == FRANCHISE and franchise.has_sales_tax_outlet(conn, rec.source_key, rec.place):
         return _franchise_step_aside(conn, rec, stamp)
 
     # 0b. A franchise record named like a TABC or NPI practice waits for a person.
@@ -991,7 +1026,7 @@ def _match(conn: sqlite3.Connection, source_record_id: int, stamp: str) -> Match
 
     accepted, rejected = _decisions(conn, rec)
     for business_id in accepted:
-        if _business(conn, business_id) is not None:
+        if _same_place(_business(conn, business_id), rec):
             return _join(conn, rec, business_id, RULE_REVIEWED, {"review": "accepted"},
                          "Joined because a reviewer accepted this match.", stamp)
 
@@ -1005,7 +1040,8 @@ def _match(conn: sqlite3.Connection, source_record_id: int, stamp: str) -> Match
             (rec.phone, rec.id),
         ):
             biz = _business(conn, r["business_id"])
-            if biz is None or biz["id"] in rejected or _taxpayer_bars(conn, rec, biz["id"]):
+            if (not _same_place(biz, rec) or biz["id"] in rejected
+                    or _taxpayer_bars(conn, rec, biz["id"])):
                 continue
             (agree if _phone_addresses_agree(rec, biz) else conflict).append(biz)
         if len(agree) == 1:
@@ -1031,7 +1067,7 @@ def _match(conn: sqlite3.Connection, source_record_id: int, stamp: str) -> Match
     if rec.street_norm:
         scored = []
         for biz in conn.execute(
-            "SELECT * FROM businesses WHERE street_norm=? ORDER BY id", (rec.street_norm,)
+            "SELECT * FROM businesses WHERE street_norm=? AND place=? ORDER BY id", (rec.street_norm, rec.place)
         ).fetchall():
             if biz["id"] in rejected or not _same_address(rec, biz) or _taxpayer_bars(conn, rec, biz["id"]):
                 continue

@@ -23,7 +23,7 @@ from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 from urllib.parse import urlsplit
 
-from . import config, db, normalize, privacy
+from . import config, db, normalize, places, privacy
 from .categories import CATEGORIES, CATEGORY_NAMES
 from .fetcher import forbidden_site
 
@@ -270,6 +270,9 @@ def _decide(conn: sqlite3.Connection, settings, business, now: str) -> Tuple[str
         return "suppressed", "suppressed"
     if not business["active"]:
         return "held", "inactive"
+    if places.slug_of(business) not in {p.slug for p in places.active(settings)}:
+        # A town that is not turned on (LVA_PLACES) is not published.
+        return "held", "place_not_active"
     if business["scope"] not in settings.publish_scopes:
         return "held", "out_of_scope"
     records = _linked_records(conn, bid)
@@ -335,7 +338,7 @@ def _decide(conn: sqlite3.Connection, settings, business, now: str) -> Tuple[str
 def evaluate(conn: sqlite3.Connection, settings, now: Any = None) -> Dict[str, int]:
     """Set publish_state and publish_reason for every business.
 
-    Order: suppressed; held (inactive, out_of_scope, personal_name_no_presence,
+    Order: suppressed; held (inactive, place_not_active, out_of_scope, personal_name_no_presence,
     dba_legal_name); review (osm_only_needs_primary_source, name_contains_address,
     person_name_check, open_merge_review); otherwise ready. A person's "no" to a
     name check holds it (name_address_rejected, person_name_rejected). A reason
@@ -444,7 +447,8 @@ def business_profile(conn: sqlite3.Connection, settings, business, sources=None)
     primaries = sorted((r for r in active if r["source_id"] in PRIMARY_SOURCES),
                        key=lambda r: (PRIMARY_SOURCES.index(r["source_id"]), r["id"]))
     name = _plain(business["name"], 160)
-    if not primaries or not name or not business["public_id"] or not business["slug"]:
+    place = places.of(business)
+    if not primaries or not name or not business["public_id"] or not business["slug"] or place is None:
         return None
     facts = _load_facts(conn, bid)
     entries: Dict[str, dict] = {}
@@ -591,7 +595,7 @@ def business_profile(conn: sqlite3.Connection, settings, business, sources=None)
         "name": name,
         "category": category,
         "categoryLabel": _plain(business["category_label"], 120),
-        "address": {"street": street, "city": "Longview", "state": "TX", "zip": zip_code},
+        "address": {"street": street, "city": place.name, "state": "TX", "zip": zip_code},
         "permitSince": permit_since,
         "website": website,
         "phone": phone,
@@ -608,6 +612,9 @@ def business_profile(conn: sqlite3.Connection, settings, business, sources=None)
     if registered_since:
         # Only on a franchise-tax listing, so batches without one keep their exact shape.
         profile = _with_key_after(profile, "permitSince", "registeredSince", registered_since)
+    if place is not places.LONGVIEW:
+        # Only outside Longview, so a Longview batch keeps its exact shape; no key means Longview.
+        profile = _with_key_after(profile, "address", "place", place.slug)
     return profile
 
 
@@ -635,9 +642,11 @@ def build_export(conn: sqlite3.Connection, settings, now: Any = None) -> dict:
     sources = load_sources(conn)
     scopes = tuple(s for s in settings.publish_scopes if s in config.PUBLISH_SCOPE_CHOICES) or ("city",)
     in_scope = f"({','.join(repr(s) for s in scopes)})"
+    active_places = places.active(settings)
+    in_places = f"({','.join(repr(p.slug) for p in active_places)})"
     businesses = []
     for row in conn.execute(
-        "SELECT * FROM businesses WHERE publish_state='ready' ORDER BY slug, id"
+        f"SELECT * FROM businesses WHERE publish_state='ready' AND place IN {in_places} ORDER BY slug, id"
     ).fetchall():
         if privacy.is_suppressed(conn, row):  # a removal request since the last evaluate
             continue
@@ -669,30 +678,44 @@ def build_export(conn: sqlite3.Connection, settings, now: Any = None) -> dict:
         for slug, name in CATEGORIES if per_category.get(slug)
     ]
 
-    return {
+    def archive_counts(where: str, params: tuple, published: int) -> dict:
+        return {
+            "published": published,
+            "inArchive": _count(
+                conn, f"SELECT COUNT(*) FROM businesses WHERE active=1 AND scope IN {in_scope} AND {where}", params),
+            "heldForPrivacy": _count(
+                conn, "SELECT COUNT(*) FROM businesses WHERE publish_state='held'"
+                      f" AND publish_reason IN ('personal_name_no_presence','dba_legal_name') AND {where}", params),
+            # Waiting for a person: held for review with an open review item a person can act on. A place
+            # known only from OpenStreetMap waits for a public record instead, not for a person.
+            "needsReview": _count(
+                conn, "SELECT COUNT(*) FROM businesses b WHERE b.publish_state='review' AND b.active=1"
+                      f" AND b.scope IN {in_scope} AND IFNULL(b.publish_reason,'')<>'osm_only_needs_primary_source'"
+                      f" AND b.{where}"
+                      " AND EXISTS (SELECT 1 FROM review_queue r WHERE r.business_id=b.id AND r.status='open')",
+                params),
+        }
+
+    export = {
         "schemaVersion": SCHEMA_VERSION,
         "generatedAt": generated,
         "batchId": generated[:16] + "Z",
         "sample": False,
         "indexable": bool(settings.indexable),
         "scope": config.scope_label(scopes),
-        "counts": {
-            "published": len(businesses),
-            "inArchive": _count(conn, f"SELECT COUNT(*) FROM businesses WHERE active=1 AND scope IN {in_scope}"),
-            "heldForPrivacy": _count(
-                conn, "SELECT COUNT(*) FROM businesses WHERE publish_state='held'"
-                      " AND publish_reason IN ('personal_name_no_presence','dba_legal_name')"),
-            # Waiting for a person: held for review with an open review item a person can act on. A place
-            # known only from OpenStreetMap waits for a public record instead, not for a person.
-            "needsReview": _count(
-                conn, "SELECT COUNT(*) FROM businesses b WHERE b.publish_state='review' AND b.active=1"
-                      f" AND b.scope IN {in_scope} AND IFNULL(b.publish_reason,'')<>'osm_only_needs_primary_source'"
-                      " AND EXISTS (SELECT 1 FROM review_queue r WHERE r.business_id=b.id AND r.status='open')"),
-        },
+        "counts": archive_counts(f"place IN {in_places}", (), len(businesses)),
         "sources": source_list,
         "categories": category_list,
         "businesses": businesses,
     }
+    if tuple(p.slug for p in active_places) != (places.LONGVIEW.slug,):
+        # One entry per active town, in registry order, with its own honest counts. Only when a
+        # town besides Longview is on, so a Longview batch keeps its exact shape.
+        per = places.counts_by_place(businesses)
+        entries = [dict({"slug": p.slug, "name": p.name}, **archive_counts("place=?", (p.slug,), per.get(p.slug, 0)))
+                   for p in active_places]
+        export = _with_key_after(export, "counts", "places", entries)
+    return export
 
 
 def atomic_write(path: Path | str, data: bytes, mode: int) -> None:
