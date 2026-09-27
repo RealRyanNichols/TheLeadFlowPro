@@ -125,11 +125,11 @@ class DbaOutlets(unittest.TestCase):
         b.add_site(conn, business(conn, "Smith Lawn Service")["id"], "https://www.smithlawn.example/")
         b.add_site(conn, business(conn, "Maria's Bakery")["id"], "https://www.bakery.example/")
         data = export(conn)
-        self.assertEqual(sorted(e["name"] for e in data["businesses"]), ["Maria's Bakery", "Smith Lawn Service"])
-        self.assertEqual(sorted(e["slug"] for e in data["businesses"]), ["marias-bakery", "smith-lawn-service"])
-        text = json.dumps(data).lower()
-        for private in ("john", "garcia", "dba", "d/b/a"):
-            self.assertNotIn(private, text)
+        # Both trade names share a word with the owner's name ('Smith', 'Maria'),
+        # so a person checks them first (golive-names2 structural owner rule).
+        self.assertEqual(data["businesses"], [])
+        for name in ("Smith Lawn Service", "Maria's Bakery"):
+            self.assertEqual(b.state(conn, business(conn, name)["id"]), ("review", "person_name_check"), name)
 
 
 class JointOwnersAndLongNames(unittest.TestCase):
@@ -305,13 +305,15 @@ class OrgTypeCodesAndBlank(unittest.TestCase):
         for bid in ids:
             b.add_site(conn, bid, f"https://www.site{bid}.example/")
         data = export(conn)
-        # Only trade names are published; a name that carries the owner's waits for a person.
-        self.assertEqual(sorted(e["name"] for e in data["businesses"]), ["Maria's Bakery", "Smith Lawn Service"])
+        # A name that carries any word of the owner's name waits for a person,
+        # the trade names 'Smith Lawn Service' and "Maria's Bakery" too.
+        self.assertEqual(data["businesses"], [])
         text = json.dumps(data).lower()
         for private in ("hoa", "thanh", "dalix", "john", "garcia"):
             self.assertNotIn(private, text)
         for name in ("Hoa Nguyen", "Thanh & Hoa Nguyen", "Dalix Quillfeather", "Dalix Quillfeather - Quillfeather Lawn",
-                     "Dalix Quillfeather Lawn Service", "John Smith T/a Smith Lawn Service"):
+                     "Dalix Quillfeather Lawn Service", "John Smith T/a Smith Lawn Service", "Smith Lawn Service",
+                     "Maria's Bakery"):
             self.assertEqual(b.state(conn, business(conn, name)["id"]), ("review", "person_name_check"), name)
 
     def test_a_bare_surname_or_a_trade_name_is_not_the_owner_name(self):
@@ -474,8 +476,9 @@ class ArchivesFromBeforeTheFix(unittest.TestCase):
                              (new, normalize.slugify(new), public_ids[ids[old]]))
         data = export(conn)
         self.assertEqual(sorted((e["name"], e["slug"]) for e in data["businesses"]),
-                         [("Example Eats", "example-eats"), ("Example Tire", "example-tire"),
-                          ("Smith Lawn Service", "smith-lawn-service")])
+                         [("Example Eats", "example-eats"), ("Example Tire", "example-tire")])
+        # 'Smith Lawn Service' shares the owner's surname: renamed, then a person checks it.
+        self.assertEqual(b.state(conn, business(conn, "Smith Lawn Service")["id"]), ("review", "person_name_check"))
         text = json.dumps(data).lower()
         for private in ("john", "dba", "holdings", "77 sample"):
             self.assertNotIn(private, text)
