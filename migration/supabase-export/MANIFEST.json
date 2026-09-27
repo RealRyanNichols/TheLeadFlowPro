@@ -1,0 +1,33 @@
+{
+  "exported_from": "Supabase project hpzpwfymwfgwspaixrxi (The LeadFlow Pro), deployed edge-function source",
+  "exported_at": "2026-09-27",
+  "method": "two independent byte copies per function, compared identical before commit",
+  "functions": {
+    "books-release-assets": {
+      "live_version": 1,
+      "verify_jwt": false,
+      "files": {
+        "index.ts": {
+          "live_sha256": "f5c62b10483a38b48365aa72ccab082a45b7e4178a43b01f3fc8b71ee2297a11",
+          "committed_sha256": "f5c62b10483a38b48365aa72ccab082a45b7e4178a43b01f3fc8b71ee2297a11",
+          "lines": 28,
+          "redacted_lines": []
+        }
+      }
+    },
+    "quo-webhook": {
+      "live_version": 3,
+      "verify_jwt": false,
+      "files": {
+        "index.ts": {
+          "live_sha256": "44c077b7e8c91b83c1a74b79c987642cc80edc9e11bb33492ac3167b4db18681",
+          "committed_sha256": "cf6a3051a21c4eea4ce33a0063f5868518e21c60ab45a1b5ae52197b3b6ff5d7",
+          "lines": 199,
+          "redacted_lines": [
+            19
+          ]
+        }
+      }
+    }
+  }
+}
