@@ -408,13 +408,16 @@ def _extract(result: VisitResult, snap: BusinessSnapshot, pages: List[Tuple[Opti
     socials: Dict[str, Tuple[social.SocialCandidate, str]] = {}
     links: List[Tuple[str, str]] = []
     tags: Dict[str, str] = {}
+    # First-seen order with a constant-time "seen already?"; a list scan took time with the square
+    # of the count on a page whose JSON-LD lists tens of thousands of numbers.
+    jsonld_phones: Dict[str, None] = dict.fromkeys(result.jsonld_phones)
     for _, page in pages:
         for e164, method, confidence in contacts.phones(page, allow_fictional=settings.allow_fictional_phones):
             _best_found(phones, e164, method, confidence, page.url)
         for raw in contacts._jsonld_values(page, "telephone"):
             e164 = normalize.norm_phone(raw, allow_fictional=settings.allow_fictional_phones)
-            if e164 and e164 not in result.jsonld_phones:
-                result.jsonld_phones.append(e164)
+            if e164:
+                jsonld_phones.setdefault(e164)
         for email, method, confidence in contacts.emails(page, site_domain):
             _best_found(emails, email, method, confidence, page.url)
         for cand in social.social_links(page, snap.name, site_domain):
@@ -424,6 +427,7 @@ def _extract(result: VisitResult, snap: BusinessSnapshot, pages: List[Tuple[Opti
         for tag in services.service_tags(page, snap.category):
             tags.setdefault(tag, page.url)
     # dicts keep insertion order: sort by confidence, first seen wins a tie.
+    result.jsonld_phones = list(jsonld_phones)
     result.phones = sorted(phones.values(), key=lambda f: -f.confidence)
     result.emails = sorted(emails.values(), key=lambda f: -f.confidence)
     result.socials = list(socials.values())
@@ -542,7 +546,8 @@ def choose_phone(phones: Sequence[Found], known: Optional[str],
                     return found, None
                 if not local:
                     return found, "phone_out_of_area"
-    in_jsonld = [p for p in local if p.method == "jsonld" or p.value in structured]
+    listed = set(structured)  # a list scan per number took time with the square of the count
+    in_jsonld = [p for p in local if p.method == "jsonld" or p.value in listed]
     if len(in_jsonld) == 1:
         return in_jsonld[0], None
     if len(local) == 1:
