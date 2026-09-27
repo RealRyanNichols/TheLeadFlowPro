@@ -59,8 +59,8 @@ ALL_CODES = ("CL", "CT", "CN", "PL", "CP", "CI", "AR", "CF", "AP", "PB", "CM", "
 ENTITY_CODES = ("CT", "CF", "CN", "CP", "CL", "PL", "PF", "AP", "AF")
 
 # A company name that is plainly a company's (it has a trade word), for listings that must publish.
-WIDGETS = "EXAMPLE WIDGET SUPPLY LLC"
-WIDGETS_SHOWN = "Example Widget Supply LLC"
+WIDGETS = "EXAMPLE HARDWARE SUPPLY LLC"
+WIDGETS_SHOWN = "Example Hardware Supply LLC"
 
 
 def fr_row(number, name, org="CL", zip_code="75601", rtt="A", exempt=None, since="2014-05-01T00:00:00.000",
@@ -236,10 +236,10 @@ class SyncTests(FranchiseCase):
         self.assertEqual(counts["kept"], 1)
 
     def test_a_row_that_left_good_standing_is_retired(self):
-        self.sync_franchise([fr_row("32000000121", WIDGETS), fr_row("32000000122", "EXAMPLE GEAR WORKS LLC")])
+        self.sync_franchise([fr_row("32000000121", WIDGETS), fr_row("32000000122", "EXAMPLE PAINT WORKS LLC")])
         self.match()
         self.sync_franchise([fr_row("32000000121", WIDGETS),
-                             fr_row("32000000122", "EXAMPLE GEAR WORKS LLC", rtt="N")], now=LATER)
+                             fr_row("32000000122", "EXAMPLE PAINT WORKS LLC", rtt="N")], now=LATER)
         self.match(LATER)
         self.assertEqual(self.record("tx_franchise", "32000000122")["active"], 0)
         self.assertEqual(self.business_of("tx_franchise", "32000000122")["active"], 0)
@@ -357,17 +357,60 @@ class ScopeTests(FranchiseCase):
             with self.assertRaises(ValueError, msg=bad):
                 config.load_settings({"LVA_PUBLISH_SCOPES": bad})
 
+    def test_a_nearby_outlet_needs_a_longview_texas_zip(self):
+        # Under the default scopes, "nearby" is listed as "Longview, TX": only a Longview postal ZIP proves it.
+        rows = [st_row("32000000901", "00001", "EXAMPLE CASCADE LUMBER", "12 SAMPLE AVE", zip_code="98632", inside="O"),
+                st_row("32000000902", "00001", "EXAMPLE NOZIP SUPPLY", "14 SAMPLE AVE", zip_code="", inside="O"),
+                st_row("32000000903", "00001", "EXAMPLE FARAWAY PARTS", "16 SAMPLE AVE", zip_code="77001", inside=""),
+                st_row("32000000904", "00001", "EXAMPLE INSIDE OTHER ZIP TIRE", "18 SAMPLE AVE", zip_code="75662"),
+                st_row("32000000905", "00001", "EXAMPLE LAKESIDE TIRE", "20 SAMPLE RD", zip_code="75603", inside="O"),
+                st_row("32000000906", "00001", "EXAMPLE HILLTOP TIRE", "22 SAMPLE RD", zip_code="75607")]
+        counts = self.sync_sales(rows)
+        self.assertEqual((counts["city"], counts["nearby"], counts["out"]), (0, 2, 4))
+        self.assertEqual(counts["other_zips"], {"98632": 1, "missing": 1, "77001": 1, "75662": 1, "75607": 1})
+        self.match()
+        self.evaluate()
+        for number in ("32000000901", "32000000902", "32000000903", "32000000904"):
+            key = f"{number}:00001"
+            self.assertEqual(self.business_of("tx_sales_tax", key)["scope"], "out", number)
+            self.assertEqual(self.state("tx_sales_tax", key), ("held", "out_of_scope"), number)
+        for number in ("32000000905", "32000000906"):
+            key = f"{number}:00001"
+            self.assertEqual(self.business_of("tx_sales_tax", key)["scope"], "nearby", number)
+            self.assertEqual(self.state("tx_sales_tax", key), ("ready", None), number)
+        names = sorted(b["name"] for b in self.export()["businesses"])
+        self.assertEqual(names, ["Example Hilltop Tire", "Example Lakeside Tire"])
+
+    def test_an_outlet_or_licence_in_another_state_is_skipped(self):
+        from longview_archive.sources import comptroller, tabc
+        fields = {logical: candidates[0] for logical, candidates in comptroller.FIELD_CANDIDATES.items()}
+        row = st_row("32000000911", "00001", "EXAMPLE CASCADE LUMBER", "12 SAMPLE AVE", zip_code="75601")
+        self.assertEqual(comptroller.project_row(dict(row, outlet_state="WA"), fields)[2], "skipped_state")
+        self.assertIsNotNone(comptroller.project_row(dict(row, outlet_state="TX"), fields)[0])
+        self.assertIsNotNone(comptroller.project_row(row, fields)[0])  # no state value: the ZIP decides
+        tfields = {logical: candidates[0] for logical, candidates in tabc.FIELD_CANDIDATES.items()}
+        licence = {"trade_name": "EXAMPLE CASCADE TAVERN", "address": "1 SAMPLE ST", "city": "LONGVIEW",
+                   "zip": "98632", "license_id": "MB000911", "status": "Active", "state": "WA"}
+        self.assertEqual(tabc.project_row(licence, tfields, self.settings)[2], "skipped_state")
+        key, record, _ = tabc.project_row(dict(licence, state="TX"), tfields, self.settings)
+        self.assertEqual(record["scope"], "out")  # 98632 is not a Longview, Texas ZIP
+        key, record, _ = tabc.project_row(dict(licence, state="TX", zip="75606"), tfields, self.settings)
+        self.assertEqual(record["scope"], "nearby")
+        self.assertEqual([config.longview_scope(z) for z in ("75601", "75606", "75647", "", None)],
+                         ["city", "nearby", "out", "out", "out"])
+        self.assertEqual(config.longview_scope("75601", outside_city_limits=True), "nearby")
+
 
 # ---------------------------------------------------------------- de-duplication with sales tax
 
 class SalesTaxDedupeTests(FranchiseCase):
     TAXPAYER = "32000000301"
 
-    def outlet(self, name="EXAMPLE GEAR WORKS", street="100 EXAMPLE ST"):
-        return st_row(self.TAXPAYER, "00001", name, street, taxpayer="EXAMPLE GEAR WORKS LLC")
+    def outlet(self, name="EXAMPLE PAINT WORKS", street="100 EXAMPLE ST"):
+        return st_row(self.TAXPAYER, "00001", name, street, taxpayer="EXAMPLE PAINT WORKS LLC")
 
     def company(self):
-        return fr_row(self.TAXPAYER, "EXAMPLE GEAR WORKS LLC")
+        return fr_row(self.TAXPAYER, "EXAMPLE PAINT WORKS LLC")
 
     def assert_one_listing_from_the_outlet(self):
         self.evaluate()
@@ -435,16 +478,16 @@ class SalesTaxDedupeTests(FranchiseCase):
         self.assertEqual(self.state("tx_franchise", self.TAXPAYER), ("ready", None))
 
     def test_a_different_taxpayer_with_a_similar_name_is_not_merged(self):
-        self.sync_sales([st_row("32000000311", "00001", "EXAMPLE GEAR WORKS", "100 EXAMPLE ST")])
-        self.sync_franchise([fr_row("32000000312", "EXAMPLE GEARWORKS SUPPLY LLC")])
+        self.sync_sales([st_row("32000000311", "00001", "EXAMPLE PAINT WORKS", "100 EXAMPLE ST")])
+        self.sync_franchise([fr_row("32000000312", "EXAMPLE PAINTWORKS SUPPLY LLC")])
         self.match()
         self.assertNotEqual(self.business_of("tx_sales_tax", "32000000311:00001")["id"],
                             self.business_of("tx_franchise", "32000000312")["id"])
 
     def test_one_key_format_for_the_outlet_check_and_the_requeue(self):
         # An outlet key whose taxpayer part is not plain digits never equals a franchise key, in both checks.
-        add_record(self.conn, "tx_sales_tax", "32-000000321:00001", "Example Gear Works", street="100 Example St")
-        self.sync_franchise([fr_row("32000000321", "EXAMPLE GEAR WORKS LLC")])
+        add_record(self.conn, "tx_sales_tax", "32-000000321:00001", "Example Paint Works", street="100 Example St")
+        self.sync_franchise([fr_row("32000000321", "EXAMPLE PAINT WORKS LLC")])
         self.assertFalse(franchise.has_sales_tax_outlet(self.conn, "32000000321"))
         self.assertNotIn("32000000321", franchise.sales_tax_taxpayers(self.conn))
         self.assertEqual(franchise.outlet_taxpayer("32000000321:00007"), "32000000321")
@@ -526,12 +569,12 @@ class TaxpayerKeyTests(FranchiseCase):
         # A franchise-only company joined by an OpenStreetMap place that carries a phone.
         self.sync_franchise([fr_row("32000000701", WIDGETS)])
         self.match()
-        add_record(self.conn, "osm", "node/701", "Example Widget Supply", phone="+19035550101",
+        add_record(self.conn, "osm", "node/701", "Example Hardware Supply", phone="+19035550101",
                    tags={"shop": "hardware"})
         self.match()
         company = self.business_of("tx_franchise", "32000000701")
         self.assertEqual(self.business_of("osm", "node/701")["id"], company["id"])
-        add_record(self.conn, "tx_sales_tax", "32000000702:00001", "Example Widget Supply",
+        add_record(self.conn, "tx_sales_tax", "32000000702:00001", "Example Hardware Supply",
                    street="40 Example St", phone="+19035550101")
         self.match()
         self.assertNotEqual(self.business_of("tx_sales_tax", "32000000702:00001")["id"], company["id"])
@@ -585,9 +628,9 @@ class PrivacyTests(FranchiseCase):
         for code in ("PB", "PI", "AR", "CI", "CM", "TR", "IS", ""):
             self.assertNotIn(code, franchise.ENTITY_ORG_TYPES)
             self.assertFalse(privacy.org_is_entity(code), code)
-        self.assertEqual(franchise.privacy_flags("EXAMPLE ORCHARD SUPPLY", "CL"), (False, False, False))
-        self.assertEqual(franchise.privacy_flags("EXAMPLE ORCHARD SUPPLY", "PB"), (True, True, True))
-        self.assertEqual(franchise.privacy_flags("EXAMPLE ORCHARD SUPPLY LLC", "PB"), (False, False, False))
+        self.assertEqual(franchise.privacy_flags("EXAMPLE HARDWARE SUPPLY", "CL"), (False, False, False))
+        self.assertEqual(franchise.privacy_flags("EXAMPLE HARDWARE SUPPLY", "PB"), (True, True, True))
+        self.assertEqual(franchise.privacy_flags("EXAMPLE HARDWARE SUPPLY LLC", "PB"), (False, False, False))
 
     def test_a_person_like_name_with_a_public_presence_waits_for_a_person(self):
         add_record(self.conn, "osm", "node/401", "Jane Doe", street="12 Sample Ave", zip_code="75601",
@@ -623,14 +666,41 @@ class PersonNameWithALegalFormTests(FranchiseCase):
     # A full name inside a professional or company name.
     NAME_IN_A_COMPANY = ("JOHN SMITH CPA PC", "JOHN SMITH ATTORNEY AT LAW PC", "LAW OFFICE OF JOHN SMITH PLLC",
                          "THE JOHN SMITH COMPANY", "JOHN SMITH HOLDINGS LP", "JOHN SMITH ENTERPRISES LLC",
-                         "JOHN SMITH INVESTMENTS LLC", "MARIA GARCIA DDS PA", "JOHN SMITH MD PA")
+                         "JOHN SMITH INVESTMENTS LLC", "MARIA GARCIA DDS PA", "JOHN SMITH MD PA",
+                         # A full name whose given name is not on the list, next to a credential or a trade.
+                         "WEI ZHANG CPA PLLC", "ANH NGUYEN CPA PC", "DALIX QUILLFEATHER CPA PC",
+                         "DALIX QUILLFEATHER ATTORNEY AT LAW PC", "LAW OFFICE OF DALIX QUILLFEATHER PLLC",
+                         "LAW OFFICES OF ANH NGUYEN PC", "DR ANH NGUYEN DDS PLLC",
+                         "DALIX QUILLFEATHER INSURANCE AGENCY INC", "DALIX QUILLFEATHER CONSTRUCTION LLC",
+                         "QUILLFEATHER & ZHANG CONSTRUCTION LLC", "DALIX QUILLFEATHER AND ASSOCIATES PLLC")
+    # A family's own holding vehicle or a numbered trust: often one household's, named for it.
+    FAMILY_VEHICLES = ("SMITH FAMILY LP", "THE QUILLFEATHER FAMILY LIMITED PARTNERSHIP", "SMITH FAMILY PARTNERSHIP LTD",
+                       "SMITH FAMILY HOLDINGS LLC", "SMITH FAMILY LLC", "NGUYEN FAMILY LP", "SMITH FAMILY TR",
+                       "QUILLFEATHER TRUST NO 2", "QUILLFEATHER TRUST 2019", "SMITH FAMILY INVESTMENTS LTD",
+                       "SMITH FAMILY L P")
     # Plainly a company's: published for an entity code.
     COMPANIES = ("EXAMPLE TIRE LLC", "SMITH PLUMBING LLC", "GRACE PLUMBING LLC", "EXAMPLE OIL & GAS LLC",
-                 "EXAMPLE HOLDINGS LLC", "EXAMPLE REAL ESTATE LLC", "QUILLBY LLC")
+                 "EXAMPLE HOLDINGS LLC", "EXAMPLE REAL ESTATE LLC", "QUILLBY LLC", "NGUYEN FAMILY DENTISTRY PLLC",
+                 "EXAMPLE FAMILY RESTAURANT LLC", "EXAMPLE BANK & TRUST")
+
+    def test_family_vehicles_and_numbered_trusts(self):
+        for name in self.FAMILY_VEHICLES:
+            self.assertTrue(franchise.is_trust_or_estate(name), name)
+        for name in ("NGUYEN FAMILY DENTISTRY PLLC", "EXAMPLE FAMILY RESTAURANT LLC", "EXAMPLE BANK & TRUST",
+                     "EXAMPLE REAL ESTATE LLC", "EXAMPLE TIRE NO 2 LLC"):
+            self.assertFalse(franchise.is_trust_or_estate(name), name)
+
+    def test_the_word_run_rule(self):
+        for name in ("WEI ZHANG CPA PLLC", "PINEY WOODS SUPPLY LLC", "SMITH & JONES CONSTRUCTION LLC"):
+            self.assertTrue(franchise.name_word_run(name), name)
+        for name in ("SMITH PLUMBING LLC", "SMITH & ASSOCIATES", "EXAMPLE HARDWARE SUPPLY LLC", "QUILLBY LLC",
+                     "LAW OFFICE OF SMITH PC", "SMITH CPA PC", "JOE'S EXAMPLE TIRE"):
+            self.assertFalse(franchise.name_word_run(name), name)
 
     def test_the_flags(self):
-        for name in self.UNLISTED_GIVEN_NAMES + self.NAME_IN_A_COMPANY:
-            self.assertTrue(franchise.carries_person_name(name), name)
+        for name in self.UNLISTED_GIVEN_NAMES + self.NAME_IN_A_COMPANY + self.FAMILY_VEHICLES:
+            if name not in self.FAMILY_VEHICLES:
+                self.assertTrue(franchise.carries_person_name(name), name)
             for code in ALL_CODES:
                 is_individual, personal, owner_named = franchise.privacy_flags(name, code)
                 self.assertTrue(personal and owner_named, (name, code))
@@ -641,7 +711,7 @@ class PersonNameWithALegalFormTests(FranchiseCase):
 
     def test_never_published_for_any_code(self):
         rows, number = [], 0
-        for name in self.UNLISTED_GIVEN_NAMES + self.NAME_IN_A_COMPANY:
+        for name in self.UNLISTED_GIVEN_NAMES + self.NAME_IN_A_COMPANY + self.FAMILY_VEHICLES:
             for code in ALL_CODES:
                 number += 1
                 rows.append(fr_row(f"329{number:08d}", name, org=code))
@@ -733,14 +803,14 @@ class ListingTests(FranchiseCase):
         self.assertEqual(validate.validate_directory(missing).dropped, [(listing["id"], "missing_fact:registeredSince")])
 
     def test_status_counts_the_new_source(self):
-        self.sync_franchise([fr_row("32000000531", WIDGETS), fr_row("32000000532", "EXAMPLE GEAR WORKS LLC")])
+        self.sync_franchise([fr_row("32000000531", WIDGETS), fr_row("32000000532", "EXAMPLE PAINT WORKS LLC")])
         data = status.collect(self.conn, self.settings, LATEST)
         row = next(s for s in data["sources"] if s["id"] == "tx_franchise")
         self.assertEqual((row["name"], row["status"], row["rows"]), ("Active Franchise Taxpayers", "ok", 2))
         html = status.render_html(data)
         self.assertIn("Active Franchise Taxpayers", html)
         self.assertIn("franchise-tax only: a Longview postal ZIP", html)
-        self.assertNotIn("Example Widget", html)
+        self.assertNotIn("Example Hardware", html)
 
 
 # ---------------------------------------------------------------- a primary source
@@ -756,7 +826,7 @@ class PrimarySourceTests(FranchiseCase):
         self.assertEqual(self.state("tx_franchise", "32000000601"), ("ready", None))
 
     def test_an_osm_place_found_first_is_no_longer_osm_only(self):
-        add_record(self.conn, "osm", "node/602", "Example Widget Supply", street="77 Sample Ct", zip_code="75605",
+        add_record(self.conn, "osm", "node/602", "Example Hardware Supply", street="77 Sample Ct", zip_code="75605",
                    tags={"shop": "hardware"}, website="https://www.widgets.example/", lat=32.5, lon=-94.7)
         self.match()
         self.evaluate()
@@ -781,7 +851,7 @@ class PrimarySourceTests(FranchiseCase):
     def test_an_osm_place_found_later_joins_the_company(self):
         self.sync_franchise([fr_row("32000000603", WIDGETS)])
         self.match()
-        add_record(self.conn, "osm", "node/603", "Example Widget Supply", street="77 Sample Ct", zip_code="75605",
+        add_record(self.conn, "osm", "node/603", "Example Hardware Supply", street="77 Sample Ct", zip_code="75605",
                    tags={"shop": "hardware"}, website="https://www.widgets.example/", lat=32.5, lon=-94.7)
         self.match(LATER)
         biz = self.business_of("osm", "node/603")
@@ -794,7 +864,7 @@ class PrimarySourceTests(FranchiseCase):
         self.assertEqual(self.active_businesses(), 1)
 
     def test_similar_but_different_names_are_not_merged(self):
-        add_record(self.conn, "osm", "node/604", "Example Widget Works", street="77 Sample Ct", zip_code="75605",
+        add_record(self.conn, "osm", "node/604", "Example Hardware Works", street="77 Sample Ct", zip_code="75605",
                    tags={"shop": "hardware"})
         self.sync_franchise([fr_row("32000000604", WIDGETS)])
         self.match()
@@ -805,12 +875,12 @@ class PrimarySourceTests(FranchiseCase):
 
     def test_two_registrations_with_one_name_stay_two_companies(self):
         self.sync_franchise([fr_row("32000000605", WIDGETS),
-                             fr_row("32000000606", "EXAMPLE WIDGET SUPPLY LP", org="PL")])
+                             fr_row("32000000606", "EXAMPLE HARDWARE SUPPLY LP", org="PL")])
         self.match()
         self.assertNotEqual(self.business_of("tx_franchise", "32000000605")["id"],
                             self.business_of("tx_franchise", "32000000606")["id"])
         # An OpenStreetMap place with that name cannot tell them apart: it joins neither, and asks nothing.
-        add_record(self.conn, "osm", "node/605", "Example Widget Supply", tags={"shop": "hardware"})
+        add_record(self.conn, "osm", "node/605", "Example Hardware Supply", tags={"shop": "hardware"})
         self.match()
         self.assertNotIn(self.business_of("osm", "node/605")["id"],
                          {self.business_of("tx_franchise", k)["id"] for k in ("32000000605", "32000000606")})
@@ -920,11 +990,11 @@ class ProbeToolTests(FranchiseCase):
         with contextlib.redirect_stdout(out):
             probe.published_by_source(self.conn)
         text = out.getvalue()
-        self.assertIn("tx_franchise: looks_like_person_name=0 may_name_owner(bare)=0 carries_person_name=0 (of 1)",
+        self.assertIn("tx_franchise: looks_like_person_name=0 may_name_owner(bare)=0 carries_person_name=0 broad=0 (of 1)",
                       text)
         self.assertIn("tx_sales_tax:", text)
-        self.assertIn("should have been held (expected 0): 0", text)
-        for private in ("Nguyen", "NGUYEN", "Widget", "Example Tire", "32000000"):
+        self.assertIn("should have been held (expected 0): 0 by the hold rule, 0 by the broad check", text)
+        for private in ("Nguyen", "NGUYEN", "Hardware", "Example Tire", "32000000"):
             self.assertNotIn(private, text)
 
 
@@ -940,7 +1010,7 @@ class EndToEndTests(FranchiseCase):
         self.api.rows[FR_ID] = [
             fr_row("32000000701", "EXAMPLE TIRE CO LLC"),                       # listed by its outlet
             fr_row("32000000702", WIDGETS, since="2014-05-01T00:00:00.000"),
-            fr_row("32000000703", "EXAMPLE NORTH HOLDINGS LP", org="PL", zip_code="75606",
+            fr_row("32000000703", "EXAMPLE LAND HOLDINGS LP", org="PL", zip_code="75606",
                    since="2019-01-15T00:00:00.000"),                           # a PO-box ZIP: Longview
             fr_row("32000000704", "ZEPHYRA QUILLBY", org="PB"),                 # may be a person: held
             fr_row("32000000705", "EXAMPLE CHARITY INC", org="CN", exempt="12"),  # exempt: not listed
@@ -965,7 +1035,7 @@ class EndToEndTests(FranchiseCase):
 
         export = json.loads(self.settings.publish_export_path.read_text(encoding="utf-8"))
         by_name = {b["name"]: b for b in export["businesses"]}
-        self.assertEqual(sorted(by_name), ["Example North Holdings LP", "Example Tire & Lube", WIDGETS_SHOWN])
+        self.assertEqual(sorted(by_name), [WIDGETS_SHOWN, "Example Land Holdings LP", "Example Tire & Lube"])
         self.assertEqual(export["scope"], config.SCOPE_LABEL_POSTAL)
         self.assertEqual([s["id"] for s in export["sources"]], ["tx_sales_tax", "tx_franchise"])
         widgets = by_name[WIDGETS_SHOWN]

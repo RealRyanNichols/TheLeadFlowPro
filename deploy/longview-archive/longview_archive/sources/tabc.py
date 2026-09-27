@@ -16,7 +16,7 @@ import sqlite3
 from typing import Any, Dict, Mapping, Optional, Tuple
 
 from .. import db, normalize
-from ..config import LONGVIEW_ZIPS
+from ..config import LONGVIEW_ZIPS, longview_scope
 from . import socrata
 from .http import EmptyResult, RecordWriter, as_now, bump, finish_failed, finish_ok
 from .socrata import DatasetNotFound, SchemaMismatch
@@ -34,6 +34,7 @@ FIELD_CANDIDATES: Dict[str, Tuple[str, ...]] = {
     "address": ("address", "premise_address", "location_address", "address1", "street_address"),
     "city": ("city", "premise_city", "location_city"),
     "zip": ("zip", "zip_code", "premise_zip", "postal_code"),
+    "state": ("state", "premise_state", "location_state"),
     "license_id": ("license_id", "license_number", "permit_number", "license_no", "licensenumber"),
     "status": ("status", "license_status", "primary_status"),
     "phone": ("phone", "phone_number"),
@@ -69,6 +70,9 @@ def project_row(row: Mapping[str, Any], fields: Mapping[str, Optional[str]], set
     city = _get(row, fields, "city")
     if city.upper() != "LONGVIEW":
         return None, None, "skipped_city"
+    state = _get(row, fields, "state")
+    if fields.get("state") and state and state.upper() != "TX":
+        return None, None, "skipped_state"
     address = _get(row, fields, "address")
     street_norm, suite = normalize.parse_street(address)
     zip_code = normalize.zip5(_get(row, fields, "zip"))
@@ -82,7 +86,8 @@ def project_row(row: Mapping[str, Any], fields: Mapping[str, Optional[str]], set
         "city": normalize.title_case_name(city),
         "zip": zip_code,
         "phone": normalize.norm_phone(_get(row, fields, "phone"), allow_fictional=settings.allow_fictional_phones),
-        "scope": "city" if zip_code in LONGVIEW_ZIPS else "nearby",
+        # A missing or non-Longview ZIP is 'out': never published as "Longview, TX".
+        "scope": longview_scope(zip_code),
         "tags_json": db.dumps({"county": normalize.title_case_name(county)}) if county else None,
     }
     return license_id, record, ""
@@ -95,7 +100,7 @@ def sync_tabc(conn: sqlite3.Connection, settings, now=None, transport=None) -> D
     counts: Dict[str, Any] = {
         "fetched": 0, "kept": 0, "inserted": 0, "updated": 0, "unchanged": 0, "reactivated": 0,
         "deactivated": 0, "businesses_deactivated": 0, "duplicates": 0, "suppressed": 0,
-        "city": 0, "nearby": 0, "other_zips": {},
+        "city": 0, "nearby": 0, "out": 0, "other_zips": {},
     }
     try:
         info = socrata.discover_dataset(

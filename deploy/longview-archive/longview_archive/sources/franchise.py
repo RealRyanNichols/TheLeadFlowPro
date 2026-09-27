@@ -91,7 +91,17 @@ ENTITY_ORG_TYPES: Dict[str, str] = {
 }
 
 TRUST_CODE = "TR"
-_TRUST_WORDS = frozenset({"trust", "trustee", "trustees", "estate"})
+# 'TR' and 'TRST' are how the list abbreviates a trust ('SMITH FAMILY TR').
+_TRUST_WORDS = frozenset({"trust", "trustee", "trustees", "estate", "tr", "trst"})
+_TRUST_NOUNS = frozenset({"trust", "tr", "trst"})
+# A trust's serial after its name: 'QUILLFEATHER TRUST NO 2', 'SAMPLE TRUST 2019', 'SAMPLE TRUST II'.
+_SERIAL_WORDS = frozenset({"no", "num", "number", "i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x"})
+# What may follow 'FAMILY' in a family's own holding vehicle ('SMITH FAMILY LP', 'THE SAMPLE FAMILY
+# LIMITED PARTNERSHIP', 'SMITH FAMILY HOLDINGS LLC'): legal forms and holding words, never a trade.
+_FAMILY_VEHICLE_WORDS = frozenset(normalize.LEGAL_SUFFIXES) | {
+    "l", "p", "c", "partnership", "partners", "holdings", "holding", "investments", "investment", "interests",
+    "properties", "property", "assets", "ventures", "enterprises", "trust", "tr", "trst",
+} | _SERIAL_WORDS
 _LEGAL_WORDS = frozenset(normalize.LEGAL_SUFFIXES) | {"l", "p", "c"}
 
 
@@ -156,14 +166,29 @@ def scope_for(zip_code: Optional[str]) -> str:
     return "city" if zip_code in LONGVIEW_POSTAL_ZIPS else "out"
 
 
+def family_vehicle(name: str) -> bool:
+    """'SMITH FAMILY LP', 'THE SAMPLE FAMILY LIMITED PARTNERSHIP', 'SMITH FAMILY PARTNERSHIP LTD',
+    'SMITH FAMILY HOLDINGS LLC', 'SMITH FAMILY LLC': usually an estate-planning vehicle that holds one
+    household's assets, not a business open to the public, and its name is the family's.
+    Not 'NGUYEN FAMILY DENTISTRY' or 'SAMPLE FAMILY RESTAURANT': a trade word follows 'FAMILY'."""
+    words = [w for w in privacy._plain_words(normalize.split_dba(name)[0] or name) if not w.isdigit()]
+    if "family" not in words:
+        return False
+    return all(w in _FAMILY_VEHICLE_WORDS for w in words[words.index("family") + 1:])
+
+
 def is_trust_or_estate(name: str, org_code: str = "") -> bool:
     """A trust or an estate is often one family's or one person's, whatever its name says:
-    the TR code, 'SAMPLE FAMILY TRUST', 'JOHN SAMPLE TRUSTEE', 'ESTATE OF JOHN SAMPLE'.
-    Not 'EXAMPLE REAL ESTATE LLC' or 'EXAMPLE BANK & TRUST'."""
-    if org_code.upper() == TRUST_CODE:
+    the TR code, 'SAMPLE FAMILY TRUST', 'SAMPLE FAMILY TR', 'QUILLFEATHER TRUST NO 2',
+    'JOHN SAMPLE TRUSTEE', 'ESTATE OF JOHN SAMPLE', and a family's own holding vehicle
+    (``family_vehicle``). Not 'EXAMPLE REAL ESTATE LLC' or 'EXAMPLE BANK & TRUST'."""
+    if org_code.upper() == TRUST_CODE or family_vehicle(name):
         return True
     words = privacy._plain_words(normalize.split_dba(name)[0] or name)
-    while words and words[-1] in normalize.LEGAL_SUFFIXES:
+    # Drop the legal form, and a trust's serial ('TRUST NO 2', 'TRUST 2019', 'TRUST II').
+    while words and (words[-1] in normalize.LEGAL_SUFFIXES
+                     or ((words[-1].isdigit() or words[-1] in _SERIAL_WORDS)
+                         and any(w in _TRUST_NOUNS for w in words[:-1]))):
         words.pop()
     if words[:2] == ["estate", "of"]:
         return True
@@ -171,7 +196,7 @@ def is_trust_or_estate(name: str, org_code: str = "") -> bool:
         return False
     if words[-1] == "estate" and len(words) > 1 and words[-2] == "real":
         return False
-    return not (words[-1] == "trust" and "bank" in words)
+    return not (words[-1] in _TRUST_NOUNS and "bank" in words)
 
 
 # Words that sit around a person's name in a company name without being a
@@ -194,6 +219,47 @@ def _trade_word(token: str) -> bool:
     return token in _COMPANY_WORDS or privacy._has_business_word([token])
 
 
+# Professional credentials and titles that stand next to a person's name in a
+# company name ('WEI ZHANG CPA PLLC', 'DALIX QUILLFEATHER ATTORNEY AT LAW PC',
+# 'LAW OFFICE OF ...', 'DR ...'). They are neither a trade nor a name word: they
+# end a run of name words without counting in it.
+_TITLE_WORDS = frozenset({
+    "cpa", "cpas", "esq", "esquire", "attorney", "attorneys", "lawyer", "lawyers", "counselor", "dr", "doctor",
+    "md", "do", "dds", "dmd", "od", "dvm", "phd", "jd", "rn", "np", "lpc", "lcsw", "pe", "ea", "cfp", "ria",
+    "office", "offices", "associates", "law", "firm",
+})
+# Joiners inside a run of names: 'SMITH & JONES', 'JOHN AND MARY SMITH'.
+_RUN_JOINERS = frozenset({"&", "and", "+"})
+
+
+def name_word_run(shown: str) -> bool:
+    """Two or more adjacent plain words, none a trade, legal, title, or glue word.
+
+    On a franchise-tax name that is the only safe reading: the list gives no
+    premises and often no website, so nothing but the name is published, and
+    no list of given names covers every culture ('WEI ZHANG CPA PLLC', 'ANH
+    NGUYEN CPA PC', 'LAW OFFICE OF DALIX QUILLFEATHER PLLC', 'DALIX
+    QUILLFEATHER INSURANCE AGENCY INC', 'DALIX QUILLFEATHER CONSTRUCTION LLC').
+    It also holds two-word trade names with no trade word ('PINEY WOODS SUPPLY
+    LLC'): holding a company by mistake is the safe failure. A surname next to a
+    trade word only ('SMITH PLUMBING LLC', 'SMITH & ASSOCIATES') is a single
+    name word and is not held."""
+    run = 0
+    for token in privacy._tokens(shown):
+        word = token.strip("-.")
+        if word in _RUN_JOINERS:
+            continue  # 'Smith & Jones': a joiner keeps the run going without counting
+        plain = bool(re.fullmatch(r"[a-z][a-z'\-]*", word)) and not word.endswith("'s")
+        if (plain and word not in _NAME_GLUE and word not in _LEGAL_WORDS and word not in _TITLE_WORDS
+                and not _trade_word(word)):
+            run += 1
+            if run >= 2:
+                return True
+        else:
+            run = 0
+    return False
+
+
 def carries_person_name(shown: str) -> bool:
     """The company name may carry a person's name, whatever its legal form says.
 
@@ -211,7 +277,12 @@ def carries_person_name(shown: str) -> bool:
       ('John Smith CPA PC', 'Law Office of John Smith PLLC', 'The John Smith
       Company', 'John Smith Holdings LP'). This replaces the given-name half of
       ``may_name_owner``, which would also hold a lone given name used as a
-      trade name.
+      trade name;
+    * anywhere in the name, two or more adjacent plain words with no trade,
+      legal, title, or glue word among them (``name_word_run``): a full name
+      that is not on the GIVEN_NAMES list is caught even next to a trade word
+      or a credential ('Wei Zhang CPA PLLC', 'Law Office of Dalix Quillfeather
+      PLLC', 'Dalix Quillfeather Construction LLC').
 
     A surname with a trade word ('Smith Plumbing LLC'), a given name used next
     to a trade word only ('Grace Plumbing LLC'), and a single word ('Quillby
@@ -225,6 +296,10 @@ def carries_person_name(shown: str) -> bool:
     words = [w for w in privacy._tokens(bare) if w.strip("'-&") and w != "and"]
     if (len(words) >= 2 and all(re.fullmatch(r"[a-z][a-z'\-]*", w) for w in words)
             and not any(_trade_word(w) for w in words)):
+        return True
+    # A name that reads as an address ('4100 Example Ln LLC', 'PO Box 12 LLC') always goes to a
+    # person (publish's name_contains_address review), so its street words are not read as names here.
+    if name_word_run(shown) and not privacy.looks_like_address(shown):
         return True
     tokens = [w.strip("'-.") for w in privacy._tokens(shown)]
     for i, token in enumerate(tokens):

@@ -356,7 +356,10 @@ Field names used in `facts` / `observations` / `review_queue.field`:
   run is recorded as `error` and nothing is guessed. Filter: `upper(city) =
   'LONGVIEW'`. Scope: `city` when inside-city-limits says inside (or the
   indicator is absent and the ZIP is in `LONGVIEW_ZIPS`), `nearby` when the
-  indicator says outside or the ZIP is another one. Rows no longer present are
+  indicator says outside or the ZIP is a Longview PO-box ZIP, and `out` (never
+  published) when the ZIP is missing or not in `LONGVIEW_POSTAL_ZIPS`
+  (`config.longview_scope`, used by TABC and NPI too). An `outlet_state` (TABC:
+  `state`) column, when present and not TX, skips the row (`skipped_state`). Rows no longer present are
   marked `active=0` (their business becomes inactive only when no active record
   remains).
 - `sources/tabc.py`: optional TABC licenses, same discovery pattern; skipped
@@ -378,7 +381,10 @@ Field names used in `facts` / `observations` / `review_queue.field`:
   `franchise_since` = `responsibility_beginning_date`. Privacy: unless the
   taxpayer is clearly an entity (`privacy.is_clearly_entity` with the org code
   written out for CT, CF, CN, CP, CL, PL, PF, AP, AF; every other code, a trust
-  or an estate is possibly a person) the record is `personal_name` with the
+  or an estate ('TR'/'TRST' and 'TRUST NO 2'/'TRUST 2019' included), and a
+  family's holding vehicle (`franchise.family_vehicle`: 'FAMILY' followed only
+  by legal forms or holding words, 'Smith Family LP', 'Smith Family Holdings
+  LLC'; not 'Nguyen Family Dentistry') is possibly a person) the record is `personal_name` with the
   `owner_named` tag. An entity is flagged the same way when its name may carry
   a person's name whatever its legal form (`franchise.carries_person_name`):
   it looks like a person's with or without its legal form
@@ -387,7 +393,12 @@ Field names used in `facts` / `observations` / `review_queue.field`:
   a short list of company words such as oil, gas, land, real estate: 'Nguyen
   Hoa LLC', 'Patel Rajesh LLC'); or a given name stands next to another plain
   word that is not a trade word ('John Smith CPA PC', 'Law Office of John Smith
-  PLLC'). Such a listing is held without a public presence and checked by a
+  PLLC'); or anywhere in the name two or more adjacent plain words that are not
+  a trade, legal, credential/title (CPA, ESQ, ATTORNEY, DR, MD, OFFICE,
+  ASSOCIATES...), or glue word (`franchise.name_word_run`: 'Wei Zhang CPA
+  PLLC', 'Dalix Quillfeather Construction LLC', and also 'Piney Woods Supply
+  LLC'; an address-shaped name goes to the `name_contains_address` review
+  instead). Such a listing is held without a public presence and checked by a
   person with one. Category: `categories.COMPANY_FALLBACK` ("registered-company",
   "Registered company; kind of business not on record"), its own category
   ("Registered Companies"); none is guessed from the name. A franchise record's

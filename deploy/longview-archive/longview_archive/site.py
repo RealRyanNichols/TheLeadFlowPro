@@ -774,8 +774,8 @@ def about_page(d: Directory) -> str:
                 (("<p>One listing per business with a Longview, Texas address, drawn from public records and"
                   " each business's own website: locations that hold a Texas sales-tax permit, licensed or"
                   " registered practices, and companies in good standing on the Texas franchise-tax list that"
-                  " have no sales-tax location. That includes businesses just outside the city limits that use"
-                  " a Longview address. A listing whose name may be a person's is held back until the business"
+                  " have no sales-tax location. That includes businesses just outside the city limits whose"
+                  " address has a Longview ZIP code. A listing whose name may be a person's is held back until the business"
                   " has a public presence and a person has checked it, and some listings wait for review, so"
                   " not every business on those lists appears here yet. Organizations exempt from franchise tax"
                   " (most nonprofits) are not listed from that list.")

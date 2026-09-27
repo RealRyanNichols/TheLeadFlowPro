@@ -40,14 +40,29 @@ def user_agent_for(base_url: str) -> str:
 USER_AGENT = user_agent_for(PUBLIC_BASE_URL)
 
 # City of Longview delivery ZIPs. Other ZIPs seen with city LONGVIEW are
-# reported on the status page and kept in the hidden "nearby" bucket until a
-# person verifies them against USPS and the data.
+# reported on the status page (``other_zips``); a row whose ZIP is not a
+# Longview postal ZIP gets scope "out" and is never published until a person
+# verifies it against USPS and the data.
 LONGVIEW_ZIPS: Tuple[str, ...] = ("75601", "75602", "75603", "75604", "75605")
 # Every ZIP the Postal Service delivers to as "Longview, TX": the street ZIPs
 # above plus the PO-box ZIPs 75606, 75607, and 75608. Used only for sources that
 # give a mailing address and no business location (the franchise-tax list): a
 # company there has a Longview address, whatever side of the city limits it is on.
 LONGVIEW_POSTAL_ZIPS: Tuple[str, ...] = LONGVIEW_ZIPS + ("75606", "75607", "75608")
+
+
+def longview_scope(zip_code, outside_city_limits: bool = False) -> str:
+    """Scope for a record that says city LONGVIEW, from its ZIP.
+
+    'city': a City of Longview delivery ZIP, not marked outside the limits.
+    'nearby': any other Longview, Texas postal ZIP (outside the limits, or a PO
+    box ZIP): the business has a Longview, Texas address.
+    'out': a missing ZIP or any other ZIP (another town's, or Longview,
+    Washington's 98632). Nothing shows the address is a Longview, Texas one, so
+    it is never published; the sync reports it under ``other_zips``."""
+    if zip_code in LONGVIEW_ZIPS and not outside_city_limits:
+        return "city"
+    return "nearby" if zip_code in LONGVIEW_POSTAL_ZIPS else "out"
 
 EAST_TEXAS_AREA_CODES: Tuple[str, ...] = ("903", "430")
 

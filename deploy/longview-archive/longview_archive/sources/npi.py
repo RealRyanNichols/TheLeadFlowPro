@@ -18,7 +18,7 @@ import string
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple
 
 from .. import db, normalize
-from ..config import LONGVIEW_ZIPS
+from ..config import LONGVIEW_ZIPS, longview_scope
 from .http import ApiError, EmptyResult, RecordWriter, as_now, bump, finish_failed, finish_ok, get_json
 
 logger = logging.getLogger(__name__)
@@ -148,7 +148,7 @@ def result_record(result: Mapping[str, Any], settings) -> Tuple[Optional[str], O
         "city": "Longview",
         "zip": zip_code,
         "phone": normalize.norm_phone(loc.get("telephone_number"), allow_fictional=settings.allow_fictional_phones),
-        "scope": "city" if zip_code in LONGVIEW_ZIPS else "nearby",
+        "scope": longview_scope(zip_code),
         "tags_json": db.dumps({"taxonomy": primary, "taxonomies": descs}),
     }
     return number, record, ""
@@ -166,7 +166,7 @@ def sync_npi(conn: sqlite3.Connection, settings, now=None, transport=None) -> Di
         "requests": 0, "fetched": 0, "unique": 0, "kept": 0, "inserted": 0, "updated": 0,
         "unchanged": 0, "reactivated": 0, "deactivated": 0, "businesses_deactivated": 0,
         "duplicates": 0, "suppressed": 0, "capped_queries": 0, "still_capped": 0,
-        "city": 0, "nearby": 0,
+        "city": 0, "nearby": 0, "out": 0,
     }
     try:
         by_npi: Dict[str, dict] = {}

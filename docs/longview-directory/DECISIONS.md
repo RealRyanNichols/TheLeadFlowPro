@@ -80,7 +80,7 @@ sent or imported anywhere.
 **Decided (Sept 27, 2026):** the owner asked for "all the businesses in
 Longview". The directory now lists every business with a Longview address: the
 sales-tax locations inside the city limits (`city`) and the ones just outside
-them that use a Longview address (`nearby`), plus the companies on the Texas
+them whose address is a Longview, Texas postal ZIP, 75601-75608 (`nearby`), plus the companies on the Texas
 Comptroller's "Active Franchise Taxpayers" list (LLCs, corporations,
 partnerships in good standing) with a Longview address and no sales-tax
 location. A franchise-tax listing shows the company name, "Longview, TX" (its
@@ -89,10 +89,18 @@ franchise-tax registration began; exempt organizations (most nonprofits) are
 not listed from it, and a name that may be a person's is held exactly like a
 sole proprietor's. On that list the shown name is the company's own registered
 name, so a person's name with a legal form ('Nguyen Hoa LLC', 'John Smith CPA
-PC') is held too, and so is any name of two or more plain words with no trade
-word: many real companies wait until they have a website or a person checks
-them. That is the safe failure. Only Texas rows with a Longview postal ZIP
-(75601-75608) are listed; Longview, Washington and odd or missing ZIPs are not.
+PC', 'Wei Zhang CPA PLLC', 'Law Office of Dalix Quillfeather PLLC') is held
+too, and so is any name with two or more adjacent plain words that are not a
+trade, legal form, or credential ('Dalix Quillfeather Construction LLC', but
+also 'Piney Woods Supply LLC'), and a family's holding vehicle or numbered
+trust ('Smith Family LP', 'Smith Family Holdings LLC', 'Smith Family TR',
+'Sample Trust No 2'; not 'Nguyen Family Dentistry'): many real companies wait
+until they have a website or a person checks them. That is the safe failure.
+Only Texas rows with a Longview postal ZIP (75601-75608) are listed, from every
+source: a sales-tax outlet, TABC licence, or NPI record whose ZIP is missing or
+not a Longview ZIP (Longview, Washington's 98632, a neighbouring town's ZIP) gets
+scope `out` and is never published, and a row that names another state is
+skipped. The sync counts those ZIPs under `other_zips` for a person to check.
 The taxpayer number is the only link between the sales-tax and franchise-tax
 lists, so companies with the same name under different taxpayer numbers are
 never merged, and a franchise company named like a TABC or NPI practice waits

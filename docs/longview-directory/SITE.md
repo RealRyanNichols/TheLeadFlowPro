@@ -36,7 +36,8 @@ contract"). The earlier Next.js pages were removed from this branch in commit
 
 Every business with a Longview address (the export's `scope` is "Businesses
 with a Longview, Texas address"): sales-tax locations inside and just outside
-the city limits, licensed or registered practices, and companies on the
+the city limits with a Longview postal ZIP (75601-75608; a missing or other ZIP
+is never listed), licensed or registered practices, and companies on the
 Comptroller's franchise-tax list in good standing with no sales-tax location.
 The index, category pages, and About page say "with a Longview address"; with
 `LVA_PUBLISH_SCOPES=city` they say "in the City of Longview" again. A
