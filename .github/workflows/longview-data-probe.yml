@@ -1,0 +1,30 @@
+# Measures the Longview directory against the real public data (data.texas.gov,
+# NPPES, OpenStreetMap) and checks where the website and the directory answer
+# from. Counts, dataset ids and column names only: this log is public, so it
+# never prints a business name, address, phone or taxpayer number. It reads no
+# business website, uses no secrets, and changes nothing anywhere.
+name: Longview data probe
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [claude/serene-edison-daodg6]
+    paths:
+      - deploy/longview-archive/tools/probe_public_data.py
+      - .github/workflows/longview-data-probe.yml
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Probe the public sources (counts only)
+        working-directory: deploy/longview-archive
+        run: python3 tools/probe_public_data.py
