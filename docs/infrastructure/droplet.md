@@ -28,7 +28,7 @@ list of scheduled jobs the droplet's cron container reads.
 | The 12 scheduled jobs in `vercel.json` | Vercel Cron | Droplet, container `cron` (same schedules, UTC) |
 | Content Command worker | not running | Droplet, container `worker` (opt in) |
 | Central brain | Droplet, :3000 | Unchanged |
-| Database, auth | Supabase | Unchanged |
+| Database, auth | Supabase | Moving off Supabase too (owner decision Sep 26, 2026; target on the droplet not chosen yet, see `CLAUDE.md`) |
 | Email sending | Resend | Unchanged |
 | Email inboxes | GoDaddy Microsoft 365 | Google Workspace (`google-workspace-migration.md`) |
 
