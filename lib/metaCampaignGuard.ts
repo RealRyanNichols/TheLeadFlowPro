@@ -41,6 +41,7 @@ export const LEADFLOW_META = {
   // deploy this registry before delivery is enabled. The Graph account lookup
   // remains a secondary check for future ads when the system token has access.
   allowedAdIds: [
+    "120253913145080154", // PDA video callback ad; LeadFlow account only.
     "120253128015470154", // Existing LeadFlow mall-video ad.
     "120253551492760154", // Sep 1 Free Website v2 draft; keep off until creative QA.
   ],
@@ -86,6 +87,12 @@ export type MetaFormRegistration = {
  * form was live in Meta but absent from one of several independent maps.
  */
 export const META_FORM_REGISTRY: Readonly<Record<string, MetaFormRegistration>> = {
+  "1319841020086334": {
+    // PDA video: schools, coaching and events; personal callback request.
+    campaign: "pda_video_east_tx_2026_09",
+    inquiryOptIn: false,
+    textOnSubmit: false,
+  },
   "1674448410325108": { campaign: "mall-video-leadform" },
   "2311682272983064": { campaign: "mall-video-leadform" },
   "2235052820606054": {
