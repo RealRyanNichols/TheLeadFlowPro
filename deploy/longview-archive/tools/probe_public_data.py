@@ -126,8 +126,17 @@ def franchise_overlap(settings) -> None:
     fcols = {c.lower() for c in franchise.get("columns_field_name") or []}
     fcity = next((c for c in ("taxpayer_city", "city") if c in fcols), None)
     say(f"franchise dataset {franchise['id']} {franchise.get('name')!r} city column={fcity}")
+    say(f"    columns: {', '.join(franchise.get('columns_field_name') or [])}")
     if not fcity:
         return
+    base = settings.socrata_base.rstrip("/")
+    for col in ("taxpayer_organizational_type", "record_type_code", "sos_status_code", "current_exempt_reason_code",
+                "right_to_transact_business_code", "taxpayer_state"):
+        if col in fcols:
+            rows = api_http.get_json(f"{base}/resource/{franchise['id']}.json", settings, params={
+                "$select": f"{col}, count(*) AS n", "$where": f"upper({fcity})='LONGVIEW'",
+                "$group": col, "$order": "n DESC", "$limit": 15}) or []
+            say(f"    Longview by {col}: {[(r.get(col), r.get('n')) for r in rows]}")
     f_numbers = {str(r.get("taxpayer_number")) for r in socrata.fetch_rows(
         settings, franchise["id"], f"upper({fcity})='LONGVIEW'", select="taxpayer_number")}
     s_numbers = {str(r.get("taxpayer_number")) for r in socrata.fetch_rows(
