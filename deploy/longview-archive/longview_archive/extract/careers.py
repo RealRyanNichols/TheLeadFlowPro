@@ -9,7 +9,7 @@ flags only the five roles the directory's hiring view knows about.
 from __future__ import annotations
 
 import re
-from typing import List
+from typing import Dict, List
 from urllib.parse import urlsplit
 
 from .. import normalize
@@ -49,22 +49,22 @@ def is_ats_host(host: str) -> bool:
 def careers_links(page: Page) -> List[str]:
     """Same-site careers pages and applicant-tracking links, in page order."""
     site = normalize.registrable_domain(page.url)
-    out: List[str] = []
+    # A dict keeps page order and checks "seen already?" in constant time; a list took time with
+    # the square of the count on a page with tens of thousands of careers links.
+    out: Dict[str, None] = {}
     for link in page.links:
         parts = urlsplit(link.url)
         host = (parts.hostname or "").lower()
         if is_ats_host(host):
-            if link.url not in out:
-                out.append(link.url)
+            out.setdefault(link.url)
             continue
         if normalize.registrable_domain(host) != site:
             continue
         text, path = link.text or "", parts.path or ""
         if (_TEXT_RE.search(text) or _PATH_RE.search(path)
                 or (_APPLY_RE.search(text) and (_JOB_WORD_RE.search(text) or _JOB_WORD_RE.search(path)))):
-            if link.url not in out:
-                out.append(link.url)
-    return out
+            out.setdefault(link.url)
+    return list(out)
 
 
 ROLE_PATTERNS = {

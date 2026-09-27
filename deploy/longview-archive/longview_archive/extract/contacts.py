@@ -91,12 +91,35 @@ _OBFUSCATED = [
     (re.compile(r"\s*[\[\(\{<]\s*at\s*[\]\)\}>]\s*", re.I), "@"),
     (re.compile(r"\s*[\[\(\{<]\s*dot\s*[\]\)\}>]\s*", re.I), "."),
 ]
-# Bounded like a real address (a local part of up to 64 characters, up to 9 labels of up to 63):
-# unbounded, one long run such as 'a-a-a-...' on a hostile page was rescanned from every word
-# boundary in it, which took time with the square of its length (hours for one 2.5 MB page).
-_SPELLED = re.compile(
-    r"\b([a-z0-9][a-z0-9._\-]{0,63})\s+at\s+([a-z0-9\-]{1,63}(?:\s+dot\s+[a-z0-9\-]{1,63}){1,8})\b", re.I
-)
+# 'info at example dot example': the local part runs to the end of its run of address characters,
+# so it is read once per run (see _spelled); the domain follows it directly.
+_SPELLED_LOCAL = re.compile(r"\b[a-z0-9][a-z0-9._\-]*", re.I)
+_SPELLED_DOMAIN = re.compile(r"\s+at\s+([a-z0-9\-]+(?:\s+dot\s+[a-z0-9\-]+)+)\b", re.I)
+_SPELLED_DOT = re.compile(r"\s+dot\s+", re.I)
+
+
+def _spelled(text: str) -> str:
+    r"""'info at example dot example' -> 'info@example.example'.
+
+    The same result as re.sub with r"\b([a-z0-9][a-z0-9._\-]*)\s+at\s+(...)\b", which retried
+    every word boundary of a run and rescanned the run to its end each time: time with the square
+    of the run's length (hours for one 2.5 MB page of 'a-a-a-...'). Every start in a run ends the
+    local part at the run's end, so all of them match or none does: only the first is tried. The
+    domain is not cut short either, since a shorter one can be a different address.
+    """
+    out: List[str] = []
+    done = pos = 0
+    while True:
+        local = _SPELLED_LOCAL.search(text, pos)
+        if local is None:
+            break
+        pos = local.end()
+        domain = _SPELLED_DOMAIN.match(text, pos)
+        if domain:
+            out += [text[done:local.start()], local.group(0), "@", _SPELLED_DOT.sub(".", domain.group(1))]
+            done = pos = domain.end()
+    out.append(text[done:])
+    return "".join(out)
 
 
 def deobfuscate(text: str) -> str:
@@ -104,8 +127,7 @@ def deobfuscate(text: str) -> str:
     out = text or ""
     for pattern, repl in _OBFUSCATED:
         out = pattern.sub(repl, out)
-    out = _SPELLED.sub(lambda m: m.group(1) + "@" + re.sub(r"\s+dot\s+", ".", m.group(2), flags=re.I), out)
-    return out
+    return _spelled(out)
 
 
 def _clean_email(raw: str) -> Optional[str]:

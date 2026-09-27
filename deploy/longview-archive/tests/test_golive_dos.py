@@ -1,19 +1,25 @@
 """One hostile page must not stall the crawl: extraction stays linear in the page size.
 
 The email deobfuscator, the fax check before each phone number, the parser's
-implied-close scan, and the mailto/tel/nav de-duplication each took time with
-the square of the input on a crafted page far under the 2.5 MB cap (about 10
-CPU-hours for one page of 'a-a-a-...'). Each test times a hostile input
-against an ordinary input of about the same size on the same machine, so a
-slow CI box slows both: the old code was 12 to 1000 times slower on the
-hostile input, the fixed code about as fast. No network; fictional content only.
+implied-close scan, the mailto/tel/nav and careers-link de-duplication, and the
+worker's JSON-LD phone list and phone choice each took time with the square of
+the input on a crafted page far under the 2.5 MB cap (about 10 CPU-hours for
+one page of 'a-a-a-...'). Each test times a hostile input against an ordinary
+input of about the same size on the same machine, so a slow CI box slows both:
+the old code was 12 to 1000 times slower on the hostile input, the fixed code
+about as fast. The deobfuscator must also read every line exactly as the old
+single pattern did. No network; fictional content only.
 """
 
+import random
+import re
 import time
 import unittest
+from pathlib import Path
 
-from longview_archive.extract import contacts
-from longview_archive.extract.html import Page, parse_page
+from longview_archive import config, worker
+from longview_archive.extract import careers, contacts
+from longview_archive.extract.html import Link, Page, parse_page
 
 URL = "https://www.example-cafe.example/"
 DOMAIN = "example-cafe.example"
@@ -57,6 +63,68 @@ class DeobfuscateTests(_LinearCase):
                          "front.desk@mail.example-cafe.co.example")
         self.assertEqual(contacts.deobfuscate("office [at] example-cafe [dot] example"),
                          "office@example-cafe.example")
+
+    def test_long_labels_and_many_at_words_are_linear(self):
+        ordinary = "Book a table: info at example-cafe dot example or call. " * 1800
+        cases = {
+            "label": "a-" * 32 + "a at " + "-" * 100000,  # one label as long as the page
+            "at_run": ("a-" * 31 + "a at ") * 1500,  # every run ends in ' at ', none has a domain
+            "at_dot": "dot at " * 14000,  # each 'at' is also a label of the one before
+        }
+        for name, text in cases.items():
+            with self.subTest(case=name):
+                out = self.assert_linear(lambda: contacts.deobfuscate(text), lambda: contacts.deobfuscate(ordinary))
+                self.assertEqual(out, _old_deobfuscate(text))
+
+
+# The spelled-out pattern before it was made linear: the reading every line must keep.
+_OLD_SPELLED = re.compile(r"\b([a-z0-9][a-z0-9._\-]*)\s+at\s+([a-z0-9\-]+(?:\s+dot\s+[a-z0-9\-]+)+)\b", re.I)
+
+
+def _old_deobfuscate(text):
+    out = text
+    for pattern, repl in contacts._OBFUSCATED:
+        out = pattern.sub(repl, out)
+    return _OLD_SPELLED.sub(lambda m: m.group(1) + "@" + re.sub(r"\s+dot\s+", ".", m.group(2), flags=re.I), out)
+
+
+class SpelledAddressTests(unittest.TestCase):
+    """A spelled-out address is read whole, never cut short: a shorter one can be a different address."""
+
+    def emails(self, line):
+        return [email for email, _, _ in contacts.emails(Page(url=URL, lines=[line]), DOMAIN)]
+
+    def test_long_address_is_not_cut_down_to_the_sites_domain(self):
+        line = "info at a dot b dot c dot d dot e dot f dot g dot example-cafe dot example dot evil dot test"
+        self.assertEqual(contacts.deobfuscate(line), "info@a.b.c.d.e.f.g.example-cafe.example.evil.test")
+        self.assertEqual(self.emails(line), [])  # on evil.test, not the site's own domain
+
+    def test_address_with_ten_labels_is_still_found(self):
+        line = "info at a dot b dot c dot d dot e dot f dot g dot h dot example-cafe dot example"
+        self.assertEqual(self.emails(line), ["info@a.b.c.d.e.f.g.h.example-cafe.example"])
+
+    def test_overlong_words_read_as_before(self):
+        # A 70-character local part or label makes an address that is never kept, but it still
+        # takes the words after it, so no second, shorter address is read out of the same text.
+        cases = {
+            "x" * 70 + " at a dot info at example-cafe dot example": "x" * 70 + "@a.info at example-cafe dot example",
+            "info at " + "x" * 70 + " dot info at example-cafe dot example":
+                "info@" + "x" * 70 + ".info at example-cafe dot example",
+        }
+        for line, decoded in cases.items():
+            with self.subTest(line=line[:12]):
+                self.assertEqual(contacts.deobfuscate(line), decoded)
+                self.assertEqual(self.emails(line), [])
+
+    def test_same_reading_as_the_old_pattern(self):
+        words = ["at", "dot", "AT", "Dot", "info", "office", "a", "b-", "-", "a.b", "a_b", "_", "c-d", "é", "%",
+                 "[at]", "(dot)", "example-cafe", "example", "x" * 70, "a-" * 40, "y" * 63, "z" * 64, "a." * 35,
+                 "1", "9-", ".", "at.", "dot-", "-at", "at-", "a@b"]
+        gaps = [" "] * 10 + ["", "  ", "\t", "\n"]
+        rng = random.Random(20260927)
+        for _ in range(4000):
+            line = "".join(rng.choice(words) + rng.choice(gaps) for _ in range(rng.randint(1, 24)))
+            self.assertEqual(contacts.deobfuscate(line), _old_deobfuscate(line), repr(line))
 
 
 class FaxLookbackTests(_LinearCase):
@@ -138,6 +206,62 @@ class LinkDedupTests(_LinearCase):
         self.assertEqual(page.nav_texts, ["M" + k for k in keys])  # first-seen order, no repeats
         self.assertEqual(page.mailtos, [f"m{k}@x.example" for k in keys])
         self.assertEqual(page.tels, keys)
+
+    def test_many_distinct_careers_links_are_linear(self):
+        n = 40000
+        urls = [f"{URL}careers/{i}" for i in range(n)]
+        distinct = Page(url=URL, links=[Link(u, "Careers") for u in urls + urls[:5]])
+        repeated = Page(url=URL, links=[Link(urls[0], "Careers")] * (n + 5))
+        found = self.assert_linear(lambda: careers.careers_links(distinct), lambda: careers.careers_links(repeated))
+        self.assertEqual(found, urls)  # page order, no repeats
+
+    def test_careers_links_order_unchanged(self):
+        page = Page(url=URL, links=[
+            Link(f"{URL}jobs", "Jobs"), Link("https://boards.greenhouse.io/examplecafe", "Apply"),
+            Link(f"{URL}menu", "Menu"), Link(f"{URL}jobs", "Jobs again"),
+            Link("https://www.other-cafe.example/careers", "Careers"),
+            Link("https://boards.greenhouse.io/examplecafe", "Open roles"), Link(f"{URL}team", "Join our team")])
+        self.assertEqual(careers.careers_links(page), [
+            f"{URL}jobs", "https://boards.greenhouse.io/examplecafe", f"{URL}team"])
+
+
+def _fictional_numbers(n):
+    """n distinct numbers from 555-0100 to 555-0199, the range kept for fiction, across area codes."""
+    areas = [a for a in range(200, 1000) if a % 100 != 11 and a != 555]
+    return [f"+1{area}555{line:04d}" for area in areas for line in range(100, 200)][:n]
+
+
+class PhoneListTests(_LinearCase):
+    SETTINGS = config.Settings(data_dir=Path("/nonexistent/lva-dos-test"), allow_fictional_phones=True)
+    SNAP = worker.BusinessSnapshot(id=1, public_id="b1", name="Example Cafe", category="restaurant", street=None,
+                                   street_norm=None, zip="75601", website=URL, website_domain=DOMAIN)
+
+    def extract(self, numbers):
+        page = Page(url=URL, title="Example Cafe", lines=["Example Cafe"],
+                    jsonld=[{"@type": "LocalBusiness", "name": "Example Cafe", "telephone": numbers}])
+        result = worker.VisitResult(host="www.example-cafe.example", final_url=URL)
+        worker._extract(result, self.SNAP, [(None, page), (None, page)], self.SETTINGS)
+        return result
+
+    def test_many_distinct_structured_numbers_are_linear(self):
+        numbers = _fictional_numbers(30000)
+        result = self.assert_linear(lambda: self.extract(numbers + numbers[:5]),
+                                    lambda: self.extract(numbers[:1] * (len(numbers) + 5)))
+        self.assertEqual(result.jsonld_phones, numbers)  # first-seen order, no repeats, across both pages
+        self.assertEqual(self.extract(["(903) 555-0120", "+1 903 555 0120", "903.555.0130"]).jsonld_phones,
+                         ["+19035550120", "+19035550130"])
+
+    def test_choosing_among_many_numbers_is_linear(self):
+        # Placeholders shaped like 903 numbers (a letter keeps them from being real ones): only
+        # local numbers are checked against the site's structured data, one lookup each.
+        n = 30000
+        phones = [worker.Found(f"+1903X{i:06d}", "tel_link", 0.95, URL) for i in range(n)]
+        structured = [f"+1430X{i:06d}" for i in range(n)]
+        best, flag = self.assert_linear(lambda: worker.choose_phone(phones, None, structured),
+                                        lambda: worker.choose_phone(phones, None, structured[:1]))
+        self.assertEqual((best, flag), (phones[0], "multiple_phones"))
+        chosen = worker.choose_phone(phones, None, structured + [phones[7].value])
+        self.assertEqual(chosen, (phones[7], None))  # the one local number the structured data lists
 
 
 if __name__ == "__main__":
