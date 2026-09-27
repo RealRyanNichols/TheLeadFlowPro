@@ -114,8 +114,13 @@ def project_row(row: Mapping[str, Any], fields: Mapping[str, Optional[str]]) -> 
     # The taxpayer name is private: it only decides the flags below.
     taxpayer_name = _get(row, fields, "taxpayer_name")
     org_type = _get(row, fields, "taxpayer_org_type") or None
-    is_individual = privacy.is_individual_taxpayer(taxpayer_name or None, org_type, outlet_name)
-    personal = privacy.outlet_is_personal_name(outlet_name, taxpayer_name or None, is_individual)
+    # Unless the taxpayer is clearly an entity, it may be a person (a surname
+    # such as Barber, Glass or Temple reads like a trade word), so its street is
+    # never shown on the NAICS code alone: it needs a premises record or the
+    # business's own website.
+    is_individual = (privacy.is_individual_taxpayer(taxpayer_name or None, org_type, outlet_name)
+                     or not privacy.is_clearly_entity(taxpayer_name or None, org_type))
+    personal =privacy.outlet_is_personal_name(outlet_name, taxpayer_name or None, is_individual)
     # "Owner Name DBA Trade Name" shows only the trade name, for every taxpayer.
     shown = normalize.trade_name(outlet_name)
     limits = city_limits(_get(row, fields, "inside_city_limits"))

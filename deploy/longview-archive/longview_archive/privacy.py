@@ -588,6 +588,12 @@ def osm_is_storefront(tags) -> bool:
     )
 
 
+# Off: a permit record's NAICS code cannot tell a shop from a house, and a
+# company run from home must show "Longview, TX" only. A street needs a
+# premises record (TABC, NPI, OSM storefront) or the business's own website.
+NAICS_STOREFRONT = False
+
+
 def storefront_naics(naics: Optional[str]) -> bool:
     code = "".join(ch for ch in (naics or "") if ch.isdigit())
     return bool(code) and any(code.startswith(prefix) for prefix in STOREFRONT_NAICS_PREFIXES)
@@ -625,7 +631,7 @@ def address_is_public(conn: sqlite3.Connection, business_id: int) -> Tuple[bool,
     for rec in _linked_sources(conn, business_id):
         if premises_record(rec, biz["street_norm"]):
             return True, f"{rec['source_id']}_premises"
-    if naics_storefront(biz):
+    if NAICS_STOREFRONT and naics_storefront(biz):
         return True, "storefront_naics"
     return False, "no_storefront_evidence"
 

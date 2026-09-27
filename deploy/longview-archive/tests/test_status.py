@@ -6,6 +6,7 @@ import unittest
 from datetime import datetime, timezone
 from pathlib import Path
 
+from longview_archive import privacy
 from longview_archive import config, db, publish, status
 from tests.fixtures import builders as b
 from tests.test_publish import build_world
@@ -175,3 +176,11 @@ class StatusPage(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def setUpModule():  # these tests cover the NAICS storefront rule, which is off in production
+    privacy.NAICS_STOREFRONT = True
+
+
+def tearDownModule():
+    privacy.NAICS_STOREFRONT = False

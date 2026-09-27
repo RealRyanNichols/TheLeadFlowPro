@@ -249,3 +249,11 @@ class OsmOnlyReplacedByPrimary(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def setUpModule():  # these tests cover the NAICS storefront rule, which is off in production
+    p.NAICS_STOREFRONT = True
+
+
+def tearDownModule():
+    p.NAICS_STOREFRONT = False

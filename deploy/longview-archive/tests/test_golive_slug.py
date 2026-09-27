@@ -243,3 +243,11 @@ class NameThatSpellsTheHomeStreet(PipelineCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+def setUpModule():  # these tests cover the NAICS storefront rule, which is off in production
+    privacy.NAICS_STOREFRONT = True
+
+
+def tearDownModule():
+    privacy.NAICS_STOREFRONT = False
