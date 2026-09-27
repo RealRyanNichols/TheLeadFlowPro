@@ -33,15 +33,18 @@ export default function CancelRetainer({
       });
       const j = (await r.json().catch(() => null)) as { ok?: boolean; error?: string; summary?: string; warnings?: string[] } | null;
       if (!r.ok || !j?.ok) {
-        setError(j?.error || "Something went wrong. Nothing changed. Check Stripe before trying again.");
+        setError(j?.error || "Something went wrong and the result is unknown. Check the subscription in Stripe before trying again.");
         setBusy(false);
         return;
       }
       setDone([j.summary, ...(j.warnings ?? [])].filter(Boolean).join(" "));
       router.refresh();
     } catch {
-      setError("Stripe did not answer. Nothing changed. Try again in a moment.");
+      // The browser lost the site's answer; Stripe may or may not have it.
+      // A refresh shows the stamp if it landed, and a repeat is safe.
+      setError("The request did not complete, so the result is unknown. Refresh the page; if the button is still there, try again (a repeat is safe).");
       setBusy(false);
+      router.refresh();
     }
   }
 

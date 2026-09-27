@@ -1538,13 +1538,20 @@ async function ensureAgencyPaymentPaid(
       found.diagnostic && typeof found.diagnostic === "object"
         ? (found.diagnostic as Record<string, unknown>)
         : {};
-    const agencyStamp = { service: serviceSlug, billing: details.billing, reference: details.reference || null, stripe: stripeStamp, ...(subscriptionId ? { subscription_id: subscriptionId } : {}) };
+    const freshStamp = { service: serviceSlug, billing: details.billing, reference: details.reference || null, stripe: stripeStamp, ...(subscriptionId ? { subscription_id: subscriptionId } : {}) };
+    // A redelivered event for a session already stamped keeps everything
+    // written since (the retainer's cancel_scheduled_at, cancelled_by,
+    // current_period_end from the lead page) and the original paid_at.
+    const existingPayment = diagnostic.agency_payment && typeof diagnostic.agency_payment === "object" ? (diagnostic.agency_payment as Record<string, unknown>) : null;
+    const existingStripe = existingPayment?.stripe && typeof existingPayment.stripe === "object" ? (existingPayment.stripe as Record<string, unknown>) : null;
+    const alreadyStamped = existingStripe?.session_id === sessionId;
+    const agencyStamp = alreadyStamped ? { ...existingPayment, ...freshStamp, stripe: existingStripe } : freshStamp;
     const updates: Record<string, unknown> = {
       status: "won",
       interest: "done_for_you",
       diagnostic:
         matchedBy === "intake"
-          ? { ...diagnostic, paid: true, agency_payment: agencyStamp, stripe: stripeStamp }
+          ? { ...diagnostic, paid: true, agency_payment: agencyStamp, stripe: alreadyStamped ? diagnostic.stripe ?? stripeStamp : stripeStamp }
           : // A lead from another door keeps its own diagnostic; the payment
             // rides in its own key so no other board reads it as its order.
             { ...diagnostic, agency_payment: agencyStamp },
@@ -1581,7 +1588,7 @@ async function ensureAgencyPaymentPaid(
           source: "agency_payment",
           services: details.service ? [details.service.slug] : [],
           paid: true,
-          agency_payment: { service: serviceSlug, billing: details.billing, reference: details.reference || null, ...(subscriptionId ? { subscription_id: subscriptionId } : {}) },
+          agency_payment: { service: serviceSlug, billing: details.billing, reference: details.reference || null, stripe: stripeStamp, ...(subscriptionId ? { subscription_id: subscriptionId } : {}) },
           stripe: stripeStamp,
           next_action: "Paid without an intake. Call them, confirm the written scope, and start the build.",
         },
@@ -1700,6 +1707,34 @@ type StripeInvoiceWebhook = {
 };
 
 /** The newest open lead with this email whose diagnostic carries an agency payment, for renewal and cancel notes. */
+/** The lead id when that lead exists and is not deleted; otherwise null. */
+async function confirmLead(supabase: SupabaseClient, leadId: string): Promise<string | null> {
+  const found = await supabase.from("leads").select("id").eq("id", leadId).is("deleted_at", null).maybeSingle();
+  if (found.error) {
+    console.warn("agency lead confirm failed:", found.error.code);
+    return null;
+  }
+  return found.data?.id ?? null;
+}
+
+/** The lead whose agency stamp names this subscription: the key the retainer door and the webhook both write. */
+async function findAgencyLeadBySubscription(supabase: SupabaseClient, subscriptionId: string | null): Promise<string | null> {
+  if (!subscriptionId || !/^sub_[A-Za-z0-9]{8,200}$/.test(subscriptionId)) return null;
+  const found = await supabase
+    .from("leads")
+    .select("id")
+    .eq("diagnostic->agency_payment->>subscription_id", subscriptionId)
+    .is("deleted_at", null)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (found.error) {
+    console.warn("agency lead lookup by subscription failed:", found.error.code);
+    return null;
+  }
+  return found.data?.id ?? null;
+}
+
 async function findAgencyLeadByEmail(supabase: SupabaseClient, email: string | null): Promise<string | null> {
   if (!email || !email.includes("@")) return null;
   const found = await supabase
@@ -1785,7 +1820,11 @@ async function recordSubscriptionInvoice(
     await markPostCreatorRenewed(supabase, invoice.subscriptionId);
   }
   if (invoice.family === "agency_payment") {
-    const leadId = await findAgencyLeadByEmail(supabase, invoice.email);
+    // The lead the pay link named, then the lead stamped with this
+    // subscription, then the newest agency lead with the email. The email
+    // comes last because anyone can create a lead with any email.
+    const linked = typeof meta.lead_id === "string" && UUID_RE.test(meta.lead_id) ? await confirmLead(supabase, meta.lead_id.toLowerCase()) : null;
+    const leadId = linked ?? (await findAgencyLeadBySubscription(supabase, invoice.subscriptionId)) ?? (await findAgencyLeadByEmail(supabase, invoice.email));
     if (leadId) await linkPurchaseLead(supabase, invoiceId, leadId);
     if (leadId) await markLeadActivity(supabase, leadId, `Agency retainer renewed: ${meta.service_name ?? meta.service ?? "service"}, ${dollars(invoice.amountPaidCents)}. Stripe invoice: ${invoiceId}.`, "Agency renewal");
   }
@@ -2045,11 +2084,46 @@ async function noteSubscriptionEnd(supabase: SupabaseClient, eventType: string, 
   if (kind === AGENCY_PAYMENT.kind) {
     // The subscription carries the lead id when the pay link did; that is
     // the only reliable key (the checkout metadata has no email).
-    const linked = typeof metadata.lead_id === "string" && UUID_RE.test(metadata.lead_id) ? metadata.lead_id.toLowerCase() : null;
-    const leadId = linked ?? (await findAgencyLeadByStripeCustomer(supabase, typeof sub.customer === "string" ? sub.customer : null));
-    if (leadId) await markLeadActivity(supabase, leadId, `${scheduled ? "Agency retainer set to end" : "Agency retainer cancelled"} in Stripe. Subscription: ${subId}.`, "Agency cancel");
+    const linked = typeof metadata.lead_id === "string" && UUID_RE.test(metadata.lead_id) ? await confirmLead(supabase, metadata.lead_id.toLowerCase()) : null;
+    const leadId =
+      linked ?? (await findAgencyLeadBySubscription(supabase, subId)) ?? (await findAgencyLeadByStripeCustomer(supabase, typeof sub.customer === "string" ? sub.customer : null));
+    if (leadId) {
+      await stampRetainerEnd(supabase, leadId, subId, scheduled, sub);
+      await markLeadActivity(supabase, leadId, `${scheduled ? "Agency retainer set to end" : "Agency retainer cancelled"} in Stripe. Subscription: ${subId}.`, "Agency cancel");
+    }
   }
   return true;
+}
+
+/**
+ * Records on the lead what Stripe just said about its retainer, so the lead
+ * page's "End retainer" button goes away after a dashboard cancellation or
+ * a finished subscription too (lib/agencyRetainer.ts reads these keys). A
+ * key already set stays as it is: a retry, or the lead page's own stamp,
+ * is never overwritten. A stamp naming a different subscription is left
+ * alone.
+ */
+async function stampRetainerEnd(supabase: SupabaseClient, leadId: string, subId: string, scheduled: boolean, sub: Record<string, unknown>) {
+  const read = await supabase.from("leads").select("diagnostic").eq("id", leadId).is("deleted_at", null).maybeSingle();
+  if (read.error || !read.data) return;
+  const diagnostic = read.data.diagnostic && typeof read.data.diagnostic === "object" ? (read.data.diagnostic as Record<string, unknown>) : {};
+  const payment = diagnostic.agency_payment && typeof diagnostic.agency_payment === "object" ? (diagnostic.agency_payment as Record<string, unknown>) : null;
+  if (!payment || payment.billing !== "monthly") return;
+  if (typeof payment.subscription_id === "string" && payment.subscription_id !== subId) return;
+  const now = new Date().toISOString();
+  const periodEnd = typeof sub.current_period_end === "number" ? new Date(sub.current_period_end * 1000).toISOString() : null;
+  const next: Record<string, unknown> = { ...payment, subscription_id: subId };
+  if (scheduled) {
+    if (typeof payment.cancel_scheduled_at === "string") return;
+    next.cancel_scheduled_at = now;
+    next.cancelled_by = "Stripe";
+    if (periodEnd && typeof payment.current_period_end !== "string") next.current_period_end = periodEnd;
+  } else {
+    if (typeof payment.ended_at === "string") return;
+    next.ended_at = now;
+  }
+  const written = await supabase.from("leads").update({ diagnostic: { ...diagnostic, agency_payment: next } }).eq("id", leadId).is("deleted_at", null);
+  if (written.error) console.warn(`retainer end stamp failed for ${leadId}: ${written.error.code}`);
 }
 
 /** Without a lead id on the subscription, the Stripe customer's email (when the API key is set) finds the agency lead. */

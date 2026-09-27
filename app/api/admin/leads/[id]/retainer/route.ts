@@ -6,6 +6,7 @@ import {
   retainerActive,
   retainerCancelDetail,
   retainerFromDiagnostic,
+  subscriptionBelongsToLead,
   subscriptionIdFromSession,
 } from "@/lib/agencyRetainer";
 
@@ -18,14 +19,20 @@ import {
 //    security still applies. A lead with no monthly retainer is a 409.
 // 3. The subscription id comes from the stamp the webhook wrote; a stamp
 //    that predates that field is resolved through the checkout session.
-// 4. Stripe is told cancel_at_period_end. The client keeps the paid period.
-//    Nothing is refunded and nothing is emailed from here.
-// 5. The lead's stamp records who ended it and when, and the timeline gets
-//    one line. A retry after a dropped connection finds the stamp and stops.
+// 4. Stripe's own record must say the subscription is an agency payment
+//    for this lead (its lead id, or its customer's email). The stamp alone
+//    is never enough: an unauthenticated form post can write a lead's
+//    diagnostic, so a forged stamp naming someone else's subscription
+//    stops here with a 409 and touches nothing.
+// 5. Stripe is told cancel_at_period_end. The client keeps the paid period.
+//    Nothing is refunded and nothing is emailed to the client from here.
+// 6. The lead's stamp records who ended it, when, and when the period
+//    closes, and the timeline gets one line. A retry after a dropped
+//    connection finds the stamp and stops.
 //
 // The Stripe webhook (customer.subscription.updated with cancel_at_period_end)
-// still posts the owner alert and its own timeline line once that event is
-// registered on the endpoint (decision 62).
+// posts the owner alert, stamps the lead too, and adds its own timeline line
+// once that event is registered on the endpoint (decision 62).
 
 export const dynamic = "force-dynamic";
 
@@ -61,7 +68,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
   const stripeKey = process.env.STRIPE_SECRET_KEY?.trim();
   if (!stripeKey) return fail(501, "Stripe is not configured on this server, so the retainer cannot be ended from here. End it in the Stripe dashboard.");
 
-  const leadRead = await supabase.from("leads").select("id, diagnostic").eq("id", id).is("deleted_at", null).maybeSingle();
+  const leadRead = await supabase.from("leads").select("id, email, diagnostic").eq("id", id).is("deleted_at", null).maybeSingle();
   if (leadRead.error) return fail(500, "This is a connection problem, not a problem with the lead. Try again.");
   if (!leadRead.data) return fail(404, "Lead not found. It may have been deleted.");
 
@@ -77,15 +84,25 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     return fail(409, "The Stripe subscription behind this retainer could not be found. End it in the Stripe dashboard (Customers, the client, Subscriptions).");
   }
 
+  const owned = await subscriptionBelongsToLead(stripeKey, subscriptionId, { id, email: typeof leadRead.data.email === "string" ? leadRead.data.email : null });
+  if (!owned.ok) {
+    if (owned.reason === "unreachable") return fail(502, "Stripe did not answer. Nothing changed. Try again in a moment.");
+    return fail(409, "Stripe does not show this subscription as this client's agency retainer, so nothing was changed. Check it in the Stripe dashboard before ending it there.");
+  }
+  if (owned.status === "canceled") {
+    return NextResponse.json({ ok: true, duplicate: true, summary: "This subscription already ended in Stripe. Nothing changed." });
+  }
+
   const cancelled = await cancelRetainerAtPeriodEnd(stripeKey, subscriptionId);
   if (!cancelled.ok) {
     return fail(
       502,
       cancelled.reason === "unreachable"
-        ? "Stripe did not answer. Nothing changed. Try again in a moment."
+        ? "Stripe did not answer in time. Nothing was recorded here; the subscription may or may not have been updated. Try again in a moment (a repeat is safe) or check it in the Stripe dashboard."
         : "Stripe refused the cancellation. Nothing changed here. Check the subscription in the Stripe dashboard.",
     );
   }
+  const currentPeriodEnd = cancelled.currentPeriodEnd ?? owned.currentPeriodEnd;
 
   const now = new Date().toISOString();
   const payment = diagnostic.agency_payment && typeof diagnostic.agency_payment === "object" ? (diagnostic.agency_payment as Record<string, unknown>) : {};
@@ -99,7 +116,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
           subscription_id: subscriptionId,
           cancel_scheduled_at: now,
           cancelled_by: by,
-          current_period_end: cancelled.currentPeriodEnd,
+          current_period_end: currentPeriodEnd,
         },
       },
     })
@@ -121,13 +138,13 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     duplicate: false,
     subscriptionId,
     cancelScheduledAt: now,
-    currentPeriodEnd: cancelled.currentPeriodEnd,
+    currentPeriodEnd,
     warnings: [
       ...(stampLanded ? [] : ["Stripe has the cancellation, but the lead page did not record it. Refresh; if the button is still there, do not click it again: check Stripe first."]),
       ...(activityLanded ? [] : ["The timeline line did not save. Stripe has the cancellation."]),
     ],
-    summary: cancelled.currentPeriodEnd
-      ? `The retainer ends at the close of the paid period (${cancelled.currentPeriodEnd.slice(0, 10)}). Nothing renews after that.`
+    summary: currentPeriodEnd
+      ? `The retainer ends at the close of the paid period (${currentPeriodEnd.slice(0, 10)}). Nothing renews after that.`
       : "The retainer ends at the close of the paid period. Nothing renews after that.",
   });
 }

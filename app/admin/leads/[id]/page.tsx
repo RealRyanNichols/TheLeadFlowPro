@@ -5,7 +5,7 @@ import { safeLeadDiagnostic } from "@/lib/leadTimeline";
 import { agencyPayHref } from "@/lib/agencyPayment";
 import { BUSINESS } from "@/lib/site/business";
 import CopyButton from "@/app/hq/_components/CopyButton";
-import { retainerActive, retainerCancelPrompt, retainerFromDiagnostic } from "@/lib/agencyRetainer";
+import { retainerActive, retainerCancelPrompt, retainerEndedNote, retainerFromDiagnostic } from "@/lib/agencyRetainer";
 import CancelRetainer from "./CancelRetainer";
 import LeadWorkspace from "./LeadWorkspace";
 
@@ -129,11 +129,7 @@ export default async function LeadWorkspacePage({
   return (
     <>
       {retainer && !retainerActive(retainer) && (
-        <p className="mb-3 text-xs font-semibold text-[var(--muted)]">
-          Agency retainer ({retainer.service}) set to end at the close of the paid period
-          {retainer.cancelScheduledAt ? ` on ${retainer.cancelScheduledAt.slice(0, 10)}` : ""}
-          {retainer.cancelledBy ? ` by ${retainer.cancelledBy}` : ""}.
-        </p>
+        <p className="mb-3 text-xs font-semibold text-[var(--muted)]">{retainerEndedNote(retainer)}</p>
       )}
       <div className="mb-3 flex flex-wrap justify-end gap-2">
         {retainer && retainerActive(retainer) && (
