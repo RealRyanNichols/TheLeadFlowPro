@@ -11,6 +11,7 @@ on:
     branches: [claude/serene-edison-daodg6]
     paths:
       - deploy/longview-archive/tools/probe_public_data.py
+      - deploy/longview-archive/longview_archive/**
       - .github/workflows/longview-data-probe.yml
 
 permissions:
