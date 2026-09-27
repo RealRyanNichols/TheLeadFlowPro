@@ -196,6 +196,30 @@ def franchise_overlap(settings) -> None:
         say(f"franchise Longview rows by ZIP: {dict(zips.most_common(8))}")
 
 
+RING_ONE = ("MARSHALL", "KILGORE", "WHITE OAK", "HALLSVILLE", "DIANA", "HARLETON", "GLADEWATER", "CLARKSVILLE CITY",
+            "EASTON", "SCOTTSVILLE", "ELYSIAN FIELDS", "WASKOM", "ORE CITY", "GILMER", "KARNACK", "JEFFERSON",
+            "TATUM", "HENDERSON", "CARTHAGE", "BECKVILLE", "LONE STAR", "DAINGERFIELD", "BIG SANDY", "HAWKINS",
+            "OVERTON", "NEW LONDON", "TYLER", "LONGVIEW")
+
+
+def towns(settings) -> None:
+    say()
+    say("== 5. Nearby towns: active sales-tax outlets and good-standing franchise companies by postal city (counts only)")
+    try:
+        sales = next((r["resource"] for r in catalog(settings, "active sales tax permit holders")
+                      if "sales tax" in str(r.get("resource", {}).get("name", "")).lower()), None)
+        franchise = next((r["resource"] for r in catalog(settings, "active franchise taxpayers")
+                          if "franchise" in str(r.get("resource", {}).get("name", "")).lower()), None)
+    except Exception as exc:  # noqa: BLE001
+        say(f"catalog: {type(exc).__name__}")
+        return
+    for town in RING_ONE:
+        s_n = count_where(settings, sales["id"], f"upper(outlet_city)='{town}'") if sales else None
+        s_in = count_where(settings, sales["id"], f"upper(outlet_city)='{town}' AND outlet_inside_outside_city_limits_indicator='I'") if sales else None
+        f_n = count_where(settings, franchise["id"], f"upper(taxpayer_city)='{town}' AND right_to_transact_business_code='A'") if franchise else None
+        say(f"{town}: sales_tax_outlets={s_n} (inside city limits {s_in}) franchise_good_standing={f_n}")
+
+
 def where_things_answer() -> None:
     say()
     say("== 4. Where the website and the directory answer from")
@@ -227,7 +251,7 @@ def main() -> int:
     with tempfile.TemporaryDirectory() as tmp:
         os.environ["LVA_DATA_DIR"] = tmp
         settings = config.load_settings(os.environ)
-        for step in (engine_run, other_sources, franchise_overlap):
+        for step in (engine_run, franchise_overlap, towns):
             try:
                 step(settings)
             except Exception as exc:  # noqa: BLE001 - report and keep going
