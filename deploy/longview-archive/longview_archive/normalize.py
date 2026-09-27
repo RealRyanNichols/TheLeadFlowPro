@@ -36,7 +36,7 @@ def norm_name(s: Optional[str]) -> str:
     if not s:
         return ""
     text = _ascii(s).casefold()
-    text = re.sub(r"\bd\s*[./]?\s*b\s*[./]?\s*a\b\.?", " dba ", text)
+    text = re.sub(r"\bd\s*[./-]?\s*b\s*[./-]?\s*a\b\.?", " dba ", text)
     # "Legal Name DBA Trade Name" keeps the trade name.
     parts = re.split(r"\b(?:dba|doing business as)\b", text)
     if len(parts) > 1 and parts[-1].strip():
@@ -55,12 +55,24 @@ def norm_name(s: Optional[str]) -> str:
 
 
 # "Legal Name DBA Trade Name", however the marker is written: DBA, D/B/A,
-# D.B.A., "doing business as".
-_DBA = re.compile(r"\bd\s*[./]?\s*b\s*[./]?\s*a\b\.?|\bdoing\s+business\s+as\b", re.IGNORECASE)
+# D.B.A., D-B-A, "doing business as", in fullwidth letters too (read after NFKC).
+_DBA = re.compile(r"\bd\s*[./-]?\s*b\s*[./-]?\s*a\b\.?|\bdoing\s+business\s+as\b", re.IGNORECASE)
+
+
+def _nfkc(s: Optional[str]) -> str:
+    return unicodedata.normalize("NFKC", s or "")
+
+
+def _dba_marker(text: str):
+    """The first DBA marker with a legal name before it; 'DBA LOUNGE' has none."""
+    for match in _DBA.finditer(text):
+        if text[:match.start()].strip(" ,;:-/([{"):
+            return match
+    return None
 
 
 def has_dba(s: Optional[str]) -> bool:
-    return bool(s) and bool(_DBA.search(s))
+    return bool(s) and _dba_marker(_nfkc(s)) is not None
 
 
 def _dba_part(text: str) -> str:
@@ -78,13 +90,16 @@ def split_dba(s: Optional[str]) -> Tuple[str, str]:
 
     The legal name is the text before the first marker, the trade name the text
     after the last one; the trade name is '' when there is no marker or nothing
-    follows it.
+    follows it. A name that starts with the marker ('DBA LOUNGE') has no legal
+    name before it, so it is kept whole.
     """
-    text = (s or "").strip()
-    parts = _DBA.split(text)
-    if len(parts) == 1:
-        return text, ""
-    return _dba_part(parts[0]), _dba_part(parts[-1])
+    raw = (s or "").strip()
+    text = _nfkc(raw).strip()
+    first = _dba_marker(text)
+    if first is None:
+        return raw, ""
+    last = list(_DBA.finditer(text, first.start()))[-1]
+    return _dba_part(text[:first.start()]), _dba_part(text[last.end():])
 
 
 def trade_name(s: Optional[str]) -> str:
@@ -270,15 +285,23 @@ def display_street(line: Optional[str]) -> str:
             words.append(tok.capitalize())
     text = " ".join(words)
     text = re.sub(r"\bI (\d+)\b", r"I-\1", text)
+    tokens = _clean_street_text(line).split()
     if suite:
-        label = "Ste"
-        for tok in _clean_street_text(line).split():
+        # A trailing lone letter with no unit word ('4100 Example Ln B', often
+        # one half of a duplex) is shown as a bare unit, never as a suite.
+        label = "#"
+        for tok in tokens:
             if tok in _UNIT_DISPLAY:
                 label = _UNIT_DISPLAY[tok]
                 break
         unit = suite.upper() if len(suite) <= 3 else suite
         text += f" #{unit}" if label == "#" else f" {label} {unit}"
         text = " ".join([text, *_later_units(line)])
+    else:
+        # A unit word with no value ('12 EXAMPLE RD LOT') still shows it is a dwelling.
+        unit_word = next((tok for i, tok in enumerate(tokens) if i and tok in UNIT_WORDS), None)
+        if unit_word:
+            text += f" {_UNIT_DISPLAY[unit_word]}"
     return text
 
 

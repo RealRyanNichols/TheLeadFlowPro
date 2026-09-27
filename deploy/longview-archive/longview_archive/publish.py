@@ -284,6 +284,16 @@ def _decide(conn: sqlite3.Connection, settings, business, now: str) -> Tuple[str
             " \"Longview, TX\" only. Accept to publish them as they are; reject to keep it held.")
         if decision:
             return decision
+    # A name or slug shaped like a street address (a house number, then a
+    # street and its suffix) waits for a person whatever street the business
+    # has now: it may be a home address, or a past one.
+    if any(privacy.looks_like_address(text) for text in (business["name"], business["slug"])):
+        decision = _name_decision(
+            conn, business, now, "name_contains_address", "name_address_rejected",
+            "The name or web address reads as a street address. Accept to publish them as they are;"
+            " reject to keep it held.")
+        if decision:
+            return decision
     # A person looks: a name that looks like a person's, or an owner-named
     # listing whose shown name may still be the owner's own (its source says
     # so, or it has a given name or no trade word).

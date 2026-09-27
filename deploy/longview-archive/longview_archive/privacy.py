@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import re
 import sqlite3
+import unicodedata
 from typing import Mapping, Optional, Tuple
 
 from . import normalize
@@ -63,6 +64,7 @@ BUSINESS_WORDS = ORG_MARKERS | {
     "baptist", "methodist", "catholic", "fellowship", "tabernacle", "temple", "mosque", "assembly",
     "ministries", "outreach", "mission", "missions", "community", "center", "plaza", "place",
     "station", "stop", "depot", "warehouse", "works", "factory", "mill", "labs", "lab",
+    "catering", "cakes", "sushi", "candles", "treats", "sweets",
 }
 
 # Common U.S. given names, used only to recognize a name that is a person's.
@@ -133,8 +135,8 @@ STOREFRONT_NAICS_PREFIXES = (
 # trailer in a park, a mobile home, a bare unit number), so the NAICS code
 # alone is not storefront evidence there. Matches the display street ("Apt 4",
 # "Spc 12", "#4"), also run together or abbreviated ("Apt4", "Sp 12", "Mh 5").
-_RESIDENTIAL_UNIT = re.compile(r"(?:^|\s)#|\b(?:apts?|apartment|unit|lot|spc?|space|trlr|trailer|mh)(?=\d|\b)",
-                               re.IGNORECASE)
+_RESIDENTIAL_UNIT = re.compile(r"(?:^|\s)#|\b(?:apts?|apartment|unit|lot|spc?|space|trlr|trailer|mh|rv"
+                               r"|mobile\s+home)(?=\d|\b)", re.IGNORECASE)
 
 # OSM tags that describe a public-facing premises. craft=*, office=*,
 # healthcare=* alone, childcare and the like are often mapped at a home.
@@ -203,6 +205,18 @@ def _joint_parts(name: str) -> Optional[list]:
     return parts
 
 
+def _couple_shape(parts: list) -> bool:
+    """Owners who share a surname, with no trade word (``_joint_parts`` already
+    ruled those out): 'Thanh & Hoa Nguyen' (first names, then the last one
+    carries the shared surname) or 'John Smith & Mary Smith' (the same last word)."""
+    if len(parts) < 2:
+        return False
+    *first, last = parts
+    if all(len(words) == 1 for words in first) and len(last) >= 2:
+        return True
+    return all(len(words) >= 2 for words in parts) and len({words[-1] for words in parts}) == 1
+
+
 def looks_like_person_name(name: Optional[str]) -> bool:
     """'SMITH, JOHN A', 'John A Smith', 'Maria Elena De La Cruz', 'Smith John & Mary': True.
     'Smith Family Dentistry', 'Smith & Wesson': False."""
@@ -212,7 +226,7 @@ def looks_like_person_name(name: Optional[str]) -> bool:
         return not _has_business_word(_tokens(name.replace(",", " ")))
     parts = _joint_parts(name)
     if parts is not None:
-        return any(t in GIVEN_NAMES for words in parts for t in words)
+        return any(t in GIVEN_NAMES for words in parts for t in words) or _couple_shape(parts)
     tokens = _tokens(name)
     # Drop middle initials, suffixes (jr, ii), and surname particles (de, la).
     words = [t for t in tokens if not re.fullmatch(r"[a-z]\.?", t) and t not in _GENERATIONAL
@@ -298,6 +312,179 @@ def is_individual_taxpayer(taxpayer_name: Optional[str], org_type: Optional[str]
                 and not _has_business_word(words)):
             return True
     return _outlet_repeats(outlet_name, name)
+
+
+# ---------------------------------------------------------------- structural owner rule
+#
+# Spelling variants of people's names keep slipping past the name heuristics
+# above, so these rules do not guess whether a name is a person's. A taxpayer
+# is "clearly an entity" only on positive evidence: an entity org type, or a
+# legal form in its own name. Every other taxpayer (sole owner, individual,
+# general partnership, joint venture, a blank or unknown org code) may be a
+# person, and then a shown name that shares any word with the taxpayer's own
+# name is treated as named for the owner.
+
+# Org type text (or the whole code) that names an entity.
+_ENTITY_ORG = re.compile(
+    r"\b(?:l\s*\.?\s*l\s*\.?\s*c|limited\s+liability|corp(?:oration)?|inc(?:orporated)?|limited\s+partnership"
+    r"|l\s*\.?\s*l\s*\.?\s*l?\s*\.?\s*p|pllc|professional\s+(?:corporation|association)|trust|non-?\s*profit"
+    r"|association|church|government(?:al)?|city|county|isd|school\s+district|municipal(?:ity)?)\b",
+    re.IGNORECASE)
+_ENTITY_ORG_CODES = frozenset({"llc", "lp", "llp", "lllp", "pllc", "pc", "pa", "corp", "inc", "trust", "isd"})
+# Legal forms and markers in the taxpayer's own name ('EXAMPLE HOLDINGS LLC', 'CITY OF LONGVIEW').
+_ENTITY_NAME_WORDS = frozenset({
+    "llc", "inc", "incorporated", "corp", "corporation", "co", "company", "ltd", "limited", "lp", "llp",
+    "lllp", "pllc", "plc", "pc", "pa", "trust", "association", "assn", "isd", "county", "foundation",
+    "ministries", "ministry", "university", "college",
+})
+_ENTITY_NAME_PHRASES = re.compile(
+    r"\b(?:city|town|state|county|church|diocese|parish)\s+of\b|\bschool\s+district\b|\bhospital\s+district\b",
+    re.IGNORECASE)
+# 'Church' is a surname too ('CHURCH JAMAL'): a church is named 'First Baptist Church' or 'Church of ...'.
+_CHURCH_WORDS = frozenset({
+    "baptist", "methodist", "catholic", "christian", "episcopal", "lutheran", "presbyterian", "pentecostal",
+    "bible", "missionary", "holiness", "nazarene", "apostolic", "evangelical", "fellowship", "community",
+    "memorial", "united", "first", "grace", "faith", "zion", "ame", "cme", "cogic", "god", "gospel",
+})
+
+# Owner-name tokens: split on spaces, punctuation, '&', '+', '/', 'and', 'or', 'et ux', 'et al';
+# drop words shorter than two letters and these.
+_OWNER_JOINERS = re.compile(r"\bet\s+(?:ux|al)\b|\b(?:and|or)\b|[&+/]", re.IGNORECASE)
+_OWNER_STOP = frozenset({"the", "of", "and", "or", "de", "la", "del", "los", "las", "y", "jr", "sr", "ii", "iii",
+                         "et", "ux", "al"})
+
+
+def _plain_words(name: Optional[str]) -> list:
+    """Lowercase ASCII words, NFKC first: possessives and apostrophes dropped
+    ("Maria's" -> 'maria', "O'Shea" -> 'oshea'), dots closed up ('L.L.C.' -> 'llc')."""
+    text = unicodedata.normalize("NFKC", name or "")
+    text = re.sub(r"[’‘`´]", "'", text)
+    text = re.sub(r"'s\b", "", text, flags=re.IGNORECASE)
+    text = normalize._ascii(text).casefold().replace("'", "").replace(".", "")
+    return [t for t in re.split(r"[^a-z0-9]+", text) if t]
+
+
+def org_is_entity(org_type: Optional[str]) -> bool:
+    """The org type positively says an entity (LLC, corporation, limited
+    partnership, trust, nonprofit, church, government...). 'Sole Owner',
+    'General Partnership', 'Joint Venture', blank, and unknown codes do not."""
+    kind = unicodedata.normalize("NFKC", org_type or "").strip()
+    if not kind or _org_kind(kind):
+        return False
+    if re.sub(r"[^a-z]", "", kind.casefold()) in _ENTITY_ORG_CODES:
+        return True
+    return len(kind) > 3 and bool(_ENTITY_ORG.search(kind))
+
+
+def name_is_entity(taxpayer_name: Optional[str]) -> bool:
+    """The taxpayer's own legal name (before any DBA) carries a legal form or
+    entity marker: LLC, L.L.C., INC, CORP, CO, LTD, LP, PLLC, TRUST, CITY OF, ISD..."""
+    name = normalize.split_dba(taxpayer_name)[0] or (taxpayer_name or "")
+    words = _plain_words(name)
+    if any(w in _ENTITY_NAME_WORDS for w in words):
+        return True
+    # Spaced initials: 'L L C', 'L. L. C.'
+    if re.search(r"\b(?:l l c|l l p|l p|p l l c|p c|p a)\b", " ".join(words)):
+        return True
+    if _ENTITY_NAME_PHRASES.search(normalize._ascii(unicodedata.normalize("NFKC", name))):
+        return True
+    return any(w == "church" and i and words[i - 1] in _CHURCH_WORDS for i, w in enumerate(words))
+
+
+def is_clearly_entity(taxpayer_name: Optional[str], org_type: Optional[str]) -> bool:
+    """Positive evidence only; everything else may be a person."""
+    return org_is_entity(org_type) or name_is_entity(taxpayer_name)
+
+
+def owner_name_tokens(taxpayer_name: Optional[str]) -> set:
+    """The words of the owner's name: the taxpayer name before any DBA marker,
+    split on spaces, commas, '&', '+', '/', 'and', 'or', 'et ux', 'et al'."""
+    legal = normalize.split_dba(taxpayer_name)[0] or (taxpayer_name or "")
+    text = _OWNER_JOINERS.sub(" ", unicodedata.normalize("NFKC", legal))
+    return {w for w in _plain_words(text)
+            if sum(ch.isalpha() for ch in w) >= 2 and w not in _OWNER_STOP}
+
+
+def shares_owner_name(shown_name: Optional[str], taxpayer_name: Optional[str]) -> bool:
+    """The shown (trade) name shares any word with the owner's name."""
+    owner = owner_name_tokens(taxpayer_name)
+    shown = {w for w in _plain_words(_OWNER_JOINERS.sub(" ", unicodedata.normalize("NFKC", shown_name or "")))
+             if w not in _OWNER_STOP}
+    return bool(owner & shown)
+
+
+def owner_named_outlet(outlet_name: Optional[str], taxpayer_name: Optional[str],
+                       org_type: Optional[str]) -> bool:
+    """A taxpayer that may be a person, and a shown outlet name that shares a
+    word with that person's name: held until it has a public presence, then a
+    person checks it. Never published on its own."""
+    if not outlet_name or not taxpayer_name or is_clearly_entity(taxpayer_name, org_type):
+        return False
+    return shares_owner_name(normalize.trade_name(outlet_name), taxpayer_name)
+
+
+# ---------------------------------------------------------------- address-shaped names
+
+# Street suffixes an address-shaped name ends in (full and USPS forms). Words
+# that are also everyday trade words ('Center', 'Plaza', 'Place', 'Point')
+# count only in their abbreviated form.
+_ADDRESS_SUFFIXES = frozenset({
+    "st", "street", "str", "ave", "avenue", "av", "rd", "road", "dr", "drive", "drv", "ln", "lane", "blvd",
+    "boulevard", "ct", "court", "cir", "circle", "pkwy", "parkway", "hwy", "highway", "loop", "trl", "trail",
+    "way", "pl", "cv", "cove", "ter", "terrace", "fwy", "freeway", "expy", "xing", "ctr", "plz", "pt", "sq",
+})
+_ROUTE_WORDS = frozenset({"hwy", "highway", "fm", "loop", "spur", "cr", "sh", "us", "i", "interstate", "rr"})
+_ORDINAL = re.compile(r"\d+(?:st|nd|rd|th)")
+
+
+def _address_tokens(text: Optional[str]) -> list:
+    text = normalize._ascii(unicodedata.normalize("NFKC", text or "")).casefold()
+    text = re.sub(r"['`]", "", text)
+    out = []
+    for tok in re.split(r"[^a-z0-9/]+", text):
+        for part in tok.split("/") if not re.fullmatch(r"\d+/\d+", tok) else [tok]:
+            # A house number run into the street ('77SAMPLE'), but not an ordinal ('1st').
+            glued = re.fullmatch(r"(\d+)([a-z]{2,})", part)
+            if glued and not _ORDINAL.fullmatch(part):
+                out.extend(glued.groups())
+            elif part:
+                out.append(part)
+    return out
+
+
+def looks_like_address(text: Optional[str]) -> bool:
+    """The text is or contains a street address: a house number (4100, 4100A,
+    4100-A, 4100 1/2) followed by words ending in a street suffix ('77 Sample
+    Ct', '500 South St', '12 Cove Ln'), or a numbered route ('4100 Hwy 80').
+    '7-Eleven', '24 Hour Fitness', '1st Choice Plumbing', '3 Amigos' are not."""
+    tokens = _address_tokens(text)
+    for i, tok in enumerate(tokens):
+        if not re.fullmatch(r"\d{1,6}[a-z]?", tok):
+            continue
+        j = i + 1
+        # The rest of the house number: '1/2' (or '1-2' in a slug), then a unit letter ('4100 A').
+        if j < len(tokens) and re.fullmatch(r"\d+/\d+", tokens[j]):
+            j += 1
+        elif j + 1 < len(tokens) and re.fullmatch(r"\d", tokens[j]) and re.fullmatch(r"\d", tokens[j + 1]):
+            j += 2
+        if j < len(tokens) and re.fullmatch(r"[a-z]", tokens[j]) and tokens[j] not in normalize.DIRECTIONALS:
+            j += 1
+        words = tokens[j:j + 5]
+        if not words:
+            continue
+        # A numbered route: '4100 Hwy 80', '4100 US Hwy 80', '4100 FM 1845'.
+        for k, word in enumerate(words[:3]):
+            if word in _ROUTE_WORDS and k + 1 < len(words) and words[k + 1].isdigit():
+                if all(w in _ROUTE_WORDS or w in normalize.DIRECTIONALS for w in words[:k]):
+                    return True
+        named = 0  # words of the street's own name before its suffix
+        for word in words:
+            if word in _ADDRESS_SUFFIXES and (named >= 1):
+                return True
+            if not (re.fullmatch(r"[a-z]+", word) or _ORDINAL.fullmatch(word)):
+                break
+            named += 1
+    return False
 
 
 def _name_set(name: Optional[str]) -> set:
@@ -446,15 +633,37 @@ def address_is_public(conn: sqlite3.Connection, business_id: int) -> Tuple[bool,
 _SUFFIX_FORMS = frozenset(normalize.STREET_SUFFIXES.values())
 
 
-def _street_words(text: Optional[str]) -> list:
-    """Words as streets compare them: 'Sample Court' -> ['sample', 'ct']; directions dropped."""
-    text = re.sub(r"[^a-z0-9]+", " ", normalize._ascii(text or "").casefold())
-    return [normalize.STREET_SUFFIXES.get(t, t) for t in normalize._clean_street_text(text).split()
-            if t not in normalize.DIRECTIONALS]
+def _street_words(text: Optional[str], directions: bool = False) -> list:
+    """Words as streets compare them: 'Sample Court' -> ['sample', 'ct']; directions
+    dropped (or kept, abbreviated, with ``directions``). Apostrophes are dropped as
+    slugify drops them: "O'Neal" and 'O’Neal' -> 'oneal'."""
+    text = re.sub("['’‘`]", "", unicodedata.normalize("NFKC", text or ""))
+    text = re.sub(r"[^a-z0-9]+", " ", normalize._ascii(text).casefold())
+    return [normalize.DIRECTIONALS[t] if t in normalize.DIRECTIONALS else normalize.STREET_SUFFIXES.get(t, t)
+            for t in normalize._clean_street_text(text).split()
+            if directions or t not in normalize.DIRECTIONALS]
 
 
 def _has_run(words: list, run: list) -> bool:
     return any(words[i:i + len(run)] == run for i in range(len(words) - len(run) + 1))
+
+
+def _spells(tokens: list, street: list) -> bool:
+    number = street[0] if street and any(ch.isdigit() for ch in street[0]) else None
+    words = street[1:] if number else street
+    if not words:
+        return False
+    if number and _has_run(tokens, [number] + words):  # the whole address, number included
+        return True
+    # The rest of the house number ('4100 1/2', '4100-A') is not part of the street's name.
+    while (number and len(words) > 1 and re.fullmatch(r"\d+|[a-z]", words[0])
+           and words[0] not in normalize.DIRECTIONALS):
+        words = words[1:]
+        if _has_run(tokens, [number] + words):
+            return True
+    if len(words) < 2 and all(w in _SUFFIX_FORMS for w in words):  # a bare suffix is too little to match
+        return False
+    return _has_run(tokens, words) or bool(number and _has_run(tokens, [number, words[0]]))
 
 
 def name_spells_street(name: Optional[str], street_norm: Optional[str]) -> bool:
@@ -462,14 +671,15 @@ def name_spells_street(name: Optional[str], street_norm: Optional[str]) -> bool:
 
     At 77 Sample Ct: '77 Sample Ct', 'Sample Court Candles' and 'Scentsy 77
     Sample' do; 'Sample Candles' does not (a street's name alone is not an address).
+    A street named by a direction ('500 South St') is compared with it kept.
     """
-    street = _street_words(street_norm)
-    number = street[0] if street and any(ch.isdigit() for ch in street[0]) else None
-    words = street[1:] if number else street
-    if all(w in _SUFFIX_FORMS for w in words):  # nothing but a suffix ('100 N St') is too little to match
+    if not street_norm:
         return False
-    tokens = _street_words(name)
-    return _has_run(tokens, words) or bool(number and _has_run(tokens, [number, words[0]]))
+    if _spells(_street_words(name), _street_words(street_norm)):
+        return True
+    with_directions = _street_words(street_norm, directions=True)
+    return (with_directions != _street_words(street_norm)
+            and _spells(_street_words(name, directions=True), with_directions))
 
 
 def generic_email_ok(email: Optional[str], site_domain: Optional[str]) -> bool:

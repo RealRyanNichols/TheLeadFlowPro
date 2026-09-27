@@ -113,15 +113,21 @@ def project_row(row: Mapping[str, Any], fields: Mapping[str, Optional[str]]) -> 
     naics = re.sub(r"\D", "", _get(row, fields, "outlet_naics")) or None
     # The taxpayer name is private: it only decides the flags below.
     taxpayer_name = _get(row, fields, "taxpayer_name")
-    is_individual = privacy.is_individual_taxpayer(
-        taxpayer_name or None, _get(row, fields, "taxpayer_org_type") or None, outlet_name
-    )
+    org_type = _get(row, fields, "taxpayer_org_type") or None
+    is_individual = privacy.is_individual_taxpayer(taxpayer_name or None, org_type, outlet_name)
     personal = privacy.outlet_is_personal_name(outlet_name, taxpayer_name or None, is_individual)
     # "Owner Name DBA Trade Name" shows only the trade name, for every taxpayer.
     shown = normalize.trade_name(outlet_name)
     limits = city_limits(_get(row, fields, "inside_city_limits"))
     tags: Dict[str, Any] = {"city_limits": limits}
-    if personal and privacy.carries_owner_name(shown, taxpayer_name or None):
+    # Structural rule: unless the taxpayer is clearly an entity, a shown name
+    # that shares any word with the taxpayer's own name is named for the owner,
+    # however the name is spelled. Held without a public presence, then a
+    # person checks it; the street is not shown on the NAICS code alone.
+    owner_named = privacy.owner_named_outlet(outlet_name, taxpayer_name or None, org_type)
+    if owner_named:
+        is_individual = personal = True
+    if owner_named or (personal and privacy.carries_owner_name(shown, taxpayer_name or None)):
         # The shown name itself carries the owner's name ('Dalix Quillfeather
         # Lawn'), not only the legal part before a DBA: a person checks it
         # even once the listing has a public presence.
