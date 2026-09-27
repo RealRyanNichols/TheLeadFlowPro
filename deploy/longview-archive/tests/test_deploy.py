@@ -33,6 +33,7 @@ ROOT = Path(__file__).resolve().parent.parent
 UNIT = ROOT / "systemd" / "longview-archive.service"
 CADDY = ROOT / "caddy" / "longview-archive.caddy"
 ROUTES = ROOT / "caddy" / "website.routes"
+ERRORS = ROOT / "caddy" / "website.errors"
 PUBLIC_TEMPLATE = ROOT / "caddy" / "public-host.caddy.in"
 WEBSITE_CADDY = ROOT.parent / "droplet" / "theleadflowpro.caddy"
 DROPLET_INSTALL = ROOT.parent / "droplet" / "install.sh"
@@ -1028,17 +1029,25 @@ class SandboxInstallTest(unittest.TestCase):
         return self.prefix / "etc" / "caddy" / "longview-archive" / "website.routes"
 
     @property
+    def errors(self) -> Path:
+        return self.prefix / "etc" / "caddy" / "longview-archive" / "website.errors"
+
+    @property
     def env_file(self) -> Path:
         return self.prefix / "etc" / "longview-archive" / "env"
 
-    def fake_dns(self, public_ip=None, **answers):
-        """The metadata service's answer and getent's answers (host -> list of IPv4)."""
-        if public_ip is not None:
+    def fake_dns(self, public_ip=None, aaaa=None, **answers):
+        """The metadata service's answer and getent's answers (host -> list of
+        IPv4; aaaa: host -> list of IPv6). public_ip "" removes the answer."""
+        if public_ip == "":
+            (self.fake / "public-ip").unlink(missing_ok=True)
+        elif public_ip is not None:
             (self.fake / "public-ip").write_text(public_ip)
-        dns = self.fake / "dns"
-        dns.mkdir(exist_ok=True)
-        for host, ips in answers.items():
-            (dns / host).write_text("".join(ip + "\n" for ip in ips))
+        for folder, table in (("dns", answers), ("dns6", aaaa or {})):
+            dns = self.fake / folder
+            dns.mkdir(exist_ok=True)
+            for host, ips in table.items():
+                (dns / host).write_text("".join(ip + "\n" for ip in ips))
 
     def install_public(self, host=PUBLIC_HOST, *args, code=0):
         proc = self.run_script("install.sh", *args, env={"LVA_PUBLIC_HOST": host})
@@ -1048,10 +1057,19 @@ class SandboxInstallTest(unittest.TestCase):
     def expected_public_site(self, host=PUBLIC_HOST) -> str:
         return CADDY.read_text() + PUBLIC_TEMPLATE.read_text().replace("@PUBLIC_HOST@", host)
 
+    def serve_public_host(self):
+        """A first install with the public host live; returns the env file bytes."""
+        self.fake_dns(DROPLET_IP, **{PUBLIC_HOST: [DROPLET_IP]})
+        self.install_public()
+        self.assertEqual(self.site.read_text(), self.expected_public_site())
+        return self.env_file.read_bytes()
+
     def test_website_routes_installed_and_removed(self):
         proc = self.install()
         self.assertEqual(self.routes.read_bytes(), ROUTES.read_bytes())
+        self.assertEqual(self.errors.read_bytes(), ERRORS.read_bytes())
         self.assertEqual(mode(self.routes), 0o644)
+        self.assertEqual(mode(self.errors), 0o644)
         self.assertEqual(mode(self.routes.parent), 0o755)
         # No public host asked for: the site file is the staging host only and
         # no settings file is written.
@@ -1059,43 +1077,50 @@ class SandboxInstallTest(unittest.TestCase):
         self.assertFalse(self.env_file.exists())
         self.assertFalse(self.env_file.parent.exists())
         calls = self.calls()
-        routes_at = calls.index(f"chown root:root {self.routes.parent} {self.routes} {self.site}")
+        routes_at = calls.index(f"chown root:root {self.routes.parent} {self.routes} {self.errors} {self.site}")
         self.assertLess(routes_at, self.index_of(calls, "caddy validate"))
         self.assertIn("https://www.theleadflowpro.com/longview/businesses/", proc.stdout)
         self.assertIn("LVA_PUBLIC_BASE_URL=https://www.theleadflowpro.com", proc.stdout)
 
-        # A changed routes file alone is put back and Caddy reloaded.
-        self.routes.write_text("# older\n")
-        self.reset_calls()
-        self.install()
-        self.assertEqual(self.routes.read_bytes(), ROUTES.read_bytes())
-        self.assertIn("systemctl reload caddy", self.calls())
+        # A changed routes or errors file alone is put back and Caddy reloaded.
+        for path, source in ((self.routes, ROUTES), (self.errors, ERRORS)):
+            with self.subTest(path=path.name):
+                path.write_text("# older\n")
+                self.reset_calls()
+                self.install()
+                self.assertEqual(path.read_bytes(), source.read_bytes())
+                self.assertIn("systemctl reload caddy", self.calls())
 
         proc = self.run_script("uninstall.sh")
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
         self.assertFalse(self.routes.exists())
+        self.assertFalse(self.errors.exists())
         self.assertFalse(self.routes.parent.exists())
         self.assertFalse(self.site.exists())
 
     def test_rejected_config_puts_the_routes_back_too(self):
         self.install()
         self.routes.write_text("# older routes\n")
+        self.errors.unlink()
         self.site.write_text("# older site\n")
         (self.fake / "caddy-validate-fails").touch()
         self.reset_calls()
         proc = self.run_script("install.sh")
         self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
         self.assertEqual(self.routes.read_text(), "# older routes\n")
+        self.assertFalse(self.errors.exists(), "a file that was not there is removed again")
         self.assertEqual(self.site.read_text(), "# older site\n")
         self.assertNotIn("systemctl reload caddy", self.calls())
 
+        self.errors.write_text("# older errors\n")
         proc = self.run_script("uninstall.sh")
         self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
         self.assertEqual(self.routes.read_text(), "# older routes\n")
+        self.assertEqual(self.errors.read_text(), "# older errors\n")
         self.assertEqual(self.site.read_text(), "# older site\n")
 
     def test_public_host_added_when_dns_points_here(self):
-        self.fake_dns(DROPLET_IP, **{PUBLIC_HOST: ["203.0.113.9", DROPLET_IP]})
+        self.fake_dns(DROPLET_IP, **{PUBLIC_HOST: [DROPLET_IP]})
         proc = self.install_public(PUBLIC_HOST.upper())
         site = self.site.read_text()
         self.assertEqual(site, self.expected_public_site())
@@ -1116,13 +1141,14 @@ class SandboxInstallTest(unittest.TestCase):
         )
         self.assertEqual(config.load_settings(config.environment({}, self.env_file)).public_base_url,
                          f"https://{PUBLIC_HOST}")
+        # Only after Caddy took the host, and the engine restarts to read it.
         calls = self.calls()
-        self.assertLess(
-            calls.index(f"chown root:root {self.env_file.parent} {self.env_file}"),
-            self.index_of(calls, "-m longview_archive migrate"),
-        )
+        env_at = calls.index(f"chown root:root {self.env_file.parent} {self.env_file}")
+        self.assertLess(self.index_of(calls, "systemctl reload caddy"), env_at)
+        self.assertLess(self.index_of(calls, "-m longview_archive migrate"), env_at)
+        self.assertIn("systemctl restart longview-archive", calls[env_at:])
 
-        # Again: nothing changes and Caddy is left alone.
+        # Again: nothing changes and Caddy and the engine are left alone.
         before = self.env_file.read_bytes()
         self.reset_calls()
         proc = self.install_public()
@@ -1141,50 +1167,134 @@ class SandboxInstallTest(unittest.TestCase):
         self.assertIn("already names another public host", proc.stderr)
         self.assertEqual(self.calls(), [])
 
-        # Once DNS no longer points here, the host is left out again.
-        self.fake_dns(DROPLET_IP, **{PUBLIC_HOST: ["198.51.100.7"]})
-        proc = self.install()
-        self.assertIn("left out", proc.stdout)
+    def test_served_host_is_kept_when_a_later_check_fails(self):
+        before = self.serve_public_host()
+        cases = (
+            ("metadata unreachable", "", {PUBLIC_HOST: [DROPLET_IP]}),
+            ("no DNS answer", DROPLET_IP, {PUBLIC_HOST: []}),
+            ("DNS points elsewhere", DROPLET_IP, {PUBLIC_HOST: ["198.51.100.7"]}),
+        )
+        for label, public_ip, answers in cases:
+            with self.subTest(case=label):
+                self.fake_dns(public_ip, **answers)
+                self.reset_calls()
+                proc = self.install()  # the plain upgrade, no variable
+                self.assertIn("WARNING", proc.stdout)
+                self.assertIn("KEPT", proc.stdout)
+                self.assertIn("delete the LVA_PUBLIC_HOST and LVA_PUBLIC_BASE_URL", proc.stdout)
+                self.assertEqual(self.site.read_text(), self.expected_public_site())
+                self.assertEqual(self.env_file.read_bytes(), before)
+                self.assertNotIn("systemctl reload caddy", self.calls())
+                self.assertIn(f"Directory: https://{PUBLIC_HOST}/longview/businesses/", proc.stdout)
+
+    def test_recorded_host_that_is_not_served_stops_before_any_change(self):
+        self.serve_public_host()
+        self.site.write_bytes(CADDY.read_bytes())  # say someone took the block out by hand
+        self.fake_dns("")
+        self.reset_calls()
+        proc = self.run_script("install.sh")
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        self.assertIn("records LVA_PUBLIC_HOST", proc.stderr)
+        self.assertIn("Nothing was changed", proc.stderr)
+        self.assertIn("Type: A    Name: longview    Value: 165.227.248.110", proc.stdout)
+        self.assertEqual(self.calls(), [])
+
+    def test_dropping_the_host_while_links_point_at_it_is_refused(self):
+        self.serve_public_host()
+        # The owner deletes only the LVA_PUBLIC_HOST line.
+        self.env_file.write_text(f"LVA_PUBLIC_BASE_URL=https://{PUBLIC_HOST}\n")
+        self.reset_calls()
+        proc = self.run_script("install.sh")
+        self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+        self.assertIn("would stop serving", proc.stderr)
+        self.assertEqual(self.calls(), [])
+        self.assertEqual(self.site.read_text(), self.expected_public_site())
+
+        # With both lines gone the host is taken out (links are back on staging).
+        self.env_file.write_text("# nothing\n")
+        self.install()
         self.assertEqual(self.site.read_bytes(), CADDY.read_bytes())
+
+    def test_env_file_waits_for_caddy(self):
+        self.install()
+        self.fake_dns(DROPLET_IP, **{PUBLIC_HOST: [DROPLET_IP]})
+        for failure in ("caddy-validate-fails", "caddy-reload-fails"):
+            with self.subTest(failure=failure):
+                (self.fake / failure).touch()
+                self.addCleanup((self.fake / failure).unlink, missing_ok=True)
+                proc = self.install_public(code=1)
+                self.assertIn("put back", proc.stderr)
+                self.assertFalse(self.env_file.exists())
+                self.assertEqual(self.site.read_bytes(), CADDY.read_bytes())
+                (self.fake / failure).unlink()
 
     def test_public_host_left_out_until_dns_points_here(self):
         record = "Type: A    Name: longview    Value: 165.227.248.110"
         cases = (
-            ("points elsewhere", DROPLET_IP, {PUBLIC_HOST: ["198.51.100.7"]}),
-            ("no record yet", DROPLET_IP, {}),
-            ("metadata unreachable", None, {PUBLIC_HOST: [DROPLET_IP]}),
+            ("points elsewhere", DROPLET_IP, {PUBLIC_HOST: ["198.51.100.7"]}, None, "not this droplet"),
+            ("no record yet", DROPLET_IP, {}, None, "no A record"),
+            ("metadata unreachable", None, {PUBLIC_HOST: [DROPLET_IP]}, None, "metadata service"),
+            # Let's Encrypt may try any address the name has.
+            ("an extra A record", DROPLET_IP, {PUBLIC_HOST: ["203.0.113.9", DROPLET_IP]}, None,
+             "delete the A record(s) for 203.0.113.9"),
+            ("an AAAA record", DROPLET_IP, {PUBLIC_HOST: [DROPLET_IP]}, {PUBLIC_HOST: ["2001:db8::1"]},
+             "AAAA (IPv6) record, 2001:db8::1"),
         )
-        for label, public_ip, answers in cases:
+        for label, public_ip, answers, aaaa, why in cases:
             with self.subTest(case=label):
                 shutil.rmtree(self.prefix)
                 self.make_system()
-                self.fake_dns(public_ip, **answers)
+                self.fake_dns(public_ip, aaaa, **answers)
                 proc = self.install_public()
                 self.assertIn(record, proc.stdout)
+                self.assertIn(why, proc.stdout)
                 self.assertIn("left out", proc.stdout)
                 self.assertEqual(self.site.read_bytes(), CADDY.read_bytes())
                 self.assertNotIn(PUBLIC_HOST, self.site.read_text())
                 self.assertEqual(self.routes.read_bytes(), ROUTES.read_bytes())
                 self.assertFalse(self.env_file.exists())
+        # IPv4 answers mapped into IPv6 by getent are not AAAA records.
+        shutil.rmtree(self.prefix)
+        self.make_system()
+        self.fake_dns(DROPLET_IP, {PUBLIC_HOST: ["::ffff:" + DROPLET_IP]}, **{PUBLIC_HOST: [DROPLET_IP]})
+        self.install_public()
+        self.assertEqual(self.site.read_text(), self.expected_public_site())
 
     def test_public_host_keeps_the_owners_base_url(self):
         self.env_file.parent.mkdir(parents=True)
-        owner = "# set by the owner\nLVA_PUBLIC_BASE_URL=https://www.theleadflowpro.com\n"
+        owner = "# set by the owner\nLVA_PUBLIC_BASE_URL=https://www.theleadflowpro.com  # main site\n"
         self.env_file.write_text(owner)
         self.fake_dns(DROPLET_IP, **{PUBLIC_HOST: [DROPLET_IP]})
         proc = self.install_public()
-        self.assertIn("Kept the existing", proc.stdout)
+        self.assertIn("Kept the existing LVA_PUBLIC_BASE_URL=https://www.theleadflowpro.com (", proc.stdout)
         self.assertEqual(self.env_file.read_text(), owner + f"LVA_PUBLIC_HOST={PUBLIC_HOST}\n")
         self.assertIn(f"\n{PUBLIC_HOST} {{", self.site.read_text())
+        self.assertIn("Directory: https://www.theleadflowpro.com/longview/businesses/", proc.stdout)
 
-        # A file without the keys gets them added below what is there.
-        self.env_file.write_text("LVA_INDEXABLE=0\n")
+        # A file without the keys (and no final newline) gets them on lines of their own.
+        self.env_file.write_text("# kept")
         self.install_public()
+        self.assertTrue(self.env_file.read_text().startswith("# kept\n"))
         self.assertEqual(
             config.read_env_file(self.env_file),
-            {"LVA_INDEXABLE": "0", "LVA_PUBLIC_HOST": PUBLIC_HOST,
-             "LVA_PUBLIC_BASE_URL": f"https://{PUBLIC_HOST}"},
+            {"LVA_PUBLIC_HOST": PUBLIC_HOST, "LVA_PUBLIC_BASE_URL": f"https://{PUBLIC_HOST}"},
         )
+
+    def test_env_file_the_engine_would_refuse_stops_the_installer(self):
+        self.env_file.parent.mkdir(parents=True)
+        for text, why in (
+            ("LVA_ALLOW_PRIVATE_HOSTS=1\n", "LVA_ALLOW_PRIVATE_HOSTS cannot be set there"),
+            ("LVA_INDEXABLE=1\n", "LVA_INDEXABLE cannot be set there"),
+            ("LVA_PUBLIC_HOST='longview.theleadflowpro.com\n", "unclosed quote"),
+        ):
+            with self.subTest(text=text):
+                self.env_file.write_text(text)
+                self.reset_calls()
+                proc = self.run_script("install.sh")
+                self.assertEqual(proc.returncode, 1, proc.stdout + proc.stderr)
+                self.assertIn(why, proc.stderr)
+                self.assertIn("Nothing was changed", proc.stderr)
+                self.assertEqual(self.calls(), [])
 
     def test_public_host_bad_values_are_refused_before_any_change(self):
         self.fake_dns(DROPLET_IP, **{PUBLIC_HOST: [DROPLET_IP]})
@@ -1268,16 +1378,89 @@ class WebsitePathTest(unittest.TestCase):
         self.assertRegex(self.site, r"(?m)^theleadflowpro\.com \{\n\tredir https://www\.theleadflowpro\.com\{uri\} 308\n\}")
         self.assertNotIn("vercel", self.code(self.site).lower())
 
+    def test_website_block_answers_directory_errors_with_the_directory_headers(self):
+        www = re.search(r"(?ms)^www\.theleadflowpro\.com \{\n(.*?)^\}", self.site).group(1)
+        errors_block = re.search(r"(?ms)^\thandle_errors \{\n(.*?)^\t\}", www).group(1)
+        lines = [l.strip() for l in errors_block.splitlines() if l.strip() and not l.strip().startswith("#")]
+        # The directory's error answers first (a glob: a no-op until installed),
+        # then a plain fallback for every other error.
+        self.assertEqual(lines[0], "import /etc/caddy/longview-archive/*.errors")
+        self.assertEqual(lines[1:], ["handle {", 'respond "{err.status_code} {err.status_text}" {err.status_code}', "}"])
+
+    def test_errors_fragment_is_self_contained_and_matches_the_routes(self):
+        errors = ERRORS.read_text()
+        code = self.code(errors)
+        self.assertNotRegex(code, r"(?m)^\s*import\b", "no snippet from another file")
+        self.assertIn("@longview_archive_directory_error path /longview/businesses /longview/businesses/*", code)
+        self.assertEqual(len(re.findall(r"(?m)^[^\s}]", code)), 2)
+        self.assertRegex(code, r"(?m)^handle @longview_archive_directory_error \{$")
+        self.assertIn('respond "{err.status_code}" {err.status_code}', code)
+        # The very same header block as the routes (noindex and the directory policy).
+        header = re.compile(r"\n\theader \{\n(.*?)\n\t\}", re.S)
+        self.assertEqual(header.search(errors).group(1), header.search(self.routes).group(1))
+        self.assertIn('X-Robots-Tag "noindex, nofollow, noarchive, nosnippet"', errors)
+        for word in ("status.json", "reverse_proxy", "file_server", "vercel", "supabase"):
+            self.assertNotIn(word, code.lower())
+        for number, line in enumerate(errors.splitlines(), 1):
+            with self.subTest(line=number):
+                self.assertFalse(line.startswith(" "), "indent with tabs")
+
     def test_droplet_installer_refreshes_the_site_block_safely(self):
         text = DROPLET_INSTALL.read_text()
         self.assertIn('cmp -s "$APP_DIR/deploy/droplet/theleadflowpro.caddy" "$SITE_BLOCK"', text)
         refresh = text.index('elif ! cmp -s "$APP_DIR/deploy/droplet/theleadflowpro.caddy"')
+        # One backup, outside sites/ (so Caddy never loads it), removed once Caddy took the new block.
+        self.assertIn("SITE_BACKUP=/etc/caddy/theleadflowpro.caddy.previous\n", text)
         validate = text.index("caddy validate --config /etc/caddy/Caddyfile", refresh)
         restore = text.index('install -m 644 "$SITE_BACKUP" "$SITE_BLOCK"', validate)
-        reload_at = text.index("systemctl reload caddy", validate)
+        reload_at = text.index("if ! systemctl reload caddy; then", validate)
         self.assertLess(restore, reload_at)
+        # A failed reload puts the block back too, and only then the backup goes.
+        restore_after_reload = text.index('install -m 644 "$SITE_BACKUP" "$SITE_BLOCK"', reload_at)
+        cleanup = text.index('rm -f "$SITE_BACKUP"', reload_at)
+        self.assertLess(restore_after_reload, cleanup)
+        self.assertNotIn("theleadflowpro.caddy.bak.", text)
         proc = subprocess.run([BASH, "-n", str(DROPLET_INSTALL)], capture_output=True, text=True)
         self.assertEqual(proc.returncode, 0, proc.stderr)
+
+    def test_droplet_installer_refresh_runs(self):
+        # The refresh section of deploy/droplet/install.sh, run against a
+        # temporary /etc/caddy with fake caddy and systemctl.
+        text = DROPLET_INSTALL.read_text()
+        start = text.index("SITE_BLOCK=/etc/caddy/sites/theleadflowpro.caddy\n")
+        end = text.index('ok "Caddy config valid and reloaded', start)
+        end = text.index("\n", end) + 1
+        section = text[start:end]
+        new_block = WEBSITE_CADDY.read_text()
+        cases = (
+            # (validate ok, reload ok) -> the new block stays; the backup is gone
+            ("ok", True, True, new_block, 0),
+            ("validate fails", False, True, "old\n", 1),
+            ("reload fails", True, False, "old\n", 1),
+        )
+        for label, validate_ok, reload_ok, want, code in cases:
+            with self.subTest(case=label), tempfile.TemporaryDirectory() as tmp:
+                etc = Path(tmp) / "etc" / "caddy"
+                (etc / "sites").mkdir(parents=True)
+                (etc / "sites" / "theleadflowpro.caddy").write_text("old\n")
+                app = Path(tmp) / "app"
+                (app / "deploy" / "droplet").mkdir(parents=True)
+                (app / "deploy" / "droplet" / "theleadflowpro.caddy").write_text(new_block)
+                body = section.replace("/etc/caddy", str(etc))
+                script = (
+                    "set -euo pipefail\n"
+                    f'APP_DIR="{app}"\n'
+                    "ok() { :; }\n"
+                    "die() { echo \"$*\" >&2; exit 1; }\n"
+                    f"caddy() {{ {'true' if validate_ok else 'false'}; }}\n"
+                    f"systemctl() {{ case $1 in reload) {'true' if reload_ok else 'false'} ;; esac; }}\n"
+                    + body
+                )
+                proc = subprocess.run([BASH, "-c", script], capture_output=True, text=True, timeout=60)
+                self.assertEqual(proc.returncode, code, proc.stdout + proc.stderr)
+                self.assertEqual((etc / "sites" / "theleadflowpro.caddy").read_text(), want)
+                self.assertFalse((etc / "theleadflowpro.caddy.previous").exists() and code == 0)
+                self.assertEqual(sorted(p.name for p in (etc / "sites").iterdir()), ["theleadflowpro.caddy"])
 
     def test_public_host_template(self):
         self.assertRegex(self.template, r"(?m)^@PUBLIC_HOST@ \{$")
@@ -1318,6 +1501,7 @@ class WebsitePathTest(unittest.TestCase):
             self.assertEqual(proc.returncode, 0, "no routes installed: " + proc.stdout + proc.stderr)
             routes_dir.mkdir()
             shutil.copy(ROUTES, routes_dir / "website.routes")
+            shutil.copy(ERRORS, routes_dir / "website.errors")
             proc = self.validate(caddy, tmp, f"import {tmp}/site.caddy\n")
             self.assertEqual(proc.returncode, 0, "routes installed: " + proc.stdout + proc.stderr)
 
@@ -1368,8 +1552,17 @@ class WebsitePathTest(unittest.TestCase):
             (www / "status.json").write_text("{}")
             routes_dir = Path(tmp) / "routes"
             routes_dir.mkdir()
-            (routes_dir / "website.routes").write_text(
-                self.routes.replace("/var/lib/longview-archive/www", str(www)))
+            # boom.html stands in for an error raised inside file_server (a file
+            # swapped away mid-request, a file Caddy may not read).
+            (build / "boom.html").write_text("never served")
+            routes = self.routes.replace("/var/lib/longview-archive/www", str(www))
+            self.assertEqual(routes.count("\n\t\tfile_server\n"), 1)
+            routes = routes.replace(
+                "\n\t\tfile_server\n",
+                '\n\t\t@lva_test_boom path /longview/businesses/boom.html\n'
+                '\t\terror @lva_test_boom "simulated" 403\n\t\tfile_server\n')
+            (routes_dir / "website.routes").write_text(routes)
+            shutil.copy(ERRORS, routes_dir / "website.errors")
             with socket.socket() as sock:
                 sock.bind(("127.0.0.1", 0))
                 port = sock.getsockname()[1]
@@ -1425,6 +1618,20 @@ class WebsitePathTest(unittest.TestCase):
                         self.assertEqual((status, text), (200, f"app {path}"))
                         self.assertIsNone(headers["X-Robots-Tag"])
                         self.assertIsNone(headers["Content-Security-Policy"])
+                # An error inside file_server still says noindex, with the
+                # directory's policy (website.errors, through handle_errors).
+                status, headers, text = get("/longview/businesses/boom.html")
+                self.assertEqual((status, text), (403, "403"))
+                self.assertEqual(headers["Content-Security-Policy"], DIRECTORY_CSP)
+                self.assertEqual(headers["X-Robots-Tag"], "noindex, nofollow, noarchive, nosnippet")
+                self.assertIsNone(headers["Server"])
+                # The app not answering is a plain error, without the directory's headers.
+                app.shutdown()
+                app.server_close()
+                status, headers, text = get("/pricing")
+                self.assertEqual((status, text), (502, "502 Bad Gateway"))
+                self.assertIsNone(headers["X-Robots-Tag"])
+                self.assertIsNone(headers["Content-Security-Policy"])
             finally:
                 proc.terminate()
                 proc.wait(timeout=30)
@@ -1445,12 +1652,12 @@ class EnvFileTest(unittest.TestCase):
         self.assertEqual(config.read_env_file(self.tmp / "absent"), {})
         self.assertEqual(config.environment({"LVA_X": "1"}, self.tmp / "absent"), {"LVA_X": "1"})
 
-    def test_only_lva_keys(self):
+    def test_only_the_address_keys_and_never_other_variables(self):
+        self.assertEqual(config.ENV_FILE_KEYS, {"LVA_PUBLIC_BASE_URL", "LVA_PUBLIC_HOST"})
         self.path.write_text(
             "# comment\n\n"
             "LVA_PUBLIC_BASE_URL=https://longview.theleadflowpro.com\n"
-            "export LVA_INDEXABLE='0'\n"
-            'LVA_PUBLIC_HOST="longview.theleadflowpro.com"\n'
+            'export LVA_PUBLIC_HOST="longview.theleadflowpro.com"\n'
             "PATH=/tmp/evil\n"
             "PYTHONPATH=/tmp/evil\n"
             "lva_lower=1\n"
@@ -1461,14 +1668,69 @@ class EnvFileTest(unittest.TestCase):
             config.read_env_file(self.path),
             {
                 "LVA_PUBLIC_BASE_URL": "https://longview.theleadflowpro.com",
-                "LVA_INDEXABLE": "0",
                 "LVA_PUBLIC_HOST": "longview.theleadflowpro.com",
             },
         )
 
+    def test_other_lva_keys_are_refused(self):
+        # Crawl limits, the indexing switch, the user agent, endpoints, paths,
+        # and the test-only escape hatches never come from this file.
+        for key, value in (
+            ("LVA_ALLOW_PRIVATE_HOSTS", "1"),
+            ("LVA_MIN_HOST_DELAY", "0"),
+            ("LVA_MAX_SITES", "50"),
+            ("LVA_INDEXABLE", "1"),
+            ("LVA_USER_AGENT", "Mozilla/5.0"),
+            ("LVA_SOCRATA_BASE", "https://example.invalid"),
+            ("LVA_DATA_DIR", "/tmp"),
+        ):
+            with self.subTest(key=key):
+                self.path.write_text(f"LVA_PUBLIC_BASE_URL=https://longview.theleadflowpro.com\n{key}={value}\n")
+                with self.assertRaisesRegex(ValueError, f"line 2: {key} cannot be set there"):
+                    config.load_settings(config.environment({}, self.path))
+        # The same variables from the real environment (tests, the unit) still work.
+        settings = config.load_settings(config.environment(
+            {"LVA_DATA_DIR": str(self.tmp), "LVA_MIN_HOST_DELAY": "30"}, self.tmp / "absent"))
+        self.assertEqual(settings.min_host_delay_s, 30.0)
+        self.assertFalse(settings.allow_private_hosts)
+
+    def test_values_quotes_and_inline_comments(self):
+        for line, want in (
+            ("LVA_PUBLIC_BASE_URL=https://www.theleadflowpro.com  # main site", "https://www.theleadflowpro.com"),
+            ("LVA_PUBLIC_BASE_URL=https://www.theleadflowpro.com\t# main", "https://www.theleadflowpro.com"),
+            ('LVA_PUBLIC_BASE_URL="https://www.theleadflowpro.com" # main', "https://www.theleadflowpro.com"),
+            ("LVA_PUBLIC_BASE_URL='https://www.theleadflowpro.com'", "https://www.theleadflowpro.com"),
+            ("  LVA_PUBLIC_BASE_URL=https://www.theleadflowpro.com   ", "https://www.theleadflowpro.com"),
+        ):
+            with self.subTest(line=line):
+                self.path.write_text(line + "\n")
+                self.assertEqual(config.read_env_file(self.path), {"LVA_PUBLIC_BASE_URL": want})
+                settings = config.load_settings(config.environment({"LVA_DATA_DIR": str(self.tmp)}, self.path))
+                self.assertEqual(settings.public_base_url, want)
+        for line in ("LVA_PUBLIC_HOST='open", 'LVA_PUBLIC_HOST="a" b'):
+            with self.subTest(line=line):
+                self.path.write_text(line + "\n")
+                with self.assertRaises(ValueError):
+                    config.read_env_file(self.path)
+
+    def test_installer_reads_the_file_with_the_same_parser(self):
+        # install.sh's env_file_value runs config.read_env_file, so the two agree.
+        code = INSTALL.read_text()
+        body = code[code.index("env_file_value() {"):code.index("\n}\n", code.index("env_file_value() {"))]
+        self.assertIn("config.read_env_file(", body)
+        self.path.write_text("LVA_PUBLIC_BASE_URL=https://www.theleadflowpro.com  # main site\n")
+        script = body.split("\n", 1)[1]
+        proc = subprocess.run(
+            [BASH, "-c", f'set -euo pipefail\nLVA_ENV_FILE="$1"; SOURCE_DIR="$2"\nf() {{\n{script}\n}}\nf LVA_PUBLIC_BASE_URL',
+             "-", str(self.path), str(ROOT)],
+            capture_output=True, text=True, timeout=60,
+        )
+        self.assertEqual((proc.returncode, proc.stdout), (0, "https://www.theleadflowpro.com\n"), proc.stderr)
+
     def test_real_environment_wins(self):
-        self.path.write_text("LVA_PUBLIC_BASE_URL=https://longview.theleadflowpro.com\nLVA_MAX_PAGES=6\n")
-        merged = config.environment({"LVA_PUBLIC_BASE_URL": "https://www.theleadflowpro.com"}, self.path)
+        self.path.write_text("LVA_PUBLIC_BASE_URL=https://longview.theleadflowpro.com\n")
+        merged = config.environment({"LVA_PUBLIC_BASE_URL": "https://www.theleadflowpro.com",
+                                     "LVA_MAX_PAGES": "6"}, self.path)
         self.assertEqual(merged["LVA_PUBLIC_BASE_URL"], "https://www.theleadflowpro.com")
         self.assertEqual(merged["LVA_MAX_PAGES"], "6")
         settings = config.load_settings(config.environment({"LVA_DATA_DIR": str(self.tmp)}, self.path))

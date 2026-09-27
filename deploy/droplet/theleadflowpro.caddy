@@ -6,10 +6,11 @@
 #
 # /longview/businesses/ is the Longview business directory, static files the
 # Longview archive builds on this droplet. deploy/longview-archive/install.sh
-# writes those routes to /etc/caddy/longview-archive/website.routes; the import
-# is a glob, so it does nothing until that file exists. Its handle block and
-# the app's fallback handle below are mutually exclusive: the directory paths
-# go to the files, every other path goes to the app.
+# writes those routes to /etc/caddy/longview-archive/website.routes (and their
+# error answers to website.errors); the imports are globs, so they do nothing
+# until those files exist. Its handle block and the app's fallback handle below
+# are mutually exclusive: the directory paths go to the files, every other path
+# goes to the app.
 
 theleadflowpro.com {
 	redir https://www.theleadflowpro.com{uri} 308
@@ -23,5 +24,17 @@ www.theleadflowpro.com {
 
 	handle {
 		reverse_proxy 127.0.0.1:3100
+	}
+
+	# Errors Caddy raises itself. On the directory's paths the Longview
+	# installer's *.errors file (a glob, a no-op until it exists) answers with
+	# the directory's noindex headers; every other error (such as the app not
+	# answering) is a plain status line.
+	handle_errors {
+		import /etc/caddy/longview-archive/*.errors
+
+		handle {
+			respond "{err.status_code} {err.status_text}" {err.status_code}
+		}
 	}
 }

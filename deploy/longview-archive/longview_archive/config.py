@@ -262,13 +262,40 @@ class Settings:
 # public host is chosen; nothing else is required to exist.
 ENV_FILE = Path("/etc/longview-archive/env")
 ENV_LINE_RE = re.compile(r"(LVA_[A-Z0-9_]+)=(.*)")
+# The only keys the file may set: where the directory is served. Crawl limits,
+# the indexing switch, the user agent, endpoints, paths, and the test-only
+# escape hatches (LVA_ALLOW_PRIVATE_HOSTS) are never read from it; a line
+# naming one is a settings problem, so it cannot slip in unnoticed.
+ENV_FILE_KEYS = frozenset({"LVA_PUBLIC_BASE_URL", "LVA_PUBLIC_HOST"})
+
+
+def _env_file_value(raw: str) -> str:
+    """One value: a quoted value is what is inside its quotes; an unquoted one
+    ends at an inline `` #`` comment. Surrounding spaces never count."""
+    value = raw.strip()
+    if value[:1] in ("'", '"'):
+        end = value.find(value[0], 1)
+        if end < 0:
+            raise ValueError("unclosed quote")
+        rest = value[end + 1:].strip()
+        if rest and not rest.startswith("#"):
+            raise ValueError("text after the closing quote")
+        return value[1:end]
+    match = re.search(r"\s#", value)
+    if match:
+        value = value[:match.start()]
+    return value.strip()
 
 
 def read_env_file(path: Path | None = None) -> dict:
-    """``KEY=VALUE`` lines from ``path`` (default ``ENV_FILE``): ``LVA_*`` keys
-    only, ``#`` comments and blank lines skipped, one pair of matching quotes
-    around a value removed. A missing file is an empty result; any other line
-    is ignored."""
+    """``KEY=VALUE`` lines from ``path`` (default ``ENV_FILE``).
+
+    Only the keys in ``ENV_FILE_KEYS`` are read. ``#`` comment lines, blank
+    lines, and lines that are not ``LVA_*`` assignments are skipped. A value
+    may be quoted; an unquoted value ends at an inline `` #`` comment. Any
+    other ``LVA_*`` key, or a value that cannot be read, raises ValueError
+    (the engine reports it as a settings problem). A missing file is an empty
+    result. install.sh reads the file through this same function."""
     path = ENV_FILE if path is None else path
     try:
         text = Path(path).read_text(encoding="utf-8")
@@ -277,7 +304,7 @@ def read_env_file(path: Path | None = None) -> dict:
     except OSError as exc:
         raise ValueError(f"cannot read {path} ({type(exc).__name__})") from exc
     values = {}
-    for raw in text.splitlines():
+    for number, raw in enumerate(text.splitlines(), 1):
         line = raw.strip()
         if not line or line.startswith("#"):
             continue
@@ -286,10 +313,14 @@ def read_env_file(path: Path | None = None) -> dict:
         m = ENV_LINE_RE.fullmatch(line)
         if not m:
             continue
-        value = m.group(2).strip()
-        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
-            value = value[1:-1]
-        values[m.group(1)] = value
+        key = m.group(1)
+        if key not in ENV_FILE_KEYS:
+            allowed = ", ".join(sorted(ENV_FILE_KEYS))
+            raise ValueError(f"{path} line {number}: {key} cannot be set there (only {allowed})")
+        try:
+            values[key] = _env_file_value(m.group(2))
+        except ValueError as exc:
+            raise ValueError(f"{path} line {number}: {key}: {exc}") from None
     return values
 
 

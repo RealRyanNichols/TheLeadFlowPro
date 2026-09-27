@@ -71,12 +71,14 @@ pause, resume, and rollback commands.
   directory and the status page. It checks Caddy's whole config before reloading. If the check
   fails, it puts the file back and does not reload, so the live sites never
   change.
-- Adds `/etc/caddy/longview-archive/website.routes`: the directory's routes
-  for www.theleadflowpro.com. Nothing loads it until the LeadFlow website
-  itself runs on this droplet (see "Putting it on theleadflowpro.com").
+- Adds `/etc/caddy/longview-archive/website.routes` and `website.errors`: the
+  directory's routes (and its error answers) for www.theleadflowpro.com.
+  Nothing loads them until the LeadFlow website itself runs on this droplet
+  (see "Putting it on theleadflowpro.com").
 - Only when you ask for a public host (`LVA_PUBLIC_HOST`, below) and its DNS
-  already points here: adds that host to the Caddy file and writes
-  `/etc/longview-archive/env`.
+  already points here: adds that host to the Caddy file and, once Caddy has
+  taken it, writes `/etc/longview-archive/env` and restarts the service.
+
 - Copies `uninstall.sh` and `preflight.sh` to `/opt/longview-archive/`.
 
 ### What it never touches
@@ -135,6 +137,7 @@ address only.
 
 1. At GoDaddy, open theleadflowpro.com, then DNS, then Add New Record, and
    add: **Type A, Name `longview`, Value `165.227.248.110`**, TTL 1 hour.
+   There must be no other A record and no AAAA record for `longview`.
 2. Wait until it resolves (usually minutes). In the droplet console,
    `getent ahostsv4 longview.theleadflowpro.com` should print 165.227.248.110.
 3. Run the install one-liner again with the host in front of it:
@@ -144,44 +147,63 @@ address only.
    ```
 
    (Use the working branch name in place of `main` until the pull request
-   merges.) The installer checks that the name points at this droplet first.
-   If it does not yet, it prints the exact record to add, leaves the host out
-   (so Caddy never asks for a certificate it cannot get), and finishes
-   normally; run it again later. When the host is added, it records
+   merges.) The installer checks the name first: it must answer with this
+   droplet's address and nothing else. If it does not yet, it prints the exact
+   record to add (or the extra record to delete), leaves the host out (so
+   Caddy never asks for a certificate it cannot get), and finishes normally;
+   run it again later. When Caddy has taken the host, the installer records
    `LVA_PUBLIC_HOST` and `LVA_PUBLIC_BASE_URL=https://longview.theleadflowpro.com`
-   in `/etc/longview-archive/env`, so the directory's own links use the new
-   address and later upgrades keep the host.
+   in `/etc/longview-archive/env` and restarts the service, so the
+   directory's own links use the new address and later upgrades keep the host.
 4. Rebuild the pages so their links use it: `lva site`.
 
 The directory is then at **https://longview.theleadflowpro.com/longview/businesses/**
 (the bare address goes there too).
 
+Once the host is served, a later upgrade keeps it even if the DNS check fails
+that day (for example a slow answer from the droplet's metadata service); it
+prints a WARNING instead. To stop serving it, delete both the
+`LVA_PUBLIC_HOST` and the `LVA_PUBLIC_BASE_URL` lines from
+`/etc/longview-archive/env`, run the installer again, then `lva site`.
+
 **2. Later: the main site path, www.theleadflowpro.com/longview/businesses/.**
 This works by itself once the LeadFlow website runs on this droplet
 (`deploy/droplet/`, after `cutover.sh site-on`): its Caddy block imports the
-routes file this installer wrote, so that one path is served from the
-directory's files and every other path still goes to the website. If the
+routes and errors files this installer wrote, so that one path is served from
+the directory's files and every other path still goes to the website. If the
 website's site block was switched on before this change, refresh it once,
-after `deploy.sh` has checked out this code:
+after `deploy.sh` has checked out this code, by running the website's
+installer again (it is safe to re-run; it keeps a copy of the old block and
+puts it back if Caddy rejects the new one or does not reload):
 
 ```bash
-install -m 644 /opt/theleadflowpro/deploy/droplet/theleadflowpro.caddy /etc/caddy/sites/theleadflowpro.caddy && caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile && systemctl reload caddy
+sudo bash /opt/theleadflowpro/deploy/droplet/install.sh
 ```
 
-(Re-running `deploy/droplet/install.sh` does the same, keeping a backup and
-putting it back if Caddy rejects it.) When that is the main address, make the
-directory's links point there, then rebuild:
+If you would rather change only that one file, this does the same, with the
+same put-back:
 
 ```bash
-sed -i '/^LVA_PUBLIC_BASE_URL=/d' /etc/longview-archive/env 2>/dev/null; mkdir -p /etc/longview-archive; echo 'LVA_PUBLIC_BASE_URL=https://www.theleadflowpro.com' >> /etc/longview-archive/env
+F=/etc/caddy/sites/theleadflowpro.caddy; cp -p "$F" /etc/caddy/theleadflowpro.caddy.previous && install -m 644 /opt/theleadflowpro/deploy/droplet/theleadflowpro.caddy "$F" && caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile && systemctl reload caddy && rm /etc/caddy/theleadflowpro.caddy.previous || { install -m 644 /etc/caddy/theleadflowpro.caddy.previous "$F"; echo "Put back; Caddy keeps its old config. Send this output to Claude."; }
+```
+
+When that is the main address, make the directory's links point there, then
+rebuild:
+
+```bash
+mkdir -p /etc/longview-archive; touch /etc/longview-archive/env; sed -i '/^LVA_PUBLIC_BASE_URL=/d' /etc/longview-archive/env; echo 'LVA_PUBLIC_BASE_URL=https://www.theleadflowpro.com' >> /etc/longview-archive/env
 systemctl restart longview-archive
 ```
 
 and then `lva site`.
 
-`/etc/longview-archive/env` is optional. It holds `KEY=VALUE` lines, and only
-`LVA_*` keys count. The service and the `lva` shortcut both read it, and a
-variable already set in the environment wins.
+`/etc/longview-archive/env` is optional. The service and the `lva` shortcut
+both read it, and a variable already set in the environment wins. It may set
+only `LVA_PUBLIC_HOST` and `LVA_PUBLIC_BASE_URL`, one `KEY=VALUE` per line;
+any other `LVA_` setting there (crawl limits, the indexing switch, and so on)
+is refused with a "Settings problem" message, and the installer stops before
+changing anything. Lines starting with `#` are comments; a value may be in
+quotes, and an unquoted value ends at ` #` (a space, then `#`).
 
 ## Everyday commands
 
@@ -449,6 +471,7 @@ and keeps the newest 14 backups.
 | `caddy/longview-archive.caddy` | `/etc/caddy/sites/longview-archive.caddy` (serves `/longview/businesses/` and `/status`) |
 | `caddy/public-host.caddy.in` | appended to that file, for `LVA_PUBLIC_HOST`, only when its DNS points here (directory only) |
 | `caddy/website.routes` | `/etc/caddy/longview-archive/website.routes` (imported by `deploy/droplet/theleadflowpro.caddy` and the public host) |
+| `caddy/website.errors` | `/etc/caddy/longview-archive/website.errors` (imported by the `handle_errors` block in `deploy/droplet/theleadflowpro.caddy`) |
 | `uninstall.sh`, `preflight.sh` | `/opt/longview-archive/` |
 
 Tests (standard library only, no network):

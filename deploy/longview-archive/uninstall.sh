@@ -2,8 +2,8 @@
 # Rollback for the Longview Business Archive (The LeadFlow Pro).
 #
 # Stops and disables the longview-archive service, removes its unit file, its
-# Caddy site file, and the directory's website routes
-# (/etc/caddy/longview-archive/website.routes), and reloads Caddy only after
+# Caddy site file, and the directory's website routes and error answers
+# (/etc/caddy/longview-archive/website.routes, website.errors), and reloads Caddy only after
 # the remaining config validates. It never deletes the archive's data in /var/lib/longview-archive,
 # and it keeps the code in /opt/longview-archive unless --remove-code is given,
 # so re-running the install one-liner brings everything back as it was. The
@@ -74,6 +74,7 @@ CADDYFILE=$PREFIX/etc/caddy/Caddyfile
 SITE_DEST=$PREFIX/etc/caddy/sites/$SERVICE.caddy
 ROUTES_DIR=$PREFIX/etc/caddy/$SERVICE
 ROUTES_DEST=$ROUTES_DIR/website.routes
+ERRORS_DEST=$ROUTES_DIR/website.errors
 
 if [ "$FAKE" = 1 ]; then
 	# Same fake system as install.sh, reduced to the calls made here.
@@ -126,12 +127,12 @@ remove_service() {
 }
 
 remove_caddy_site() {
-	step "Caddy site and routes files"
-	if [ ! -f "$SITE_DEST" ] && [ ! -f "$ROUTES_DEST" ]; then
+	step "Caddy site, routes, and errors files"
+	if [ ! -f "$SITE_DEST" ] && [ ! -f "$ROUTES_DEST" ] && [ ! -f "$ERRORS_DEST" ]; then
 		say "  Not installed; Caddy untouched."
 		return 0
 	fi
-	local previous='' previous_routes=''
+	local previous='' previous_routes='' previous_errors=''
 	if [ "$DRY_RUN" = 0 ]; then
 		WORK_DIR=$(mktemp -d)
 		if [ -f "$SITE_DEST" ]; then
@@ -142,8 +143,12 @@ remove_caddy_site() {
 			previous_routes=$WORK_DIR/website.routes
 			cp -p "$ROUTES_DEST" "$previous_routes"
 		fi
+		if [ -f "$ERRORS_DEST" ]; then
+			previous_errors=$WORK_DIR/website.errors
+			cp -p "$ERRORS_DEST" "$previous_errors"
+		fi
 	fi
-	run rm -f "$SITE_DEST" "$ROUTES_DEST"
+	run rm -f "$SITE_DEST" "$ROUTES_DEST" "$ERRORS_DEST"
 	if [ -d "$ROUTES_DIR" ] && [ -z "$(ls -A "$ROUTES_DIR")" ]; then
 		run rmdir "$ROUTES_DIR"
 	fi
@@ -152,12 +157,13 @@ remove_caddy_site() {
 		return 0
 	fi
 	if ! run caddy validate --config "$CADDYFILE" --adapter caddyfile; then
-		if [ -n "$previous_routes" ]; then
+		if [ -n "$previous_routes" ] || [ -n "$previous_errors" ]; then
 			run install -d -m 0755 "$ROUTES_DIR"
-			run install -m 0644 "$previous_routes" "$ROUTES_DEST"
 		fi
+		[ -z "$previous_routes" ] || run install -m 0644 "$previous_routes" "$ROUTES_DEST"
+		[ -z "$previous_errors" ] || run install -m 0644 "$previous_errors" "$ERRORS_DEST"
 		[ -z "$previous" ] || run install -m 0644 "$previous" "$SITE_DEST"
-		die "Caddy rejected the remaining config, so the site and routes files were put back and Caddy was NOT reloaded. Fix the other error first; the live sites are unchanged."
+		die "Caddy rejected the remaining config, so the site, routes, and errors files were put back and Caddy was NOT reloaded. Fix the other error first; the live sites are unchanged."
 	fi
 	if systemctl is-active --quiet caddy; then
 		run systemctl reload caddy

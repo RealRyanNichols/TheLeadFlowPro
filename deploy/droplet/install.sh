@@ -153,17 +153,22 @@ if [ ! -f "$SITE_BLOCK" ]; then
   install -m 644 "$APP_DIR/deploy/droplet/theleadflowpro.caddy" "$SITE_BLOCK"
   ok "site block staged OFF until DNS points here (cutover.sh site-on)"
 elif ! cmp -s "$APP_DIR/deploy/droplet/theleadflowpro.caddy" "$SITE_BLOCK"; then
-  SITE_BACKUP="/etc/caddy/theleadflowpro.caddy.bak.$(date +%Y%m%d%H%M%S)"
+  # One backup, outside sites/, kept only until Caddy has taken the new block.
+  SITE_BACKUP=/etc/caddy/theleadflowpro.caddy.previous
   cp -p "$SITE_BLOCK" "$SITE_BACKUP"
   install -m 644 "$APP_DIR/deploy/droplet/theleadflowpro.caddy" "$SITE_BLOCK"
-  ok "refreshed $SITE_BLOCK from the code (backup: $SITE_BACKUP)"
+  ok "refreshed $SITE_BLOCK from the code (previous copy: $SITE_BACKUP)"
 fi
 if ! caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null 2>&1; then
   [ -z "$SITE_BACKUP" ] || install -m 644 "$SITE_BACKUP" "$SITE_BLOCK"
   die "Caddy rejected /etc/caddy/Caddyfile. The backup is next to it${SITE_BACKUP:+ and the site block was put back}; Caddy was not reloaded. Send this output to Claude."
 fi
 systemctl enable --now caddy >/dev/null 2>&1 || true
-systemctl reload caddy
+if ! systemctl reload caddy; then
+  [ -z "$SITE_BACKUP" ] || install -m 644 "$SITE_BACKUP" "$SITE_BLOCK"
+  die "Caddy did not reload; it keeps serving its previous config${SITE_BACKUP:+, and the site block was put back}. Send this output to Claude."
+fi
+[ -z "$SITE_BACKUP" ] || rm -f "$SITE_BACKUP"
 ok "Caddy config valid and reloaded; the brain's site block is unchanged"
 
 say "Firewall"

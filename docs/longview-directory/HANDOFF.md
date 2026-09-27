@@ -31,21 +31,34 @@ For Amanda and Ryan. Written Sept 24, 2026 (Central time).
   still told to stay away on both; the status page stays on the sslip.io
   address only. Nothing uses Vercel.
   - **Now, with one DNS record:** add at GoDaddy **Type A, Name `longview`,
-    Value `165.227.248.110`**. Once it resolves, re-run the install command
-    with `LVA_PUBLIC_HOST=longview.theleadflowpro.com ` in front of it (the
-    exact line is in `deploy/longview-archive/README.md`, "Putting it on
+    Value `165.227.248.110`** (and no other A or AAAA record for `longview`).
+    Once it resolves, re-run the install command with
+    `LVA_PUBLIC_HOST=longview.theleadflowpro.com ` in front of it (the exact
+    line is in `deploy/longview-archive/README.md`, "Putting it on
     theleadflowpro.com"), then `lva site`. The directory is then at
     https://longview.theleadflowpro.com/longview/businesses/. The installer
     checks the DNS first; if the record is not live yet it prints it, leaves
-    the name out, and changes nothing about it.
+    the name out, and changes nothing about it. Once the name is served, later
+    upgrades keep it even if a DNS check fails that day (they print a warning).
   - **Later, on the main site:** once the LeadFlow website itself runs on the
     droplet (`cutover.sh site-on`), https://www.theleadflowpro.com/longview/businesses/
-    serves the directory automatically; every other page is still the website,
-    and the /longview page links to it. If the website's Caddy block was
-    switched on before this change, refresh it once (one line in the README).
-    Then put `LVA_PUBLIC_BASE_URL=https://www.theleadflowpro.com` in
+    serves the directory automatically; every other page is still the website.
+    If the website's Caddy block was switched on before this change, run
+    `sudo bash /opt/theleadflowpro/deploy/droplet/install.sh` once to refresh
+    it (it puts the old block back if Caddy says no). Then put
+    `LVA_PUBLIC_BASE_URL=https://www.theleadflowpro.com` in
     `/etc/longview-archive/env`, restart the service, and run `lva site`, so
     the directory's own links use the main address.
+  - **Not done yet, on purpose: a link from the website's /longview page.**
+    Today `/longview/businesses/` exists only where the droplet's Caddy serves
+    the website, so a link there would be a dead page on the current
+    production site. Add it in the same change as `cutover.sh site-on`, one
+    line in `app/longview/page.tsx`, next to the "All the free tools" link:
+    `<a href="/longview/businesses/" className="cb-textlink">Longview business directory</a>`
+    (a plain `<a>`, not `<Link>`: the directory is static files outside the
+    app). If you want a link before the cutover, point it at
+    `https://longview.theleadflowpro.com/longview/businesses/`, but only after
+    that address is live.
 
 ## Turn it on (the one step)
 
@@ -82,7 +95,7 @@ After the pull request merges, use `--branch main` instead. The installer:
 - Adds one Caddy file for the directory and the private status page, and
   reloads Caddy only after Caddy approves the change.
 - Adds the directory's routes for www.theleadflowpro.com
-  (`/etc/caddy/longview-archive/website.routes`); nothing uses them until the
+  (`/etc/caddy/longview-archive/website.routes` and `website.errors`); nothing uses them until the
   website runs on the droplet.
 - Touches nothing else: not DNS, not the Premier site, not the Call Desk, not
   any other site, and no settings file unless you ask for the
