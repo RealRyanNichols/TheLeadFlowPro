@@ -40,7 +40,7 @@ from typing import Any, Callable, Dict, Mapping, Optional
 
 from . import approval, backup, categories, db, matching, publish, status, worker
 from .fetcher import PoliteFetcher
-from .sources import comptroller, npi, osm, tabc
+from .sources import comptroller, franchise, npi, osm, tabc
 from .sources import http as api_http
 
 log = logging.getLogger(__name__)
@@ -82,6 +82,7 @@ SYNC_JOBS = (
     SyncJob("sales-tax", comptroller.RUN_KIND, comptroller, "sync_sales_tax", "open_data_sync_days", "socrata"),
     SyncJob("tabc", tabc.RUN_KIND, tabc, "sync_tabc", "open_data_sync_days", "socrata"),
     SyncJob("npi", npi.RUN_KIND, npi, "sync_npi", "npi_sync_days", "npi"),
+    SyncJob("franchise", franchise.RUN_KIND, franchise, "sync_franchise", "open_data_sync_days", "socrata"),
     SyncJob("osm", osm.RUN_KIND, osm, "sync_osm", "osm_sync_days", "overpass"),
 )
 SYNC_BY_NAME = {job.name: job for job in SYNC_JOBS}

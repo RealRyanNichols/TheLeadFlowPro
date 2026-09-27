@@ -220,6 +220,11 @@ def make_settings(data_dir: Path, **overrides) -> Settings:
         npi_url=f"https://{NPI_HOST}/api/",
         api_min_interval_s=0.0,
         allow_fictional_phones=True,
+        # The fixture's expected outcomes were written for publishing the City of
+        # Longview only ("Example Feed & Supply" and "Example Storage" stay held as
+        # nearby). The engine's default also lists nearby Longview addresses;
+        # tests/test_franchise.py runs the pipeline with that default.
+        publish_scopes=("city",),
     )
     values.update(overrides)
     settings = Settings(**values)

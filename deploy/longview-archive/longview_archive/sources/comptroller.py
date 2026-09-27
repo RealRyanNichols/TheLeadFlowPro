@@ -17,7 +17,7 @@ from datetime import datetime
 from typing import Any, Dict, Mapping, Optional, Tuple
 
 from .. import db, normalize, privacy
-from ..config import LONGVIEW_ZIPS
+from ..config import LONGVIEW_ZIPS, longview_scope
 from . import socrata
 from .http import EmptyResult, RecordWriter, as_now, bump, finish_failed, finish_ok
 from .socrata import DatasetNotFound, SchemaMismatch  # noqa: F401  (re-exported for callers)
@@ -36,6 +36,7 @@ FIELD_CANDIDATES: Dict[str, Tuple[str, ...]] = {
     "outlet_address": ("outlet_address",),
     "outlet_city": ("outlet_city",),
     "outlet_zip": ("outlet_zip_code", "outlet_zip"),
+    "outlet_state": ("outlet_state",),
     "outlet_naics": ("outlet_naics_code", "naics_code"),
     "permit_start": ("outlet_permit_issue_date", "outlet_first_sales_date", "permit_issue_date"),
     "taxpayer_number": ("taxpayer_number",),
@@ -64,10 +65,12 @@ def city_limits(value: Any) -> str:
 
 
 def decide_scope(limits: str, zip_code: Optional[str]) -> str:
-    """The indicator decides first; a Longview ZIP is still required for 'city'."""
-    if limits == "outside":
-        return "nearby"
-    return "city" if zip_code in LONGVIEW_ZIPS else "nearby"
+    """The indicator decides first; a Longview ZIP is still required for 'city'.
+
+    Outside the limits (or inside with a Longview PO-box ZIP) is 'nearby' only
+    with a Longview, Texas postal ZIP; a missing or other ZIP is 'out', never
+    published: nothing shows it is a Longview, Texas address."""
+    return longview_scope(zip_code, outside_city_limits=(limits == "outside"))
 
 
 def parse_date(value: Any) -> Optional[str]:
@@ -107,6 +110,10 @@ def project_row(row: Mapping[str, Any], fields: Mapping[str, Optional[str]]) -> 
     city = _get(row, fields, "outlet_city")
     if city.upper() != "LONGVIEW":
         return None, None, "skipped_city"
+    # Longview, Washington is a real city: a row that names another state is never "Longview, TX".
+    state = _get(row, fields, "outlet_state")
+    if fields.get("outlet_state") and state and state.upper() != "TX":
+        return None, None, "skipped_state"
     address = _get(row, fields, "outlet_address")
     street_norm, suite = normalize.parse_street(address)
     zip_code = normalize.zip5(_get(row, fields, "outlet_zip"))
@@ -159,7 +166,7 @@ def _new_counts() -> Dict[str, Any]:
     return {
         "fetched": 0, "kept": 0, "inserted": 0, "updated": 0, "unchanged": 0, "reactivated": 0,
         "deactivated": 0, "businesses_deactivated": 0, "duplicates": 0, "suppressed": 0,
-        "city": 0, "nearby": 0, "inside_other_zip": 0, "individual": 0, "personal_name": 0,
+        "city": 0, "nearby": 0, "out": 0, "inside_other_zip": 0, "individual": 0, "personal_name": 0,
         "other_zips": {},
     }
 

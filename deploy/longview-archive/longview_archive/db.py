@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS meta (
 );
 
 CREATE TABLE IF NOT EXISTS sources (
-  id             TEXT PRIMARY KEY,           -- tx_sales_tax | tx_tabc | osm | npi | website
+  id             TEXT PRIMARY KEY,           -- tx_sales_tax | tx_tabc | tx_franchise | osm | npi | website
   name           TEXT NOT NULL,
   publisher      TEXT NOT NULL,
   license        TEXT NOT NULL,
@@ -76,6 +76,7 @@ CREATE INDEX IF NOT EXISTS businesses_addr ON businesses(street_norm, zip);
 CREATE INDEX IF NOT EXISTS businesses_domain ON businesses(website_domain);
 CREATE INDEX IF NOT EXISTS businesses_crawl ON businesses(next_crawl_at);
 CREATE INDEX IF NOT EXISTS businesses_state ON businesses(publish_state);
+CREATE INDEX IF NOT EXISTS businesses_name ON businesses(name_norm);
 
 CREATE TABLE IF NOT EXISTS source_records (
   id             INTEGER PRIMARY KEY,
@@ -245,6 +246,13 @@ SOURCE_DEFAULTS = (
         "tx_tabc",
         "TABC license information",
         "Texas Alcoholic Beverage Commission",
+        "See dataset license on data.texas.gov",
+        "https://data.texas.gov/",
+    ),
+    (
+        "tx_franchise",
+        "Active Franchise Taxpayers",
+        "Texas Comptroller of Public Accounts",
         "See dataset license on data.texas.gov",
         "https://data.texas.gov/",
     ),

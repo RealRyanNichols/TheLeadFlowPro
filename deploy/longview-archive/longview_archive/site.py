@@ -65,17 +65,19 @@ CATEGORY_LEAD = "Every one we could verify, listed A to Z. Not ranked."
 # Bump whenever the pages' wording or markup changes: a site built with another
 # version is rebuilt at the next service start (``build_key``), so an upgrade
 # never leaves the old copy public until the next approval.
-COPY_VERSION = "2"
+COPY_VERSION = "4"
 
 SOURCE_LABELS = {
     "tx_sales_tax": "Texas Comptroller open data",
     "tx_tabc": "Texas Alcoholic Beverage Commission",
     "npi": "CMS NPI Registry",
+    "tx_franchise": "Texas Comptroller open data (franchise tax)",
     "website": "The business's own website",
 }
 FIELD_LABELS = {
     "name": "Business name", "address": "Address", "category": "Category",
-    "permitSince": "Sales-tax permit date", "website": "Website", "phone": "Phone", "email": "Email",
+    "permitSince": "Sales-tax permit date", "registeredSince": "Franchise-tax registration",
+    "website": "Website", "phone": "Phone", "email": "Email",
     "hours": "Hours", "facebook": "Facebook", "instagram": "Instagram", "careers": "Careers page",
     "services": "Services",
 }
@@ -102,6 +104,13 @@ ABOUT_SOURCES = (
     ("Texas Comptroller of Public Accounts",
      "Sales-tax permit holders, published as open data on the Texas Open Data Portal.",
      "The business or trade name, the location, the kind of business, and the date the permit started.",
+     "https://data.texas.gov"),
+    ("Texas Comptroller of Public Accounts (franchise tax)",
+     "Active franchise taxpayers: companies such as LLCs, corporations, and partnerships in good standing,"
+     " published as open data on the Texas Open Data Portal.",
+     "The registered company name and the year its franchise-tax registration began, for a company with a"
+     " Longview address and no sales-tax location. Its mailing address is never shown; the listing says"
+     " Longview, TX. The list names no kind of business, so none is guessed.",
      "https://data.texas.gov"),
     ("Texas Alcoholic Beverage Commission", "License records.",
      "Confirming a business name and a storefront address.", "https://www.tabc.texas.gov"),
@@ -200,6 +209,14 @@ def category_class(slug: str) -> str:
 def address_line(b: Mapping) -> str:
     street, zip_code = b["address"]["street"], b["address"]["zip"]
     return f"{street}, Longview, TX {zip_code}" if street and zip_code else "Longview, TX"
+
+
+PREMISES_SOURCES = frozenset({"tx_sales_tax", "tx_tabc", "npi"})
+
+
+def has_premises(b: Mapping) -> bool:
+    """A street is shown, or a fact comes from a record that places the business somewhere."""
+    return bool(b["address"]["street"]) or any(f.get("source") in PREMISES_SOURCES for f in b.get("facts") or ())
 
 
 def maps_url(b: Mapping) -> str:
@@ -442,6 +459,23 @@ def list_section(d: Directory, heading: str, items: List[dict], page: int, pages
             f'<div class="shell">{body}</div></section>')
 
 
+# ---------------------------------------------------------------- what is covered
+
+def covers_longview_addresses(d: "Directory") -> bool:
+    """The batch lists every business with a Longview address (not only inside the city limits)."""
+    if d.data.get("generatedAt"):
+        return d.data.get("scope") == config.SCOPE_LABEL_POSTAL
+    return config.scope_label(d.settings.publish_scopes) == config.SCOPE_LABEL_POSTAL
+
+
+def where_long(d: "Directory") -> str:
+    return "with a Longview, Texas address" if covers_longview_addresses(d) else "in the City of Longview, Texas"
+
+
+def where_short(d: "Directory") -> str:
+    return "with a Longview address" if covers_longview_addresses(d) else "in the City of Longview"
+
+
 # ---------------------------------------------------------------- the pages
 
 def index_pages(d: Directory) -> Dict[str, str]:
@@ -449,7 +483,7 @@ def index_pages(d: Directory) -> Dict[str, str]:
     out: Dict[str, str] = {}
     count = len(d.businesses)
     title = "Longview businesses, A to Z | The LeadFlow Pro"
-    description = ("Businesses in the City of Longview, Texas, listed A to Z with the source and check date"
+    description = (f"Businesses {where_long(d)}, listed A to Z with the source and check date"
                    " for every fact. Not ranked, no reviews.")
     if not count:
         body = ('<section class="band" aria-labelledby="first-title"><div class="shell prose">'
@@ -460,12 +494,12 @@ def index_pages(d: Directory) -> Dict[str, str]:
         out["index.html"] = render_page(
             d, title=title, description=description, site_path=BASE, h1="Longview businesses",
             eyebrow="Longview, Texas",
-            lead=e("A free, sourced list of businesses in the City of Longview, Texas. The first batch is being"
+            lead=e(f"A free, sourced list of businesses {where_long(d)}. The first batch is being"
                    " checked."),
             body=body, index=False)
         return out
 
-    lead = e(f"{plural(count, 'business', 'businesses')} in the City of Longview, each listed with the source"
+    lead = e(f"{plural(count, 'business', 'businesses')} {where_short(d)}, each listed with the source"
              " and check date for every fact. A to Z, not ranked.")
     all_pages = paginate(d.businesses, 1)[1]
     for page in range(1, all_pages + 1):
@@ -524,7 +558,7 @@ def category_pages(d: Directory) -> Dict[str, str]:
             rel = f"category/{c['slug']}/" + ("" if page == 1 else f"page-{page}/") + "index.html"
             out[rel] = render_page(
                 d, title=f"{c['name']} in Longview, TX | Longview businesses",
-                description=f"{c['name']} in the City of Longview, Texas, listed A to Z with the source and check"
+                description=f"{c['name']} {where_long(d)}, listed A to Z with the source and check"
                             " date for every fact. Not ranked, no reviews.",
                 site_path=page_path(("category", c["slug"]), page), h1=f"{c['name']} in Longview",
                 eyebrow="Longview businesses", lead=e(CATEGORY_LEAD),
@@ -656,9 +690,14 @@ def profile_page(d: Directory, b: Mapping) -> str:
         panels.append('<div class="panel"><h2>Services</h2><p class="fallback">Matched to the headings and menus'
                       " on the business's own website.</p>"
                       f'<ul class="tags">{"".join(f"<li>{e(s)}</li>" for s in b["services"])}</ul></div>')
+    records = []
     if b["permitSince"]:
-        panels.append('<div class="panel"><h2>Public record</h2>'
-                      f"<p>Texas sales-tax permit on file since {e(format_month_year(b['permitSince']))}.</p></div>")
+        records.append(f"<p>Texas sales-tax permit on file since {e(format_month_year(b['permitSince']))}.</p>")
+    if b.get("registeredSince"):
+        records.append("<p>Registered with the Texas Comptroller for franchise tax since"
+                       f" {e(b['registeredSince'][:4])}.</p>")
+    if records:
+        panels.append('<div class="panel"><h2>Public record</h2>' + "".join(records) + "</div>")
 
     shown = set(shown_fields(b))
     source_items = []
@@ -682,8 +721,11 @@ def profile_page(d: Directory, b: Mapping) -> str:
             f'<a class="btn btn-primary" href="{e(claim_mailto(d, b))}">Claim, correct, or remove this listing</a>'
             f'<p class="own">Own this business? <a href="{e(LEADFLOW_LONGVIEW)}">See what The LeadFlow Pro does for'
             " Longview businesses</a>.</p></div></section>")
-    hero_extra = (f'<p class="where"><span>{e(address_line(b))}</span>'
-                  f'<a href="{e(maps_url(b))}" rel="{REL}">Directions</a></p>')
+    # No Directions link without a place to visit: a listing with no street and no
+    # record that places it anywhere (known only from the franchise-tax list, whose
+    # address is a mailing address) could send a visitor to a home or an accountant.
+    directions = (f'<a href="{e(maps_url(b))}" rel="{REL}">Directions</a>' if has_premises(b) else "")
+    hero_extra = f'<p class="where"><span>{e(address_line(b))}</span>{directions}</p>'
     return render_page(
         d, title=f"{b['name']} in Longview, TX | Longview businesses",
         description=_profile_description(b, category_name), site_path=path(b["slug"]), h1=b["name"],
@@ -729,8 +771,18 @@ def about_page(d: Directory) -> str:
 
     body = "".join([
         section("what", "What it is",
-                "<p>One listing per business location in the City of Longview, drawn from public records and each"
-                " business's own website. Listings are A to Z. Nothing is ranked, scored, or promoted.</p>" + batch),
+                (("<p>One listing per business with a Longview, Texas address, drawn from public records and"
+                  " each business's own website: locations that hold a Texas sales-tax permit, licensed or"
+                  " registered practices, and companies in good standing on the Texas franchise-tax list that"
+                  " have no sales-tax location. That includes businesses just outside the city limits whose"
+                  " address has a Longview ZIP code. A listing whose name may be a person's is held back until the business"
+                  " has a public presence and a person has checked it, and some listings wait for review, so"
+                  " not every business on those lists appears here yet. Organizations exempt from franchise tax"
+                  " (most nonprofits) are not listed from that list.")
+                 if covers_longview_addresses(d) else
+                 "<p>One listing per business location in the City of Longview, drawn from public records and each"
+                 " business's own website.")
+                + " Listings are A to Z. Nothing is ranked, scored, or promoted.</p>" + batch),
         section("sources", "Where the facts come from",
                 f"<ul>{sources}</ul><p>Map data used for discovery: © "
                 f"{ext_link('https://www.openstreetmap.org/copyright', 'OpenStreetMap contributors')}, ODbL."
@@ -794,7 +846,7 @@ def about_page(d: Directory) -> str:
         description="Where the directory's facts come from, how they are checked, what it never shows, how the"
                     " crawler behaves, and how to claim, correct, or remove a listing.",
         site_path=path("about"), h1="About this directory", eyebrow="Longview business directory",
-        lead=e("A free, sourced list of businesses in the City of Longview, Texas, kept by The LeadFlow Pro. Every"
+        lead=e(f"A free, sourced list of businesses {where_long(d)}, kept by The LeadFlow Pro. Every"
                " fact on a listing shows where it came from and the date it was checked."),
         crumbs=(("Longview businesses", BASE), ("About", None)), body=body, index=d.indexable,
         disclaimer_in_footer=False)
@@ -872,6 +924,7 @@ def build_key(settings) -> str:
     """
     return "|".join(str(value) for value in (
         COPY_VERSION, int(bool(settings.indexable)), str(settings.public_base_url).rstrip("/"),
+        ",".join(settings.publish_scopes),
         settings.user_agent, settings.max_sites_concurrent, settings.min_host_delay_s,
         settings.max_pages_per_visit, settings.max_page_bytes, settings.robots_ttl_s))
 

@@ -23,7 +23,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from longview_archive import config, db, matching, publish  # noqa: E402
+from longview_archive import config, db, matching, privacy, publish  # noqa: E402
+from longview_archive.sources import franchise as franchise_source  # noqa: E402
 from longview_archive.service import SYNC_JOBS, bootstrap, run_sync  # noqa: E402
 from longview_archive.sources import http as api_http  # noqa: E402
 
@@ -58,7 +59,52 @@ def engine_run(settings) -> None:
         say(f"  scope={row['scope']} state={row['publish_state']} reason={row['reason'] or '-'}: {row['n']}")
     shown = conn.execute("SELECT COUNT(*) FROM businesses WHERE publish_state='ready'").fetchone()[0]
     say(f"PROFILES READY TO PUBLISH (first batch): {shown}")
+    published_by_source(conn)
     conn.close()
+
+
+def published_by_source(conn) -> None:
+    """Counts only: where the ready profiles come from, and a person-name sanity check."""
+    identity, linked = Counter(), Counter()
+    # Per the source the shown name comes from: four checks, each broader than the last.
+    #   person: privacy.looks_like_person_name (name, or name without its legal form)
+    #   owner: privacy.may_name_owner on the name without its legal form (catches given names
+    #          not in GIVEN_NAMES and surname-first order: any two plain words with no trade word)
+    #   carries: franchise.carries_person_name (the franchise source's own hold rule)
+    #   broad: any of the above, or two adjacent plain non-trade words anywhere in the name
+    #          (franchise.name_word_run, even in an address-shaped name), or a trust, estate, or
+    #          family holding vehicle (franchise.is_trust_or_estate): wider than the hold rule itself,
+    #          so a gap in carries_person_name still shows up here
+    checks: dict = {}
+    for biz in conn.execute("SELECT id, name FROM businesses WHERE publish_state='ready'").fetchall():
+        sources = [r["source_id"] for r in conn.execute(
+            f"SELECT source_id FROM source_records WHERE business_id=? AND active=1 ORDER BY {matching._ORDER_SQL}",
+            (biz["id"],))]
+        primary = next((s for s in sources if s in matching.PRIMARY_SOURCES), "none")
+        identity[primary] += 1
+        for source_id in set(sources):
+            linked[source_id] += 1
+        name = biz["name"] or ""
+        bare = franchise_source.bare_name(name)
+        counts = checks.setdefault(primary, Counter())
+        counts["person"] += 1 if (privacy.looks_like_person_name(name)
+                                  or privacy.looks_like_person_name(bare)) else 0
+        counts["owner"] += 1 if privacy.may_name_owner(bare) else 0
+        carries = franchise_source.carries_person_name(name)
+        counts["carries"] += 1 if carries else 0
+        counts["broad"] += 1 if (carries or privacy.looks_like_person_name(name) or privacy.looks_like_person_name(bare)
+                                 or privacy.may_name_owner(bare) or franchise_source.name_word_run(name)
+                                 or franchise_source.is_trust_or_estate(name)) else 0
+    say(f"ready profiles by the source their name comes from: {dict(sorted(identity.items()))}")
+    say(f"ready profiles with an active record from: {dict(sorted(linked.items()))}")
+    say("ready names that may be a person's, by the source the name comes from (counts only):")
+    for source_id in sorted(checks):
+        c = checks[source_id]
+        say(f"  {source_id}: looks_like_person_name={c['person']} may_name_owner(bare)={c['owner']}"
+            f" carries_person_name={c['carries']} broad={c['broad']} (of {identity[source_id]})")
+    franchise_counts = checks.get(franchise_source.SOURCE_ID, Counter())
+    say(f"  tx_franchise names that should have been held (expected 0): "
+        f"{franchise_counts['carries']} by the hold rule, {franchise_counts['broad']} by the broad check")
 
 
 def catalog(settings, query: str):

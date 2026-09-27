@@ -22,7 +22,8 @@ class StatusPage(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
-        self.settings = config.Settings(data_dir=Path(self.tmp.name) / "data")
+        # test_publish's world, published city-only as it was written (its "nearby" business stays held).
+        self.settings = config.Settings(data_dir=Path(self.tmp.name) / "data", publish_scopes=("city",))
         self.conn = b.make_db()
         self.ids = build_world(self.conn)
         publish.evaluate(self.conn, self.settings, NOW)
@@ -74,7 +75,7 @@ class StatusPage(unittest.TestCase):
         self.assertEqual(d["crawl"]["ok"], 7)
         self.assertEqual(d["crawl"]["due"], 5)  # never crawled; suppressed ones are skipped
         self.assertEqual(d["crawl"]["hostsInBackoff"], 1)
-        self.assertEqual([s["id"] for s in d["sources"]], ["tx_sales_tax", "tx_tabc", "osm", "npi", "website"])
+        self.assertEqual([s["id"] for s in d["sources"]], ["tx_sales_tax", "tx_tabc", "tx_franchise", "osm", "npi", "website"])
         for source in d["sources"]:
             self.assertEqual(list(source), ["id", "name", "lastSyncedAt", "status", "rows"])
         self.assertEqual(d["otherZips"], {"75647": 3, "75662": 1})

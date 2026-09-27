@@ -8,6 +8,7 @@ contract check and site renderer. All data is fictional: made-up streets,
 taxpayer numbers and owner names.
 """
 
+import dataclasses
 import tempfile
 import unittest
 from pathlib import Path
@@ -103,6 +104,8 @@ class SlugNeverCarriesTheStreet(PipelineCase):
         self.assert_no_street_in_any_url([self.slug(r) for r in rows])
 
     def test_name_taken_by_an_unpublished_business_c8(self):
+        # "Unpublished" is the city-only setting (LVA_PUBLISH_SCOPES=city); by default nearby is listed too.
+        self.settings = dataclasses.replace(self.settings, publish_scopes=("city",))
         nearby = outlet("30000000061", "AVON", "1204 FICTIONAL BRANCH RD", zip_code="75604", inside="O")
         home = outlet("30000000062", "AVON", "318 IMAGINARY HOLLOW LN", owner="ROE, MARY")
         self.sync([nearby, home])

@@ -458,10 +458,12 @@ class SalesTaxTests(NoWaitCase):
         self.assertEqual(scopes["32000000001:00001"], ("city", "75601"))     # inside, Longview ZIP
         self.assertEqual(scopes["32000000002:00001"], ("nearby", "75604"))   # outside wins over a Longview ZIP
         self.assertEqual(scopes["32000000003:00002"], ("city", "75605"))     # indicator absent, Longview ZIP
-        self.assertEqual(scopes["32000000004:00001"], ("nearby", "75662"))   # inside, but another ZIP
-        self.assertEqual(scopes["32000000005:00003"], ("nearby", "75693"))   # unknown indicator, another ZIP
+        # Not a Longview, Texas postal ZIP: 'out', never published as "Longview, TX".
+        self.assertEqual(scopes["32000000004:00001"], ("out", "75662"))      # inside, but another ZIP
+        self.assertEqual(scopes["32000000005:00003"], ("out", "75693"))      # unknown indicator, another ZIP
         self.assertEqual(counts["city"], 2)
-        self.assertEqual(counts["nearby"], 3)
+        self.assertEqual(counts["nearby"], 1)
+        self.assertEqual(counts["out"], 2)
         self.assertEqual(counts["other_zips"], {"75662": 1, "75693": 1})
         self.assertEqual(counts["inside_other_zip"], 1)
         self.assertEqual(counts["fetched"], 6)
@@ -650,7 +652,7 @@ class TabcTests(NoWaitCase):
         self.assertEqual((bistro["street"], bistro["suite"], bistro["phone"]),
                          ("900 Sample Pkwy Ste 12", "12", "+19035550105"))
         wine = recs["P0000004"]
-        self.assertEqual((wine["scope"], wine["phone"]), ("nearby", None))
+        self.assertEqual((wine["scope"], wine["phone"]), ("out", None))  # 75662 is not a Longview ZIP
         self.assertEqual(counts["other_zips"], {"75662": 1})
         stored = text_outside_raw(self.conn)
         self.assertNotIn("DOE, JANE Q", stored)

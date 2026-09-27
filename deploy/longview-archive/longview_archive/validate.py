@@ -28,9 +28,9 @@ from .privacy import GENERIC_EMAIL_LOCALS
 SCHEMA_VERSION = 1
 DAY_KEYS = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
 HIRING_ROLES = ("front_desk", "office_manager", "medical_assistant", "dental_assistant", "receptionist")
-FACT_SOURCES = ("tx_sales_tax", "tx_tabc", "npi", "website")
-FACT_FIELDS = ("name", "address", "category", "permitSince", "website", "phone", "email", "hours",
-               "facebook", "instagram", "careers", "services")
+FACT_SOURCES = ("tx_sales_tax", "tx_tabc", "npi", "tx_franchise", "website")
+FACT_FIELDS = ("name", "address", "category", "permitSince", "registeredSince", "website", "phone", "email",
+               "hours", "facebook", "instagram", "careers", "services")
 WEBSITE_STATUSES = ("ok", "moved", "dead", "blocked")
 WEBSITE_ONLY_FIELDS = frozenset({"website", "phone", "email", "hours", "facebook", "instagram", "careers",
                                  "services"})
@@ -164,8 +164,8 @@ def _address(raw: Any) -> dict:
         _fail("bad_address_zip")
     city = _plain(raw.get("city"), 60, "bad_address_city")
     state = _plain(raw.get("state"), 2, "bad_address_state")
-    # The directory covers the City of Longview only; anything else would make
-    # the "Longview, TX" fallback untrue.
+    # The directory covers businesses with a Longview address only; anything
+    # else would make the "Longview, TX" fallback untrue.
     if city.lower() != "longview" or state != "TX":
         _fail("address_outside_longview")
     return {"street": street, "city": "Longview", "state": "TX", "zip": zip_code}
@@ -270,8 +270,8 @@ def shown_fields(b: Mapping) -> List[str]:
     fields = ["name", "category"]
     if b["address"]["street"]:
         fields.append("address")
-    for key, name in (("permitSince", "permitSince"), ("website", "website"), ("phone", "phone"),
-                      ("email", "email"), ("hours", "hours")):
+    for key, name in (("permitSince", "permitSince"), ("registeredSince", "registeredSince"),
+                      ("website", "website"), ("phone", "phone"), ("email", "email"), ("hours", "hours")):
         if b.get(key):
             fields.append(name)
     if b["social"]["facebook"]:
@@ -307,6 +307,8 @@ def check_business(raw: Any, known_categories: Iterable[str]) -> dict:
     address = _address(raw.get("address"))
     permit = raw.get("permitSince")
     permit_since = None if permit is None else _date(permit, "bad_permit_since")
+    registered = raw.get("registeredSince")  # absent in batches written before the franchise-tax source
+    registered_since = None if registered is None else _date(registered, "bad_registered_since")
     website = _website(raw.get("website"))
     phone = _phone(raw.get("phone"))
     email = None
@@ -344,7 +346,7 @@ def check_business(raw: Any, known_categories: Iterable[str]) -> dict:
 
     business = {
         "id": ident, "slug": slug, "name": name, "category": category, "categoryLabel": category_label,
-        "address": address, "permitSince": permit_since, "website": website, "phone": phone, "email": email,
+        "address": address, "permitSince": permit_since, "registeredSince": registered_since, "website": website, "phone": phone, "email": email,
         "hours": hours, "social": social, "careersUrl": careers_url, "hiringRoles": list(roles),
         "services": services, "facts": facts, "updatedAt": updated_at, "indexable": raw["indexable"],
     }
@@ -356,6 +358,10 @@ def check_business(raw: Any, known_categories: Iterable[str]) -> dict:
             _fail(f"fact_not_from_website:{fact['field']}")
         if fact["field"] == "permitSince" and fact["source"] != "tx_sales_tax":
             _fail("permit_fact_not_from_comptroller")
+        if fact["field"] == "registeredSince" and fact["source"] != "tx_franchise":
+            _fail("registered_fact_not_from_franchise_list")
+        if fact["field"] == "address" and fact["source"] == "tx_franchise":
+            _fail("address_from_mailing_list")  # a franchise-tax address is a mailing address
     if any(f["source"] == "website" for f in facts) and not website:
         _fail("website_fact_without_website")
     if website:
