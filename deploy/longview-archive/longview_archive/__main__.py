@@ -296,7 +296,7 @@ def cmd_approve(args, settings) -> int:
                     return 0
                 if waiting.get("status") == "approved":
                     out(f"The publish file already written was approved: {waiting['businesses']} businesses."
-                        f" The directory was rebuilt: {SITE_URL_HINT}")
+                        f" The directory was rebuilt: {site_url_hint(settings)}")
                 elif waiting.get("status") == "held":
                     err(f"The publish file already written would remove {waiting['removed']} of the"
                         f" {waiting['approved']} approved businesses, so it waits for you: lva approve")
