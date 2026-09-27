@@ -189,6 +189,8 @@ export default function LongviewPage() {
             <Link href="/tools" className="cb-textlink">
               All the free tools <ArrowRight aria-hidden="true" />
             </Link>
+            {/* A plain <a>, not <Link>: the directory is static files Caddy serves on the droplet, outside this app. */}
+            <a href="/longview/businesses/" className="cb-textlink">Longview business directory</a>
           </div>
         </div>
       </section>

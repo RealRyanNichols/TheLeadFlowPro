@@ -71,14 +71,20 @@ pause, resume, and rollback commands.
   directory and the status page. It checks Caddy's whole config before reloading. If the check
   fails, it puts the file back and does not reload, so the live sites never
   change.
+- Adds `/etc/caddy/longview-archive/website.routes`: the directory's routes
+  for www.theleadflowpro.com. Nothing loads it until the LeadFlow website
+  itself runs on this droplet (see "Putting it on theleadflowpro.com").
+- Only when you ask for a public host (`LVA_PUBLIC_HOST`, below) and its DNS
+  already points here: adds that host to the Caddy file and writes
+  `/etc/longview-archive/env`.
 - Copies `uninstall.sh` and `preflight.sh` to `/opt/longview-archive/`.
 
 ### What it never touches
 
 DNS, other Caddy sites, the Central Brain and Call Desk, the `brain`
 database, pda-api and the Premier staging site, other users, SSH keys,
-secrets, env files, timers it did not create, and system packages. It never
-reboots.
+secrets, other env files, timers it did not create, and system packages. It
+never reboots.
 
 It refuses to run unless it is root on Ubuntu, the machine is `leadflow-web`,
 Python is 3.10 or newer, Caddy is 2.7 or newer, loads `sites/*.caddy`, and its
@@ -118,6 +124,64 @@ is also at `bash /opt/longview-archive/preflight.sh`.
   or change.
 
 The very first visit can take a minute while Caddy gets its certificate.
+
+## Putting it on theleadflowpro.com
+
+Two ways. Both keep the noindex header on every directory page (letting search
+engines in is a separate decision), and the status page stays on the sslip.io
+address only.
+
+**1. Now: a subdomain, longview.theleadflowpro.com (one DNS record).**
+
+1. At GoDaddy, open theleadflowpro.com, then DNS, then Add New Record, and
+   add: **Type A, Name `longview`, Value `165.227.248.110`**, TTL 1 hour.
+2. Wait until it resolves (usually minutes). In the droplet console,
+   `getent ahostsv4 longview.theleadflowpro.com` should print 165.227.248.110.
+3. Run the install one-liner again with the host in front of it:
+
+   ```bash
+   LVA_PUBLIC_HOST=longview.theleadflowpro.com bash -c 'set -e; d=$(mktemp -d); trap "rm -rf $d" EXIT; git clone --depth 1 --branch main https://github.com/RealRyanNichols/TheLeadFlowPro.git "$d/src"; bash "$d/src/deploy/longview-archive/install.sh"'
+   ```
+
+   (Use the working branch name in place of `main` until the pull request
+   merges.) The installer checks that the name points at this droplet first.
+   If it does not yet, it prints the exact record to add, leaves the host out
+   (so Caddy never asks for a certificate it cannot get), and finishes
+   normally; run it again later. When the host is added, it records
+   `LVA_PUBLIC_HOST` and `LVA_PUBLIC_BASE_URL=https://longview.theleadflowpro.com`
+   in `/etc/longview-archive/env`, so the directory's own links use the new
+   address and later upgrades keep the host.
+4. Rebuild the pages so their links use it: `lva site`.
+
+The directory is then at **https://longview.theleadflowpro.com/longview/businesses/**
+(the bare address goes there too).
+
+**2. Later: the main site path, www.theleadflowpro.com/longview/businesses/.**
+This works by itself once the LeadFlow website runs on this droplet
+(`deploy/droplet/`, after `cutover.sh site-on`): its Caddy block imports the
+routes file this installer wrote, so that one path is served from the
+directory's files and every other path still goes to the website. If the
+website's site block was switched on before this change, refresh it once,
+after `deploy.sh` has checked out this code:
+
+```bash
+install -m 644 /opt/theleadflowpro/deploy/droplet/theleadflowpro.caddy /etc/caddy/sites/theleadflowpro.caddy && caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile && systemctl reload caddy
+```
+
+(Re-running `deploy/droplet/install.sh` does the same, keeping a backup and
+putting it back if Caddy rejects it.) When that is the main address, make the
+directory's links point there, then rebuild:
+
+```bash
+sed -i '/^LVA_PUBLIC_BASE_URL=/d' /etc/longview-archive/env 2>/dev/null; mkdir -p /etc/longview-archive; echo 'LVA_PUBLIC_BASE_URL=https://www.theleadflowpro.com' >> /etc/longview-archive/env
+systemctl restart longview-archive
+```
+
+and then `lva site`.
+
+`/etc/longview-archive/env` is optional. It holds `KEY=VALUE` lines, and only
+`LVA_*` keys count. The service and the `lva` shortcut both read it, and a
+variable already set in the environment wins.
 
 ## Everyday commands
 
@@ -383,6 +447,8 @@ and keeps the newest 14 backups.
 | `longview_archive/` | `/opt/longview-archive/app/longview_archive/` (root-owned, read-only to the service) |
 | `systemd/longview-archive.service` | `/etc/systemd/system/longview-archive.service` |
 | `caddy/longview-archive.caddy` | `/etc/caddy/sites/longview-archive.caddy` (serves `/longview/businesses/` and `/status`) |
+| `caddy/public-host.caddy.in` | appended to that file, for `LVA_PUBLIC_HOST`, only when its DNS points here (directory only) |
+| `caddy/website.routes` | `/etc/caddy/longview-archive/website.routes` (imported by `deploy/droplet/theleadflowpro.caddy` and the public host) |
 | `uninstall.sh`, `preflight.sh` | `/opt/longview-archive/` |
 
 Tests (standard library only, no network):
@@ -410,6 +476,7 @@ scripts refuse one without the other:
 
 - `LVA_INSTALL_PREFIX=/tmp/x` puts `/tmp/x` in front of every absolute path.
 - `LVA_INSTALL_FAKE_SYSTEM=1` replaces `systemctl`, `caddy`, `useradd`,
-  `runuser`, `id`, `chown`, `df`, and the hostname check with shell functions
-  that log what they would have done (the fake `runuser` really runs
+  `runuser`, `id`, `chown`, `df`, `curl`, `getent`, and the hostname check
+  with shell functions that log what they would have done (or, for `curl` and
+  `getent`, answer from files the test writes) (the fake `runuser` really runs
   `install -d`, as the test user, so the data folders can be checked).

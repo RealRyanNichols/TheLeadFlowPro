@@ -144,12 +144,24 @@ if ! grep -qE '^[[:space:]]*import[[:space:]]+/etc/caddy/sites/\*\.caddy' /etc/c
   printf '\nimport /etc/caddy/sites/*.caddy\n' >> /etc/caddy/Caddyfile
   ok "added 'import /etc/caddy/sites/*.caddy' to /etc/caddy/Caddyfile (backup kept)"
 fi
-if [ ! -f /etc/caddy/sites/theleadflowpro.caddy ]; then
-  install -m 644 "$APP_DIR/deploy/droplet/theleadflowpro.caddy" /etc/caddy/sites/theleadflowpro.caddy.off
+# The site block stays in whichever state cutover.sh left it (on, or staged
+# .off); only its content is brought up to date with the checked-out code.
+SITE_BLOCK=/etc/caddy/sites/theleadflowpro.caddy
+[ -f "$SITE_BLOCK" ] || SITE_BLOCK=$SITE_BLOCK.off
+SITE_BACKUP=""
+if [ ! -f "$SITE_BLOCK" ]; then
+  install -m 644 "$APP_DIR/deploy/droplet/theleadflowpro.caddy" "$SITE_BLOCK"
   ok "site block staged OFF until DNS points here (cutover.sh site-on)"
+elif ! cmp -s "$APP_DIR/deploy/droplet/theleadflowpro.caddy" "$SITE_BLOCK"; then
+  SITE_BACKUP="/etc/caddy/theleadflowpro.caddy.bak.$(date +%Y%m%d%H%M%S)"
+  cp -p "$SITE_BLOCK" "$SITE_BACKUP"
+  install -m 644 "$APP_DIR/deploy/droplet/theleadflowpro.caddy" "$SITE_BLOCK"
+  ok "refreshed $SITE_BLOCK from the code (backup: $SITE_BACKUP)"
 fi
-caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null 2>&1 \
-  || die "Caddy rejected /etc/caddy/Caddyfile. The backup is next to it. Send this output to Claude."
+if ! caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile >/dev/null 2>&1; then
+  [ -z "$SITE_BACKUP" ] || install -m 644 "$SITE_BACKUP" "$SITE_BLOCK"
+  die "Caddy rejected /etc/caddy/Caddyfile. The backup is next to it${SITE_BACKUP:+ and the site block was put back}; Caddy was not reloaded. Send this output to Claude."
+fi
 systemctl enable --now caddy >/dev/null 2>&1 || true
 systemctl reload caddy
 ok "Caddy config valid and reloaded; the brain's site block is unchanged"

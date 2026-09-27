@@ -27,9 +27,25 @@ For Amanda and Ryan. Written Sept 24, 2026 (Central time).
   (the bare address goes there too). Until you approve the first batch it says
   the first batch is being checked. Search engines are told to stay away while
   it is on this address.
-- **Later, on theleadflowpro.com:** the pages already use the final path. When
-  the LeadFlow website itself runs on the droplet, one approved Caddy change
-  routes `theleadflowpro.com/longview/businesses/` to them. Nothing uses Vercel.
+- **On theleadflowpro.com (two ways, added Sept 27, 2026).** Search engines are
+  still told to stay away on both; the status page stays on the sslip.io
+  address only. Nothing uses Vercel.
+  - **Now, with one DNS record:** add at GoDaddy **Type A, Name `longview`,
+    Value `165.227.248.110`**. Once it resolves, re-run the install command
+    with `LVA_PUBLIC_HOST=longview.theleadflowpro.com ` in front of it (the
+    exact line is in `deploy/longview-archive/README.md`, "Putting it on
+    theleadflowpro.com"), then `lva site`. The directory is then at
+    https://longview.theleadflowpro.com/longview/businesses/. The installer
+    checks the DNS first; if the record is not live yet it prints it, leaves
+    the name out, and changes nothing about it.
+  - **Later, on the main site:** once the LeadFlow website itself runs on the
+    droplet (`cutover.sh site-on`), https://www.theleadflowpro.com/longview/businesses/
+    serves the directory automatically; every other page is still the website,
+    and the /longview page links to it. If the website's Caddy block was
+    switched on before this change, refresh it once (one line in the README).
+    Then put `LVA_PUBLIC_BASE_URL=https://www.theleadflowpro.com` in
+    `/etc/longview-archive/env`, restart the service, and run `lva site`, so
+    the directory's own links use the main address.
 
 ## Turn it on (the one step)
 
@@ -65,8 +81,12 @@ After the pull request merges, use `--branch main` instead. The installer:
   droplet.
 - Adds one Caddy file for the directory and the private status page, and
   reloads Caddy only after Caddy approves the change.
+- Adds the directory's routes for www.theleadflowpro.com
+  (`/etc/caddy/longview-archive/website.routes`); nothing uses them until the
+  website runs on the droplet.
 - Touches nothing else: not DNS, not the Premier site, not the Call Desk, not
-  any other site, and not any settings file.
+  any other site, and no settings file unless you ask for the
+  longview.theleadflowpro.com address (then only `/etc/longview-archive/env`).
 
 ## What happens next, in order
 
@@ -170,7 +190,8 @@ See `docs/longview-directory/DECISIONS.md`. In short:
 - **Pause:** in the droplet console, `touch /var/lib/longview-archive/PAUSE`.
   **Resume:** `rm /var/lib/longview-archive/PAUSE`.
 - **Undo:** `bash /opt/longview-archive/uninstall.sh`. This stops and removes
-  the service and the Caddy file (so the directory goes offline too), then
+  the service, the Caddy file, and the website routes (so the directory goes
+  offline everywhere), then
   reloads Caddy. The collected data stays
   until someone deletes it on purpose.
 - **Cost:** none new. It runs on the existing $48/month droplet.

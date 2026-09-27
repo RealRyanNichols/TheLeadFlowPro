@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # Rollback for the Longview Business Archive (The LeadFlow Pro).
 #
-# Stops and disables the longview-archive service, removes its unit file and
-# its one Caddy site file, and reloads Caddy only after the remaining config
-# validates. It never deletes the archive's data in /var/lib/longview-archive,
+# Stops and disables the longview-archive service, removes its unit file, its
+# Caddy site file, and the directory's website routes
+# (/etc/caddy/longview-archive/website.routes), and reloads Caddy only after
+# the remaining config validates. It never deletes the archive's data in /var/lib/longview-archive,
 # and it keeps the code in /opt/longview-archive unless --remove-code is given,
-# so re-running the install one-liner brings everything back as it was.
+# so re-running the install one-liner brings everything back as it was. The
+# optional settings file /etc/longview-archive/env is kept too.
 #
 # Deleting the data is a separate, deliberate step (it cannot be undone). The
 # exact commands are printed at the end of this script and in README.md.
@@ -70,6 +72,8 @@ DATA_DIR=$PREFIX/var/lib/longview-archive
 UNIT_DEST=$PREFIX/etc/systemd/system/$SERVICE.service
 CADDYFILE=$PREFIX/etc/caddy/Caddyfile
 SITE_DEST=$PREFIX/etc/caddy/sites/$SERVICE.caddy
+ROUTES_DIR=$PREFIX/etc/caddy/$SERVICE
+ROUTES_DEST=$ROUTES_DIR/website.routes
 
 if [ "$FAKE" = 1 ]; then
 	# Same fake system as install.sh, reduced to the calls made here.
@@ -122,25 +126,38 @@ remove_service() {
 }
 
 remove_caddy_site() {
-	step "Caddy site file"
-	if [ ! -f "$SITE_DEST" ]; then
+	step "Caddy site and routes files"
+	if [ ! -f "$SITE_DEST" ] && [ ! -f "$ROUTES_DEST" ]; then
 		say "  Not installed; Caddy untouched."
 		return 0
 	fi
-	local previous=
+	local previous='' previous_routes=''
 	if [ "$DRY_RUN" = 0 ]; then
 		WORK_DIR=$(mktemp -d)
-		previous=$WORK_DIR/$SERVICE.caddy
-		cp -p "$SITE_DEST" "$previous"
+		if [ -f "$SITE_DEST" ]; then
+			previous=$WORK_DIR/$SERVICE.caddy
+			cp -p "$SITE_DEST" "$previous"
+		fi
+		if [ -f "$ROUTES_DEST" ]; then
+			previous_routes=$WORK_DIR/website.routes
+			cp -p "$ROUTES_DEST" "$previous_routes"
+		fi
 	fi
-	run rm -f "$SITE_DEST"
+	run rm -f "$SITE_DEST" "$ROUTES_DEST"
+	if [ -d "$ROUTES_DIR" ] && [ -z "$(ls -A "$ROUTES_DIR")" ]; then
+		run rmdir "$ROUTES_DIR"
+	fi
 	if ! command -v caddy >/dev/null 2>&1; then
 		say "  Caddy is not installed; nothing to reload."
 		return 0
 	fi
 	if ! run caddy validate --config "$CADDYFILE" --adapter caddyfile; then
+		if [ -n "$previous_routes" ]; then
+			run install -d -m 0755 "$ROUTES_DIR"
+			run install -m 0644 "$previous_routes" "$ROUTES_DEST"
+		fi
 		[ -z "$previous" ] || run install -m 0644 "$previous" "$SITE_DEST"
-		die "Caddy rejected the remaining config, so the site file was put back and Caddy was NOT reloaded. Fix the other error first; the live sites are unchanged."
+		die "Caddy rejected the remaining config, so the site and routes files were put back and Caddy was NOT reloaded. Fix the other error first; the live sites are unchanged."
 	fi
 	if systemctl is-active --quiet caddy; then
 		run systemctl reload caddy

@@ -1,0 +1,59 @@
+# Longview business directory routes for a site that is not only the directory
+# (The LeadFlow Pro, hello@theleadflowpro.com).
+#
+# Installed by deploy/longview-archive/install.sh as
+# /etc/caddy/longview-archive/website.routes and removed by uninstall.sh. It is
+# imported INSIDE a site block, never loaded as a site of its own:
+#   - www.theleadflowpro.com (deploy/droplet/theleadflowpro.caddy imports
+#     /etc/caddy/longview-archive/*.routes, a glob, so it is a no-op until this
+#     file exists);
+#   - the optional public directory host install.sh adds when LVA_PUBLIC_HOST
+#     already points at this droplet.
+#
+# It answers /longview/businesses (308 to the slash form) and everything below
+# /longview/businesses/ from /var/lib/longview-archive/www, with the same
+# headers and Content-Security-Policy as the staging host's directory. The
+# status pages are not here; they stay on the sslip.io staging host only.
+#
+# Self-contained on purpose: it uses no snippet from another file. It is one
+# handle block with a named matcher, so in the importing site block it is
+# mutually exclusive with that block's other handle blocks, and a fallback
+# `handle { ... }` there (the app's reverse_proxy) gets every other path.
+#
+# Every response here says noindex while the directory is not approved for
+# search engines. Dropping X-Robots-Tag is a separate, approved change.
+# A missing page is answered here with a plain 404 (with these headers), so the
+# importing site needs no handle_errors of its own.
+
+@longview_archive_directory path /longview/businesses /longview/businesses/*
+handle @longview_archive_directory {
+	root * /var/lib/longview-archive/www
+	header {
+		X-Robots-Tag "noindex, nofollow, noarchive, nosnippet"
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+		X-Frame-Options DENY
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		Cache-Control "no-store"
+		Content-Security-Policy "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+		-Server
+	}
+
+	handle /longview/businesses {
+		redir * /longview/businesses/ 308
+	}
+
+	# A profile, category, or list is a folder with an index.html;
+	# "businesses" is a link the engine switches in one rename.
+	@longview_archive_found file {
+		try_files {path} {path}/index.html
+	}
+	handle @longview_archive_found {
+		rewrite * {file_match.relative}
+		file_server
+	}
+
+	handle {
+		respond "Not found" 404
+	}
+}

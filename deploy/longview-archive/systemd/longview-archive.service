@@ -19,6 +19,10 @@ Type=simple
 User=lvarchive
 Group=lvarchive
 WorkingDirectory=/opt/longview-archive/app
+# Optional LVA_* settings (such as LVA_PUBLIC_BASE_URL) live in
+# /etc/longview-archive/env. The engine reads that file itself, the same way
+# the lva command line does, so both build the same links; ProtectSystem=strict
+# keeps /etc readable. After changing it: systemctl restart longview-archive
 Environment=PYTHONPATH=/opt/longview-archive/app PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 ExecStart=/opt/longview-archive/venv/bin/python -m longview_archive run
 Restart=always

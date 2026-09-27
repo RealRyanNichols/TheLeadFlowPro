@@ -9,8 +9,12 @@
 #   - /var/lib/longview-archive   the archive's data
 #   - /etc/systemd/system/longview-archive.service (enabled and started)
 #   - /etc/caddy/sites/longview-archive.caddy (validated before Caddy reloads)
-# It installs no packages, changes no DNS, and reads no env file. Apart from
-# reloading Caddy, it touches no other site, service, database, user, or key.
+#   - /etc/caddy/longview-archive/website.routes, the directory's routes for
+#     www.theleadflowpro.com (deploy/droplet/theleadflowpro.caddy imports it;
+#     nothing loads it until that site is on this droplet)
+#   - /etc/longview-archive/env, only when LVA_PUBLIC_HOST is live (below)
+# It installs no packages and changes no DNS. Apart from reloading Caddy, it
+# touches no other site, service, database, user, or key.
 # Every check runs before the first change, including a check that Caddy's
 # current config validates. Re-running it is the upgrade, and running it twice
 # is safe. New code is migrated and self-checked from a staging copy before it
@@ -27,13 +31,30 @@
 #   --no-caddy   skip the status host (no Caddy file, no Caddy reload)
 #   --any-host   skip the leadflow-web hostname check
 #
+# Option (environment variable):
+#   LVA_PUBLIC_HOST=longview.theleadflowpro.com
+#                serve the directory (never the status pages) on this host
+#                too. It is added only when the name ALREADY resolves to this
+#                droplet's public IP, so Caddy never asks Let's Encrypt for a
+#                certificate it cannot get. Otherwise the installer prints the
+#                one DNS record to add, leaves the host out, and finishes; run
+#                it again once the record is live. When the host is added, the
+#                engine's links move to it: LVA_PUBLIC_BASE_URL=https://<host>
+#                goes into /etc/longview-archive/env unless that file already
+#                sets LVA_PUBLIC_BASE_URL (the owner's value is kept), together
+#                with LVA_PUBLIC_HOST, so later runs (upgrades) keep the host
+#                without the variable. To drop the host, delete that line and
+#                run the installer again.
+#
 # Test-only hooks for tests/test_deploy.py. Never set them on the droplet; the
 # script refuses one without the other.
 #   LVA_INSTALL_PREFIX=/tmp/x   put /tmp/x in front of every absolute path
 #   LVA_INSTALL_FAKE_SYSTEM=1   replace systemctl, caddy, useradd, runuser, id,
-#                               chown, df, and hostname with shell functions
-#                               that log what they would have done (runuser
-#                               really runs `install -d`, as the test user)
+#                               chown, df, hostname, curl, and getent with shell
+#                               functions that log what they would have done
+#                               (runuser really runs `install -d`, as the test
+#                               user; curl and getent answer from files the
+#                               tests write)
 set -euo pipefail
 umask 022
 
@@ -41,8 +62,14 @@ SERVICE=longview-archive
 SERVICE_USER=lvarchive
 STATUS_HOST=longview.165-227-248-110.sslip.io
 # The directory's public base URL: the engine's own setting (LVA_PUBLIC_BASE_URL), same default.
+# The summary also reads it from /etc/longview-archive/env, as the engine does.
 PUBLIC_BASE_URL=${LVA_PUBLIC_BASE_URL:-https://$STATUS_HOST}
 PUBLIC_BASE_URL=${PUBLIC_BASE_URL%/}
+# Optional public host for the directory (see "Option" above), lower case.
+# When it is not set, the host an earlier run recorded in /etc/longview-archive/env is used.
+PUBLIC_HOST=$(printf '%s' "${LVA_PUBLIC_HOST:-}" | tr '[:upper:]' '[:lower:]')
+# The droplet's address, for the DNS record printed when the host is not live yet.
+DROPLET_IP_DEFAULT=165.227.248.110
 MIN_FREE_GB=10
 STATUS_WAIT_S=90
 # After the new engine's first status write, it must stay up this long with
@@ -53,6 +80,8 @@ SOURCE_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 PKG_SRC=$SOURCE_DIR/longview_archive
 UNIT_SRC=$SOURCE_DIR/systemd/$SERVICE.service
 SITE_SRC=$SOURCE_DIR/caddy/$SERVICE.caddy
+ROUTES_SRC=$SOURCE_DIR/caddy/website.routes
+PUBLIC_SITE_SRC=$SOURCE_DIR/caddy/public-host.caddy.in
 
 DRY_RUN=0
 NO_CADDY=0
@@ -116,6 +145,10 @@ UNIT_DEST=$UNIT_DIR/$SERVICE.service
 CADDYFILE=$PREFIX/etc/caddy/Caddyfile
 CADDY_SITES=$PREFIX/etc/caddy/sites
 SITE_DEST=$CADDY_SITES/$SERVICE.caddy
+ROUTES_DIR=$PREFIX/etc/caddy/$SERVICE
+ROUTES_DEST=$ROUTES_DIR/website.routes
+LVA_ENV_DIR=$PREFIX/etc/$SERVICE
+LVA_ENV_FILE=$LVA_ENV_DIR/env
 OS_RELEASE=$PREFIX/etc/os-release
 
 if [ "$FAKE" = 1 ]; then
@@ -213,6 +246,14 @@ if [ "$FAKE" = 1 ]; then
 		fi
 	}
 	chown() { fake_log chown "$@"; }
+	# The metadata service's answer is the file public-ip; no file, no answer.
+	curl() { cat "$FAKE_DIR/public-ip" 2>/dev/null; }
+	# getent ahostsv4 NAME: one address per line from dns/NAME, if present.
+	getent() {
+		local ip
+		[ "${1:-}" = ahostsv4 ] && [ -f "$FAKE_DIR/dns/${2:-}" ] || return 2
+		while read -r ip; do [ -z "$ip" ] || printf '%s STREAM %s\n' "$ip" "$2"; done <"$FAKE_DIR/dns/$2"
+	}
 fi
 
 cleanup() {
@@ -292,7 +333,63 @@ PY
 	[ -f "$PKG_SRC/__init__.py" ] || die "The engine package is missing next to this script ($PKG_SRC)."
 	[ -f "$UNIT_SRC" ] || die "The service file is missing ($UNIT_SRC)."
 	[ "$NO_CADDY" = 1 ] || [ -f "$SITE_SRC" ] || die "The Caddy site file is missing ($SITE_SRC)."
+	[ "$NO_CADDY" = 1 ] || [ -f "$ROUTES_SRC" ] || die "The Caddy routes file is missing ($ROUTES_SRC)."
 	refuse_linked_data
+	check_public_host
+}
+
+# The last value of KEY in the settings file, without quotes ("" when unset).
+env_file_value() {
+	[ -f "$LVA_ENV_FILE" ] || return 0
+	sed -n "s/^[[:space:]]*\(export[[:space:]]\{1,\}\)\{0,1\}$1=//p" "$LVA_ENV_FILE" | tail -n 1 | tr -d "\"' \t\r"
+}
+
+# The same checks as deploy/droplet/cutover.sh: this droplet's public IPv4
+# from the DigitalOcean metadata service, and the name's IPv4 answers.
+droplet_public_ip() { curl -fs --max-time 3 http://169.254.169.254/metadata/v1/interfaces/public/0/ipv4/address 2>/dev/null || true; }
+points_here() { getent ahostsv4 "$1" 2>/dev/null | awk '{print $1}' | grep -qx "$2"; }
+
+# Read-only. Sets PUBLIC_HOST_ON=1 when LVA_PUBLIC_HOST is set and its DNS
+# already answers with this droplet's address; otherwise prints the record to
+# add and leaves the host out, so Caddy never asks for a certificate it cannot get.
+PUBLIC_HOST_ON=0
+check_public_host() {
+	# A host chosen on an earlier run is remembered in the settings file.
+	local recorded
+	recorded=$(env_file_value LVA_PUBLIC_HOST | tr '[:upper:]' '[:lower:]')
+	recorded=${recorded%.}
+	PUBLIC_HOST=${PUBLIC_HOST%.}
+	if [ -z "$PUBLIC_HOST" ]; then
+		PUBLIC_HOST=$recorded
+	elif [ -n "$recorded" ] && [ "$recorded" != "$PUBLIC_HOST" ]; then
+		die "$LVA_ENV_FILE already names another public host ($recorded). Edit that line (or leave LVA_PUBLIC_HOST unset), then run this again. Nothing was changed."
+	fi
+	[ -n "$PUBLIC_HOST" ] || return 0
+	[[ $PUBLIC_HOST =~ ^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?(\.[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?)+$ ]] ||
+		die "LVA_PUBLIC_HOST='$PUBLIC_HOST' is not a host name (for example longview.theleadflowpro.com). Nothing was changed."
+	case $PUBLIC_HOST in
+	"$STATUS_HOST" | theleadflowpro.com | www.theleadflowpro.com)
+		die "LVA_PUBLIC_HOST cannot be $PUBLIC_HOST (that name has its own site block). Nothing was changed."
+		;;
+	esac
+	[ "$NO_CADDY" = 0 ] || die "LVA_PUBLIC_HOST needs Caddy; drop --no-caddy or unset LVA_PUBLIC_HOST. Nothing was changed."
+	local ip name
+	ip=$(droplet_public_ip)
+	if [ -n "$ip" ] && points_here "$PUBLIC_HOST" "$ip"; then
+		PUBLIC_HOST_ON=1
+		say "  $PUBLIC_HOST points at this droplet ($ip): ok, the directory will be served there too"
+		return 0
+	fi
+	name=$PUBLIC_HOST
+	case $name in *.theleadflowpro.com) name=${name%.theleadflowpro.com} ;; esac
+	if [ -z "$ip" ]; then
+		say "  $PUBLIC_HOST: could not read this droplet's public IP from the metadata service, so the host is left out."
+	else
+		say "  $PUBLIC_HOST does not point at this droplet ($ip) yet, so it is left out for now."
+	fi
+	say "  To add it, create this DNS record at GoDaddy (theleadflowpro.com > DNS > Add New Record):"
+	say "      Type: A    Name: $name    Value: ${ip:-$DROPLET_IP_DEFAULT}    TTL: 1 Hour"
+	say "  Wait until it resolves (getent ahostsv4 $PUBLIC_HOST), then run this installer again with LVA_PUBLIC_HOST=$PUBLIC_HOST."
 }
 
 DATA_SUBDIRS_PRIVATE="db backups exports exports/publish exports/private"
@@ -481,39 +578,100 @@ install_service() {
 	fi
 }
 
+# When the public host is live, point the engine's links at it through the
+# one settings file the service and the lva command line both read. A value
+# the owner already put there (such as https://www.theleadflowpro.com) stays.
+write_public_env() {
+	[ "$PUBLIC_HOST_ON" = 1 ] || return 0
+	step "Public host and base URL in $LVA_ENV_FILE"
+	local host_line="LVA_PUBLIC_HOST=$PUBLIC_HOST" url_line="LVA_PUBLIC_BASE_URL=https://$PUBLIC_HOST"
+	local have_host have_url add=()
+	have_host=$(env_file_value LVA_PUBLIC_HOST)
+	have_url=$(env_file_value LVA_PUBLIC_BASE_URL)
+	# Remembered, so re-running the installer (the upgrade) keeps the host.
+	# (check_public_host already refused a different recorded host.)
+	[ -n "$have_host" ] || add+=("$host_line")
+	if [ -z "$have_url" ]; then
+		add+=("$url_line")
+	elif [ "$have_url" = "https://$PUBLIC_HOST" ]; then
+		say "  Already $url_line."
+	else
+		say "  Kept the existing LVA_PUBLIC_BASE_URL=$have_url (the owner's choice). Links stay on that address."
+	fi
+	[ "${#add[@]}" -gt 0 ] || return 0
+	run install -d -m 0755 "$LVA_ENV_DIR"
+	if [ "$DRY_RUN" = 1 ]; then
+		say "  [dry-run] add ${add[*]} to $LVA_ENV_FILE"
+		return 0
+	fi
+	work_dir
+	{
+		if [ -f "$LVA_ENV_FILE" ]; then
+			cat "$LVA_ENV_FILE"
+		else
+			printf '# Longview Business Archive settings, read by the service and the lva command line.\n'
+			printf '# KEY=VALUE lines, LVA_* keys only; a variable set in the environment wins.\n'
+			printf '# After a change: systemctl restart longview-archive\n'
+		fi
+		printf '%s\n' "${add[@]}"
+	} >"$WORK_DIR/env"
+	run install -m 0644 "$WORK_DIR/env" "$LVA_ENV_FILE"
+	run chown root:root "$LVA_ENV_DIR" "$LVA_ENV_FILE"
+}
+
+# Put one Caddy file back as it was before this run ($2 is its saved copy, or
+# empty when it did not exist).
+restore_file() {
+	if [ -n "$2" ]; then
+		run install -m 0644 "$2" "$1"
+	else
+		run rm -f "$1"
+	fi
+}
+
 install_caddy_site() {
 	step "Caddy site $STATUS_HOST"
 	if [ "$NO_CADDY" = 1 ]; then
 		say "  Skipped (--no-caddy)."
 		return 0
 	fi
-	if [ -f "$SITE_DEST" ] && cmp -s "$SITE_SRC" "$SITE_DEST"; then
-		say "  Site file unchanged; Caddy not reloaded."
+	# The site file is the staging host, plus the public host's block only when
+	# its DNS already points here (check_public_host).
+	work_dir
+	local site_new=$WORK_DIR/$SERVICE.caddy.new
+	cp "$SITE_SRC" "$site_new"
+	if [ "$PUBLIC_HOST_ON" = 1 ]; then
+		say "  With the public host $PUBLIC_HOST (directory only)."
+		sed "s/@PUBLIC_HOST@/$PUBLIC_HOST/g" "$PUBLIC_SITE_SRC" >>"$site_new"
+	fi
+	if [ -f "$SITE_DEST" ] && cmp -s "$site_new" "$SITE_DEST" &&
+		[ -f "$ROUTES_DEST" ] && cmp -s "$ROUTES_SRC" "$ROUTES_DEST"; then
+		say "  Site and routes files unchanged; Caddy not reloaded."
 		return 0
 	fi
-	local previous=
+	local previous='' previous_routes=''
 	if [ -f "$SITE_DEST" ] && [ "$DRY_RUN" = 0 ]; then
-		work_dir
 		previous=$WORK_DIR/$SERVICE.caddy.previous
 		cp -p "$SITE_DEST" "$previous"
 	fi
-	run install -m 0644 "$SITE_SRC" "$SITE_DEST"
-	run chown root:root "$SITE_DEST"
+	if [ -f "$ROUTES_DEST" ] && [ "$DRY_RUN" = 0 ]; then
+		previous_routes=$WORK_DIR/website.routes.previous
+		cp -p "$ROUTES_DEST" "$previous_routes"
+	fi
+	# The routes go first: the public host's block imports them.
+	run install -d -m 0755 "$ROUTES_DIR"
+	run install -m 0644 "$ROUTES_SRC" "$ROUTES_DEST"
+	run install -m 0644 "$site_new" "$SITE_DEST"
+	run chown root:root "$ROUTES_DIR" "$ROUTES_DEST" "$SITE_DEST"
 	if ! run caddy validate --config "$CADDYFILE" --adapter caddyfile; then
-		if [ -n "$previous" ]; then
-			run install -m 0644 "$previous" "$SITE_DEST"
-		else
-			run rm -f "$SITE_DEST"
-		fi
-		die "Caddy rejected the config, so the site file was put back as it was and Caddy was NOT reloaded. The live sites are unchanged."
+		restore_file "$SITE_DEST" "$previous"
+		restore_file "$ROUTES_DEST" "$previous_routes"
+		die "Caddy rejected the config, so the site and routes files were put back as they were and Caddy was NOT reloaded. The live sites are unchanged."
 	fi
 	if ! run systemctl reload caddy; then
-		if [ -n "$previous" ]; then
-			run install -m 0644 "$previous" "$SITE_DEST"
-		else
-			run rm -f "$SITE_DEST"
-		fi
-		die "Caddy did not reload; it keeps serving its previous config. The site file was put back as it was."
+		restore_file "$SITE_DEST" "$previous"
+		restore_file "$ROUTES_DEST" "$previous_routes"
+		die "Caddy did not reload; it keeps serving its previous config. The site and routes files were put back as they were."
 	fi
 }
 
@@ -619,7 +777,20 @@ summary() {
 		say "  Status:    $STATUS_JSON (no status page; installed with --no-caddy)"
 	else
 		say "  Status:    https://$STATUS_HOST/status/"
+		# The engine reads the settings file too; a variable that is set wins.
+		local file_url
+		file_url=$(env_file_value LVA_PUBLIC_BASE_URL)
+		if [ -z "${LVA_PUBLIC_BASE_URL:-}" ] && [ -n "$file_url" ]; then PUBLIC_BASE_URL=${file_url%/}; fi
 		say "  Directory: $PUBLIC_BASE_URL/longview/businesses/ (shows a batch once you run: lva approve)"
+		[ "$PUBLIC_BASE_URL" = "https://$STATUS_HOST" ] ||
+			say "             https://$STATUS_HOST/longview/businesses/ (the staging address)"
+		if [ "$PUBLIC_HOST_ON" = 1 ] && [ "$PUBLIC_BASE_URL" != "https://$PUBLIC_HOST" ]; then
+			say "             https://$PUBLIC_HOST/longview/businesses/ (the public host; the first visit waits for its certificate)"
+		elif [ "$PUBLIC_HOST_ON" = 0 ] && [ -n "$PUBLIC_HOST" ]; then
+			say "  Public host $PUBLIC_HOST: left out until its DNS record points here (see the checks above)."
+		fi
+		say "  Website:   https://www.theleadflowpro.com/longview/businesses/ once that site runs on this droplet"
+		say "             (routes: $ROUTES_DEST; then set LVA_PUBLIC_BASE_URL=https://www.theleadflowpro.com in $LVA_ENV_FILE)"
 	fi
 	say "  Pause:     touch $DATA_DIR/PAUSE"
 	say "  Resume:    rm -f $DATA_DIR/PAUSE"
@@ -639,6 +810,7 @@ main() {
 	stage_code
 	ensure_venv
 	ensure_data_dirs
+	write_public_env
 	migrate_and_check
 	activate_code
 	install_service

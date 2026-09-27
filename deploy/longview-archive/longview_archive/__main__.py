@@ -748,7 +748,9 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
     level = logging.INFO if args.command == "run" else logging.WARNING
     logging.basicConfig(level=level, stream=sys.stderr, format=LOG_FORMAT)
     try:
-        settings = config.load_settings()
+        # The service and the lva shortcut both come through here, so both read
+        # /etc/longview-archive/env (a variable set in the environment wins).
+        settings = config.load_settings(config.environment())
     except ValueError as exc:
         err(f"Settings problem: {exc}")
         return 1

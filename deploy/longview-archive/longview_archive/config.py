@@ -27,7 +27,8 @@ STAGING_HOST = "longview.165-227-248-110.sslip.io"
 # Where the directory is actually served. Every absolute link to it (canonical
 # tags, the claim email's listing link) and the crawler's user agent are built
 # from this one value, ``Settings.public_base_url``. When the directory moves to
-# theleadflowpro.com, set LVA_PUBLIC_BASE_URL=https://www.theleadflowpro.com.
+# theleadflowpro.com, set LVA_PUBLIC_BASE_URL=https://www.theleadflowpro.com
+# in /etc/longview-archive/env (ENV_FILE, below).
 PUBLIC_BASE_URL = f"https://{STAGING_HOST}"
 BASE_URL_RE = re.compile(r"https://[A-Za-z0-9.-]+(?::[0-9]{1,5})?")
 
@@ -253,6 +254,51 @@ class Settings:
                 os.chmod(path, mode)
             except PermissionError:
                 pass
+
+
+# One optional settings file shared by the service and the ``lva`` command line,
+# so both build the same links. Root owns it; the service only reads it
+# (ProtectSystem=strict leaves /etc readable). install.sh writes it when a
+# public host is chosen; nothing else is required to exist.
+ENV_FILE = Path("/etc/longview-archive/env")
+ENV_LINE_RE = re.compile(r"(LVA_[A-Z0-9_]+)=(.*)")
+
+
+def read_env_file(path: Path | None = None) -> dict:
+    """``KEY=VALUE`` lines from ``path`` (default ``ENV_FILE``): ``LVA_*`` keys
+    only, ``#`` comments and blank lines skipped, one pair of matching quotes
+    around a value removed. A missing file is an empty result; any other line
+    is ignored."""
+    path = ENV_FILE if path is None else path
+    try:
+        text = Path(path).read_text(encoding="utf-8")
+    except FileNotFoundError:
+        return {}
+    except OSError as exc:
+        raise ValueError(f"cannot read {path} ({type(exc).__name__})") from exc
+    values = {}
+    for raw in text.splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("export "):
+            line = line[len("export "):].lstrip()
+        m = ENV_LINE_RE.fullmatch(line)
+        if not m:
+            continue
+        value = m.group(2).strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in "\"'":
+            value = value[1:-1]
+        values[m.group(1)] = value
+    return values
+
+
+def environment(env: Mapping[str, str] | None = None, path: Path | None = None) -> dict:
+    """The settings file under the real environment: a variable that is set wins."""
+    env = os.environ if env is None else env
+    merged = read_env_file(path)
+    merged.update(env)
+    return merged
 
 
 def load_settings(env: Mapping[str, str] | None = None) -> Settings:

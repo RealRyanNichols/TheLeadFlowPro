@@ -3,6 +3,13 @@
 # touched. Installed as theleadflowpro.caddy.off and switched on by
 # deploy/droplet/cutover.sh site-on, once DNS points here, so Caddy never asks
 # Let's Encrypt for a certificate it cannot get.
+#
+# /longview/businesses/ is the Longview business directory, static files the
+# Longview archive builds on this droplet. deploy/longview-archive/install.sh
+# writes those routes to /etc/caddy/longview-archive/website.routes; the import
+# is a glob, so it does nothing until that file exists. Its handle block and
+# the app's fallback handle below are mutually exclusive: the directory paths
+# go to the files, every other path goes to the app.
 
 theleadflowpro.com {
 	redir https://www.theleadflowpro.com{uri} 308
@@ -11,5 +18,10 @@ theleadflowpro.com {
 www.theleadflowpro.com {
 	encode zstd gzip
 	header Strict-Transport-Security "max-age=63072000"
-	reverse_proxy 127.0.0.1:3100
+
+	import /etc/caddy/longview-archive/*.routes
+
+	handle {
+		reverse_proxy 127.0.0.1:3100
+	}
 }
