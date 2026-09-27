@@ -281,6 +281,19 @@ def cmd_approve(args, settings) -> int:
                     " rebuilt by itself, except a batch that would remove more than 25% of the approved"
                     " businesses: that one waits for you (the status page says so). Turn it off with:"
                     " lva approve --auto off")
+                # A publish file written before the switch was turned on (the service's first run can
+                # finish before this command) goes through the same rules now, not 45 minutes later.
+                try:
+                    waiting = approval.auto_approve(conn, settings)
+                except approval.ApprovalError as exc:
+                    err(f"The publish file already written was not approved: {exc}")
+                    return 0
+                if waiting.get("status") == "approved":
+                    out(f"The publish file already written was approved: {waiting['businesses']} businesses."
+                        f" The directory was rebuilt: {SITE_URL_HINT}")
+                elif waiting.get("status") == "held":
+                    err(f"The publish file already written would remove {waiting['removed']} of the"
+                        f" {waiting['approved']} approved businesses, so it waits for you: lva approve")
             else:
                 out("Auto-approve is off. The directory changes only when you run: lva approve")
             return 0

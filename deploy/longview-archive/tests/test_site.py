@@ -721,6 +721,25 @@ class ApprovalGate(unittest.TestCase):
         self.assertNotIn("Example Taqueria", self.site_text())
         self.assertNotIn("example-taqueria", self.read_search())
 
+    def test_turning_auto_approve_on_approves_the_file_already_waiting(self):
+        # The service's first run can write its publish file before "approve --auto on" runs.
+        self.assertFalse(self.settings.approved_export_path.exists())
+        args = cli.build_parser().parse_args(["approve", "--auto", "on"])
+        with mock.patch.object(cli, "out"), mock.patch.object(cli, "err"):
+            self.assertEqual(args.handler(args, self.settings), 0)
+        approved = json.loads(self.settings.approved_export_path.read_text())
+        self.assertEqual(approved["batchId"], self.export["batchId"])
+        self.assertEqual(db.get_meta(self.conn, "approved_by"), approval.AUTO_ACTOR)
+        self.assertIn("Example Taqueria", self.site_text())
+
+    def test_turning_auto_approve_on_with_no_file_yet_approves_nothing(self):
+        self.settings.publish_export_path.unlink()
+        args = cli.build_parser().parse_args(["approve", "--auto", "on"])
+        with mock.patch.object(cli, "out"), mock.patch.object(cli, "err"):
+            self.assertEqual(args.handler(args, self.settings), 0)
+        self.assertFalse(self.settings.approved_export_path.exists())
+        self.assertTrue(approval.auto_enabled(self.conn))
+
     def test_every_build_filters_suppressions_even_from_an_old_approved_file(self):
         approval.approve(self.conn, self.settings, now=NOW)
         target = by_slug(self.export, "example-barber-shop")

@@ -42,9 +42,12 @@ bash -c 'set -e; d=$(mktemp -d); trap "rm -rf $d" EXIT; git clone --depth 1 --br
 
 **To install and go live in the same paste** (the owner said "make live" on
 Sept 24, 2026), use this instead. It installs, then turns on auto-approve, so
-the first real batch reaches the directory about 45 minutes after the engine
-starts, with no separate approve step. A batch that would remove more than a
-quarter of the listings still waits for a person:
+the first real batch reaches the directory at the end of the engine's first
+run (about 5 to 15 minutes after install: it pulls the state's permit list,
+reads two websites, then writes the batch), with no separate approve step. If
+that batch was written before auto-approve was switched on, switching it on
+approves it at once. A batch that would remove more than a quarter of the
+listings still waits for a person:
 
 ```bash
 bash -c 'set -e; d=$(mktemp -d); trap "rm -rf $d" EXIT; git clone --depth 1 --branch claude/serene-edison-daodg6 https://github.com/RealRyanNichols/TheLeadFlowPro.git "$d/src"; bash "$d/src/deploy/longview-archive/install.sh"; runuser -u lvarchive -- env -C /opt/longview-archive/app PYTHONPATH=/opt/longview-archive/app PYTHONDONTWRITEBYTECODE=1 /opt/longview-archive/venv/bin/python -m longview_archive approve --auto on'
