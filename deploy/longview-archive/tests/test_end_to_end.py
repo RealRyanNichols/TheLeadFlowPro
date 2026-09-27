@@ -131,8 +131,9 @@ class EndToEndTest(unittest.TestCase):
     # ------------------------------------------------------------ counts
 
     def test_export_counts(self):
+        # The one business in review is known only from OpenStreetMap: it waits for a public record, not a person.
         self.assertEqual(self.export["counts"],
-                         {"published": 10, "inArchive": 13, "heldForPrivacy": 1, "needsReview": 1})
+                         {"published": 10, "inArchive": 13, "heldForPrivacy": 1, "needsReview": 0})
         self.assertEqual(sorted(self.by_slug), EXPECTED_SLUGS)
         self.assertEqual(len(self.export["businesses"]), 10)
         self.assertEqual([b["slug"] for b in self.export["businesses"]], EXPECTED_SLUGS)  # ordered by slug
