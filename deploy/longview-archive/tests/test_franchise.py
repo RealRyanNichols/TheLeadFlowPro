@@ -1091,3 +1091,17 @@ class EndToEndTests(FranchiseCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PlainWordNames(unittest.TestCase):
+    """The shown name is the taxpayer's own: two plain words and no trade word may be a person's."""
+
+    def test_plain_word_names_wait_for_a_person(self):
+        for name in ("NGUYEN HOA LLC", "PATEL RAJESH PLLC", "DALIX QUILLFEATHER LLC", "PINEY WOODS LLC"):
+            with self.subTest(name=name):
+                self.assertTrue(franchise.privacy_flags(name, "CL")[1], name)
+
+    def test_trade_names_still_publish(self):
+        for name in ("GRACE PLUMBING LLC", "EXAMPLE OIL & GAS LLC", "EXAMPLE REAL ESTATE LLC"):
+            with self.subTest(name=name):
+                self.assertEqual(franchise.privacy_flags(name, "CL"), (False, False, False), name)

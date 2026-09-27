@@ -313,6 +313,15 @@ def carries_person_name(shown: str) -> bool:
     return False
 
 
+def plain_words_only(shown: str) -> bool:
+    """Two or more words, none a trade word, and not an address ('Nguyen Hoa',
+    'Piney Woods'): may be a person's name. An address-shaped name goes to its
+    own review (name_contains_address) instead."""
+    bare = bare_name(shown)
+    words = [t for t in privacy._tokens(bare) if t.strip("'-&") and t != "and"]
+    return len(words) >= 2 and not privacy._has_business_word(words) and not privacy.looks_like_address(bare)
+
+
 def privacy_flags(name: str, org_code: str) -> Tuple[bool, bool, bool]:
     """(is_individual, personal_name, owner_named) for a taxpayer name that is also the shown name."""
     org_text = ENTITY_ORG_TYPES.get(org_code.upper()) or org_code
@@ -324,7 +333,10 @@ def privacy_flags(name: str, org_code: str) -> Tuple[bool, bool, bool]:
     is_individual = privacy.is_individual_taxpayer(name, org_text, shown)
     # An entity code does not make the name a company's: a person's name with a
     # legal form ('Nguyen Hoa LLC', 'John Smith CPA PC') is held or checked too.
-    personal = is_individual or carries_person_name(shown)
+    # The shown name is the taxpayer's own registered name, so there is no
+    # separate owner name to compare with: two or more plain words and no
+    # trade word ('Nguyen Hoa LLC') may be a person's name and waits for a person.
+    personal = is_individual or carries_person_name(shown) or plain_words_only(shown)
     return is_individual, personal, personal
 
 

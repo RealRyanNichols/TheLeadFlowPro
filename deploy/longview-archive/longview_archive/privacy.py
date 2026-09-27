@@ -38,7 +38,7 @@ ORG_MARKERS = {
 
 # Words that make a name a business name rather than a person's name.
 BUSINESS_WORDS = ORG_MARKERS | {
-    "shop", "store", "repair", "repairs", "auto", "automotive", "tire", "tires", "salon", "barber",
+    "shop", "store", "real", "realty", "oil", "gas", "repair", "repairs", "auto", "automotive", "tire", "tires", "salon", "barber",
     "barbershop", "church", "dental", "dentistry", "family", "clinic", "market", "grill", "cafe",
     "coffee", "pizza", "bbq", "barbecue", "tacos", "taqueria", "kitchen", "bakery", "boutique",
     "studio", "fitness", "gym", "insurance", "realty", "law", "firm", "cpa", "pharmacy", "supply",
