@@ -24,6 +24,7 @@ type PurchaseRow = {
   amount_cents: number | null;
   status: string | null;
   stripe_session_id: string | null;
+  lead_id: string | null;
 };
 
 type DeliveryRow = {
@@ -88,7 +89,7 @@ export default async function PurchasesPage({
 
   const { data: purchases, error } = await supabase
     .from("purchases")
-    .select("id, created_at, email, kind, amount_cents, status, stripe_session_id")
+    .select("id, created_at, email, kind, amount_cents, status, stripe_session_id, lead_id")
     .order("created_at", { ascending: false })
     .limit(200);
 
@@ -273,7 +274,8 @@ export default async function PurchasesPage({
                 <tbody className="divide-y divide-[var(--line)]">
                   {rows.map((p) => {
                     const paid = p.status === "paid";
-                    const leadId = p.stripe_session_id ? leadBySession.get(p.stripe_session_id) : undefined;
+                    // The webhook writes lead_id since 2026-09-27; older rows fall back to the checkout id stamp.
+                    const leadId = p.lead_id ?? (p.stripe_session_id ? leadBySession.get(p.stripe_session_id) : undefined);
                     const deliveries = p.stripe_session_id
                       ? deliveriesBySession.get(p.stripe_session_id) ?? []
                       : [];

@@ -33,6 +33,7 @@ import { sendSellerProofReceipt } from "@/lib/sellerproof/receipt";
 import { handleHqStripeEvent } from "@/lib/hq/subscription";
 import { HQ_PLAN } from "@/lib/hq/types";
 import { AGENCY_PAYMENT, agencyPaymentFromMetadata } from "@/lib/agencyPayment";
+import { subscriptionIdOf } from "@/lib/agencyRetainer";
 import { CHASE_SHEET, isChaseSheetKind } from "@/lib/chaseSheet/product";
 import { applyChaseSheetMoneyBack, ensureChaseSheetPaid, handleChaseSheetSubscription, markChaseSheetRenewed } from "@/lib/chaseSheet/subscription";
 import { POST_CREATOR, isPostCreatorKind } from "@/lib/postCreator/product";
@@ -467,6 +468,8 @@ async function claimFunnelLead(
     }
   }
 
+  await linkPurchaseLead(supabase, sessionId, leadId);
+
   const openTask = await supabase
     .from("lead_tasks")
     .select("id")
@@ -485,6 +488,20 @@ async function claimFunnelLead(
 }
 
 /** Writes the system activity row that records a paid event on the lead, once. */
+/**
+ * Ties the purchases row to the lead it paid for (purchases.lead_id, added by
+ * the purchases baseline migration on 2026-09-27). The key is the checkout
+ * session id, or the invoice id for an invoice-keyed row. Only an unlinked
+ * row is written, so a retried event never moves a purchase to another lead.
+ * A failure here is logged, not thrown: the sale is already recorded and
+ * the lead already claimed; the link is a convenience for /admin/purchases.
+ */
+async function linkPurchaseLead(supabase: SupabaseClient, key: string, leadId: string) {
+  if (!key || !leadId) return;
+  const linked = await supabase.from("purchases").update({ lead_id: leadId }).eq("stripe_session_id", key).is("lead_id", null);
+  if (linked.error) console.warn(`purchase lead link failed for ${key}: ${linked.error.code}`);
+}
+
 async function markLeadActivity(supabase: SupabaseClient, leadId: string, detail: string, label: string) {
   const existing = await supabase.from("lead_activity").select("id").eq("lead_id", leadId).eq("kind", "system").eq("detail", detail).limit(1).maybeSingle();
   if (existing.error) throw new Error(`${label} activity lookup failed: ${existing.error.code}`);
@@ -854,6 +871,7 @@ async function ensureWebsiteLaunchIntake(
   session: StripeCheckoutSession,
 ) {
   const { customer, lead, sessionId } = await findWebsiteLaunchLead(supabase, session);
+  await linkPurchaseLead(supabase, sessionId, lead.id);
 
   const openTask = await supabase
     .from("lead_tasks")
@@ -1056,6 +1074,7 @@ async function ensureTimebackOrderPaid(
   // contract as the Website Launch flow: alert first, marker after, so a
   // provider failure keeps the Stripe event retryable. Missing RESEND config
   // is not a failure; the payment is already recorded either way.
+  await linkPurchaseLead(supabase, sessionId, leadId);
   const activityDetail = `Time Back order paid through Stripe. ${orderSummary}. Stripe checkout: ${sessionId}.`;
   const existingActivity = await supabase
     .from("lead_activity")
@@ -1207,6 +1226,7 @@ async function ensureLeadFollowUpPaid(
   // The activity row is the idempotency marker for the internal alert: alert
   // first, marker after, so a provider failure keeps the Stripe event
   // retryable. Same contract as the other paid flows in this file.
+  await linkPurchaseLead(supabase, sessionId, leadId);
   const activityDetail = `Lead Follow-Up Campaign paid through Stripe. Stripe checkout: ${sessionId}.`;
   const existingActivity = await supabase
     .from("lead_activity")
@@ -1360,6 +1380,7 @@ async function ensureFreeBuildPaid(
     }
   }
 
+  await linkPurchaseLead(supabase, sessionId, leadId);
   const activityDetail = `Free Build paid through Stripe: ${tier.name}. Stripe checkout: ${sessionId}.`;
   const existingActivity = await supabase
     .from("lead_activity")
@@ -1441,6 +1462,9 @@ async function ensureAgencyPaymentPaid(
     billing: details.billing,
     reference: details.reference || null,
   };
+  // A monthly retainer's subscription rides on the session, so the lead page
+  // can end it later (lib/agencyRetainer.ts) without a Stripe lookup.
+  const subscriptionId = details.billing === "monthly" ? subscriptionIdOf((session as { subscription?: unknown }).subscription) : null;
   const summary = `AGENCY PAYMENT: ${serviceName}, ${cadence}, ${paidLabel}${details.reference ? ` (scope: ${details.reference})` : ""}.`;
 
   // Which lead this payment belongs to, in order:
@@ -1514,7 +1538,7 @@ async function ensureAgencyPaymentPaid(
       found.diagnostic && typeof found.diagnostic === "object"
         ? (found.diagnostic as Record<string, unknown>)
         : {};
-    const agencyStamp = { service: serviceSlug, billing: details.billing, reference: details.reference || null, stripe: stripeStamp };
+    const agencyStamp = { service: serviceSlug, billing: details.billing, reference: details.reference || null, stripe: stripeStamp, ...(subscriptionId ? { subscription_id: subscriptionId } : {}) };
     const updates: Record<string, unknown> = {
       status: "won",
       interest: "done_for_you",
@@ -1557,7 +1581,7 @@ async function ensureAgencyPaymentPaid(
           source: "agency_payment",
           services: details.service ? [details.service.slug] : [],
           paid: true,
-          agency_payment: { service: serviceSlug, billing: details.billing, reference: details.reference || null },
+          agency_payment: { service: serviceSlug, billing: details.billing, reference: details.reference || null, ...(subscriptionId ? { subscription_id: subscriptionId } : {}) },
           stripe: stripeStamp,
           next_action: "Paid without an intake. Call them, confirm the written scope, and start the build.",
         },
@@ -1581,6 +1605,8 @@ async function ensureAgencyPaymentPaid(
       leadName = inserted.data.full_name || leadName;
     }
   }
+
+  await linkPurchaseLead(supabase, sessionId, leadId);
 
   // One open build task per service, so a retried event does not stack them.
   const taskTitle = `Start agency build: ${serviceName}`;
@@ -1760,6 +1786,7 @@ async function recordSubscriptionInvoice(
   }
   if (invoice.family === "agency_payment") {
     const leadId = await findAgencyLeadByEmail(supabase, invoice.email);
+    if (leadId) await linkPurchaseLead(supabase, invoiceId, leadId);
     if (leadId) await markLeadActivity(supabase, leadId, `Agency retainer renewed: ${meta.service_name ?? meta.service ?? "service"}, ${dollars(invoice.amountPaidCents)}. Stripe invoice: ${invoiceId}.`, "Agency renewal");
   }
   // A retainer month is an Operations Partner month; every renewal earns a
@@ -1814,6 +1841,7 @@ async function finishPaidInvoice(
   if (leadId) {
     const won = await supabase.from("leads").update({ status: "won" }).eq("id", leadId).is("deleted_at", null);
     if (won.error) throw new Error(`Invoice lead update failed: ${won.error.code}`);
+    await linkPurchaseLead(supabase, invoiceId, leadId);
     await markLeadActivity(supabase, leadId, `Invoice ${number} paid through Stripe (${amount}). Stripe invoice: ${invoiceId}.`, "Invoice");
     const taskTitle = `Start paid scope: invoice ${number}`;
     const openTask = await supabase.from("lead_tasks").select("id").eq("lead_id", leadId).eq("title", taskTitle).is("completed_at", null).limit(1).maybeSingle();

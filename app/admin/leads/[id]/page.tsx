@@ -5,6 +5,8 @@ import { safeLeadDiagnostic } from "@/lib/leadTimeline";
 import { agencyPayHref } from "@/lib/agencyPayment";
 import { BUSINESS } from "@/lib/site/business";
 import CopyButton from "@/app/hq/_components/CopyButton";
+import { retainerActive, retainerCancelPrompt, retainerFromDiagnostic } from "@/lib/agencyRetainer";
+import CancelRetainer from "./CancelRetainer";
 import LeadWorkspace from "./LeadWorkspace";
 
 export const metadata = { title: "Lead Workspace | The LeadFlow Pro" };
@@ -120,10 +122,23 @@ export default async function LeadWorkspacePage({
   const unavailableSections = results.flatMap((result, index) =>
     result.error ? [labels[index]] : [],
   );
+  // The agency retainer door (decision 66): shown only while a monthly
+  // retainer from /agency/pay is still renewing on this lead.
+  const retainer = retainerFromDiagnostic(lead.diagnostic);
 
   return (
     <>
+      {retainer && !retainerActive(retainer) && (
+        <p className="mb-3 text-xs font-semibold text-[var(--muted)]">
+          Agency retainer ({retainer.service}) set to end at the close of the paid period
+          {retainer.cancelScheduledAt ? ` on ${retainer.cancelScheduledAt.slice(0, 10)}` : ""}
+          {retainer.cancelledBy ? ` by ${retainer.cancelledBy}` : ""}.
+        </p>
+      )}
       <div className="mb-3 flex flex-wrap justify-end gap-2">
+        {retainer && retainerActive(retainer) && (
+          <CancelRetainer leadId={id} label={`End ${retainer.service} retainer`} prompt={retainerCancelPrompt(retainer)} />
+        )}
         <Link href={`/admin/call-sheet/${id}`} className="hq-btn hq-btn-sm">
           Log a call
         </Link>

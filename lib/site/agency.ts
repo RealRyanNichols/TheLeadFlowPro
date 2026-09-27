@@ -155,7 +155,7 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
     notIncluded: ["A promise of a Google ranking, a number of leads, or sales", "Unlimited pages or revisions", "CRM, automation, or ad management (separate scopes on this site)"],
     faq: [
       { q: "What does it cost?", a: `The five-page Website Launch is ${usd(PRICES.websiteLaunchTotal)}: ${usd(PRICES.websiteLaunchDeposit)} to start and ${usd(PRICES.websiteLaunchFinal)} after approval, before launch. Anything larger gets a written scope and price first.` },
-      { q: "Do you host it?", a: `You can self-host, export, or choose managed hosting at ${usd(PRICES.hostingManagedMonthly)} a month, or ${usd(PRICES.hostingWithEditsMonthly)} a month with two minor edits.` },
+      { q: "Do you host it?", a: `You can self-host, export, or choose managed hosting at ${usd(PRICES.hostingManagedMonthly)} a month, or ${usd(PRICES.hostingWithEditsMonthly)} a month with two minor edits. Hosting is billed by monthly invoice; nothing renews without your written approval.` },
       { q: "Can it connect to my ads?", a: "Yes. The pixel, tag, and lead routing are set up so an ad click, a form, and a lead record connect. That is the trace-the-sale chain the rest of this site teaches." },
     ],
     intakeHref: intake("websites"),
