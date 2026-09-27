@@ -87,11 +87,24 @@ location. A franchise-tax listing shows the company name, "Longview, TX" (its
 address on that list is a mailing address and is never shown), and the year its
 franchise-tax registration began; exempt organizations (most nonprofits) are
 not listed from it, and a name that may be a person's is held exactly like a
-sole proprietor's. The About page says what is covered: "businesses with a
-Longview, Texas address".
+sole proprietor's. On that list the shown name is the company's own registered
+name, so a person's name with a legal form ('Nguyen Hoa LLC', 'John Smith CPA
+PC') is held too, and so is any name of two or more plain words with no trade
+word: many real companies wait until they have a website or a person checks
+them. That is the safe failure. Only Texas rows with a Longview postal ZIP
+(75601-75608) are listed; Longview, Washington and odd or missing ZIPs are not.
+The taxpayer number is the only link between the sales-tax and franchise-tax
+lists, so companies with the same name under different taxpayer numbers are
+never merged, and a franchise company named like a TABC or NPI practice waits
+for a person instead of being joined by name. The About page says what is
+covered: "businesses with a Longview, Texas address", and that some are held
+back or waiting for review.
 
 **How to go back to the city limits only:** run the service with
-`LVA_PUBLISH_SCOPES=city`. The next batch then holds the `nearby` listings as
+`LVA_PUBLISH_SCOPES=city` (`nearby` alone is refused). A franchise-tax company
+counts as `city` by its Longview postal ZIP, which cannot say which side of the
+city limits it is on; one that a sales-tax, TABC, or NPI location places takes
+that location's scope. The next batch then holds the `nearby` listings as
 `out_of_scope` (auto-approve holds a batch that removes more than a quarter of
 the listings for a person). Gregg County, or about 25 miles around Longview,
 would need new sources and is not built.

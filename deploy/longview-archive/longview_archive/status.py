@@ -367,7 +367,12 @@ def render_html(data: dict) -> str:
         _section("glance", "At a glance", f'<dl class="stats">{stat_html}</dl>'),
         _section("archive", "Archive", _dl([
             ("Active businesses", _n(archive.get("businesses"))),
-            ("In the city", _n(archive.get("inCity"))),
+            # What "city" means depends on the record that places the business: inside
+            # the city limits for a sales-tax, TABC, or NPI location; only a Longview
+            # postal ZIP (75601-75608) for a company known only from the franchise-tax
+            # list, whose mailing address may lie outside the limits.
+            ("In the city (inside the city limits; franchise-tax only: a Longview postal ZIP)",
+             _n(archive.get("inCity"))),
             # Listed by default; not listed when the service runs with LVA_PUBLISH_SCOPES=city.
             ("Longview address, outside the city limits", _n(archive.get("nearby"))),
             ("With a website", _n(archive.get("withWebsite"))),

@@ -24,14 +24,17 @@ CATEGORIES: Tuple[Tuple[str, str], ...] = (
     ("education-childcare", "Education & Childcare"),
     ("industrial", "Industrial, Wholesale & Transport"),
     ("other", "Other Services"),
+    # Companies known only from the franchise-tax list, which names no kind of
+    # business. Kept apart so they never claim a kind (and never swamp "Other
+    # Services"); nothing is guessed from the name.
+    ("registered-company", "Registered Companies"),
 )
 
 CATEGORY_NAMES = dict(CATEGORIES)
 FALLBACK = ("other", "Other services")
-# A company known only from the franchise-tax list: the list names no kind of
-# business, and none is guessed from the name. Same "other" category, with a
+# A company known only from the franchise-tax list: its own category, with a
 # label that says what is and is not known.
-COMPANY_FALLBACK = ("other", "Registered company; kind of business not on record")
+COMPANY_FALLBACK = ("registered-company", "Registered company; kind of business not on record")
 
 # prefix -> (category slug, label)
 NAICS_MAP: Mapping[str, Tuple[str, str]] = {

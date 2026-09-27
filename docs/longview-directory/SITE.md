@@ -42,7 +42,11 @@ The index, category pages, and About page say "with a Longview address"; with
 `LVA_PUBLISH_SCOPES=city` they say "in the City of Longview" again. A
 franchise-tax listing shows "Registered with the Texas Comptroller for franchise
 tax since <year>" in its Public record panel, sourced to that dataset, and
-"Longview, TX" as its address.
+"Longview, TX" as its address, with no Directions link (its only address is a
+mailing address). It is filed under its own category, "Registered Companies",
+not under a kind of business. The About page does not claim every business on
+those lists is shown: names that may be a person's are held back, and some
+listings wait for review.
 
 ## Honesty and privacy rules the pages enforce
 

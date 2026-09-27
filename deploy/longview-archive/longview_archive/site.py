@@ -65,7 +65,7 @@ CATEGORY_LEAD = "Every one we could verify, listed A to Z. Not ranked."
 # Bump whenever the pages' wording or markup changes: a site built with another
 # version is rebuilt at the next service start (``build_key``), so an upgrade
 # never leaves the old copy public until the next approval.
-COPY_VERSION = "3"
+COPY_VERSION = "4"
 
 SOURCE_LABELS = {
     "tx_sales_tax": "Texas Comptroller open data",
@@ -209,6 +209,14 @@ def category_class(slug: str) -> str:
 def address_line(b: Mapping) -> str:
     street, zip_code = b["address"]["street"], b["address"]["zip"]
     return f"{street}, Longview, TX {zip_code}" if street and zip_code else "Longview, TX"
+
+
+PREMISES_SOURCES = frozenset({"tx_sales_tax", "tx_tabc", "npi"})
+
+
+def has_premises(b: Mapping) -> bool:
+    """A street is shown, or a fact comes from a record that places the business somewhere."""
+    return bool(b["address"]["street"]) or any(f.get("source") in PREMISES_SOURCES for f in b.get("facts") or ())
 
 
 def maps_url(b: Mapping) -> str:
@@ -713,8 +721,11 @@ def profile_page(d: Directory, b: Mapping) -> str:
             f'<a class="btn btn-primary" href="{e(claim_mailto(d, b))}">Claim, correct, or remove this listing</a>'
             f'<p class="own">Own this business? <a href="{e(LEADFLOW_LONGVIEW)}">See what The LeadFlow Pro does for'
             " Longview businesses</a>.</p></div></section>")
-    hero_extra = (f'<p class="where"><span>{e(address_line(b))}</span>'
-                  f'<a href="{e(maps_url(b))}" rel="{REL}">Directions</a></p>')
+    # No Directions link without a place to visit: a listing with no street and no
+    # record that places it anywhere (known only from the franchise-tax list, whose
+    # address is a mailing address) could send a visitor to a home or an accountant.
+    directions = (f'<a href="{e(maps_url(b))}" rel="{REL}">Directions</a>' if has_premises(b) else "")
+    hero_extra = f'<p class="where"><span>{e(address_line(b))}</span>{directions}</p>'
     return render_page(
         d, title=f"{b['name']} in Longview, TX | Longview businesses",
         description=_profile_description(b, category_name), site_path=path(b["slug"]), h1=b["name"],
@@ -761,10 +772,12 @@ def about_page(d: Directory) -> str:
     body = "".join([
         section("what", "What it is",
                 (("<p>One listing per business with a Longview, Texas address, drawn from public records and"
-                  " each business's own website: every location that holds a Texas sales-tax permit, every"
-                  " licensed or registered practice, and every company in good standing on the Texas"
-                  " franchise-tax list that has no sales-tax location. That includes businesses just outside"
-                  " the city limits that use a Longview address. Organizations exempt from franchise tax"
+                  " each business's own website: locations that hold a Texas sales-tax permit, licensed or"
+                  " registered practices, and companies in good standing on the Texas franchise-tax list that"
+                  " have no sales-tax location. That includes businesses just outside the city limits that use"
+                  " a Longview address. A listing whose name may be a person's is held back until the business"
+                  " has a public presence and a person has checked it, and some listings wait for review, so"
+                  " not every business on those lists appears here yet. Organizations exempt from franchise tax"
                   " (most nonprofits) are not listed from that list.")
                  if covers_longview_addresses(d) else
                  "<p>One listing per business location in the City of Longview, drawn from public records and each"

@@ -435,6 +435,9 @@ _ADDRESS_SUFFIXES = frozenset({
 })
 _ROUTE_WORDS = frozenset({"hwy", "highway", "fm", "loop", "spur", "cr", "sh", "us", "i", "interstate", "rr"})
 _ORDINAL = re.compile(r"\d+(?:st|nd|rd|th)")
+# A PO box, read on the address tokens (lowercase, punctuation gone): 'po box 12',
+# 'p o box 12', 'pobox 12', 'post office box 12', 'box 12'.
+_PO_BOX = re.compile(r"\b(?:p\s?o\s?box|post office box)\b|\bbox \d+\b")
 
 
 def _address_tokens(text: Optional[str]) -> list:
@@ -456,8 +459,11 @@ def looks_like_address(text: Optional[str]) -> bool:
     """The text is or contains a street address: a house number (4100, 4100A,
     4100-A, 4100 1/2) followed by words ending in a street suffix ('77 Sample
     Ct', '500 South St', '12 Cove Ln'), or a numbered route ('4100 Hwy 80').
-    '7-Eleven', '24 Hour Fitness', '1st Choice Plumbing', '3 Amigos' are not."""
+    '7-Eleven', '24 Hour Fitness', '1st Choice Plumbing', '3 Amigos' are not.
+    A mailing address counts too: 'PO Box 1234 LLC', 'P.O. Box 9', 'Box 12'."""
     tokens = _address_tokens(text)
+    if _PO_BOX.search(" ".join(tokens)):
+        return True
     for i, tok in enumerate(tokens):
         if not re.fullmatch(r"\d{1,6}[a-z]?", tok):
             continue

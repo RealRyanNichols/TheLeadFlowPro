@@ -148,11 +148,14 @@ def _env_flag(env: Mapping[str, str], key: str) -> bool:
 
 
 def _publish_scopes(raw: str) -> Tuple[str, ...]:
-    """LVA_PUBLISH_SCOPES: 'city' or 'city,nearby' (any order, commas or spaces)."""
+    """LVA_PUBLISH_SCOPES: 'city' or 'city,nearby' (any order, commas or spaces).
+
+    The city is always listed: 'nearby' alone would list the businesses just
+    outside the city limits and none inside, under a label that claims them all."""
     wanted = [part for part in re.split(r"[\s,]+", raw.strip().lower()) if part]
     unknown = sorted(set(wanted) - set(PUBLISH_SCOPE_CHOICES))
-    if not wanted or unknown:
-        raise ValueError("LVA_PUBLISH_SCOPES must list city and/or nearby")
+    if not wanted or unknown or "city" not in wanted:
+        raise ValueError("LVA_PUBLISH_SCOPES must be city or city,nearby")
     return tuple(scope for scope in PUBLISH_SCOPE_CHOICES if scope in wanted)
 
 

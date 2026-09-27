@@ -37,6 +37,8 @@ STATES = ("ready", "review", "held", "suppressed", "pending")
 PRIMARY_SOURCES = ("tx_sales_tax", "tx_tabc", "npi", "tx_franchise")
 SOCRATA_SOURCES = ("tx_sales_tax", "tx_tabc", "tx_franchise")
 FRANCHISE_SOURCE = "tx_franchise"
+# Primary records that place a business at a street (the franchise list gives only a mailing address).
+PREMISES_SOURCES = ("tx_sales_tax", "tx_tabc", "npi")
 FACT_FIELDS = (
     "name", "address", "category", "permitSince", "registeredSince", "website", "phone", "email", "hours",
     "facebook", "instagram", "careers", "services",
@@ -271,7 +273,14 @@ def _decide(conn: sqlite3.Connection, settings, business, now: str) -> Tuple[str
     if business["scope"] not in settings.publish_scopes:
         return "held", "out_of_scope"
     records = _linked_records(conn, bid)
-    personal = any(r["personal_name"] for r in records)
+    # A franchise-tax record joined to a business a sales-tax, TABC, or NPI record
+    # places at a street (only when a person accepted the match) does not hold it:
+    # that record's own name decides. The franchise record decides alone otherwise.
+    if any(r["source_id"] in PREMISES_SOURCES and r["active"] for r in records):
+        privacy_records = [r for r in records if r["source_id"] != FRANCHISE_SOURCE]
+    else:
+        privacy_records = records
+    personal = any(r["personal_name"] for r in privacy_records)
     if personal and not privacy.has_public_presence(conn, bid):
         return "held", "personal_name_no_presence"
     # A name still carrying "Owner Name DBA" (kept from before only the trade
@@ -302,7 +311,7 @@ def _decide(conn: sqlite3.Connection, settings, business, now: str) -> Tuple[str
     # listing whose shown name may still be the owner's own (its source says
     # so, or it has a given name or no trade word).
     if privacy.looks_like_person_name(business["name"]) or (
-            personal and (_shows_owner_name(records) or privacy.may_name_owner(business["name"]))):
+            personal and (_shows_owner_name(privacy_records) or privacy.may_name_owner(business["name"]))):
         decision = _name_decision(
             conn, business, now, "person_name_check", "person_name_rejected",
             "The listed name may be a person's name. Accept to publish it as a business"
@@ -310,8 +319,12 @@ def _decide(conn: sqlite3.Connection, settings, business, now: str) -> Tuple[str
         if decision:
             return decision
     if conn.execute(
-        "SELECT 1 FROM review_queue WHERE business_id=? AND kind='merge_ambiguous' AND status='open' LIMIT 1",
-        (bid,),
+        # A question a franchise-tax record asks (is it this business?) waits on
+        # that record, which is not listed meanwhile; it never takes the business
+        # it asks about off the site.
+        "SELECT 1 FROM review_queue r WHERE r.business_id=? AND r.kind='merge_ambiguous' AND r.status='open'"
+        " AND NOT EXISTS (SELECT 1 FROM source_records s WHERE s.id=r.source_record_id AND s.source_id=?) LIMIT 1",
+        (bid, FRANCHISE_SOURCE),
     ).fetchone():
         return "review", "open_merge_review"
     if not business["public_id"] or not business["slug"]:

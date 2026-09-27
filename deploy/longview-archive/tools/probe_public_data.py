@@ -66,7 +66,12 @@ def engine_run(settings) -> None:
 def published_by_source(conn) -> None:
     """Counts only: where the ready profiles come from, and a person-name sanity check."""
     identity, linked = Counter(), Counter()
-    person_like = person_like_bare = 0
+    # Per the source the shown name comes from: three checks, each broader than the last.
+    #   person: privacy.looks_like_person_name (name, or name without its legal form)
+    #   owner: privacy.may_name_owner on the name without its legal form (catches given names
+    #          not in GIVEN_NAMES and surname-first order: any two plain words with no trade word)
+    #   carries: franchise.carries_person_name (the franchise source's own hold rule)
+    checks: dict = {}
     for biz in conn.execute("SELECT id, name FROM businesses WHERE publish_state='ready'").fetchall():
         sources = [r["source_id"] for r in conn.execute(
             f"SELECT source_id FROM source_records WHERE business_id=? AND active=1 ORDER BY {matching._ORDER_SQL}",
@@ -75,12 +80,23 @@ def published_by_source(conn) -> None:
         identity[primary] += 1
         for source_id in set(sources):
             linked[source_id] += 1
-        person_like += 1 if privacy.looks_like_person_name(biz["name"]) else 0
-        person_like_bare += 1 if privacy.looks_like_person_name(franchise_source.bare_name(biz["name"] or "")) else 0
+        name = biz["name"] or ""
+        bare = franchise_source.bare_name(name)
+        counts = checks.setdefault(primary, Counter())
+        counts["person"] += 1 if (privacy.looks_like_person_name(name)
+                                  or privacy.looks_like_person_name(bare)) else 0
+        counts["owner"] += 1 if privacy.may_name_owner(bare) else 0
+        counts["carries"] += 1 if franchise_source.carries_person_name(name) else 0
     say(f"ready profiles by the source their name comes from: {dict(sorted(identity.items()))}")
     say(f"ready profiles with an active record from: {dict(sorted(linked.items()))}")
-    say(f"ready profiles whose name looks like a person's (privacy.looks_like_person_name): {person_like}")
-    say(f"  ... the same check without a legal form (LLC, Inc): {person_like_bare}")
+    say("ready names that may be a person's, by the source the name comes from (counts only):")
+    for source_id in sorted(checks):
+        c = checks[source_id]
+        say(f"  {source_id}: looks_like_person_name={c['person']} may_name_owner(bare)={c['owner']}"
+            f" carries_person_name={c['carries']} (of {identity[source_id]})")
+    franchise_counts = checks.get(franchise_source.SOURCE_ID, Counter())
+    say(f"  tx_franchise names that should have been held (expected 0): "
+        f"{franchise_counts['carries']}")
 
 
 def catalog(settings, query: str):

@@ -15,9 +15,13 @@ for publishing, but it is thinner than an outlet:
 * The taxpayer name IS the shown name, so it passes the same person-name holds
   as a sales-tax outlet named for its owner: unless the taxpayer is clearly an
   entity (by its org-type code or a legal form in its name), or when the name
-  without its legal form looks like a person's, the record is flagged
-  ``personal_name`` with the ``owner_named`` tag. Publishing then holds it
-  without a public presence and sends it to a person with one.
+  may carry a person's name whatever its legal form (``carries_person_name``),
+  the record is flagged ``personal_name`` with the ``owner_named`` tag.
+  Publishing then holds it without a public presence and sends it to a person
+  with one.
+* Only Texas rows (``taxpayer_state`` TX, filtered on the server and checked
+  again here) with a Longview postal ZIP can be listed; any other ZIP, or none,
+  gives scope ``out`` and the row is never published.
 
 Only rows in good standing are kept (``right_to_transact_business_code`` A,
 when the column exists), and exempt organizations (a current exemption reason:
@@ -56,6 +60,7 @@ FIELD_CANDIDATES: Dict[str, Tuple[str, ...]] = {
     "taxpayer_number": ("taxpayer_number",),
     "taxpayer_name": ("taxpayer_name",),
     "city": ("taxpayer_city",),
+    "state": ("taxpayer_state",),
     "zip": ("taxpayer_zip", "taxpayer_zip_code"),
     "org_type": ("taxpayer_organizational_type", "taxpayer_organization_type"),
     "right_to_transact": ("right_to_transact_business_code",),
@@ -95,20 +100,30 @@ def taxpayer_number(value: Any) -> str:
     return re.sub(r"\D", "", str(value or ""))
 
 
+def outlet_taxpayer(outlet_key: Any) -> str:
+    """The taxpayer part of a sales-tax outlet key ('taxpayer:outlet'), exactly as stored.
+
+    It is compared with a franchise key (the taxpayer number, digits only) as it
+    is, with no normalization, here and in ``has_sales_tax_outlet`` alike: a
+    prefix that is not plain digits never equals a franchise key in either."""
+    return str(outlet_key or "").split(":", 1)[0]
+
+
 def sales_tax_taxpayers(conn: sqlite3.Connection) -> Set[str]:
     """Taxpayer numbers with at least one ACTIVE sales-tax outlet (outlet keys are 'taxpayer:outlet')."""
     numbers: Set[str] = set()
     for (key,) in conn.execute(
         "SELECT source_key FROM source_records WHERE source_id=? AND active=1", (SALES_TAX_SOURCE,)
     ):
-        number = taxpayer_number(str(key).split(":", 1)[0])
+        number = outlet_taxpayer(key)
         if number:
             numbers.add(number)
     return numbers
 
 
 def has_sales_tax_outlet(conn: sqlite3.Connection, number: str) -> bool:
-    """One taxpayer: any active sales-tax outlet (an index range on 'number:...')."""
+    """One taxpayer: any active sales-tax outlet whose key starts 'number:' (the same
+    comparison as ``outlet_taxpayer``: an index range, no normalization)."""
     if not number:
         return False
     return conn.execute(
@@ -132,8 +147,13 @@ def bare_name(name: str) -> str:
 
 
 def scope_for(zip_code: Optional[str]) -> str:
-    """'city' for a Longview postal ZIP (75601-75608, PO boxes included), else 'nearby'."""
-    return "city" if zip_code in LONGVIEW_POSTAL_ZIPS else "nearby"
+    """'city' for a Longview postal ZIP (75601-75608, PO boxes included); anything else is 'out'.
+
+    A row says LONGVIEW but its ZIP is missing or not a Longview, Texas ZIP
+    (Longview, Washington is 98632): nothing shows the company has a Longview,
+    Texas address, so it is never published (held ``out_of_scope``, and the sync
+    counts it under ``other_zips``)."""
+    return "city" if zip_code in LONGVIEW_POSTAL_ZIPS else "out"
 
 
 def is_trust_or_estate(name: str, org_code: str = "") -> bool:
@@ -154,6 +174,70 @@ def is_trust_or_estate(name: str, org_code: str = "") -> bool:
     return not (words[-1] == "trust" and "bank" in words)
 
 
+# Words that sit around a person's name in a company name without being a
+# trade word: 'Law Office of John Smith', 'The John Smith Company'.
+_NAME_GLUE = frozenset({"the", "of", "and", "&", "at", "by", "for", "a", "an"})
+# Trade words common in registered company names (oil and gas, land, building)
+# that privacy.BUSINESS_WORDS does not carry. Here only: a name with one of them
+# is not held for having two plain words ('Example Oil LLC'), though a given name
+# next to a plain word still is ('John Smith Oil LLC').
+_COMPANY_WORDS = frozenset({
+    "real", "estate", "oil", "gas", "energy", "capital", "land", "resources", "operating", "royalty",
+    "royalties", "mineral", "minerals", "petroleum", "exploration", "development", "developments", "homes",
+    "home", "builders", "building", "leasing", "financial", "finance", "acquisitions", "investment",
+    "production", "pipeline", "drilling", "wells", "consultants", "contractors", "contracting", "concrete",
+    "freight", "hauling", "dirt", "timber", "cattle", "partners",
+})
+
+
+def _trade_word(token: str) -> bool:
+    return token in _COMPANY_WORDS or privacy._has_business_word([token])
+
+
+def carries_person_name(shown: str) -> bool:
+    """The company name may carry a person's name, whatever its legal form says.
+
+    On this list the shown name is the taxpayer's own registered name, and the
+    GIVEN_NAMES list alone misses most Vietnamese, Chinese, South Asian and
+    Arabic given names and any surname-first order. True when:
+
+    * the name reads as a person's (``privacy.looks_like_person_name``), whole
+      or without its legal form;
+    * without its legal form it has two or more words and no trade word (the
+      plain-words half of ``privacy.may_name_owner``, with the company trade
+      words below added): 'Nguyen Hoa LLC', 'Patel Rajesh LLC', 'Dalix
+      Quillfeather MD PA', and also 'Example Widgets LLC';
+    * a given name stands next to another plain word that is not a trade word
+      ('John Smith CPA PC', 'Law Office of John Smith PLLC', 'The John Smith
+      Company', 'John Smith Holdings LP'). This replaces the given-name half of
+      ``may_name_owner``, which would also hold a lone given name used as a
+      trade name.
+
+    A surname with a trade word ('Smith Plumbing LLC'), a given name used next
+    to a trade word only ('Grace Plumbing LLC'), and a single word ('Quillby
+    LLC') are not flagged. In doubt the listing waits (held without a public
+    presence, then a person checks it): holding a company back is the safe
+    failure; publishing a person's name is not.
+    """
+    bare = bare_name(shown)
+    if any(privacy.looks_like_person_name(text) for text in (shown, bare) if text):
+        return True
+    words = [w for w in privacy._tokens(bare) if w.strip("'-&") and w != "and"]
+    if (len(words) >= 2 and all(re.fullmatch(r"[a-z][a-z'\-]*", w) for w in words)
+            and not any(_trade_word(w) for w in words)):
+        return True
+    tokens = [w.strip("'-.") for w in privacy._tokens(shown)]
+    for i, token in enumerate(tokens):
+        if token not in privacy.GIVEN_NAMES:
+            continue
+        for j in (i - 1, i + 1):
+            other = tokens[j] if 0 <= j < len(tokens) else ""
+            if (re.fullmatch(r"[a-z][a-z'\-]+", other) and other not in _NAME_GLUE
+                    and other not in _LEGAL_WORDS and not _trade_word(other)):
+                return True
+    return False
+
+
 def privacy_flags(name: str, org_code: str) -> Tuple[bool, bool, bool]:
     """(is_individual, personal_name, owner_named) for a taxpayer name that is also the shown name."""
     org_text = ENTITY_ORG_TYPES.get(org_code.upper()) or org_code
@@ -163,8 +247,9 @@ def privacy_flags(name: str, org_code: str) -> Tuple[bool, bool, bool]:
         # structural owner rule of the sales-tax list applies word for word.
         return True, True, True
     is_individual = privacy.is_individual_taxpayer(name, org_text, shown)
-    person_like = any(privacy.looks_like_person_name(text) for text in (shown, bare_name(shown)) if text)
-    personal = is_individual or person_like
+    # An entity code does not make the name a company's: a person's name with a
+    # legal form ('Nguyen Hoa LLC', 'John Smith CPA PC') is held or checked too.
+    personal = is_individual or carries_person_name(shown)
     return is_individual, personal, personal
 
 
@@ -182,6 +267,10 @@ def project_row(row: Mapping[str, Any], fields: Mapping[str, Optional[str]]) -> 
         return None, None, "skipped_no_name"
     if _get(row, fields, "city").upper() != "LONGVIEW":
         return None, None, "skipped_city"
+    # Longview, Washington is a real city, and the list carries out-of-state
+    # mailing addresses: only a Texas row can be "Longview, TX".
+    if fields.get("state") and _get(row, fields, "state").upper() != "TX":
+        return None, None, "skipped_state"
     zip_code = normalize.zip5(_get(row, fields, "zip"))
     org_code = _get(row, fields, "org_type").upper()
     is_individual, personal, owner_named = privacy_flags(name, org_code)
@@ -214,7 +303,7 @@ def _new_counts() -> Dict[str, Any]:
     return {
         "fetched": 0, "kept": 0, "inserted": 0, "updated": 0, "unchanged": 0, "reactivated": 0,
         "deactivated": 0, "businesses_deactivated": 0, "duplicates": 0, "suppressed": 0,
-        "city": 0, "nearby": 0, "personal_name": 0, "with_sales_tax_outlet": 0, "other_zips": {},
+        "city": 0, "out": 0, "personal_name": 0, "with_sales_tax_outlet": 0, "other_zips": {},
     }
 
 
@@ -241,6 +330,8 @@ def sync_franchise(conn: sqlite3.Connection, settings, now=None, transport=None)
         wanted = sorted({column for column in fields.values() if column})
         select = ", ".join(wanted)
         where = f"upper({fields['city']}) = 'LONGVIEW'"
+        if fields.get("state"):
+            where += f" AND upper({fields['state']}) = 'TX'"
         with_outlet = sales_tax_taxpayers(conn)
         writer = RecordWriter(conn, SOURCE_ID, now, counts)
         for row in socrata.fetch_rows(settings, info.id, where, page_size=PAGE_SIZE, transport=transport,

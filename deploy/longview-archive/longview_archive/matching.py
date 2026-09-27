@@ -20,13 +20,15 @@ it and a review item records the change. Only primary public records (sales
 tax, TABC, NPI, franchise tax) create publishable businesses.
 
 A franchise-tax record carries a company's name and nothing about where it
-does business (its address is a mailing address and is never read), so it
-joins other records by name alone, and only on an exact normalized name: to a
-business no other franchise record belongs to, or, the other way round, a
-record with no other match joins a business known only from a franchise
-record. Two or more candidates go to a person. A company that also has an
-active Longview sales-tax outlet is listed by that outlet: its franchise
-record steps aside (``_franchise_step_aside``), whichever list synced first.
+does business (its address is a mailing address and is never read). The
+taxpayer number is its only hard link: a company that also has an active
+Longview sales-tax outlet is listed by that outlet (its franchise record steps
+aside, ``_franchise_step_aside``, whichever list synced first), and a sales-tax
+record of any other taxpayer is another company, never merged with it
+(``_taxpayer_bars``). By name alone, and only on an exact normalized name, it
+joins a place known only from OpenStreetMap (or such a place joins it); a TABC
+or NPI practice with its name is a question for a person that never takes the
+practice off the site (``_match_franchise_twins``).
 Nothing OpenStreetMap says about a franchise-only business (street, category,
 map point) is shown under the Comptroller's name.
 
@@ -100,6 +102,7 @@ REVIEW_PHONE_MANY = "same_phone_several_businesses"
 REVIEW_ADDRESS_MANY = "same_address_several_businesses"
 REVIEW_ADDRESS_PARTIAL = "same_address_partial_name"
 REVIEW_NAME_MANY = "same_name_several_businesses"
+REVIEW_NAME_PRACTICE = "same_name_as_licensed_practice"
 
 _ORDER_SQL = (
     "CASE source_id WHEN 'tx_sales_tax' THEN 0 WHEN 'tx_tabc' THEN 1"
@@ -365,11 +368,19 @@ def _shared_line(conn: sqlite3.Connection, phone: str, stamp: str) -> bool:
 # ---------------------------------------------------------------- business updates
 
 def _scope_for(conn: sqlite3.Connection, business_id: int, current: str) -> str:
-    """'city' when any active linked primary record is in the city."""
-    scopes = {r["scope"] for r in conn.execute(
-        f"SELECT scope FROM source_records WHERE business_id=? AND active=1 AND source_id IN {_PRIMARY_SQL}",
-        (business_id,),
-    )}
+    """'city' when any active linked primary record is in the city.
+
+    Records that place the business at a street (sales tax, TABC, NPI) decide
+    first: a franchise-tax record's scope comes from a mailing ZIP, so it
+    decides only for a business no premises record places."""
+    scopes: set = set()
+    for sources_sql in (_PREMISES_SQL, _PRIMARY_SQL):
+        scopes = {r["scope"] for r in conn.execute(
+            f"SELECT scope FROM source_records WHERE business_id=? AND active=1 AND source_id IN {sources_sql}",
+            (business_id,),
+        )}
+        if scopes:
+            break
     if not scopes:
         return current
     for scope in ("city", "nearby", "out"):
@@ -720,31 +731,21 @@ def _ignore(conn: sqlite3.Connection, rec: _Rec, rule: str, explanation: str) ->
 
 # ---------------------------------------------------------------- franchise tax
 
-def _franchise_step_aside(conn: sqlite3.Connection, rec: _Rec, stamp: str) -> MatchResult:
-    """The taxpayer has an active Longview sales-tax outlet: the outlet is the listing.
-
-    The franchise record is unlinked and ignored. A business that stood on it
-    alone (no sales-tax, TABC, or NPI record) is retired, and anything else
-    linked to it (an OpenStreetMap place) goes back to matching, where it can
-    find the outlet by its address or phone. Order does not matter: this runs
-    whenever the franchise record is matched, and ``match_pending`` requeues
-    franchise records whenever the sales-tax list changes which taxpayers have
-    an outlet.
-    """
+def _detach_franchise(conn: sqlite3.Connection, rec: _Rec, stamp: str) -> bool:
+    """Unlink a franchise record from its business. A business that stood on it
+    alone (no sales-tax, TABC, or NPI record) is retired, and anything else linked
+    to it (an OpenStreetMap place) goes back to matching. True when retired."""
     business_id = rec.business_id
-    conn.execute("UPDATE source_records SET business_id=NULL, match_state='ignored' WHERE id=?", (rec.id,))
-    _resolve_merge_reviews(conn, rec.id, stamp)
-    explanation = ("Not listed from the franchise-tax record: the same taxpayer has an active sales-tax"
-                   " location in Longview, and that location is the listing.")
+    conn.execute("UPDATE source_records SET business_id=NULL WHERE id=?", (rec.id,))
     biz = _business(conn, business_id) if business_id is not None else None
     if biz is None:
-        return MatchResult("ignored", None, RULE_FRANCHISE_OUTLET, explanation)
+        return False
     premises = conn.execute(
         f"SELECT 1 FROM source_records WHERE business_id=? AND active=1 AND source_id IN {_PREMISES_SQL} LIMIT 1",
         (business_id,),
     ).fetchone()
     if premises is not None:
-        return MatchResult("ignored", None, RULE_FRANCHISE_OUTLET, explanation)
+        return False
     others = conn.execute("SELECT id, active FROM source_records WHERE business_id=?", (business_id,)).fetchall()
     for other in others:
         conn.execute(
@@ -753,12 +754,83 @@ def _franchise_step_aside(conn: sqlite3.Connection, rec: _Rec, stamp: str) -> Ma
             (1 if other["active"] else 0, other["id"]),
         )
     conn.execute("UPDATE businesses SET active=0, updated_at=? WHERE id=?", (stamp, business_id))
-    return MatchResult("ignored", None, RULE_FRANCHISE_OUTLET,
-                       explanation + " The listing made from the franchise-tax record was retired.")
+    return True
+
+
+def _franchise_step_aside(conn: sqlite3.Connection, rec: _Rec, stamp: str) -> MatchResult:
+    """The taxpayer has an active Longview sales-tax outlet: the outlet is the listing.
+
+    The franchise record is unlinked and ignored (``_detach_franchise``). Order
+    does not matter: this runs whenever the franchise record is matched, and
+    ``match_pending`` requeues franchise records whenever the sales-tax list
+    changes which taxpayers have an outlet.
+    """
+    retired = _detach_franchise(conn, rec, stamp)
+    conn.execute("UPDATE source_records SET match_state='ignored' WHERE id=?", (rec.id,))
+    _resolve_merge_reviews(conn, rec.id, stamp)
+    explanation = ("Not listed from the franchise-tax record: the same taxpayer has an active sales-tax"
+                   " location in Longview, and that location is the listing.")
+    if retired:
+        explanation += " The listing made from the franchise-tax record was retired."
+    return MatchResult("ignored", None, RULE_FRANCHISE_OUTLET, explanation)
+
+
+# A business that a TABC or NPI record places at a street, with no sales-tax
+# record (the taxpayer number is the only link to a sales-tax outlet) and no
+# other franchise record (two registrations are two companies).
+_TWIN_SQL = (
+    "SELECT * FROM businesses b WHERE b.name_norm=? AND b.active=1"
+    " AND EXISTS (SELECT 1 FROM source_records p WHERE p.business_id=b.id AND p.active=1"
+    "  AND p.source_id IN ('tx_tabc','npi'))"
+    " AND NOT EXISTS (SELECT 1 FROM source_records t WHERE t.business_id=b.id AND t.source_id='tx_sales_tax')"
+    " AND NOT EXISTS (SELECT 1 FROM source_records f WHERE f.business_id=b.id AND f.source_id='tx_franchise'"
+    "  AND f.id != ?) ORDER BY b.id"
+)
+
+
+def _franchise_twins(conn: sqlite3.Connection, rec: _Rec, rejected: set) -> List[sqlite3.Row]:
+    """Licensed or registered practices (TABC, NPI) with the franchise record's exact name."""
+    if not rec.name_norm:
+        return []
+    return [b for b in conn.execute(_TWIN_SQL, (rec.name_norm, rec.id)).fetchall() if b["id"] not in rejected]
+
+
+def _match_franchise_twins(conn: sqlite3.Connection, rec: _Rec, accepted: List[int], rejected: set,
+                           stamp: str) -> Optional[MatchResult]:
+    """A franchise record with the same name as a TABC- or NPI-backed business: a person decides.
+
+    Nothing but the name links them, and a franchise record gives no location to
+    compare, so they are never joined automatically. The question waits on the
+    franchise record (it is not listed meanwhile); it never takes the practice's
+    listing off the site (``publish._decide`` ignores merge questions that a
+    franchise-tax record asks). Accepted: the record joins that business.
+    Rejected for every such business: the record is listed on its own. A
+    franchise-only listing made before the practice appeared is retired while
+    the question waits, so the same company is never listed twice.
+    """
+    twins = _franchise_twins(conn, rec, rejected)
+    if not twins:
+        return None
+    ids = [b["id"] for b in twins]
+    if rec.business_id in ids:
+        return None  # already joined (a person accepted it): refreshed as usual
+    for business_id in accepted:
+        if business_id in ids:
+            _detach_franchise(conn, rec, stamp)
+            return _join(conn, rec, business_id, RULE_REVIEWED, {"review": "accepted"},
+                         "Joined because a reviewer accepted this match.", stamp)
+    if rec.business_id is not None:
+        _detach_franchise(conn, rec, stamp)
+    detail = (f"This {rec.label} record has the same name as a business a TABC or NPI record places at a street,"
+              " and nothing else links them (the franchise-tax list gives only a mailing address). Join them"
+              " if they are the same company; reject to list the company on its own.")
+    return _review(conn, rec, [(bid, detail) for bid in ids], REVIEW_NAME_PRACTICE, stamp)
 
 
 def _requeue_franchise(conn: sqlite3.Connection) -> int:
-    """Franchise records whose taxpayer gained or lost an active sales-tax outlet are matched again."""
+    """Franchise records are matched again when their taxpayer gains or loses an
+    active sales-tax outlet, or when a TABC- or NPI-backed business with the same
+    name appears that no person has ruled out."""
     with_outlet = franchise.sales_tax_taxpayers(conn)
     ids = []
     for row in conn.execute(
@@ -771,6 +843,26 @@ def _requeue_franchise(conn: sqlite3.Connection) -> int:
                 ids.append(row["id"])
         elif state == "ignored" and row["business_id"] is None:
             ids.append(row["id"])
+    seen = set(ids)
+    for row in conn.execute(
+        "SELECT s.id FROM source_records s WHERE s.source_id=? AND s.active=1"
+        " AND s.match_state IN ('matched','created')"
+        " AND IFNULL(s.name_norm,'')<>''"
+        " AND NOT EXISTS (SELECT 1 FROM source_records q WHERE q.business_id=s.business_id AND q.active=1"
+        f"  AND q.source_id IN {_PREMISES_SQL})"
+        " AND EXISTS (SELECT 1 FROM businesses b WHERE b.name_norm=s.name_norm"
+        "  AND b.active=1 AND b.id<>IFNULL(s.business_id,0)"
+        "  AND EXISTS (SELECT 1 FROM source_records p WHERE p.business_id=b.id AND p.active=1"
+        "   AND p.source_id IN ('tx_tabc','npi'))"
+        "  AND NOT EXISTS (SELECT 1 FROM source_records t WHERE t.business_id=b.id AND t.source_id='tx_sales_tax')"
+        "  AND NOT EXISTS (SELECT 1 FROM source_records f WHERE f.business_id=b.id AND f.source_id='tx_franchise'"
+        "   AND f.id<>s.id)"
+        "  AND NOT EXISTS (SELECT 1 FROM review_queue r WHERE r.source_record_id=s.id AND r.business_id=b.id"
+        "   AND r.kind='merge_ambiguous' AND r.status='rejected'))",
+        (FRANCHISE,),
+    ):
+        if row["id"] not in seen:
+            ids.append(row["id"])
     with db.transaction(conn):
         for start in range(0, len(ids), BATCH_SIZE):
             chunk = ids[start:start + BATCH_SIZE]
@@ -779,39 +871,88 @@ def _requeue_franchise(conn: sqlite3.Connection) -> int:
     return len(ids)
 
 
+def _franchise_keys(conn: sqlite3.Connection, business_id: int) -> set:
+    return {r["source_key"] for r in conn.execute(
+        "SELECT source_key FROM source_records WHERE business_id=? AND source_id=? AND active=1",
+        (business_id, FRANCHISE))}
+
+
+def _taxpayer_bars(conn: sqlite3.Connection, rec: _Rec, business_id: int) -> bool:
+    """The taxpayer number rules the join out (or nothing but a person may make it).
+
+    * A franchise record never joins a business with a sales-tax record, active
+      or not: the same taxpayer's outlet makes the record step aside, and any
+      other taxpayer is another company.
+    * A sales-tax record joins a business that holds a franchise record only
+      when every such record carries the outlet's own taxpayer number.
+    * A TABC or NPI record never joins a business known only from the franchise
+      list by matching alone (the franchise record asks a person instead,
+      ``_match_franchise_twins``).
+    """
+    if rec.source_id == FRANCHISE:
+        return conn.execute(
+            "SELECT 1 FROM source_records WHERE business_id=? AND source_id='tx_sales_tax' LIMIT 1", (business_id,)
+        ).fetchone() is not None
+    if rec.source_id == "tx_sales_tax":
+        keys = _franchise_keys(conn, business_id)
+        return bool(keys) and keys != {franchise.outlet_taxpayer(rec.source_key)}
+    if rec.source_id in ("tx_tabc", "npi"):
+        return _franchise_only(conn, business_id)
+    return False
+
+
 def _name_candidates(conn: sqlite3.Connection, rec: _Rec, rejected: set) -> List[sqlite3.Row]:
     """Businesses a record may join on its exact normalized name alone.
 
-    A franchise record: an active business no franchise record belongs to (two
-    registrations are two companies). Any other record: an active business
-    known only from a franchise record (no street of its own).
+    * A franchise record: a place known only from OpenStreetMap (no primary
+      record at all, active or not).
+    * An OpenStreetMap record: a business known only from a franchise record
+      (no sales-tax, TABC, or NPI record at all).
+    * A sales-tax record: a business known only from the franchise record of
+      the outlet's own taxpayer.
+    * A TABC or NPI record: none (see ``_match_franchise_twins``).
     """
     if not rec.name_norm:
         return []
     if rec.source_id == FRANCHISE:
         sql = ("SELECT * FROM businesses b WHERE b.name_norm=? AND b.active=1 AND NOT EXISTS"
-               " (SELECT 1 FROM source_records s WHERE s.business_id=b.id AND s.source_id=?) ORDER BY b.id")
-        params: tuple = (rec.name_norm, FRANCHISE)
-    else:
+               f" (SELECT 1 FROM source_records s WHERE s.business_id=b.id AND s.source_id IN {_PRIMARY_SQL})"
+               " ORDER BY b.id")
+        params: tuple = (rec.name_norm,)
+    elif rec.source_id in ("osm", "tx_sales_tax"):
         sql = ("SELECT * FROM businesses b WHERE b.name_norm=? AND b.active=1 AND IFNULL(b.street_norm,'')=''"
                " AND EXISTS (SELECT 1 FROM source_records s WHERE s.business_id=b.id AND s.source_id=?"
                " AND s.active=1) AND NOT EXISTS (SELECT 1 FROM source_records s WHERE s.business_id=b.id"
-               f" AND s.active=1 AND s.source_id IN {_PREMISES_SQL}) ORDER BY b.id")
+               f" AND s.source_id IN {_PREMISES_SQL}) ORDER BY b.id")
         params = (rec.name_norm, FRANCHISE)
-    return [b for b in conn.execute(sql, params).fetchall() if b["id"] not in rejected]
+    else:
+        return []
+    candidates = [b for b in conn.execute(sql, params).fetchall() if b["id"] not in rejected]
+    if rec.source_id == "tx_sales_tax":
+        own = franchise.outlet_taxpayer(rec.source_key)
+        candidates = [b for b in candidates if _franchise_keys(conn, b["id"]) == {own}]
+    return candidates
 
 
 def _match_by_name(conn: sqlite3.Connection, rec: _Rec, rejected: set, stamp: str) -> Optional[MatchResult]:
     candidates = _name_candidates(conn, rec, rejected)
     if len(candidates) == 1:
         biz = candidates[0]
-        sentence = ("Joined because the franchise-tax record and the business have the same name, and the"
-                    " franchise-tax record gives no location to compare.")
+        if rec.source_id == "tx_sales_tax":
+            sentence = ("Joined because the outlet and the franchise-tax record have the same taxpayer number"
+                        " and the same name.")
+        else:
+            sentence = ("Joined because the franchise-tax record and the business have the same name, and the"
+                        " franchise-tax record gives no location to compare.")
         return _join(conn, rec, biz["id"], RULE_SAME_NAME, {"name_norm": rec.name_norm}, sentence, stamp)
-    if len(candidates) > 1:
-        detail = (f"This {rec.label} record has the same name as {len(candidates)} businesses and the"
-                  " franchise-tax record gives no location to tell them apart; choose one or keep it separate.")
+    if len(candidates) > 1 and rec.source_id == FRANCHISE:
+        # Places known only from OpenStreetMap: never published, so the question
+        # takes nothing off the site. The franchise record waits for the answer.
+        detail = (f"This {rec.label} record has the same name as {len(candidates)} places known only from"
+                  " OpenStreetMap and gives no location to tell them apart; choose one or keep it separate.")
         return _review(conn, rec, [(b["id"], detail) for b in candidates], REVIEW_NAME_MANY, stamp)
+    # Several franchise-only companies with one name: an OpenStreetMap place (or
+    # an outlet) cannot tell them apart by name, so it joins none of them.
     return None
 
 
@@ -829,6 +970,13 @@ def _match(conn: sqlite3.Connection, source_record_id: int, stamp: str) -> Match
     # 0. A company with a Longview sales-tax outlet is listed by the outlet.
     if rec.source_id == FRANCHISE and franchise.has_sales_tax_outlet(conn, rec.source_key):
         return _franchise_step_aside(conn, rec, stamp)
+
+    # 0b. A franchise record named like a TABC or NPI practice waits for a person.
+    if rec.source_id == FRANCHISE:
+        accepted, rejected = _decisions(conn, rec)
+        twins = _match_franchise_twins(conn, rec, accepted, rejected, stamp)
+        if twins is not None:
+            return twins
 
     # 1. Already linked: refresh the business in place.
     if rec.business_id is not None and _business(conn, rec.business_id) is not None:
@@ -857,7 +1005,7 @@ def _match(conn: sqlite3.Connection, source_record_id: int, stamp: str) -> Match
             (rec.phone, rec.id),
         ):
             biz = _business(conn, r["business_id"])
-            if biz is None or biz["id"] in rejected:
+            if biz is None or biz["id"] in rejected or _taxpayer_bars(conn, rec, biz["id"]):
                 continue
             (agree if _phone_addresses_agree(rec, biz) else conflict).append(biz)
         if len(agree) == 1:
@@ -885,7 +1033,7 @@ def _match(conn: sqlite3.Connection, source_record_id: int, stamp: str) -> Match
         for biz in conn.execute(
             "SELECT * FROM businesses WHERE street_norm=? ORDER BY id", (rec.street_norm,)
         ).fetchall():
-            if biz["id"] in rejected or not _same_address(rec, biz):
+            if biz["id"] in rejected or not _same_address(rec, biz) or _taxpayer_bars(conn, rec, biz["id"]):
                 continue
             scored.append((biz, _similarity(conn, rec, biz)))
         address_evidence = {"street_norm": rec.street_norm, "zip": rec.zip or None, "suite": rec.suite or None}
@@ -983,10 +1131,12 @@ def match_pending(conn: sqlite3.Connection, now: Now = None) -> Dict[str, int]:
     """Match every active record in state 'new', 500 per transaction, then refresh activity."""
     stamp = _stamp(now)
     counts = {"matched": 0, "created": 0, "review": 0, "ignored": 0}
-    requeued = _requeue_franchise(conn)
-    if requeued:
-        logger.info("matching: %d franchise-tax records requeued (a sales-tax outlet appeared or went)", requeued)
     for _ in range(MAX_PASSES):
+        # Before every pass: a pass can create the outlet or practice a franchise record must now defer to.
+        requeued = _requeue_franchise(conn)
+        if requeued:
+            logger.info("matching: %d franchise-tax records requeued (a sales-tax outlet, or a practice with the"
+                        " same name, appeared or went)", requeued)
         ids = [r["id"] for r in conn.execute(
             f"SELECT id FROM source_records WHERE match_state='new' AND active=1 ORDER BY {_ORDER_SQL}"
         )]

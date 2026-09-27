@@ -89,7 +89,7 @@ environment variable so tests never touch real paths or the network.
 | `overpass_url` | `https://overpass-api.de/api/interpreter` | `LVA_OVERPASS_URL` |
 | `npi_url` | `https://npiregistry.cms.hhs.gov/api/` | `LVA_NPI_URL` |
 | `allow_private_hosts` | False (tests only) | `LVA_ALLOW_PRIVATE_HOSTS=1` |
-| `publish_scopes` | `("city", "nearby")`: every business with a Longview address | `LVA_PUBLISH_SCOPES=city` (or `city,nearby`) |
+| `publish_scopes` | `("city", "nearby")`: every business with a Longview address | `LVA_PUBLISH_SCOPES=city` (or `city,nearby`; the city is always included, so `nearby` alone is refused) |
 | `indexable` | False (global switch, see decisions) | `LVA_INDEXABLE=1` |
 
 Auto-approve is not a setting: it is `meta.auto_approve` (`on`/`off`, default
@@ -189,7 +189,9 @@ Field names used in `facts` / `observations` / `review_queue.field`:
   `professional` Professional Services, `faith-community` Faith & Community,
   `lodging-recreation` Lodging, Arts & Recreation, `education-childcare`
   Education & Childcare, `industrial` Industrial, Wholesale & Transport,
-  `other` Other Services.
+  `other` Other Services, `registered-company` Registered Companies (only
+  companies known from the franchise-tax list alone, which names no kind of
+  business).
 - `NAICS_MAP`: prefix → (slug, label). Longest prefix wins; unknown → `other`.
 - `categorize(naics: str|None, osm_tags: dict|None=None) -> (slug, label)`.
 - `seed(conn)`: writes both tables.
@@ -259,9 +261,26 @@ Field names used in `facts` / `observations` / `review_queue.field`:
      outlet (key `taxpayer:outlet`) steps aside: it is unlinked and `ignored`,
      rule `franchise_has_sales_tax_outlet`. A business that stood on it alone (no
      sales-tax, TABC, or NPI record) is retired (`active=0`) and its other records
-     go back to matching. `match_pending` first requeues every franchise record
-     whose taxpayer gained or lost an outlet, so the result does not depend on
-     which list synced first.
+     go back to matching. Before every pass `match_pending` requeues every
+     franchise record whose taxpayer gained or lost an outlet, so the result
+     does not depend on which list synced first. Outlet keys are compared as
+     stored (`franchise.outlet_taxpayer`: the part before `:`), in the outlet
+     check and the requeue alike.
+  Also before rule 1: a `tx_franchise` record with the exact `name_norm` of an
+     active business that a `tx_tabc` or `npi` record places at a street (and
+     that has no sales-tax record and no other franchise record) is never joined
+     by matching: it waits in `review` with a `merge_ambiguous` question per such
+     business (rule `same_name_as_licensed_practice`). A franchise-only business
+     it stood on is retired meanwhile (a practice that appears later triggers
+     this through the same requeue), so a company is not listed twice. Accepted:
+     it joins that business. Rejected for all: it is listed on its own. A
+     question a franchise record asks never takes the business it asks about
+     off the site (`publish` ignores it for `open_merge_review`).
+  The taxpayer number is a hard key in rules 2 to 5b: a franchise record never
+     joins a business with any sales-tax record (active or not); a sales-tax
+     record joins a business holding a franchise record only when every such
+     record carries the outlet's own taxpayer number; a TABC or NPI record never
+     joins a franchise-only business by matching.
   1. Existing link by `(source_id, source_key)`: update in place. The
      business's identity source is its first ACTIVE linked primary record by
      source priority (`tx_sales_tax`, `tx_tabc`, `npi`, `tx_franchise`), then `source_key`.
@@ -284,11 +303,15 @@ Field names used in `facts` / `observations` / `review_queue.field`:
      `same_domain_same_address`.
   5. Same address with similarity in [0.4, 0.6): review.
   5b. Same exact `name_norm` (a franchise record has no street or phone): a
-     franchise record joins the one active business no franchise record belongs
-     to; any other unmatched record joins the one active business known only
-     from a franchise record (no street, no sales-tax/TABC/NPI record). Rule
-     `same_name_franchise`; two or more candidates: review
-     (`same_name_several_businesses`). Similar but different names never join.
+     franchise record joins the one place known only from OpenStreetMap (no
+     primary record at all); two or more such places: review
+     (`same_name_several_businesses`, the franchise record waits; those places
+     were never published). An `osm` record joins the one business known only
+     from a franchise record (no sales-tax, TABC, or NPI record at all); with
+     two or more it joins none. A `tx_sales_tax` record joins such a business
+     only when its franchise record carries the outlet's taxpayer number. TABC
+     and NPI records never join by name. Rule `same_name_franchise`. Similar
+     but different names never join.
      OpenStreetMap never gives a franchise-only business its street, category,
      or map point (only a website candidate to read).
   6. Otherwise create a new business (only for primary sources:
@@ -342,20 +365,34 @@ Field names used in `facts` / `observations` / `review_queue.field`:
   `active franchise taxpayers`, name pattern `franchise`; required
   `taxpayer_number`, `taxpayer_name`, `taxpayer_city`, `taxpayer_zip|taxpayer_zip_code`;
   a missing one records the run `skipped` with the reason). Filter
-  `upper(taxpayer_city) = 'LONGVIEW'`, `$select` of the used columns only (the
+  `upper(taxpayer_city) = 'LONGVIEW' AND upper(taxpayer_state) = 'TX'` (the
+  state part when the column exists; a non-TX row is also skipped client-side,
+  `skipped_state`), `$select` of the used columns only (the
   mailing address `taxpayer_address` is never requested or stored). Kept: rows
   with `right_to_transact_business_code = 'A'` (when the column exists) and no
   `current_exempt_reason_code`. Key: the taxpayer number (digits). Projection:
   name = the taxpayer name (trade part of a DBA), no street, ZIP, phone, or
-  NAICS; scope `city` for a ZIP in `LONGVIEW_POSTAL_ZIPS`, else `nearby`; tag
+  NAICS; scope `city` for a ZIP in `LONGVIEW_POSTAL_ZIPS`, else `out` (a
+  missing ZIP, Longview WA 98632, or any other ZIP is never published; the sync
+  counts them in `other_zips`); tag
   `franchise_since` = `responsibility_beginning_date`. Privacy: unless the
   taxpayer is clearly an entity (`privacy.is_clearly_entity` with the org code
   written out for CT, CF, CN, CP, CL, PL, PF, AP, AF; every other code, a trust
   or an estate is possibly a person) the record is `personal_name` with the
-  `owner_named` tag; an entity whose name, with or without its legal form, looks
-  like a person's (`looks_like_person_name`, couples included) is flagged the
-  same way. Category: `categories.COMPANY_FALLBACK` ("other", "Registered
-  company; kind of business not on record"); none is guessed from the name.
+  `owner_named` tag. An entity is flagged the same way when its name may carry
+  a person's name whatever its legal form (`franchise.carries_person_name`):
+  it looks like a person's with or without its legal form
+  (`looks_like_person_name`, couples included); or without its legal form it
+  is two or more plain words with no trade word (`privacy.BUSINESS_WORDS` plus
+  a short list of company words such as oil, gas, land, real estate: 'Nguyen
+  Hoa LLC', 'Patel Rajesh LLC'); or a given name stands next to another plain
+  word that is not a trade word ('John Smith CPA PC', 'Law Office of John Smith
+  PLLC'). Such a listing is held without a public presence and checked by a
+  person with one. Category: `categories.COMPANY_FALLBACK` ("registered-company",
+  "Registered company; kind of business not on record"), its own category
+  ("Registered Companies"); none is guessed from the name. A franchise record's
+  `personal_name` never holds a business that a sales-tax, TABC, or NPI record
+  places at a street (only a person's accepted answer puts one there).
 - `sources/osm.py`: Overpass query for the Longview city boundary
   (`admin_level=8`, inside Texas) for `shop`, business `amenity` values,
   `office`, `craft`, `healthcare`, lodging `tourism`, and selected `leisure`.
