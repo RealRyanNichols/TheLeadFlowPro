@@ -216,6 +216,18 @@ def _linked_records(conn: sqlite3.Connection, business_id: int) -> list:
     ).fetchall())
 
 
+def _shows_owner_name(records: list) -> bool:
+    """A source flagged that the shown name itself carries the owner's name."""
+    for record in records:
+        try:
+            tags = json.loads(record["tags_json"] or "{}")
+        except ValueError:
+            continue
+        if isinstance(tags, dict) and tags.get("owner_named"):
+            return True
+    return False
+
+
 def _person_name_decision(conn, business, now: str) -> Optional[Tuple[str, str]]:
     """A name that may be a person's waits for a person; their answer sticks per name."""
     name_hash = db.value_hash(business["name"])
@@ -251,11 +263,21 @@ def _decide(conn: sqlite3.Connection, settings, business, now: str) -> Tuple[str
     if business["scope"] not in settings.publish_scopes:
         return "held", "out_of_scope"
     records = _linked_records(conn, bid)
-    if any(r["personal_name"] for r in records) and not privacy.has_public_presence(conn, bid):
+    personal = any(r["personal_name"] for r in records)
+    if personal and not privacy.has_public_presence(conn, bid):
         return "held", "personal_name_no_presence"
+    # A name still carrying "Owner Name DBA" (kept from before only the trade
+    # name was shown) may show the owner's name: held, not offered to a
+    # reviewer, until matching renames it from its record at the next sync.
+    if normalize.has_dba(business["name"]):
+        return "held", "dba_legal_name"
     if not any(r["source_id"] in PRIMARY_SOURCES and r["active"] for r in records):
         return "review", "osm_only_needs_primary_source"
-    if privacy.looks_like_person_name(business["name"]):
+    # A person looks: a name that looks like a person's, or an owner-named
+    # listing whose shown name may still be the owner's own (its source says
+    # so, or it has a given name or no trade word).
+    if privacy.looks_like_person_name(business["name"]) or (
+            personal and (_shows_owner_name(records) or privacy.may_name_owner(business["name"]))):
         decision = _person_name_decision(conn, business, now)
         if decision:
             return decision
@@ -272,9 +294,9 @@ def _decide(conn: sqlite3.Connection, settings, business, now: str) -> Tuple[str
 def evaluate(conn: sqlite3.Connection, settings, now: Any = None) -> Dict[str, int]:
     """Set publish_state and publish_reason for every business.
 
-    Order: suppressed; held (inactive, out_of_scope, personal_name_no_presence);
-    review (osm_only_needs_primary_source, person_name_check, open_merge_review);
-    otherwise ready. A reason starting with ``manual:`` was set by a person and
+    Order: suppressed; held (inactive, out_of_scope, personal_name_no_presence,
+    dba_legal_name); review (osm_only_needs_primary_source, person_name_check,
+    open_merge_review); otherwise ready. A reason starting with ``manual:`` was set by a person and
     is never changed. Returns counts per state plus ``changed``.
     """
     counts = {state: 0 for state in STATES}
@@ -362,7 +384,7 @@ def _non_site_evidence(business, active: list) -> bool:
     the website is not shown, so a website-sourced fact cannot be cited)."""
     if any(privacy.premises_record(r, business["street_norm"]) for r in active):
         return True
-    return bool(not business["is_individual"] and privacy.storefront_naics(business["naics"]))
+    return privacy.naics_storefront(business)
 
 
 def business_profile(conn: sqlite3.Connection, settings, business, sources=None) -> Optional[dict]:
@@ -582,7 +604,7 @@ def build_export(conn: sqlite3.Connection, settings, now: Any = None) -> dict:
             "inArchive": _count(conn, "SELECT COUNT(*) FROM businesses WHERE active=1 AND scope='city'"),
             "heldForPrivacy": _count(
                 conn, "SELECT COUNT(*) FROM businesses WHERE publish_state='held'"
-                      " AND publish_reason='personal_name_no_presence'"),
+                      " AND publish_reason IN ('personal_name_no_presence','dba_legal_name')"),
             "needsReview": _count(conn, "SELECT COUNT(*) FROM businesses WHERE publish_state='review'"),
         },
         "sources": source_list,

@@ -54,6 +54,45 @@ def norm_name(s: Optional[str]) -> str:
     return " ".join(tokens)
 
 
+# "Legal Name DBA Trade Name", however the marker is written: DBA, D/B/A,
+# D.B.A., "doing business as".
+_DBA = re.compile(r"\bd\s*[./]?\s*b\s*[./]?\s*a\b\.?|\bdoing\s+business\s+as\b", re.IGNORECASE)
+
+
+def has_dba(s: Optional[str]) -> bool:
+    return bool(s) and bool(_DBA.search(s))
+
+
+def _dba_part(text: str) -> str:
+    text = text.strip(" ,;:-/")
+    # A marker inside brackets ('JOHN SMITH (DBA SMITH LAWN)') leaves a lone
+    # bracket on each side; a balanced one ('ACME (LONGVIEW)') stays.
+    for pair in ("()", "[]"):
+        if text.count(pair[0]) != text.count(pair[1]):
+            text = text.strip(pair + " ,;:-/")
+    return text
+
+
+def split_dba(s: Optional[str]) -> Tuple[str, str]:
+    """('JOHN SMITH', 'SMITH LAWN SERVICE') from 'JOHN SMITH DBA SMITH LAWN SERVICE'.
+
+    The legal name is the text before the first marker, the trade name the text
+    after the last one; the trade name is '' when there is no marker or nothing
+    follows it.
+    """
+    text = (s or "").strip()
+    parts = _DBA.split(text)
+    if len(parts) == 1:
+        return text, ""
+    return _dba_part(parts[0]), _dba_part(parts[-1])
+
+
+def trade_name(s: Optional[str]) -> str:
+    """The name to show: only the trade name of 'Legal Name DBA Trade Name'
+    (the legal name may be the owner's own), otherwise the name as given."""
+    return split_dba(s)[1] or (s or "").strip()
+
+
 def name_tokens(s: Optional[str]) -> Set[str]:
     """Distinctive tokens of a name (stop words and single letters removed)."""
     return {t for t in norm_name(s).split() if t not in NAME_STOP_WORDS and len(t) > 1}
@@ -191,8 +230,29 @@ _UNIT_DISPLAY = {
 }
 
 
+def _later_units(line: str) -> list:
+    """The units after the first one: ['Apt 4'] from '77 SAMPLE CT BLDG 2 APT 4'.
+
+    The street key keeps only the first unit, but the display keeps every one,
+    so a dwelling unit behind a building number still shows it is a home.
+    """
+    tokens = _clean_street_text(line).split()
+    start = next((i for i, tok in enumerate(tokens) if i and tok in UNIT_WORDS), len(tokens))
+    units, label = [], None
+    for tok in tokens[start:]:
+        if tok in UNIT_WORDS:
+            label = label or _UNIT_DISPLAY[tok]
+        elif label:
+            value = tok.strip("#- ")
+            if value:
+                value = value.upper() if len(value) <= 3 else value
+                units.append(f"#{value}" if label == "#" else f"{label} {value}")
+            label = None
+    return units[1:]
+
+
 def display_street(line: Optional[str]) -> str:
-    """Tidy display form: '1200 W Example Ave Ste 4'."""
+    """Tidy display form: '1200 W Example Ave Ste 4', '77 Sample Ct Bldg 2 Apt 4'."""
     street_norm, suite = parse_street(line)
     if not street_norm:
         return ""
@@ -218,6 +278,7 @@ def display_street(line: Optional[str]) -> str:
                 break
         unit = suite.upper() if len(suite) <= 3 else suite
         text += f" #{unit}" if label == "#" else f" {label} {unit}"
+        text = " ".join([text, *_later_units(line)])
     return text
 
 

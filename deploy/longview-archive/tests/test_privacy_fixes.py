@@ -96,14 +96,15 @@ class StorefrontNaics(unittest.TestCase):
 
     def test_home_capable_codes_need_other_evidence(self):
         for naics in ("458110", "459999", "459420", "456120", "457210", "449110", "455219", "448140",
-                      "812111", "812112", "811111", "722513", "722515", "454110", "621210"):
+                      "812111", "812112", "811111", "722513", "722515", "454110", "621210",
+                      "811192", "722410"):  # car washes cover mobile detailing, bars mobile bars
             with self.subTest(naics=naics):
                 self.assertEqual(self.check(naics), (False, "no_storefront_evidence"))
 
     def test_storefront_codes(self):
         for naics in ("721110", "622110", "447110", "457110", "457120", "445110", "445120", "445131",
-                      "452210", "455110", "455211", "441110", "441120", "811192", "522110", "512131",
-                      "713950", "722511", "722410"):
+                      "452210", "455110", "455211", "441110", "441120", "522110", "512131",
+                      "713950", "722511"):
             with self.subTest(naics=naics):
                 self.assertEqual(self.check(naics), (True, "storefront_naics"))
                 self.assertEqual(self.check(naics, is_individual=1), (False, "no_storefront_evidence"))
@@ -153,14 +154,14 @@ class IdentityFollowsItsSource(unittest.TestCase):
     def test_identity_source_rename_and_move_are_followed(self):
         self.resync(self.rid, name="Sample Auto Care", name_norm=normalize.norm_name("Sample Auto Care"),
                     street="500 W SAMPLE ST STE 2", street_norm="500 w sample st", suite="2", zip="75602",
-                    naics="811192")
+                    naics="447110")
         with self.assertLogs("longview_archive", level=logging.DEBUG) as logs:
             m.match_pending(self.conn, now=LATER)
         after = business_of(self.conn, "tx_sales_tax", "S1")
         self.assertEqual((after["name"], after["name_norm"]), ("Sample Auto Care", "sample auto care"))
         self.assertEqual((after["street"], after["street_norm"], after["suite"], after["zip"]),
                          ("500 W Sample St Ste 2", "500 w sample st", "2", "75602"))
-        self.assertEqual((after["naics"], after["category"]), ("811192", "auto"))
+        self.assertEqual((after["naics"], after["category"]), ("447110", "auto"))
         self.assertEqual((after["public_id"], after["slug"]), (self.biz["public_id"], self.biz["slug"]))
         self.assertEqual(after["permit_start"], "2019-03-01")
         # The website's listing vouched for the old street only.
@@ -184,7 +185,7 @@ class IdentityFollowsItsSource(unittest.TestCase):
         self.assertEqual(entry["name"], "Sample Auto Care")
         self.assertNotIn("123 Example Ln", json.dumps(data))
         self.assertNotIn("Example Threads", json.dumps(data))
-        self.assertEqual(entry["address"]["street"], "500 W Sample St Ste 2")  # car wash: storefront NAICS
+        self.assertEqual(entry["address"]["street"], "500 W Sample St Ste 2")  # gas station: storefront NAICS
 
     def test_other_record_disagreeing_goes_to_review_only(self):
         tabc = add_record(self.conn, "tx_tabc", "T1", "Example Threads", street="123 Example Ln")
