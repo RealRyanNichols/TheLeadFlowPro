@@ -62,8 +62,24 @@ For Amanda and Ryan. Written Sept 24, 2026 (Central time).
 
 ## Turn it on (the one step)
 
-In DigitalOcean, open the droplet **leadflow-web**, then **Access**, then
-**Launch Droplet Console**, and paste:
+**Live on www.theleadflowpro.com in one paste (Sept 27, 2026).** The website
+already answers from this droplet, so this installs the engine, turns on
+auto-approve, and switches the directory on at
+https://www.theleadflowpro.com/longview/businesses/ (`website-on.sh`: it
+backs up the website's Caddy block, lets Caddy check the new one, and puts the
+old one back if anything fails). A real-data run of this code on Sept 27
+found 6,232 Longview profiles ready for the first batch. In DigitalOcean, open
+the droplet **leadflow-web**, then **Access**, then **Launch Droplet
+Console**, and paste:
+
+```bash
+bash -c 'set -e; d=$(mktemp -d); trap "rm -rf $d" EXIT; git clone --depth 1 --branch claude/serene-edison-daodg6 https://github.com/RealRyanNichols/TheLeadFlowPro.git "$d/src"; bash "$d/src/deploy/longview-archive/install.sh"; runuser -u lvarchive -- env -C /opt/longview-archive/app PYTHONPATH=/opt/longview-archive/app PYTHONDONTWRITEBYTECODE=1 /opt/longview-archive/venv/bin/python -m longview_archive approve --auto on; bash "$d/src/deploy/longview-archive/website-on.sh"'
+```
+
+Merge the pull request afterwards so a later website deploy keeps the two
+import lines in the website's Caddy block.
+
+The older options follow. To install only, without going live, paste:
 
 ```bash
 bash -c 'set -e; d=$(mktemp -d); trap "rm -rf $d" EXIT; git clone --depth 1 --branch claude/serene-edison-daodg6 https://github.com/RealRyanNichols/TheLeadFlowPro.git "$d/src"; bash "$d/src/deploy/longview-archive/install.sh"'
