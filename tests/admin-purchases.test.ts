@@ -16,6 +16,7 @@ test("the purchases page reads purchases and delivery state, and never looks up 
   assert.ok(page.includes('from("purchases")'));
   assert.ok(page.includes("payment_email_deliveries"));
   assert.ok(page.includes("stripe_checkout:"), "leads are matched through the checkout session id");
+  assert.ok(page.includes("stripe_session_id, lead_id"), "the written lead link is read too");
   assert.ok(!page.includes('.ilike("email"'), "no ilike on email");
   assert.ok(!page.includes('.eq("email"'), "no eq on email");
   assert.ok(!page.includes(".insert(") && !page.includes(".update(") && !page.includes(".delete(") && !page.includes(".upsert("), "the page is read-only");

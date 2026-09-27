@@ -433,7 +433,12 @@ rows in `purchases`; the only trace of the one plugin trial was in
 `hq_workspaces`. The code side of every item below is merged; each item
 is a decision, an account action, or a check only Ryan can do.
 
-61. **Apply the purchases migration.** `supabase/migrations/20260831220000_purchases_baseline.sql`
+61. **Done September 27, 2026** (Ryan: "apply all"): applied to the live
+    project through the Supabase MCP as `purchases_baseline`. `kind` lost its
+    unused default; `lead_id`, its index, and the foreign key to `leads` are
+    on the live table. Since the same day the webhook writes `lead_id` on
+    every paid flow and `/admin/purchases` prefers it. Original item:
+    **Apply the purchases migration.** `supabase/migrations/20260831220000_purchases_baseline.sql`
     creates `public.purchases` on a fresh database and, on the live
     project, only drops the unused `kind` default and adds a nullable
     `lead_id` column. Apply it with `supabase db push --include-all` (or
@@ -463,7 +468,10 @@ is a decision, an account action, or a check only Ryan can do.
     (started September 13, set to end at the trial) yours, or a real
     business that already cancelled?
 
-64. **Free Build add-on tiers cannot be paid.** The $197, $497, and $997
+64. **Moot since September 22, 2026:** the free website build offer was
+    retired (`/free-build` is a 301 to `/services`, the `free_build_*`
+    checkout kinds are refused, item 61 in section J). Nothing to build.
+    Original item: **Free Build add-on tiers cannot be paid.** The $197, $497, and $997
     tiers are promised on `/free-build` ("a separate secure checkout") but
     no page or button calls the checkout for them, by design: the
     application is $0 and a charge before approval breaks the offer.
@@ -472,14 +480,28 @@ is a decision, an account action, or a check only Ryan can do.
     Ryan pastes the link), or do the tiers go out as Sales Desk invoices?
     Default: the button.
 
-65. **Managed hosting has no way to start.** $49/mo and $99/mo are live
+65. **Default applied September 27, 2026** (Ryan: "apply all"): hosting is
+    billed by monthly Sales Desk invoice. The agency FAQ now says so
+    ("billed by monthly invoice; nothing renews without your written
+    approval"); proposals already said "billed by The LeadFlow Pro". No
+    subscription checkout was built. Original item:
+    **Managed hosting has no way to start.** $49/mo and $99/mo are live
     offers on `/free-build` with no subscription checkout and no invoice
     path. Decision: a buyer-started Stripe subscription (a `hosting`
     checkout kind, modelled on the agency monthly branch) or a monthly
     Sales Desk invoice. Until decided, should the copy keep promising a
     renewal path that cannot be started? Default: invoice for now.
 
-66. **Retainer door.** `/agency/pay` monthly creates a Stripe subscription
+66. **Default applied September 27, 2026** (Ryan: "apply all"): monthly stays
+    on `/agency/pay`, and the lead page has "End <service> retainer"
+    (owner only, two-step confirm, `POST /api/admin/leads/<id>/retainer`).
+    It sets `cancel_at_period_end` on the Stripe subscription: the client
+    keeps the paid period, nothing renews after it, nothing is refunded or
+    emailed from the site. The webhook now stamps the subscription id on
+    the lead at payment; older stamps resolve it through the checkout
+    session. Pause and amount changes stay in the Stripe dashboard.
+    Original item:
+    **Retainer door.** `/agency/pay` monthly creates a Stripe subscription
     that renews until cancelled. Since September 21 renewals, failed
     renewals, and cancellations are recorded and alerted, but nothing
     manages them (no admin cancel, pause, or amount change). Decision:
@@ -624,7 +646,12 @@ checkout both ship switched off.
     homepage and /longview JSON-LD as soon as this merges, even while
     checkout is closed. Default: approve, or hold the merge.
 
-85. **Apply the migration (your action).**
+85. **Done September 27, 2026** (Ryan: "apply all"): applied to the live
+    project through the Supabase MCP as `post_creator`, byte-for-byte the
+    repo file. The same pass applied `hq_ads_reporting`
+    (`20260917100000`, the two tables `/hq/reports` and `/api/ads-brain/pull`
+    already read, plus two new connection kinds). Sales stay closed until
+    item 92. Original item: **Apply the migration (your action).**
     `supabase/migrations/20260924150000_post_creator.sql` adds five
     service-role tables, five functions, and the triggers and sequence they
     rely on. Apply it with
