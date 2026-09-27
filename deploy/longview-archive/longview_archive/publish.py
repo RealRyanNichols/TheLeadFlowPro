@@ -31,10 +31,14 @@ log = logging.getLogger(__name__)
 
 SCHEMA_VERSION = 1
 STATES = ("ready", "review", "held", "suppressed", "pending")
-PRIMARY_SOURCES = ("tx_sales_tax", "tx_tabc", "npi")
-SOCRATA_SOURCES = ("tx_sales_tax", "tx_tabc")
+# The franchise-tax list is an official register of active companies, so a
+# company on it can be listed on its own (name, "Longview, TX", and the year its
+# franchise-tax registration began); it never supplies a street.
+PRIMARY_SOURCES = ("tx_sales_tax", "tx_tabc", "npi", "tx_franchise")
+SOCRATA_SOURCES = ("tx_sales_tax", "tx_tabc", "tx_franchise")
+FRANCHISE_SOURCE = "tx_franchise"
 FACT_FIELDS = (
-    "name", "address", "category", "permitSince", "website", "phone", "email", "hours",
+    "name", "address", "category", "permitSince", "registeredSince", "website", "phone", "email", "hours",
     "facebook", "instagram", "careers", "services",
 )
 HIRING_ROLES = ("front_desk", "office_manager", "medical_assistant", "dental_assistant", "receptionist")
@@ -480,6 +484,23 @@ def business_profile(conn: sqlite3.Connection, settings, business, sources=None)
             street, zip_code = shown_street, shown_zip
             entries["address"] = entry
 
+    # The date the company's franchise-tax registration began, from the Comptroller's
+    # franchise-tax list (responsibility_beginning_date); the site shows its year.
+    registered_since = None
+    for rec in primaries:
+        if rec["source_id"] != FRANCHISE_SOURCE:
+            continue
+        try:
+            tags = json.loads(rec["tags_json"] or "{}")
+        except ValueError:
+            continue
+        since = _valid_date(tags.get("franchise_since")) if isinstance(tags, dict) else None
+        entry = _record_fact("registeredSince", rec, sources) if since else None
+        if entry:
+            registered_since = since
+            entries["registeredSince"] = entry
+            break
+
     permit_since = None
     sales = [r for r in primaries if r["source_id"] == "tx_sales_tax" and _valid_date(r["permit_start"])]
     if sales:
@@ -551,7 +572,7 @@ def business_profile(conn: sqlite3.Connection, settings, business, sources=None)
             entries["services"] = entry
 
     fact_list = [entries[f] for f in FACT_FIELDS if entries.get(f)]
-    return {
+    profile = {
         "id": business["public_id"],
         "slug": business["slug"],
         "name": name,
@@ -571,6 +592,19 @@ def business_profile(conn: sqlite3.Connection, settings, business, sources=None)
         "updatedAt": max(f["checkedAt"] for f in fact_list),
         "indexable": bool(settings.indexable) and any(f["source"] == "website" for f in fact_list),
     }
+    if registered_since:
+        # Only on a franchise-tax listing, so batches without one keep their exact shape.
+        profile = _with_key_after(profile, "permitSince", "registeredSince", registered_since)
+    return profile
+
+
+def _with_key_after(data: dict, after: str, key: str, value: Any) -> dict:
+    out = {}
+    for k, v in data.items():
+        out[k] = v
+        if k == after:
+            out[key] = value
+    return out
 
 
 # ---------------------------------------------------------------- the export
@@ -586,6 +620,8 @@ def build_export(conn: sqlite3.Connection, settings, now: Any = None) -> dict:
     """
     generated = db.now_iso(resolve_now(now))
     sources = load_sources(conn)
+    scopes = tuple(s for s in settings.publish_scopes if s in config.PUBLISH_SCOPE_CHOICES) or ("city",)
+    in_scope = f"({','.join(repr(s) for s in scopes)})"
     businesses = []
     for row in conn.execute(
         "SELECT * FROM businesses WHERE publish_state='ready' ORDER BY slug, id"
@@ -626,10 +662,10 @@ def build_export(conn: sqlite3.Connection, settings, now: Any = None) -> dict:
         "batchId": generated[:16] + "Z",
         "sample": False,
         "indexable": bool(settings.indexable),
-        "scope": config.SCOPE_LABEL,
+        "scope": config.scope_label(scopes),
         "counts": {
             "published": len(businesses),
-            "inArchive": _count(conn, "SELECT COUNT(*) FROM businesses WHERE active=1 AND scope='city'"),
+            "inArchive": _count(conn, f"SELECT COUNT(*) FROM businesses WHERE active=1 AND scope IN {in_scope}"),
             "heldForPrivacy": _count(
                 conn, "SELECT COUNT(*) FROM businesses WHERE publish_state='held'"
                       " AND publish_reason IN ('personal_name_no_presence','dba_legal_name')"),
@@ -637,7 +673,7 @@ def build_export(conn: sqlite3.Connection, settings, now: Any = None) -> dict:
             # known only from OpenStreetMap waits for a public record instead, not for a person.
             "needsReview": _count(
                 conn, "SELECT COUNT(*) FROM businesses b WHERE b.publish_state='review' AND b.active=1"
-                      " AND b.scope='city' AND IFNULL(b.publish_reason,'')<>'osm_only_needs_primary_source'"
+                      f" AND b.scope IN {in_scope} AND IFNULL(b.publish_reason,'')<>'osm_only_needs_primary_source'"
                       " AND EXISTS (SELECT 1 FROM review_queue r WHERE r.business_id=b.id AND r.status='open')"),
         },
         "sources": source_list,

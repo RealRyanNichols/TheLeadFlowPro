@@ -64,7 +64,7 @@ def write_private_exports(conn: sqlite3.Connection, settings, now: Any = None) -
             continue
         category = CATEGORY_NAMES.get(profile["category"], profile["category"])
         has_site = bool((business["website"] or "").strip())
-        if business["scope"] == "city" and (not has_site or business["website_status"] == "dead"):
+        if business["scope"] in settings.publish_scopes and (not has_site or business["website_status"] == "dead"):
             prospects.append((
                 profile["id"], profile["name"], category, display_address(profile),
                 profile["permitSince"] or "", business["website_status"] if has_site else "none",

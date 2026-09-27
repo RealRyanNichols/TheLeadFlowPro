@@ -17,7 +17,18 @@ replaces its name, address, category and slug with that record's; and when
 the business's identity source (its first active primary record by source
 priority, then source key) changes its name or address, the business follows
 it and a review item records the change. Only primary public records (sales
-tax, TABC, NPI) create publishable businesses.
+tax, TABC, NPI, franchise tax) create publishable businesses.
+
+A franchise-tax record carries a company's name and nothing about where it
+does business (its address is a mailing address and is never read), so it
+joins other records by name alone, and only on an exact normalized name: to a
+business no other franchise record belongs to, or, the other way round, a
+record with no other match joins a business known only from a franchise
+record. Two or more candidates go to a person. A company that also has an
+active Longview sales-tax outlet is listed by that outlet: its franchise
+record steps aside (``_franchise_step_aside``), whichever list synced first.
+Nothing OpenStreetMap says about a franchise-only business (street, category,
+map point) is shown under the Comptroller's name.
 
 A batch is processed by source priority and then by source key, so the same
 records produce the same businesses, public ids, and slugs whatever order they
@@ -38,15 +49,20 @@ from typing import Dict, List, NamedTuple, Optional, Sequence, Tuple, Union
 
 from . import categories, db, normalize, privacy
 from .fetcher import forbidden_site, forbidden_site_in_doubt
+from .sources import franchise
 
 logger = logging.getLogger(__name__)
 
-PRIMARY_SOURCES: Tuple[str, ...] = ("tx_sales_tax", "tx_tabc", "npi")
-SOURCE_PRIORITY: Dict[str, int] = {"tx_sales_tax": 0, "tx_tabc": 1, "npi": 2, "osm": 3}
+FRANCHISE = franchise.SOURCE_ID
+PRIMARY_SOURCES: Tuple[str, ...] = ("tx_sales_tax", "tx_tabc", "npi", FRANCHISE)
+# Primary records that place a business at a street (the franchise list gives only a mailing address).
+PREMISES_SOURCES: Tuple[str, ...] = ("tx_sales_tax", "tx_tabc", "npi")
+SOURCE_PRIORITY: Dict[str, int] = {"tx_sales_tax": 0, "tx_tabc": 1, "npi": 2, FRANCHISE: 3, "osm": 4}
 SOURCE_LABELS: Dict[str, str] = {
     "tx_sales_tax": "sales tax",
     "tx_tabc": "TABC",
     "npi": "NPI",
+    FRANCHISE: "franchise-tax",
     "osm": "OpenStreetMap",
 }
 # Where a website candidate came from (businesses.website_source).
@@ -77,16 +93,20 @@ RULE_ADDRESS_NAME = "same_address_similar_name"
 RULE_DOMAIN_ADDRESS = "same_domain_same_address"
 RULE_NEW = "new_business"
 RULE_OSM_ONLY = OSM_ONLY_REASON
+RULE_SAME_NAME = "same_name_franchise"
+RULE_FRANCHISE_OUTLET = "franchise_has_sales_tax_outlet"
 REVIEW_PHONE_STREET = "same_phone_different_street"
 REVIEW_PHONE_MANY = "same_phone_several_businesses"
 REVIEW_ADDRESS_MANY = "same_address_several_businesses"
 REVIEW_ADDRESS_PARTIAL = "same_address_partial_name"
+REVIEW_NAME_MANY = "same_name_several_businesses"
 
 _ORDER_SQL = (
     "CASE source_id WHEN 'tx_sales_tax' THEN 0 WHEN 'tx_tabc' THEN 1"
-    " WHEN 'npi' THEN 2 WHEN 'osm' THEN 3 ELSE 4 END, source_key, id"
+    " WHEN 'npi' THEN 2 WHEN 'tx_franchise' THEN 3 WHEN 'osm' THEN 4 ELSE 5 END, source_key, id"
 )
-_PRIMARY_SQL = "('tx_sales_tax','tx_tabc','npi')"
+_PRIMARY_SQL = "('tx_sales_tax','tx_tabc','npi','tx_franchise')"
+_PREMISES_SQL = "('tx_sales_tax','tx_tabc','npi')"
 
 Now = Union[str, datetime, None]
 
@@ -153,6 +173,10 @@ def _load(row: sqlite3.Row) -> _Rec:
     street_line = (row["street"] or "").strip()
     street_norm = (row["street_norm"] or "").strip()
     suite = (row["suite"] or "").strip()
+    mailing_only = row["source_id"] == FRANCHISE
+    if mailing_only:
+        # Defence in depth: a franchise record never carries a location or a phone.
+        street_line = street_norm = suite = ""
     if street_line and not street_norm:
         street_norm, parsed_suite = normalize.parse_street(street_line)
         suite = suite or parsed_suite
@@ -186,8 +210,8 @@ def _load(row: sqlite3.Row) -> _Rec:
         street_norm=street_norm,
         suite=suite,
         city=(row["city"] or "").strip(),
-        zip=normalize.zip5(row["zip"]) or "",
-        phone=(row["phone"] or "").strip(),
+        zip="" if mailing_only else (normalize.zip5(row["zip"]) or ""),
+        phone="" if mailing_only else (row["phone"] or "").strip(),
         website=website or "",
         website_domain=domain,
         naics=(row["naics"] or "").strip(),
@@ -354,6 +378,28 @@ def _scope_for(conn: sqlite3.Connection, business_id: int, current: str) -> str:
     return current
 
 
+def _franchise_only(conn: sqlite3.Connection, business_id: int, exclude_id: Optional[int] = None) -> bool:
+    """The business stands on a franchise-tax record: no active record places it at a street."""
+    has_franchise = conn.execute(
+        "SELECT 1 FROM source_records WHERE business_id=? AND source_id=? AND active=1 AND id != ? LIMIT 1",
+        (business_id, FRANCHISE, exclude_id or 0),
+    ).fetchone()
+    if has_franchise is None:
+        return False
+    return conn.execute(
+        f"SELECT 1 FROM source_records WHERE business_id=? AND active=1 AND source_id IN {_PREMISES_SQL}"
+        " AND id != ? LIMIT 1",
+        (business_id, exclude_id or 0),
+    ).fetchone() is None
+
+
+def _category_for(rec: "_Rec") -> Tuple[str, str]:
+    """NAICS, then OSM tags; a franchise record names no kind of business and none is guessed."""
+    if rec.source_id == FRANCHISE:
+        return categories.COMPANY_FALLBACK
+    return categories.categorize(rec.naics or None, rec.tags)
+
+
 def _update(conn: sqlite3.Connection, business_id: int, values: dict) -> None:
     if not values:
         return
@@ -370,8 +416,29 @@ def _enrich(conn: sqlite3.Connection, business_id: int, rec: _Rec, stamp: str, *
         return ["The business is suppressed, so none of its details were changed."]
     notes: List[str] = []
     values: dict = {}
+    # OpenStreetMap joining a business known only from the franchise-tax list: its
+    # website is a candidate to read, but its street, category, and map point are
+    # never shown under the Comptroller's name (no premises record vouches for them).
+    osm_on_franchise = rec.source_id == "osm" and not confirm_osm and _franchise_only(conn, business_id)
 
-    if confirm_osm:
+    if confirm_osm and rec.source_id == FRANCHISE:
+        # A place known only from OpenStreetMap is the company on the franchise-tax
+        # list with the same name: the company's name and the honest "kind not on
+        # record" replace everything OSM contributed; no street or map point stays.
+        category, label = categories.COMPANY_FALLBACK
+        values.update({
+            "street": None, "street_norm": None, "suite": None, "zip": None, "naics": None,
+            "lat": None, "lon": None, "category": category, "category_label": label, "slug": None,
+            "publish_state": "pending", "publish_reason": None,
+        })
+        if rec.name:
+            values["name"] = rec.name
+            values["name_norm"] = rec.name_norm
+        notes.append(
+            "It was known only from OpenStreetMap, so it now uses the franchise-tax record's name and shows"
+            " no street or kind of business from OpenStreetMap; it is no longer held for a primary source."
+        )
+    elif confirm_osm:
         # Everything OSM contributed is replaced, so no OSM-only value is later
         # shown under the primary record's name. The business was always held
         # in review, so its slug was never public and is rebuilt below.
@@ -402,13 +469,15 @@ def _enrich(conn: sqlite3.Connection, business_id: int, rec: _Rec, stamp: str, *
             f" {rec.label} record and it is no longer held for a primary source."
         )
     else:
-        if not biz["street_norm"] and rec.street_norm:
+        if osm_on_franchise:
+            pass
+        elif not biz["street_norm"] and rec.street_norm:
             values["street"] = rec.street_display() or None
             values["street_norm"] = rec.street_norm
             values["suite"] = rec.suite or None
-        if not biz["zip"] and rec.zip:
+        if not biz["zip"] and rec.zip and not osm_on_franchise:
             values["zip"] = rec.zip
-        if not biz["naics"]:
+        if not biz["naics"] and not osm_on_franchise:
             if rec.naics:
                 values["naics"] = rec.naics
                 values["category"], values["category_label"] = categories.categorize(rec.naics, rec.tags)
@@ -417,7 +486,8 @@ def _enrich(conn: sqlite3.Connection, business_id: int, rec: _Rec, stamp: str, *
                 if slug != categories.FALLBACK[0]:
                     values["category"], values["category_label"] = slug, label
 
-    if biz["lat"] is None and biz["lon"] is None and rec.lat is not None and rec.lon is not None:
+    if (biz["lat"] is None and biz["lon"] is None and rec.lat is not None and rec.lon is not None
+            and not osm_on_franchise and "lat" not in values):
         values["lat"], values["lon"] = rec.lat, rec.lon
     if not biz["city"] and rec.city:
         values["city"] = rec.city
@@ -585,7 +655,7 @@ def _join(conn: sqlite3.Connection, rec: _Rec, business_id: int, rule: str, evid
 
 def _create(conn: sqlite3.Connection, rec: _Rec, stamp: str) -> MatchResult:
     osm_only = rec.source_id == "osm"
-    category, label = categories.categorize(rec.naics or None, rec.tags)
+    category, label = _category_for(rec)
     values = {
         "name": rec.name,
         "name_norm": rec.name_norm,
@@ -648,6 +718,103 @@ def _ignore(conn: sqlite3.Connection, rec: _Rec, rule: str, explanation: str) ->
     return MatchResult("ignored", None, rule, explanation)
 
 
+# ---------------------------------------------------------------- franchise tax
+
+def _franchise_step_aside(conn: sqlite3.Connection, rec: _Rec, stamp: str) -> MatchResult:
+    """The taxpayer has an active Longview sales-tax outlet: the outlet is the listing.
+
+    The franchise record is unlinked and ignored. A business that stood on it
+    alone (no sales-tax, TABC, or NPI record) is retired, and anything else
+    linked to it (an OpenStreetMap place) goes back to matching, where it can
+    find the outlet by its address or phone. Order does not matter: this runs
+    whenever the franchise record is matched, and ``match_pending`` requeues
+    franchise records whenever the sales-tax list changes which taxpayers have
+    an outlet.
+    """
+    business_id = rec.business_id
+    conn.execute("UPDATE source_records SET business_id=NULL, match_state='ignored' WHERE id=?", (rec.id,))
+    _resolve_merge_reviews(conn, rec.id, stamp)
+    explanation = ("Not listed from the franchise-tax record: the same taxpayer has an active sales-tax"
+                   " location in Longview, and that location is the listing.")
+    biz = _business(conn, business_id) if business_id is not None else None
+    if biz is None:
+        return MatchResult("ignored", None, RULE_FRANCHISE_OUTLET, explanation)
+    premises = conn.execute(
+        f"SELECT 1 FROM source_records WHERE business_id=? AND active=1 AND source_id IN {_PREMISES_SQL} LIMIT 1",
+        (business_id,),
+    ).fetchone()
+    if premises is not None:
+        return MatchResult("ignored", None, RULE_FRANCHISE_OUTLET, explanation)
+    others = conn.execute("SELECT id, active FROM source_records WHERE business_id=?", (business_id,)).fetchall()
+    for other in others:
+        conn.execute(
+            "UPDATE source_records SET business_id=NULL, match_state=CASE WHEN ? THEN 'new' ELSE match_state END"
+            " WHERE id=?",
+            (1 if other["active"] else 0, other["id"]),
+        )
+    conn.execute("UPDATE businesses SET active=0, updated_at=? WHERE id=?", (stamp, business_id))
+    return MatchResult("ignored", None, RULE_FRANCHISE_OUTLET,
+                       explanation + " The listing made from the franchise-tax record was retired.")
+
+
+def _requeue_franchise(conn: sqlite3.Connection) -> int:
+    """Franchise records whose taxpayer gained or lost an active sales-tax outlet are matched again."""
+    with_outlet = franchise.sales_tax_taxpayers(conn)
+    ids = []
+    for row in conn.execute(
+        "SELECT id, source_key, business_id, match_state FROM source_records WHERE source_id=? AND active=1",
+        (FRANCHISE,),
+    ):
+        state = row["match_state"]
+        if row["source_key"] in with_outlet:
+            if row["business_id"] is not None or state not in ("ignored", "new"):
+                ids.append(row["id"])
+        elif state == "ignored" and row["business_id"] is None:
+            ids.append(row["id"])
+    with db.transaction(conn):
+        for start in range(0, len(ids), BATCH_SIZE):
+            chunk = ids[start:start + BATCH_SIZE]
+            conn.execute(f"UPDATE source_records SET match_state='new' WHERE id IN ({','.join('?' * len(chunk))})",
+                         chunk)
+    return len(ids)
+
+
+def _name_candidates(conn: sqlite3.Connection, rec: _Rec, rejected: set) -> List[sqlite3.Row]:
+    """Businesses a record may join on its exact normalized name alone.
+
+    A franchise record: an active business no franchise record belongs to (two
+    registrations are two companies). Any other record: an active business
+    known only from a franchise record (no street of its own).
+    """
+    if not rec.name_norm:
+        return []
+    if rec.source_id == FRANCHISE:
+        sql = ("SELECT * FROM businesses b WHERE b.name_norm=? AND b.active=1 AND NOT EXISTS"
+               " (SELECT 1 FROM source_records s WHERE s.business_id=b.id AND s.source_id=?) ORDER BY b.id")
+        params: tuple = (rec.name_norm, FRANCHISE)
+    else:
+        sql = ("SELECT * FROM businesses b WHERE b.name_norm=? AND b.active=1 AND IFNULL(b.street_norm,'')=''"
+               " AND EXISTS (SELECT 1 FROM source_records s WHERE s.business_id=b.id AND s.source_id=?"
+               " AND s.active=1) AND NOT EXISTS (SELECT 1 FROM source_records s WHERE s.business_id=b.id"
+               f" AND s.active=1 AND s.source_id IN {_PREMISES_SQL}) ORDER BY b.id")
+        params = (rec.name_norm, FRANCHISE)
+    return [b for b in conn.execute(sql, params).fetchall() if b["id"] not in rejected]
+
+
+def _match_by_name(conn: sqlite3.Connection, rec: _Rec, rejected: set, stamp: str) -> Optional[MatchResult]:
+    candidates = _name_candidates(conn, rec, rejected)
+    if len(candidates) == 1:
+        biz = candidates[0]
+        sentence = ("Joined because the franchise-tax record and the business have the same name, and the"
+                    " franchise-tax record gives no location to compare.")
+        return _join(conn, rec, biz["id"], RULE_SAME_NAME, {"name_norm": rec.name_norm}, sentence, stamp)
+    if len(candidates) > 1:
+        detail = (f"This {rec.label} record has the same name as {len(candidates)} businesses and the"
+                  " franchise-tax record gives no location to tell them apart; choose one or keep it separate.")
+        return _review(conn, rec, [(b["id"], detail) for b in candidates], REVIEW_NAME_MANY, stamp)
+    return None
+
+
 # ---------------------------------------------------------------- the rules
 
 def _match(conn: sqlite3.Connection, source_record_id: int, stamp: str) -> MatchResult:
@@ -658,6 +825,10 @@ def _match(conn: sqlite3.Connection, source_record_id: int, stamp: str) -> Match
     if not rec.active:
         # Left as it is; an inactive record neither joins nor creates anything.
         return MatchResult("ignored", rec.business_id, "inactive", "The record is no longer in its source.")
+
+    # 0. A company with a Longview sales-tax outlet is listed by the outlet.
+    if rec.source_id == FRANCHISE and franchise.has_sales_tax_outlet(conn, rec.source_key):
+        return _franchise_step_aside(conn, rec, stamp)
 
     # 1. Already linked: refresh the business in place.
     if rec.business_id is not None and _business(conn, rec.business_id) is not None:
@@ -769,6 +940,11 @@ def _match(conn: sqlite3.Connection, source_record_id: int, stamp: str) -> Match
         rule = REVIEW_ADDRESS_PARTIAL if partial else REVIEW_PHONE_STREET
         return _review(conn, rec, questions, rule, stamp)
 
+    # 5b. The same name as a franchise-tax company (a franchise record has no street to compare).
+    by_name = _match_by_name(conn, rec, rejected, stamp)
+    if by_name is not None:
+        return by_name
+
     # 6. Nothing matched.
     if rec.source_id not in PRIMARY_SOURCES and rec.source_id != "osm":
         return _ignore(conn, rec, "not_a_primary_source",
@@ -807,6 +983,9 @@ def match_pending(conn: sqlite3.Connection, now: Now = None) -> Dict[str, int]:
     """Match every active record in state 'new', 500 per transaction, then refresh activity."""
     stamp = _stamp(now)
     counts = {"matched": 0, "created": 0, "review": 0, "ignored": 0}
+    requeued = _requeue_franchise(conn)
+    if requeued:
+        logger.info("matching: %d franchise-tax records requeued (a sales-tax outlet appeared or went)", requeued)
     for _ in range(MAX_PASSES):
         ids = [r["id"] for r in conn.execute(
             f"SELECT id FROM source_records WHERE match_state='new' AND active=1 ORDER BY {_ORDER_SQL}"

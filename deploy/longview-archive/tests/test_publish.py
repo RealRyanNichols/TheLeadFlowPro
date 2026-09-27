@@ -35,6 +35,10 @@ E164 = re.compile(r"\+1[2-9]\d{2}[2-9]\d{6}")
 
 
 def settings(tmp=None, **kw):
+    # These rules were written for publishing the City of Longview only (the fixture
+    # world holds a "nearby" business back as out_of_scope). The default now lists
+    # "nearby" too; tests/test_franchise.py covers that default.
+    kw.setdefault("publish_scopes", ("city",))
     return config.Settings(data_dir=Path(tmp or tempfile.gettempdir()) / "lva-test", **kw)
 
 

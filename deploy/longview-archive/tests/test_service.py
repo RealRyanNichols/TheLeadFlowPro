@@ -26,8 +26,8 @@ from tests.fixtures import builders as b
 
 START = datetime(2026, 9, 24, 7, 0, 0, tzinfo=timezone.utc)  # 02:00 in Chicago: before the backup time
 GIB = config.GIB
-SALES, TABC, NPI, OSM = (job.kind for job in service.SYNC_JOBS)
-ALL_SYNCS = [SALES, TABC, NPI, OSM]
+SALES, TABC, NPI, FRANCHISE, OSM = (job.kind for job in service.SYNC_JOBS)
+ALL_SYNCS = [SALES, TABC, NPI, FRANCHISE, OSM]
 
 
 class FakeClock:
@@ -51,7 +51,7 @@ class FakeDisk:
 
 
 class FakeSyncs:
-    """Stand-ins for the four sync functions that record runs the way the real ones do."""
+    """Stand-ins for the five sync functions that record runs the way the real ones do."""
 
     def __init__(self):
         self.calls = []
@@ -63,7 +63,7 @@ class FakeSyncs:
             run_id = db.start_run(conn, job.kind, now)
             if job.kind in self.fail:
                 db.finish_run(conn, run_id, "error", {}, "api.example 503: http_503", now)
-                if job.kind == TABC:  # TABC records and returns instead of raising
+                if job.kind in (TABC, FRANCHISE):  # the optional sources record and return instead of raising
                     return {"status": "error", "error": "api.example 503: http_503"}
                 raise api_http.ApiError(503, "http_503", "api.example")
             db.finish_run(conn, run_id, "ok", {"fetched": 0}, now=now)

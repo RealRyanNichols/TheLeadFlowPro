@@ -297,7 +297,7 @@ business's, and it reads that site again on its next loop.
 | --- | --- |
 | `lva check` | Self-test: settings, database, disk, pause, caps |
 | `lva status` | Write the status page now |
-| `lva sync all` | Pull open data now (or `sales-tax`, `tabc`, `osm`, `npi`) |
+| `lva sync all` | Pull open data now (or `sales-tax`, `tabc`, `npi`, `franchise`, `osm`) |
 | `lva match` | Match new records to businesses |
 | `lva crawl-once --limit 5` | Visit up to 5 due websites once (stop the service first: `systemctl stop longview-archive`) |
 | `lva publish` | Write a fresh publish file now (the engine does this every 45 minutes); it is not public until approved |

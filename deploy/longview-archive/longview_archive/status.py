@@ -31,7 +31,7 @@ STATE_LINES = {
     "stopping": "Stopping",
 }
 FACT_FIELDS = ("website", "phone", "email", "hours", "facebook", "instagram", "careers", "services")
-SOURCE_ORDER = ("tx_sales_tax", "tx_tabc", "osm", "npi", "website")
+SOURCE_ORDER = ("tx_sales_tax", "tx_tabc", "tx_franchise", "osm", "npi", "website")
 SALES_TAX_RUN_KINDS = ("sync_tx_sales_tax", "sync_sales_tax")
 ROBOTS_TXT = "User-agent: *\nDisallow: /\n"
 STALE_HEARTBEAT_MIN = 15
@@ -368,7 +368,8 @@ def render_html(data: dict) -> str:
         _section("archive", "Archive", _dl([
             ("Active businesses", _n(archive.get("businesses"))),
             ("In the city", _n(archive.get("inCity"))),
-            ("Nearby (not published)", _n(archive.get("nearby"))),
+            # Listed by default; not listed when the service runs with LVA_PUBLISH_SCOPES=city.
+            ("Longview address, outside the city limits", _n(archive.get("nearby"))),
             ("With a website", _n(archive.get("withWebsite"))),
             ("Websites read this week", _n(archive.get("readThisWeek"))),
         ])),

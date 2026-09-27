@@ -32,6 +32,18 @@ contract"). The earlier Next.js pages were removed from this branch in commit
 - `hiring/`: businesses with a careers page on their own site.
 - `about/`: always there, even before the first batch.
 
+## What the directory covers
+
+Every business with a Longview address (the export's `scope` is "Businesses
+with a Longview, Texas address"): sales-tax locations inside and just outside
+the city limits, licensed or registered practices, and companies on the
+Comptroller's franchise-tax list in good standing with no sales-tax location.
+The index, category pages, and About page say "with a Longview address"; with
+`LVA_PUBLISH_SCOPES=city` they say "in the City of Longview" again. A
+franchise-tax listing shows "Registered with the Texas Comptroller for franchise
+tax since <year>" in its Public record panel, sourced to that dataset, and
+"Longview, TX" as its address.
+
 ## Honesty and privacy rules the pages enforce
 
 - Only facts in the approved batch, each listed under "Sources and checks" with

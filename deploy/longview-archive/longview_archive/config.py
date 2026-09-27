@@ -43,10 +43,26 @@ USER_AGENT = user_agent_for(PUBLIC_BASE_URL)
 # reported on the status page and kept in the hidden "nearby" bucket until a
 # person verifies them against USPS and the data.
 LONGVIEW_ZIPS: Tuple[str, ...] = ("75601", "75602", "75603", "75604", "75605")
+# Every ZIP the Postal Service delivers to as "Longview, TX": the street ZIPs
+# above plus the PO-box ZIPs 75606, 75607, and 75608. Used only for sources that
+# give a mailing address and no business location (the franchise-tax list): a
+# company there has a Longview address, whatever side of the city limits it is on.
+LONGVIEW_POSTAL_ZIPS: Tuple[str, ...] = LONGVIEW_ZIPS + ("75606", "75607", "75608")
 
 EAST_TEXAS_AREA_CODES: Tuple[str, ...] = ("903", "430")
 
+# What the directory covers, as the export's ``scope`` says it. City only
+# (LVA_PUBLISH_SCOPES=city) is the City of Longview; the default also lists the
+# businesses with a Longview address just outside the city limits.
 SCOPE_LABEL = "City of Longview, Texas"
+SCOPE_LABEL_POSTAL = "Businesses with a Longview, Texas address"
+PUBLISH_SCOPE_CHOICES: Tuple[str, ...] = ("city", "nearby")
+DEFAULT_PUBLISH_SCOPES: Tuple[str, ...] = ("city", "nearby")
+
+
+def scope_label(publish_scopes) -> str:
+    """The export's ``scope``: the city alone, or every business with a Longview address."""
+    return SCOPE_LABEL_POSTAL if "nearby" in tuple(publish_scopes or ()) else SCOPE_LABEL
 
 # Sites that are never a business's own website: the listings the brief
 # forbids reading (Google Maps, Yelp, Facebook, the BBB, chambers of commerce,
@@ -131,6 +147,15 @@ def _env_flag(env: Mapping[str, str], key: str) -> bool:
     return env.get(key, "").strip().lower() in ("1", "true", "yes", "on")
 
 
+def _publish_scopes(raw: str) -> Tuple[str, ...]:
+    """LVA_PUBLISH_SCOPES: 'city' or 'city,nearby' (any order, commas or spaces)."""
+    wanted = [part for part in re.split(r"[\s,]+", raw.strip().lower()) if part]
+    unknown = sorted(set(wanted) - set(PUBLISH_SCOPE_CHOICES))
+    if not wanted or unknown:
+        raise ValueError("LVA_PUBLISH_SCOPES must list city and/or nearby")
+    return tuple(scope for scope in PUBLISH_SCOPE_CHOICES if scope in wanted)
+
+
 def _base_url(raw: str) -> str:
     """``https://host`` (a port is allowed; no path, query, or login): the directory path is added to it."""
     text = raw.strip().rstrip("/")
@@ -182,7 +207,10 @@ class Settings:
     allow_fictional_phones: bool = False
 
     # Publishing.
-    publish_scopes: Tuple[str, ...] = ("city",)
+    # Everything the sources give has a Longview address ("city" inside the city
+    # limits, "nearby" just outside them); both are listed. LVA_PUBLISH_SCOPES=city
+    # goes back to the City of Longview only.
+    publish_scopes: Tuple[str, ...] = DEFAULT_PUBLISH_SCOPES
     indexable: bool = False
 
     extra: Mapping[str, str] = field(default_factory=dict)
@@ -284,6 +312,8 @@ def load_settings(env: Mapping[str, str] | None = None) -> Settings:
     kwargs["allow_private_hosts"] = _env_flag(env, "LVA_ALLOW_PRIVATE_HOSTS")
     kwargs["allow_fictional_phones"] = _env_flag(env, "LVA_ALLOW_FICTIONAL_PHONES")
     kwargs["indexable"] = _env_flag(env, "LVA_INDEXABLE")
+    if env.get("LVA_PUBLISH_SCOPES", "").strip():
+        kwargs["publish_scopes"] = _publish_scopes(env["LVA_PUBLISH_SCOPES"])
     settings = Settings(**kwargs)
     # The politeness floor is not configurable downward in production. Tests
     # lower it only together with the private-host escape hatch.

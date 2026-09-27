@@ -77,9 +77,24 @@ sent or imported anywhere.
 
 ## 6. Scope
 
-**Default:** the City of Longview only. Businesses outside the city limits go
-into a hidden "nearby" bucket. The options are Gregg County, or about 25
-miles around Longview.
+**Decided (Sept 27, 2026):** the owner asked for "all the businesses in
+Longview". The directory now lists every business with a Longview address: the
+sales-tax locations inside the city limits (`city`) and the ones just outside
+them that use a Longview address (`nearby`), plus the companies on the Texas
+Comptroller's "Active Franchise Taxpayers" list (LLCs, corporations,
+partnerships in good standing) with a Longview address and no sales-tax
+location. A franchise-tax listing shows the company name, "Longview, TX" (its
+address on that list is a mailing address and is never shown), and the year its
+franchise-tax registration began; exempt organizations (most nonprofits) are
+not listed from it, and a name that may be a person's is held exactly like a
+sole proprietor's. The About page says what is covered: "businesses with a
+Longview, Texas address".
+
+**How to go back to the city limits only:** run the service with
+`LVA_PUBLISH_SCOPES=city`. The next batch then holds the `nearby` listings as
+`out_of_scope` (auto-approve holds a batch that removes more than a quarter of
+the listings for a person). Gregg County, or about 25 miles around Longview,
+would need new sources and is not built.
 
 ## 7. Network access for Claude sessions (optional)
 

@@ -23,7 +23,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from longview_archive import config, db, matching, publish  # noqa: E402
+from longview_archive import config, db, matching, privacy, publish  # noqa: E402
+from longview_archive.sources import franchise as franchise_source  # noqa: E402
 from longview_archive.service import SYNC_JOBS, bootstrap, run_sync  # noqa: E402
 from longview_archive.sources import http as api_http  # noqa: E402
 
@@ -58,7 +59,28 @@ def engine_run(settings) -> None:
         say(f"  scope={row['scope']} state={row['publish_state']} reason={row['reason'] or '-'}: {row['n']}")
     shown = conn.execute("SELECT COUNT(*) FROM businesses WHERE publish_state='ready'").fetchone()[0]
     say(f"PROFILES READY TO PUBLISH (first batch): {shown}")
+    published_by_source(conn)
     conn.close()
+
+
+def published_by_source(conn) -> None:
+    """Counts only: where the ready profiles come from, and a person-name sanity check."""
+    identity, linked = Counter(), Counter()
+    person_like = person_like_bare = 0
+    for biz in conn.execute("SELECT id, name FROM businesses WHERE publish_state='ready'").fetchall():
+        sources = [r["source_id"] for r in conn.execute(
+            f"SELECT source_id FROM source_records WHERE business_id=? AND active=1 ORDER BY {matching._ORDER_SQL}",
+            (biz["id"],))]
+        primary = next((s for s in sources if s in matching.PRIMARY_SOURCES), "none")
+        identity[primary] += 1
+        for source_id in set(sources):
+            linked[source_id] += 1
+        person_like += 1 if privacy.looks_like_person_name(biz["name"]) else 0
+        person_like_bare += 1 if privacy.looks_like_person_name(franchise_source.bare_name(biz["name"] or "")) else 0
+    say(f"ready profiles by the source their name comes from: {dict(sorted(identity.items()))}")
+    say(f"ready profiles with an active record from: {dict(sorted(linked.items()))}")
+    say(f"ready profiles whose name looks like a person's (privacy.looks_like_person_name): {person_like}")
+    say(f"  ... the same check without a legal form (LLC, Inc): {person_like_bare}")
 
 
 def catalog(settings, query: str):

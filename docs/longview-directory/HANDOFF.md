@@ -162,8 +162,10 @@ See `docs/longview-directory/DECISIONS.md`. In short:
    today.
 5. **Call Desk.** Whether the directory feeds the Call Desk. That is Ryan's
    call.
-6. **Scope.** The City of Longview only (the default), Gregg County, or about
-   25 miles.
+6. **Scope.** Decided Sept 27, 2026: every business with a Longview address
+   (inside and just outside the city limits, plus franchise-tax companies with
+   no sales-tax location). `LVA_PUBLISH_SCOPES=city` goes back to the city
+   limits only. Gregg County or about 25 miles would need new sources.
 
 ## Pause, undo, cost
 

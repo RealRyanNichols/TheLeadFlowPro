@@ -61,3 +61,13 @@ DigitalOcean droplet (nothing is deployed to Vercel).
   removals for a person. The batch pull request feature and every GitHub call
   were removed from the engine. When the LeadFlow site itself runs on the
   droplet, one approved Caddy change routes `/longview/businesses/` there.
+- **Sept 27, 2026. All businesses with a Longview address.** The owner asked
+  for all the businesses in Longview. Measured on data.texas.gov (counts only):
+  9,154 franchise-tax taxpayers have a Longview address and 7,824 of them have
+  no Longview sales-tax outlet. The engine now reads the Comptroller's "Active
+  Franchise Taxpayers" list as a fifth source (`sources/franchise.py`): companies
+  in good standing, not exempt, and without a sales-tax outlet get a listing
+  (name, "Longview, TX", registration year). The default publish scope now
+  includes `nearby` (a Longview address outside the city limits);
+  `LVA_PUBLISH_SCOPES=city` goes back. `tools/probe_public_data.py` prints the
+  published profiles per source and a person-name count as a sanity check.
