@@ -1,0 +1,11 @@
+[Unit]
+Description=LeadFlow email review template; do not enable during staging
+
+[Timer]
+OnCalendar=*-*-* *:*:00
+AccuracySec=1s
+Persistent=false
+Unit=leadflow-email-worker.service
+
+[Install]
+WantedBy=timers.target

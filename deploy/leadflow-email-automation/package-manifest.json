@@ -1,0 +1,86 @@
+{
+  "status": "disabled-review-only",
+  "tests_passed": 28,
+  "live_sends": 0,
+  "excluded": [
+    "context/",
+    "private/",
+    "__pycache__/",
+    "config.json",
+    "worker.env",
+    "all ledger databases"
+  ],
+  "files": [
+    {
+      "path": ".gitignore",
+      "bytes": 100,
+      "sha256": "3711c682bf6e2292fed605625a7bc28bca17ceb35de1eb3d0f4a6f77d52a9ba8"
+    },
+    {
+      "path": "README.md",
+      "bytes": 14098,
+      "sha256": "5bab3baeb0c89b0a3ca5a7181e3583fe6da12e935de536434df4c56a625a5955"
+    },
+    {
+      "path": "worker.py",
+      "bytes": 30674,
+      "sha256": "ca0f6a6483f3c3d8a6a0cb6024b32e9b6a888b041460344904a09f2842e29b49"
+    },
+    {
+      "path": "meta_import.py",
+      "bytes": 10665,
+      "sha256": "14849b397632df65e63f5becb3f684e1bb1d091bb679436a96dafdf1708908fb"
+    },
+    {
+      "path": "test_worker.py",
+      "bytes": 16150,
+      "sha256": "e4a595476c9014ae51d7b3498df73d69b7b626fc8f475e7660daca18169e3099"
+    },
+    {
+      "path": "test_meta_import.py",
+      "bytes": 5055,
+      "sha256": "f5d7bd073c1aef48b9f45daaa711a6c8074a20c9642a0d67541722161016046b"
+    },
+    {
+      "path": "config.example.json",
+      "bytes": 1258,
+      "sha256": "812b6a84a9f14d68feda5812e3d5670e267d384092e3f3f3f4766d1f722a6a86"
+    },
+    {
+      "path": "sequence.json",
+      "bytes": 31087,
+      "sha256": "e2321c84644ceba1411168d7dd6fb3e53860649153353f5d9dfa0e50feebc390"
+    },
+    {
+      "path": "sequence-preview.html",
+      "bytes": 44389,
+      "sha256": "028c7bbbfeebc5a1e26721910d9a322153ecd672a78f8a428521f87a33b095c0"
+    },
+    {
+      "path": "worker-rendered-preview.html",
+      "bytes": 97993,
+      "sha256": "bd07336df46971030b2d2d610e8413bedd20c1b2ad2f4a35ed354a8971bb750f"
+    },
+    {
+      "path": "form-registry.proposed.patch",
+      "bytes": 734,
+      "sha256": "ca78ca394713b23b9102162c48f0b48a55a90786dd27cad4db0f06a7721ac829"
+    },
+    {
+      "path": "leadflow-email-worker.service.example",
+      "bytes": 539,
+      "sha256": "e2cc0debdf8f15a975d74ff9df785f8e6672a58b11b343c849c92147ccd3b2a0"
+    },
+    {
+      "path": "leadflow-email-worker.timer.example",
+      "bytes": 214,
+      "sha256": "0d8fd8ff6ea6b0dc5342d858c940177aa119a49954acc9dc60102e3ebda3f80e"
+    },
+    {
+      "path": "leadflow-email-webhook.service.example",
+      "bytes": 572,
+      "sha256": "108d08808e082ad2a1e1759c026076e2866a2b983f0da2bcebe8a132d17de77e"
+    }
+  ],
+  "focused_independent_review": "worker and importer: no blocking findings; live integration unverified"
+}

@@ -1,0 +1,17 @@
+diff --git a/lib/metaCampaignGuard.ts b/lib/metaCampaignGuard.ts
+--- a/lib/metaCampaignGuard.ts
++++ b/lib/metaCampaignGuard.ts
+@@ -87,6 +87,13 @@
+  * form was live in Meta but absent from one of several independent maps.
+  */
+ export const META_FORM_REGISTRY: Readonly<Record<string, MetaFormRegistration>> = {
++  "2206768963231960": {
++    // Callback + optional email choice. The DO worker reads the exact choice;
++    // this legacy intake must not infer marketing or SMS permission.
++    campaign: "pda_video_east_tx_2026_09",
++    inquiryOptIn: false,
++    textOnSubmit: false,
++  },
+   "1319841020086334": {
+     // PDA video: schools, coaching and events; personal callback request.
+     campaign: "pda_video_east_tx_2026_09",
