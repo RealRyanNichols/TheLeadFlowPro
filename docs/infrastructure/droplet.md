@@ -28,7 +28,7 @@ list of scheduled jobs the droplet's cron container reads.
 | The 12 scheduled jobs in `vercel.json` | Vercel Cron | Droplet, container `cron` (same schedules, UTC) |
 | Content Command worker | not running | Droplet, container `worker` (opt in) |
 | Central brain | Droplet, :3000 | Unchanged |
-| Database, auth | Supabase | Moving off Supabase too (owner decision Sep 26, 2026). Proposed: a Postgres container on this droplet, waiting on Ryan's yes (`database.md`; not decided, see `CLAUDE.md`) |
+| Database, auth | Supabase | Moving off Supabase too (owner decision Sep 26, 2026). Decided Sep 28, 2026: a Postgres container on this droplet, backed up nightly with a copy in Google Drive (`database.md`) |
 | Email sending | Resend | Unchanged |
 | Email inboxes | GoDaddy Microsoft 365 | Google Workspace (`google-workspace-migration.md`) |
 
@@ -50,9 +50,9 @@ minute, so a job added there runs on the droplet after the next deploy.
   no secret. Paste its output to Claude when something looks off.
 - `deploy/droplet/cutover.sh`: the switches, one at a time (`site-on`,
   `crons-on`, `crons-off`, `site-off`, `rollback`).
-- `deploy/droplet/db.sh` and `deploy/droplet/systemd/`: the proposed
-  database's setup, nightly backup, restore check and restore
-  (`database.md`). Nothing runs until `db.sh setup`, after Ryan's yes.
+- `deploy/droplet/db.sh` and `deploy/droplet/systemd/`: the database's
+  setup, nightly backup (with its Google Drive copy), restore check and
+  restore (`database.md`).
 - `deploy/droplet/compose.yml`, `Dockerfile`, `cron-runner.mjs`,
   `theleadflowpro.caddy`, `web.env.example`: what the scripts run.
 

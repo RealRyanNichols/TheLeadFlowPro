@@ -74,7 +74,7 @@ else row "state" "idle (Vercel still runs the jobs until cutover.sh crons-on)"; 
     }
   } catch { console.log("   no runs recorded yet"); }' 2>/dev/null || echo "   cron container not running"
 
-say "Database (proposed: docs/infrastructure/database.md)"
+say "Database (docs/infrastructure/database.md)"
 DB_COMPOSE=(docker compose -f "$APP_DIR/deploy/droplet/compose.yml" --profile db)
 DB_BACKUPS="/var/backups/theleadflowpro/db"
 # -a: a stopped container counts too, so a database that is down never reads as "not set up".
@@ -87,7 +87,7 @@ if [ -n "$db_id" ]; then
 elif docker volume inspect theleadflowpro_db-data >/dev/null 2>&1; then
   row "state" "off; its data is kept (db.sh setup turns it back on)"
 else
-  row "state" "not set up (after Ryan's yes: db.sh setup)"
+  row "state" "not set up yet (db.sh setup)"
 fi
 db_newest=""
 db_count=0
@@ -110,6 +110,18 @@ if [ -f "$DB_BACKUPS/last-restore-check" ]; then
   row "restore check" "$(cat "$DB_BACKUPS/last-restore-check")$db_check_stale"
 else
   row "restore check" "not run yet"
+fi
+# Only whether a sign-in is there; its contents are never read out.
+if grep -q '^token = ' "$CONF_DIR/rclone.conf" 2>/dev/null; then
+  if [ -f "$DB_BACKUPS/last-drive-copy" ]; then
+    db_drive_stale=""
+    [ -n "$(find "$DB_BACKUPS/last-drive-copy" -mmin +1560 2>/dev/null)" ] && db_drive_stale="  !! no copy in over a day"
+    row "Google Drive copy" "$(cat "$DB_BACKUPS/last-drive-copy")$db_drive_stale"
+  else
+    row "Google Drive copy" "linked; no copy yet"
+  fi
+else
+  row "Google Drive copy" "not linked yet (db.sh drive-link)"
 fi
 db_timer=$(systemctl is-enabled theleadflowpro-db-backup.timer 2>/dev/null)
 case "$db_timer" in "" | not-found) db_timer="not installed" ;; esac

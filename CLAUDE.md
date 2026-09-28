@@ -15,12 +15,15 @@ there is no need to verify it against Vercel or Supabase.
 - This site's move off Vercel was decided on Sep 24 (`docs/infrastructure/droplet.md`). The
   Sep 26 decision adds Supabase: the database, logins, and anything else on Supabase are moving
   to the droplet too.
-- **Not decided yet: where the database and logins will run on the droplet.** Do not invent it.
-  Get it from the owner, then record it here.
-  - A proposal is waiting for his answer (Sep 28, 2026): Postgres 17 in a Docker container on
-    the droplet, backed up nightly, with logins moving into the same database later
-    (`docs/infrastructure/database.md`). It is not the decision until he says yes; then replace
-    this bullet with the decision and its date.
+- **Decided Sep 28, 2026 (owner): the database and logins live in Postgres 17, in a Docker
+  container on the droplet beside the site.** It is backed up every night, with a copy in The
+  LeadFlow Pro's Google Drive. Setup, backups, the Drive copy and restores: `deploy/droplet/db.sh`.
+  The plan and the phases off Supabase: `docs/infrastructure/database.md`.
+  - Logins move into the same database (phase F). A client's login links to the lead it came
+    from and is also matched by email. The details a client signed up with are what we use,
+    unless the client says otherwise.
+  - New work that needs a database targets this one. Each phase that moves data or logins off
+    Supabase still needs the owner's approval for that phase.
 - Every Supabase reference in this repo (`supabase/`, "Supabase is the agent memory and task
   bus" in `AGENTS.md`, the Supabase rows in the droplet runbook) describes the platform being
   retired. Read it as the map of what has to be ported.

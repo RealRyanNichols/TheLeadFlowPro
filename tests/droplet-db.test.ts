@@ -93,6 +93,7 @@ test("db.sh asks for a typed phrase before it creates, replaces or turns off any
     ["do_setup", "CREATE THE DATABASE"],
     ["do_restore", "REPLACE THE DATABASE"],
     ["do_off", "TURN THE DATABASE OFF"],
+    ["do_drive_link", "LINK GOOGLE DRIVE"],
   ];
   for (const [name, phrase] of phrases) {
     const body = fn(name);
@@ -100,7 +101,7 @@ test("db.sh asks for a typed phrase before it creates, replaces or turns off any
     assert.ok(pos(body, `confirm "${phrase}"`) < pos(body, "\n  lock\n"), `${name}: phrase first, then the lock`);
   }
   const dispatch = dbScript.slice(pos(dbScript, 'case "${1:-}" in'));
-  for (const name of ["setup", "restore", "off"]) {
+  for (const name of ["setup", "restore", "off", "drive-link"]) {
     assert.doesNotMatch(dispatch, new RegExp(`^ {2}${name}\\) lock;`, "m"), `${name} locks only after its phrase`);
   }
   assert.doesNotMatch(fn("do_backup"), /confirm /, "the nightly backup runs unattended");
@@ -147,6 +148,27 @@ test("backups run nightly at 3:15 AM Central, keep the newest 14, never overwrit
   assert.ok(pos(backup, 'if [ "$PRUNE" -eq 1 ]') > pos(backup, 'mv "$tmp" "$file"'), "old backups go only after the new one is saved");
   const check = fn("do_restore_check");
   assert.ok((check.match(/check_failed /g) ?? []).length >= 6, "every way the check can fail is written down for check.sh");
+});
+
+test("each nightly backup is copied to The LeadFlow Pro's Google Drive once linked; a failed copy never touches the backup here", () => {
+  const dispatch = dbScript.slice(pos(dbScript, 'case "${1:-}" in'));
+  assert.match(dispatch, /^ {2}backup\) lock; say "Backup"; do_backup; do_drive_copy "\$LAST_BACKUP" ;;$/m);
+  const copy = fn("do_drive_copy");
+  assert.ok(pos(copy, "if ! drive_linked; then") < pos(copy, "copyto"), "nothing is sent until the link exists");
+  assert.match(copy, /record_drive FAILED/, "a failed copy is written down for check.sh");
+  assert.ok(pos(copy, "record_drive ok") < pos(copy, "delete "), "old Drive copies go only after the new one is there");
+  assert.match(copy, /--include 'leadflow-\*\.dump' --min-age "\$\{DRIVE_KEEP_DAYS\}d"/, "only its own old backups are removed from Drive");
+  assert.match(dbScript, /^DRIVE_KEEP_DAYS=30$/m);
+  const link = fn("do_drive_link");
+  assert.match(link, /scope=drive\.file/, "the access covers only the files it creates");
+  assert.match(link, /read -rs back/, "the address carrying the sign-in code is not shown on screen");
+  assert.ok(pos(link, '\n  rm -f "$DRIVE_LOG"\n') > pos(link, 'curl -s -o /dev/null --max-time 60 "$back"'), "rclone's output, which repeats the sign-in, is deleted");
+  assert.ok(pos(link, `trap 'kill "$DRIVE_PID" 2>/dev/null || true; rm -f "$DRIVE_LOG" "$DRIVE_NEW"' EXIT`) < pos(link, "read -rs back"), "and is deleted even if the link stops early");
+  assert.ok(pos(link, `grep -q '^token = ' "$DRIVE_NEW"`) < pos(link, 'mv -f "$DRIVE_NEW" "$DRIVE_CONF"'), "a link that works is replaced only by one that works");
+  assert.doesNotMatch(dbScript, /(?:cat|less|head|tail)\s+"?\$DRIVE_(?:CONF|LOG|NEW)/, "the sign-in is never printed");
+  const check = read("deploy/droplet/check.sh");
+  assert.match(check, /grep -q '\^token = ' "\$CONF_DIR\/rclone\.conf"/, "check.sh only asks whether a sign-in is there");
+  assert.match(check, /row "Google Drive copy"/);
 });
 
 test("no secret in the repository: names only, and the password is made on the droplet and never read back", () => {

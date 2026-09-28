@@ -1,4 +1,4 @@
-# Installed by deploy/droplet/db.sh setup (proposed; docs/infrastructure/database.md).
+# Installed by deploy/droplet/db.sh setup (docs/infrastructure/database.md).
 [Unit]
 Description=The LeadFlow Pro: nightly database backup, 3:15 AM Central
 

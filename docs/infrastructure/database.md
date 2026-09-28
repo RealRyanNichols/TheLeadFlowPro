@@ -1,37 +1,22 @@
-# The LeadFlow Pro's own database on the droplet (proposal)
+# The LeadFlow Pro's own database on the droplet
 
-**Status, September 28, 2026: waiting on Ryan's yes. Nothing here has been
-created.** `CLAUDE.md` still lists where the database and logins will run as
-not decided. When Ryan says yes, that line becomes the decision, with its date.
+**Decided September 28, 2026 (owner):** the site's data and logins live in a
+Postgres database in a container on the droplet, next to the site. It is
+backed up every night, with a copy of each backup in The LeadFlow Pro's Google
+Drive. `CLAUDE.md` records the decision.
 
-## The question for Ryan
+## Decisions (September 28, 2026)
 
-Supabase is being switched off (owner decision, September 26, 2026). Where
-should the site's data and logins live instead?
+1. **Where it lives:** Postgres 17 in a container on the droplet, beside the
+   site. Logins move into the same database later (phase F).
+2. **Backups off the droplet:** a copy of every nightly backup goes to The
+   LeadFlow Pro's Google Drive, in the folder "LeadFlow Pro database backups".
+3. **Client logins:** a client's login links to the lead it came from, and is
+   also matched by email. The details a client signed up with are what we use,
+   unless the client says otherwise.
 
-**Recommended: in a Postgres database in a container on the droplet, next to
-the site, backed up every night. Logins move into the same database later.**
-
-- **Yes** starts phase A only: `db.sh setup` creates an empty database on the
-  droplet, turns on the nightly backup and a weekly restore test, and takes the
-  first backup. The site does not use it yet. Moving data and logins comes
-  later, one phase at a time, each with its own approval (the plan below).
-- **Not yet** changes nothing. The site keeps running on Supabase, and steps 3
-  to 5 of the Back Office build (which need somewhere to save new data) wait.
-
-## Needs Ryan
-
-1. **Yes or not yet** to the recommendation above.
-2. **A copy of the backups off the droplet: which one, if any.** The nightly
-   backups sit on the same droplet, so they protect against mistakes and bad
-   data, not against losing the droplet itself. Two ways to cover that, both
-   paid (check DigitalOcean's current prices):
-   - DigitalOcean's own droplet backups: a setting on the droplet that copies
-     the whole droplet on a schedule. No code.
-   - A nightly copy of these backup files to DigitalOcean Spaces (storage off
-     the droplet): a small addition to `db.sh`, with its own approval.
-
-   Phase A can start without this; the gap stays open until it is chosen.
+Moving data and logins off Supabase still happens one phase at a time (the plan
+below), each phase with its own approval.
 
 ## Why this option
 
@@ -53,7 +38,7 @@ Other options considered:
 | DigitalOcean's managed database | It lives off the droplet and is a separate monthly bill, and the September 26 decision puts everything on the droplet. It is the natural upgrade later, if the business outgrows one server. |
 | Running Supabase's own open-source stack on the droplet | Fewer code changes, but it is more than ten services to run and patch on a droplet already short on memory and disk, and it keeps the site tied to Supabase, which the decision retires. |
 
-## What yes creates (phase A)
+## What the setup creates (phase A)
 
 - **The database:** Postgres 17 in a container named `db`, beside the site's
   containers. Its data lives in the Docker volume `theleadflowpro_db-data`.
@@ -68,16 +53,29 @@ Other options considered:
   after 15 minutes so it cannot block the next. With less than 1 GB of disk
   free it skips the backup and says so, rather than filling the disk the site
   needs.
+- **Copy in Google Drive:** right after each nightly backup, `db.sh backup`
+  copies it to The LeadFlow Pro's Google Drive, folder "LeadFlow Pro database
+  backups", and removes copies there older than 30 days. rclone does the copy
+  and checks its size and checksum. The link is made once with
+  `db.sh drive-link`: one Google sign-in as The LeadFlow Pro's account, in any
+  browser. Its access covers only the files it creates, and the sign-in stays
+  on the droplet, readable by root only. If a copy fails, the backup on the
+  droplet still stands, and `check.sh` shows the failure.
 - **Weekly restore test:** Sundays, 4:15 AM Central. `db.sh restore-check`
   restores the newest backup in full into a scratch copy, checks every table
   came back, and deletes the copy. The live database is not touched. This is
   the real proof a backup works; the nightly read-back is a quick check.
 - **Status:** `check.sh` gains a Database section: running, stopped or off;
-  size; the newest backup and its age; the last restore test. It flags a
-  backup more than a day old and a restore test more than 8 days old.
+  size; the newest backup and its age; the last Google Drive copy; the last
+  restore test. It flags a backup or Drive copy more than a day old and a
+  restore test more than 8 days old.
 
-It changes nothing else: no site code reads it, deploys never start or restart
-it, and the brain, Caddy and DNS are untouched.
+It changes nothing else: no site code reads it yet, deploys never start or
+restart it, and the brain, Caddy and DNS are untouched.
+
+The backups hold the site's data, and later the client records and login
+details, so the Drive folder stays private to The LeadFlow Pro's account: no
+sharing links.
 
 **The droplet is short on memory.** On September 28 at 12:52 PM CT, memory was
 86% used with swap full, and the disk 88% used (about 9.3 GB free). In the
@@ -85,27 +83,33 @@ test below, the database used 30 to 45 MB of memory; it is capped at 512 MB.
 `db.sh setup` stops without changing anything if less than 300 MB of memory or
 2 GB of disk is free.
 
-## Turning it on (after Ryan's yes)
+## Turning it on
 
 1. In DigitalOcean, take a snapshot of the droplet (the undo button).
-2. Merge the pull request. Then, in the droplet console:
+2. After the merge, in the droplet console:
 
    ```bash
    sudo /opt/theleadflowpro/deploy/droplet/deploy.sh
    sudo /opt/theleadflowpro/deploy/droplet/db.sh setup
+   sudo /opt/theleadflowpro/deploy/droplet/db.sh drive-link
    sudo /opt/theleadflowpro/deploy/droplet/check.sh
    ```
 
    `deploy.sh` brings the new scripts onto the droplet (it is a normal deploy
-   of main). `db.sh setup` asks you to type `CREATE THE DATABASE`. Good looks
-   like: Database `running healthy`, `port on the droplet none`, one backup,
-   restore check `ok`.
+   of main). `db.sh setup` asks you to type `CREATE THE DATABASE`.
+   `db.sh drive-link` asks you to type `LINK GOOGLE DRIVE`, shows a Google
+   link to open in any browser, and asks you to paste back the address the
+   browser lands on after you sign in as The LeadFlow Pro's account and press
+   Allow. What you paste is not shown on screen. Good looks like: Database
+   `running healthy`, `port on the droplet none`, one backup, a Google Drive
+   copy `ok`, restore check `ok`.
 
 ## Everyday commands (all as root, on the droplet)
 
 | Command | What it does |
 | --- | --- |
-| `db.sh backup` | A backup now (the nightly timer does this anyway). |
+| `db.sh backup` | A backup now, copied to Google Drive (the nightly timer does this anyway). |
+| `db.sh drive-link` | Links the backups to The LeadFlow Pro's Google Drive, or links them again (for example after a password change). A failed try leaves an existing link as it is. |
 | `db.sh restore-check` | Proves the newest backup restores, without touching the live database. |
 | `db.sh restore <file>` | Replaces the live database with a backup. Asks you to type `REPLACE THE DATABASE`, saves a fresh backup first (the undo), restores into a copy beside the live one, then swaps the two in one step. The site stops only for the swap, and is started again even if the swap fails. The replaced database is kept as `leadflow_before_restore` until the next restore. |
 | `db.sh off` | Asks you to type `TURN THE DATABASE OFF`, takes a last backup if the database answers within two minutes, then stops it and its timers. Keeps the data and the backups. `db.sh setup` turns it back on. |
@@ -169,7 +173,7 @@ undone by pointing back.
 | C. Nightly practice copy of Supabase | A read-only copy of Supabase's data lands here each night, to rehearse the move and compare counts | Nobody | Row counts, table by table, against Supabase | Stop the copy and drop the copied tables |
 | D. The site moves, one area at a time | Each area (leads, sales, content, Time Back uploads, and so on) switches its reads and writes from Supabase to here, in its own pull request. Live updates and the Ads Brain's read-only account move with their areas. | That area's admin screens | The area's tests, plus cross-user checks, on a copy | Switch that area back; anything written meanwhile is copied back first |
 | E. Cutover night | A quiet hour: writes paused, a final copy, the remaining areas switched, the Quo webhook re-pointed, the 3 files moved | A pause of minutes | Counts match; sign in; one test lead end to end | Point back to Supabase, still running and untouched |
-| F. Logins | The 4 accounts move to the site's own table, keeping their IDs so the 17 links still line up. Passwords carry over without resets (Supabase keeps them in a standard scrambled form the site can check). Google sign-in, emailed links (sent through Resend, already in use), password reset and portal invites come along. | The 4 people who sign in, once (one fresh sign-in) | Each sign-in method with a test account | Switch sign-in back to Supabase; the accounts are untouched there |
+| F. Logins | The 4 accounts move to the site's own table, keeping their IDs so the 17 links still line up. Each client's login links to the lead it came from and is also matched by email; the details they signed up with stand unless they change them. Passwords carry over without resets (Supabase keeps them in a standard scrambled form the site can check). Google sign-in, emailed links (sent through Resend, already in use), password reset and portal invites come along. | The 4 people who sign in, once (one fresh sign-in) | Each sign-in method with a test account | Switch sign-in back to Supabase; the accounts are untouched there |
 | G. Supabase off | After 14 to 30 quiet days: a final export kept encrypted and out of GitHub, then pause (not delete) the project | Nobody | Nothing has called the Supabase address for 14 days | Un-pause the project |
 
 ## Undoing it
@@ -178,6 +182,10 @@ undone by pointing back.
   database: `docker volume rm theleadflowpro_db-data`, delete
   `/etc/theleadflowpro/db-password` and `/var/backups/theleadflowpro/`, and
   remove the four `theleadflowpro-db-*` files from `/etc/systemd/system/`.
+- **The Google Drive link:** delete `/etc/theleadflowpro/rclone.conf` on the
+  droplet, and remove "rclone" under Third-party access in The LeadFlow Pro's
+  Google account (Security settings). The copies already in Drive stay until
+  someone deletes them.
 - **Phases B to F:** Supabase stays the working copy for everything not yet
   moved, and keeps running untouched until phase G, so going back means
   pointing back.
@@ -226,6 +234,14 @@ below were re-run on the final version.
 - **Off:** `db.sh off` took a last backup and kept the data and backups. With
   the database paused, or frozen, it said there was no last backup and still
   turned it off. `check.sh` then showed `off; its data is kept`.
+- **Google Drive copy:** tested with a local folder standing in for Drive,
+  since the real link needs The LeadFlow Pro's Google sign-in. A backup's copy
+  arrived byte for byte and `check.sh` showed it; copies older than 30 days
+  were removed while a 10-day-old copy and an unrelated file stayed; a failed
+  copy kept the new backup on the droplet and showed `FAILED`. The link: a
+  wrong phrase, a wrong address and a sign-in Google refused each linked
+  nothing and left nothing behind, and a failed re-link kept the working
+  link. The Google link it shows asks only for access to its own files.
 - **Timers:** valid systemd units. 3:15 AM Central stays 3:15 AM Central after
   daylight saving time ends (08:15 UTC in summer, 09:15 UTC in winter).
 - `tests/droplet-db.test.ts` pins these rules so a later change cannot quietly
@@ -257,3 +273,9 @@ below were re-run on the final version.
   droplet points it out. After such a rollback, deploy main again soon.
 - `deploy.sh` now starts the Content Command worker only when `worker` is one
   of the comma-separated names in `/etc/theleadflowpro/compose-profiles`.
+- The Google Drive copy uses rclone from Ubuntu's packages (1.60 on Ubuntu
+  24.04) with the `drive.file` scope, so it can see and change only the files
+  it creates. Its sign-in is in `/etc/theleadflowpro/rclone.conf` (mode 600).
+  The address pasted during `db.sh drive-link` carries a one-time code; it is
+  read without being shown and handed straight to rclone, and rclone's own
+  output (which repeats the sign-in) is deleted as soon as it finishes.

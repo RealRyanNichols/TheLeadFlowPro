@@ -1,15 +1,17 @@
 #!/usr/bin/env bash
 # The LeadFlow Pro's own database on the droplet: Postgres 17 in a Docker
-# container beside the site, backed up every night. PROPOSED, waiting on
-# Ryan's yes (docs/infrastructure/database.md). Nothing runs until someone
-# types the confirmation in "db.sh setup", and deploy.sh never starts it.
-# Run as root:
+# container beside the site, backed up every night with a copy in The LeadFlow
+# Pro's Google Drive (decided Sep 28, 2026; docs/infrastructure/database.md).
+# deploy.sh never starts or restarts it. Run as root:
 #
-#   db.sh setup           One time, after Ryan's yes. Starts the database
-#                         (empty), turns on the nightly backup and the weekly
-#                         restore check, then takes and checks a first backup.
-#   db.sh backup          Take a backup now. A timer runs this every night at
-#                         3:15 AM Central. The newest 14 are kept.
+#   db.sh setup           One time. Starts the database (empty), turns on the
+#                         nightly backup and the weekly restore check, then
+#                         takes and checks a first backup.
+#   db.sh drive-link      One time. Links the backups to The LeadFlow Pro's
+#                         Google Drive (one Google sign-in, in any browser).
+#   db.sh backup          Take a backup now, and copy it to Google Drive. A
+#                         timer runs this every night at 3:15 AM Central. The
+#                         newest 14 are kept here, 30 days of them in Drive.
 #   db.sh restore-check   Restore the newest backup into a scratch copy, check
 #                         it, then delete the copy. The live database is not
 #                         touched. A timer runs this Sundays at 4:15 AM Central.
@@ -34,6 +36,13 @@ KEEP=14
 BACKUP_MIN_FREE_MB=1024
 SETUP_MIN_FREE_MB=2048
 SETUP_MIN_MEMORY_MB=300
+# The Google Drive copy (db.sh drive-link). Its access covers only the files
+# it creates, and its sign-in stays in DRIVE_CONF (root only).
+DRIVE_CONF="$CONF_DIR/rclone.conf"
+DRIVE_REMOTE="leadflow-drive"
+DRIVE_FOLDER="LeadFlow Pro database backups"
+DRIVE_KEEP_DAYS=30
+DRIVE_FILE="$BACKUP_DIR/last-drive-copy"
 UNITS="theleadflowpro-db-backup.service theleadflowpro-db-backup.timer theleadflowpro-db-restore-check.service theleadflowpro-db-restore-check.timer"
 TIMERS="theleadflowpro-db-backup.timer theleadflowpro-db-restore-check.timer"
 LAST_BACKUP=""
@@ -154,6 +163,33 @@ do_backup() {
   fi
 }
 
+drive_linked() { command -v rclone > /dev/null 2>&1 && [ -f "$DRIVE_CONF" ] && grep -q '^token = ' "$DRIVE_CONF"; }
+
+record_drive() {
+  install -d -m 700 "$BACKUP_DIR"
+  printf '%s %s %s\n' "$1" "$(TZ=America/Chicago date '+%Y-%m-%d %H:%M CT')" "$2" > "$DRIVE_FILE"
+}
+
+# Copies one backup to Google Drive, then removes Drive copies older than
+# DRIVE_KEEP_DAYS. rclone checks the size and checksum of what it uploads. A
+# failed copy leaves the backup on this droplet as it is.
+do_drive_copy() {
+  local file="$1" name
+  name=$(basename "$file")
+  if ! drive_linked; then
+    note "Google Drive copy: not linked yet (db.sh drive-link)"
+    return 0
+  fi
+  if ! timeout 1800 rclone --config "$DRIVE_CONF" copyto "$file" "$DRIVE_REMOTE:$DRIVE_FOLDER/$name" --retries 3 --low-level-retries 10; then
+    record_drive FAILED "$name"
+    die "The backup is saved on this droplet, but its Google Drive copy failed. The next backup tries again."
+  fi
+  record_drive ok "$name"
+  ok "copied $name to Google Drive (\"$DRIVE_FOLDER\")"
+  timeout 600 rclone --config "$DRIVE_CONF" delete "$DRIVE_REMOTE:$DRIVE_FOLDER" --include 'leadflow-*.dump' --min-age "${DRIVE_KEEP_DAYS}d" ||
+    note "could not remove Drive copies older than $DRIVE_KEEP_DAYS days; the next backup tries again"
+}
+
 record_check() {
   install -d -m 700 "$BACKUP_DIR"
   printf '%s %s %s (%s)\n' "$1" "$(TZ=America/Chicago date '+%Y-%m-%d %H:%M CT')" "${2:+$(basename "$2")}" "$3" > "$CHECK_FILE"
@@ -271,6 +307,82 @@ EOF
   ok "the database is off. Its data is kept in the Docker volume $VOLUME, and the backups in $BACKUP_DIR"
 }
 
+do_drive_link() {
+  cat <<EOF
+   This links the nightly backups to The LeadFlow Pro's Google Drive. After
+   each backup, a copy goes to the folder "$DRIVE_FOLDER" there, and copies
+   older than $DRIVE_KEEP_DAYS days are removed from it. It needs one Google
+   sign-in, as The LeadFlow Pro's account, in any browser. The access it asks
+   for covers only the files this link creates, and the sign-in stays on this
+   droplet ($DRIVE_CONF, root only).
+EOF
+  confirm "LINK GOOGLE DRIVE"
+  lock
+  if ! command -v rclone > /dev/null 2>&1; then
+    say "Installing rclone (it copies files to Google Drive)"
+    DEBIAN_FRONTEND=noninteractive apt-get install -y -q rclone > /dev/null || die "Could not install rclone. Nothing changed."
+  fi
+  install -d -m 700 "$CONF_DIR"
+  # The new link is made in a file of its own. It replaces an earlier link
+  # only once it works, so a failed try never breaks a link that works.
+  DRIVE_NEW="$DRIVE_CONF.new"
+  rm -f "$DRIVE_NEW"
+  local url google back waited=0
+  # rclone's output repeats the sign-in it receives, so it goes to a root-only
+  # file that is deleted as soon as rclone finishes.
+  DRIVE_LOG=$(mktemp -p "$CONF_DIR" .drive-link.XXXXXX)
+  (umask 077 && exec rclone --config "$DRIVE_NEW" config create "$DRIVE_REMOTE" drive scope=drive.file config_is_local=true > "$DRIVE_LOG" 2>&1) &
+  DRIVE_PID=$!
+  # "|| true": under set -e a failed kill (rclone already gone) would end the
+  # trap before the clean-up.
+  trap 'kill "$DRIVE_PID" 2>/dev/null || true; rm -f "$DRIVE_LOG" "$DRIVE_NEW"' EXIT
+  for _ in $(seq 1 20); do
+    url=$(grep -oE 'http://127\.0\.0\.1:53682/auth\?state=[A-Za-z0-9_-]+' "$DRIVE_LOG" | head -n 1 || true)
+    [ -n "$url" ] && break
+    sleep 1
+  done
+  [ -n "$url" ] || die "The Google sign-in did not start. Nothing was linked."
+  google=$(curl -s -o /dev/null -w '%{redirect_url}' "$url" || true)
+  [ -n "$google" ] || die "The Google sign-in did not start. Nothing was linked."
+  cat <<EOF
+
+   1. Open this link in a browser, on any computer or phone, and sign in as
+      The LeadFlow Pro's Google account (hello@theleadflowpro.com):
+
+$google
+
+   2. Press Allow. The browser then shows a page that does not load, with an
+      address starting http://127.0.0.1:53682/. That is expected.
+   3. Copy that whole address from the address bar, paste it here and press
+      Enter. It is not shown on screen.
+
+EOF
+  printf '   Address: '
+  read -rs back || back=""
+  printf '\n'
+  case "$back" in
+    "http://127.0.0.1:53682/?"*) ;;
+    *) die "That is not the address from the sign-in, so nothing was linked. Run db.sh drive-link again." ;;
+  esac
+  curl -s -o /dev/null --max-time 60 "$back" || true
+  while kill -0 "$DRIVE_PID" 2>/dev/null && [ "$waited" -lt 60 ]; do sleep 1; waited=$((waited + 1)); done
+  kill "$DRIVE_PID" 2>/dev/null || true
+  rm -f "$DRIVE_LOG"
+  grep -q '^token = ' "$DRIVE_NEW" 2>/dev/null ||
+    die "Google did not accept the sign-in, so nothing was linked. Run db.sh drive-link again."
+  chmod 600 "$DRIVE_NEW"
+  mv -f "$DRIVE_NEW" "$DRIVE_CONF"
+  trap - EXIT
+  drive_linked || die "The link was saved but rclone cannot use it. Send this output to Claude."
+  say "Checking the link"
+  rclone --config "$DRIVE_CONF" mkdir "$DRIVE_REMOTE:$DRIVE_FOLDER" ||
+    die "Linked, but could not make the folder \"$DRIVE_FOLDER\" in Google Drive. Send this output to Claude."
+  ok "linked: backups will be copied to \"$DRIVE_FOLDER\" in The LeadFlow Pro's Google Drive"
+  local newest
+  newest=$(newest_backup)
+  if [ -n "$newest" ]; then do_drive_copy "$newest"; fi
+}
+
 do_setup() {
   [ -f "$CONF_DIR/web.env" ] || die "$CONF_DIR/web.env is missing. Run install.sh first."
   docker compose version > /dev/null 2>&1 || die "docker compose is missing. Run install.sh first."
@@ -329,6 +441,7 @@ EOF
 
   say "Backup"
   do_backup
+  do_drive_copy "$LAST_BACKUP"
   say "Restore check (the live database is not touched)"
   do_restore_check
 
@@ -342,10 +455,11 @@ EOF
 
 case "${1:-}" in
   setup) say "Set up the database"; do_setup ;;
-  backup) lock; say "Backup"; do_backup ;;
+  backup) lock; say "Backup"; do_backup; do_drive_copy "$LAST_BACKUP" ;;
+  drive-link) say "Link the backups to Google Drive"; do_drive_link ;;
   restore-check) lock; say "Restore check (the live database is not touched)"; do_restore_check ;;
   restore) say "Restore"; do_restore "${2:-}" ;;
   off) say "Turn the database off (the data and backups are kept)"; do_off ;;
   status) exec "$APP_DIR/deploy/droplet/check.sh" ;;
-  *) sed -n '2,20p' "$0"; exit 2 ;;
+  *) sed -n '2,22p' "$0"; exit 2 ;;
 esac

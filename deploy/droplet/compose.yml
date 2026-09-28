@@ -6,8 +6,8 @@
 #   cron    Replaces Vercel Cron. Idle until /etc/theleadflowpro/cron-enabled
 #           exists (deploy/droplet/cutover.sh crons-on).
 #   worker  Content Command queue worker. Opt in with COMPOSE_PROFILES=worker.
-#   db      PROPOSED: the site's own database (docs/infrastructure/database.md).
-#           Off until Ryan says yes: deploy.sh never starts it; db.sh setup does.
+#   db      The site's own database (docs/infrastructure/database.md). deploy.sh
+#           never starts or restarts it; db.sh owns it.
 
 name: theleadflowpro
 
@@ -71,12 +71,12 @@ services:
     restart: unless-stopped
     logging: *logging
 
-  # The site's own database, proposed and waiting on Ryan's yes
-  # (docs/infrastructure/database.md). Its profile keeps it off: deploy.sh
-  # never starts it, and nothing in the site reads it yet. "db.sh setup" starts
-  # it once; Docker then keeps it running across restarts. No port is
-  # published, so the internet cannot reach it; the site's containers use
-  # db:5432. Small memory settings: the droplet is short on memory (Sep 28, 2026).
+  # The site's own database (decided Sep 28, 2026; docs/infrastructure/database.md).
+  # Its own profile keeps deploys away from it: deploy.sh never starts or
+  # restarts it. "db.sh setup" starts it once; Docker then keeps it running
+  # across restarts. No port is published, so the internet cannot reach it;
+  # the site's containers use db:5432. Small memory settings: the droplet is
+  # short on memory (Sep 28, 2026).
   db:
     profiles: ["db"]
     # Pinned to the tested build: a new image can change how text sorts (ICU).
