@@ -2,6 +2,8 @@
   "enabled": false,
   "sender_verified": false,
   "suppression_reconciled": false,
+  "suppression_reconciled_at": null,
+  "suppression_reconciliation_max_age_seconds": 3600,
   "webhook_ready": false,
   "approved_sequence_sha256": null,
   "db_path": "/var/lib/leadflow-email-automation/ledger.sqlite3",

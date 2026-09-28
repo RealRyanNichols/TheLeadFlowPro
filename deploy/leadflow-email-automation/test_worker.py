@@ -31,6 +31,7 @@ class WorkerTests(unittest.TestCase):
         self.now=w.timestamp("2026-09-27T09:00:00-05:00")
         self.config={"db_path":str(Path(self.temp.name)/"ledger.db"),"allowed_sources":["meta_lead_ad"],
                      "allowed_form_ids":["new-consent-form"],"consent_notice":"One email daily for 30 days. Optional.",
+                     "suppression_reconciled":True,"suppression_reconciled_at":None,"suppression_reconciliation_max_age_seconds":3600,
                      "campaign_start_at":"2026-09-27T00:00:00-05:00","public_base_url":"https://example.test/automation-email"}
         self.record={"source":"meta_lead_ad","source_lead_id":"source-1","email":"person@example.test","first_name":"Pat",
                      "consent":{"granted":True,"channel":"email","daily_for_30_days":True,"notice_text":self.config["consent_notice"],
@@ -46,7 +47,10 @@ class WorkerTests(unittest.TestCase):
         return self.ledger.import_consent(self.record,self.sequence,self.now)
 
     def due(self,enrollment_id):
-        return self.ledger.db.execute("SELECT next_due FROM enrollments WHERE id=?",(enrollment_id,)).fetchone()[0]
+        due=self.ledger.db.execute("SELECT next_due FROM enrollments WHERE id=?",(enrollment_id,)).fetchone()[0]
+        # Test fixture simulates a completed external reconciliation at this run.
+        self.config["suppression_reconciled_at"]=w.datetime.fromtimestamp(due,w.UTC).isoformat()
+        return due
 
     def test_missing_consent_and_callback_form_rejected(self):
         for key,value in [("granted",False),("daily_for_30_days",False),("form_id","1319841020086334"),("notice_text","different")]:
@@ -161,6 +165,7 @@ class WorkerTests(unittest.TestCase):
             due=self.due(eid)
             # First run was missed for a week; one step only when it resumes.
             if day==1: due+=7*w.DAY
+            self.config["suppression_reconciled_at"]=w.datetime.fromtimestamp(due,w.UTC).isoformat()
             claim=self.ledger.claim(eid,due)
             self.assertEqual(claim["day"],day)
             def send(payload,key): calls.append(key); return "accepted",f"provider-{day}"
@@ -196,8 +201,73 @@ class WorkerTests(unittest.TestCase):
         self.assertTrue(self.ledger.provider_event("event1",raw,self.now))
         self.assertFalse(self.ledger.provider_event("event1",raw,self.now))
         self.ledger.provider_event("event2",json.dumps({"type":"suppression.removed","data":{"email":self.record["email"]}}).encode(),self.now)
-        self.assertEqual(self.ledger.status()["suppressions"],1)
+        self.assertEqual(self.ledger.status()["suppressions"],2)
         self.assertEqual(self.ledger.status()["enrollments"],{"suppressed":1})
+
+    def test_reconciliation_evidence_missing_invalid_future_or_expired_blocks(self):
+        iso=lambda value:w.datetime.fromtimestamp(value,w.UTC).isoformat()
+        fresh={**self.config,"suppression_reconciled_at":iso(self.now)}
+        self.assertEqual(w.suppression_gaps(fresh,self.now+3599),[])
+        self.assertTrue(w.suppression_gaps(fresh,self.now+3600))
+        for stamp in [None,"bad","2026-09-27T09:00:00",iso(self.now+1)]:
+            with self.subTest(stamp=stamp):
+                changed={**fresh,"suppression_reconciled_at":stamp}
+                self.assertTrue(w.suppression_gaps(changed,self.now))
+                self.assertIn("recent suppression reconciliation",w.send_gaps(changed,self.sequence,self.now))
+        for maximum in [None,False,0,-1,"3600",float("inf"),float("nan")]:
+            with self.subTest(maximum=maximum):
+                self.assertTrue(w.suppression_gaps({**fresh,"suppression_reconciliation_max_age_seconds":maximum},self.now))
+        self.assertTrue(w.suppression_gaps({**fresh,"suppression_reconciled":False},self.now))
+        self.config.update(fresh)
+        self.assertTrue(self.ledger.status(self.now)["suppression_reconciliation"]["ready"])
+        stale=self.ledger.status(self.now+3600)["suppression_reconciliation"]
+        self.assertFalse(stale["ready"])
+        self.assertIn("recent suppression reconciliation",stale["blockers"])
+
+    def test_dispatch_rechecks_freshness_after_claim_and_blocks_retry_until_reconciled(self):
+        eid=self.enroll(); due=self.due(eid)
+        self.config["suppression_reconciled_at"]=w.datetime.fromtimestamp(due-3599,w.UTC).isoformat()
+        self.assertEqual(w.suppression_gaps(self.config,due),[])
+        claim=self.ledger.claim(eid,due)
+        transport=MagicMock(return_value=("accepted","provider-test"))
+        self.assertFalse(self.ledger.dispatch(claim,transport,due+1))
+        transport.assert_not_called()
+        blocked=self.ledger.db.execute("SELECT * FROM deliveries").fetchone()
+        self.assertEqual(blocked["error_code"],"suppression_reconciliation_required")
+        self.assertIsNone(blocked["claim_token"])
+        self.config["suppression_reconciled_at"]=w.datetime.fromtimestamp(due+1800,w.UTC).isoformat()
+        retry=self.ledger.claim(eid,due+1800)
+        self.assertEqual(retry["payload"],claim["payload"])
+        self.assertEqual(retry["idempotency_key"],claim["idempotency_key"])
+        self.assertTrue(self.ledger.dispatch(retry,transport,due+1800))
+        transport.assert_called_once()
+
+    def test_signed_suppression_before_enrollment_persists_and_other_events_do_not(self):
+        server=ThreadingHTTPServer(("127.0.0.1",0),w.make_handler(self.config))
+        thread=threading.Thread(target=server.serve_forever,daemon=True); thread.start()
+        key=base64.b64decode(os.environ["RESEND_WEBHOOK_SECRET"][6:])
+        def post(event_id,event,valid=True):
+            raw=json.dumps(event).encode(); stamp=str(int(w.time.time()))
+            signature=base64.b64encode(hmac.new(key,f"{event_id}.{stamp}.".encode()+raw,hashlib.sha256).digest()).decode()
+            conn=HTTPConnection("127.0.0.1",server.server_port)
+            conn.request("POST","/automation-email/resend-events",raw,{"svix-id":event_id,"svix-timestamp":stamp,"svix-signature":"v1,"+(signature if valid else "invalid")})
+            response=conn.getresponse(); response.read(); conn.close(); return response.status
+        try:
+            for index,kind in enumerate(["email.bounced","email.complained","email.suppressed","suppression.added","contact.updated"]):
+                email=f"person{index}@example.test"
+                data={"to":[f"  PERSON{index}@EXAMPLE.TEST  ",None,{}],"email":f"  PERSON{index}@EXAMPLE.TEST  ","unsubscribed":True}
+                event={"type":kind,"data":data}
+                self.assertEqual(post(f"bad-{index}",event,False),400)
+                self.assertEqual(post(f"event-{index}",event),200)
+                self.assertEqual(post(f"event-{index}",event),200)
+                with self.assertRaisesRegex(ValueError,"suppressed"):
+                    self.ledger.import_consent({**self.record,"email":email,"source_lead_id":str(index)},self.sequence,self.now)
+            self.assertEqual(post("delivered",{"type":"email.delivered","data":{"to":["unrelated@example.test"]}}),200)
+            self.assertEqual(post("not-optout",{"type":"contact.updated","data":{"email":"unrelated@example.test","unsubscribed":False}}),200)
+            self.assertEqual(self.ledger.status()["suppressions"],5)
+            self.assertEqual(self.ledger.status()["enrollments"],{})
+        finally:
+            server.shutdown(); server.server_close(); thread.join()
 
     def test_disabled_gate_and_preview_never_needs_secret(self):
         self.assertIn("enabled",w.send_gaps(self.config,self.sequence))

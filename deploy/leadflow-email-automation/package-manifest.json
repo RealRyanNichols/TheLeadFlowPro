@@ -1,6 +1,6 @@
 {
   "status": "disabled-review-only",
-  "tests_passed": 28,
+  "tests_passed": 31,
   "live_sends": 0,
   "excluded": [
     "context/",
@@ -18,13 +18,13 @@
     },
     {
       "path": "README.md",
-      "bytes": 14098,
-      "sha256": "5bab3baeb0c89b0a3ca5a7181e3583fe6da12e935de536434df4c56a625a5955"
+      "bytes": 15868,
+      "sha256": "844cb70b3f7b20c3c0c74e86ff85a5f1764b4a071915dd49f40f1fd4cfdfa5d8"
     },
     {
       "path": "worker.py",
-      "bytes": 30674,
-      "sha256": "ca0f6a6483f3c3d8a6a0cb6024b32e9b6a888b041460344904a09f2842e29b49"
+      "bytes": 32552,
+      "sha256": "9f3ebd0c9d5307244d1adf10b401262cbbfaed03db94fc7f1a2ab529fee79c58"
     },
     {
       "path": "meta_import.py",
@@ -33,8 +33,8 @@
     },
     {
       "path": "test_worker.py",
-      "bytes": 16150,
-      "sha256": "e4a595476c9014ae51d7b3498df73d69b7b626fc8f475e7660daca18169e3099"
+      "bytes": 21294,
+      "sha256": "c863e390915134df3c82576c56cd7cff8e29e06ac7ef0550af9f4b4e2e0ddc89"
     },
     {
       "path": "test_meta_import.py",
@@ -43,8 +43,8 @@
     },
     {
       "path": "config.example.json",
-      "bytes": 1258,
-      "sha256": "812b6a84a9f14d68feda5812e3d5670e267d384092e3f3f3f4766d1f722a6a86"
+      "bytes": 1349,
+      "sha256": "360c3d790db274cf6dba80afc8ed63462b48154d21ba59512fe8a258aea1e4e5"
     },
     {
       "path": "sequence.json",
@@ -82,5 +82,5 @@
       "sha256": "108d08808e082ad2a1e1759c026076e2866a2b983f0da2bcebe8a132d17de77e"
     }
   ],
-  "focused_independent_review": "worker and importer: no blocking findings; live integration unverified"
+  "focused_independent_review": "prior worker/importer review found no blocking findings; new suppression/freshness changes awaiting focused review; live integration unverified"
 }

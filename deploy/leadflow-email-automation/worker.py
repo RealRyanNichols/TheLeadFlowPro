@@ -12,6 +12,7 @@ import hashlib
 import hmac
 import html
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -200,11 +201,18 @@ class Ledger:
                 self.db.execute("UPDATE enrollments SET state='paused',pause_reason=? WHERE id=? AND state='active'", (reason,enrollment_id))
                 self.audit("paused", enrollment_id, reason, now)
 
-    def status(self):
+    def status(self, now=None):
+        reconciliation_gaps = suppression_gaps(self.config, now)
         return {
             "enrollments": {r[0]: r[1] for r in self.db.execute("SELECT state,count(*) FROM enrollments GROUP BY state")},
             "deliveries": {r[0]: r[1] for r in self.db.execute("SELECT state,count(*) FROM deliveries GROUP BY state")},
             "suppressions": self.db.execute("SELECT count(*) FROM suppressions").fetchone()[0],
+            "suppression_reconciliation": {
+                "ready": not reconciliation_gaps,
+                "blockers": reconciliation_gaps,
+                "reconciled_at": self.config.get("suppression_reconciled_at"),
+                "maximum_age_seconds": self.config.get("suppression_reconciliation_max_age_seconds"),
+            },
         }
 
     def claim(self, enrollment_id, now=None):
@@ -263,6 +271,9 @@ class Ledger:
                 return False
             if now-d["first_attempt"] >= RETRY_WINDOW:
                 return False
+            if suppression_gaps(self.config, now):
+                self.db.execute("UPDATE deliveries SET lease_until=NULL,claim_token=NULL,error_code='suppression_reconciliation_required' WHERE id=?",(d["id"],))
+                return False
             result, provider_id = transport(d["payload"], d["idempotency_key"])
             finished = time.time() if real_clock else now
             if result == "accepted":
@@ -292,19 +303,23 @@ class Ledger:
             addresses = data.get("to", [])
             if isinstance(addresses,str):
                 addresses = [addresses]
+            if not isinstance(addresses,list):
+                addresses = []
             if kind in {"suppression.added","contact.updated"}:
                 addresses = [data.get("email", "")]
             suppress = kind in {"email.bounced","email.complained","email.suppressed","suppression.added"} or (kind == "contact.updated" and data.get("unsubscribed") is True)
             if suppress:
                 for address in addresses:
+                    if not isinstance(address,str):
+                        continue
                     try:
                         address = email_address(address)
                     except ValueError:
                         continue
-                    # The provider account may be shared; only this ledger's
-                    # addresses are relevant. Never save arbitrary recipients.
-                    if self.db.execute("SELECT 1 FROM enrollments WHERE email=?",(address,)).fetchone():
-                        self._suppress(address,kind,now)
+                    # Only verified, recognized suppression event types reach
+                    # this path. Retain their addresses before enrollment too;
+                    # an opt-out must not be lost simply because import is later.
+                    self._suppress(address,kind,now)
             # Never auto-resume on suppression.removed or contact resubscribe.
             return True
 
@@ -385,11 +400,35 @@ def render_payload(enrollment, config, preview=False):
             "tags":[{"name":"campaign","value":seq["sequence_id"]},{"name":"day","value":str(item["day"])},{"name":"version","value":seq["version"]}]}
 
 
-def send_gaps(config, sequence):
+def suppression_gaps(config, now=None):
+    """An external reconciler must attest only after durable local updates.
+
+    A static boolean is insufficient. Missing, invalid, future or expired
+    evidence fails closed; this function does not claim to perform any sync.
+    """
+    now = time.time() if now is None else now
     gaps = []
-    for key in ["enabled","sender_verified","suppression_reconciled","webhook_ready"]:
+    if config.get("suppression_reconciled") is not True:
+        gaps.append("suppression_reconciled")
+    maximum = config.get("suppression_reconciliation_max_age_seconds")
+    if isinstance(maximum,bool) or not isinstance(maximum,(int,float)) or not math.isfinite(maximum) or maximum <= 0:
+        gaps.append("suppression reconciliation maximum age")
+        return gaps
+    try:
+        age = now-timestamp(config.get("suppression_reconciled_at"))
+        if not math.isfinite(age) or age < 0 or age >= maximum:
+            raise ValueError("Expired or future reconciliation")
+    except (ValueError,TypeError,OverflowError):
+        gaps.append("recent suppression reconciliation")
+    return gaps
+
+
+def send_gaps(config, sequence, now=None):
+    gaps = []
+    for key in ["enabled","sender_verified","webhook_ready"]:
         if config.get(key) is not True:
             gaps.append(key)
+    gaps.extend(suppression_gaps(config, now))
     if sequence.get("approved_for_sending") is not True:
         gaps.append("sequence approval")
     if config.get("approved_sequence_sha256") != digest(canonical(sequence)):

@@ -36,7 +36,17 @@ systemd configuration is changed by these files. `sequence.json` is review copy.
 - Resend event verification uses the unmodified body, Svix HMAC SHA256, constant
   time comparison, timestamp tolerance of five minutes, and durable event IDs.
   Permanent bounce, complaint, suppression and contact opt-out stop this series.
+  Recognized signed suppression events retain normalized addresses even before
+  enrollment, so a later import cannot erase an earlier opt-out. Unrelated
+  event types do not persist their recipient addresses. Connect only the
+  intended LeadFlow provider account and verify its actual event shapes.
   A suppression removal never grants consent or resumes an enrollment.
+- Every dispatch checks recent suppression reconciliation evidence, including
+  same-message retries. A static `suppression_reconciled: true` is insufficient.
+  Missing, invalid, future or expired timestamps stop sending without contacting
+  the provider. This gate does not implement or claim a legacy suppression sync.
+  `status` reports its current freshness result, evidence time, maximum age and
+  blockers separately from enrollment/delivery counts.
 - Reply, booking and purchase pauses are **authorized local CLI actions**.
   Automatic integrations for them are not installed. Existing brain `mail_reply`
   and `mail_event` tables belong to another workflow and are not queried here.
@@ -89,8 +99,22 @@ The provided static `sequence-preview.html` is also safe to review offline.
    separate, unapplied proposal for callback admission in the existing site;
    both inferred marketing and SMS permission remain false there. The new form
    is not added to the old thirty-day email allowlist.
-5. Reconcile existing business email suppressions before enabling. The new local
-   ledger is not yet a shared suppression service for every older sender.
+5. Reconcile existing and ongoing business email suppressions before enabling.
+   The new local ledger is not a shared suppression service for every older
+   sender. An authorized external reconciliation process must first commit
+   every applicable opt-out to this ledger, then atomically update private
+   config with `suppression_reconciled: true` and the completed UTC timestamp
+   `suppression_reconciled_at`. Do not advance this timestamp for a failed,
+   partial, skipped, or unimplemented reconciliation. Configure a reviewed
+   `suppression_reconciliation_max_age_seconds`; the example is 3600 seconds.
+   Missing or nonpositive maximum age fails closed, as do missing/invalid,
+   future, and expired timestamps (age equal to the maximum is expired).
+   Readiness and **every dispatch**, including retries, enforce this bound.
+   Each scheduled run loads the private config anew; a stale long-running
+   process stays blocked until a later run reads fresh evidence. Keep
+   reconciliation logs privately as evidence. No reconciliation job is
+   installed by this package, and webhook delivery alone does not certify that
+   all legacy sources were reconciled.
 6. The main operator confirmed the correct LeadFlow domain and delivered a
    provider-test email using the existing scoped send credential. The package
    still has `sender_verified: false` until its exact runtime is configured.
