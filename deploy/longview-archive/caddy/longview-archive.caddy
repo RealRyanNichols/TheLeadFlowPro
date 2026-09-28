@@ -5,7 +5,10 @@
 # engine on this droplet (nothing is deployed anywhere else):
 #   - the public Longview business directory at /longview/businesses/ (the
 #     approved batch only; / redirects there), the same path it will have on
-#     theleadflowpro.com;
+#     theleadflowpro.com, and each other town that is turned on at
+#     /<town>/businesses/, with the towns hub at /places/ (the town list is the
+#     one seeded in longview_archive/places.py; a town that is not on has no
+#     files, so its paths answer 404);
 #   - the private status page at /status, /status/*, and /status.json.
 # /robots.txt is answered here. Everything else is a 404. The pages load
 # nothing from any other host.
@@ -51,8 +54,8 @@ longview.165-227-248-110.sslip.io {
 	root * /var/lib/longview-archive/www
 	import longview_archive_headers
 
-	@longview_directory path /longview/businesses /longview/businesses/*
-	@longview_not_directory not path /longview/businesses /longview/businesses/*
+	@longview_directory path_regexp (?i)^/(?:(?:longview|marshall|kilgore|white-oak|hallsville|diana|harleton|gladewater|clarksville-city|easton|scottsville|elysian-fields|waskom|ore-city|gilmer|karnack|jefferson|tatum|henderson|carthage)/businesses|places)(?:/.*)?$
+	@longview_not_directory not path_regexp (?i)^/(?:(?:longview|marshall|kilgore|white-oak|hallsville|diana|harleton|gladewater|clarksville-city|easton|scottsville|elysian-fields|waskom|ore-city|gilmer|karnack|jefferson|tatum|henderson|carthage)/businesses|places)(?:/.*)?$
 	import longview_archive_csp_strict @longview_not_directory
 	import longview_archive_csp_directory @longview_directory
 
@@ -71,13 +74,47 @@ longview.165-227-248-110.sslip.io {
 		redir * /longview/businesses/ 302
 	}
 
-	handle /longview/businesses {
-		redir * /longview/businesses/ 308
+	# /<town>/businesses and /places without the slash, in any case: the section's
+	# own path with it. The target is the town the pattern captured from the
+	# cleaned path, lower-cased by the map, never the request's raw path: a raw
+	# //longview/businesses must not become the protocol-relative (another host)
+	# //longview/businesses/.
+	@longview_directory_bare path_regexp lva_bare (?i)^/(longview|marshall|kilgore|white-oak|hallsville|diana|harleton|gladewater|clarksville-city|easton|scottsville|elysian-fields|waskom|ore-city|gilmer|karnack|jefferson|tatum|henderson|carthage)/businesses$
+	handle @longview_directory_bare {
+		map {re.lva_bare.1} {lva_town} {
+			~(?i)^longview$ longview
+			~(?i)^marshall$ marshall
+			~(?i)^kilgore$ kilgore
+			~(?i)^white-oak$ white-oak
+			~(?i)^hallsville$ hallsville
+			~(?i)^diana$ diana
+			~(?i)^harleton$ harleton
+			~(?i)^gladewater$ gladewater
+			~(?i)^clarksville-city$ clarksville-city
+			~(?i)^easton$ easton
+			~(?i)^scottsville$ scottsville
+			~(?i)^elysian-fields$ elysian-fields
+			~(?i)^waskom$ waskom
+			~(?i)^ore-city$ ore-city
+			~(?i)^gilmer$ gilmer
+			~(?i)^karnack$ karnack
+			~(?i)^jefferson$ jefferson
+			~(?i)^tatum$ tatum
+			~(?i)^henderson$ henderson
+			~(?i)^carthage$ carthage
+			default longview
+		}
+		redir * /{lva_town}/businesses/ 308
+	}
+	@longview_directory_hub_bare path_regexp (?i)^/places$
+	handle @longview_directory_hub_bare {
+		redir * /places/ 308
 	}
 
 	# The static directory. A profile, category, or list is a folder with an
-	# index.html; "businesses" is a link the engine switches in one rename.
-	handle /longview/businesses/* {
+	# index.html; "businesses" (and "places") is a link the engine switches in one rename.
+	@longview_directory_files path_regexp (?i)^/(?:(?:longview|marshall|kilgore|white-oak|hallsville|diana|harleton|gladewater|clarksville-city|easton|scottsville|elysian-fields|waskom|ore-city|gilmer|karnack|jefferson|tatum|henderson|carthage)/businesses|places)/.*$
+	handle @longview_directory_files {
 		try_files {path} {path}/index.html
 		file_server
 	}

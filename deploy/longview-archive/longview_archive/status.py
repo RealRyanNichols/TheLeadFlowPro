@@ -17,7 +17,7 @@ import sqlite3
 from datetime import timedelta
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from . import approval, config, db, normalize
+from . import approval, config, db, normalize, places
 from .publish import as_datetime, atomic_write, local_date, resolve_now, to_local
 
 log = logging.getLogger(__name__)
@@ -88,6 +88,52 @@ def scrub(message: Optional[str], names: List[str] = (), domains: Set[str] = fro
     return text[:limit]
 
 
+def _latest_sales_tax_counts(conn: sqlite3.Connection) -> dict:
+    marks = ",".join("?" * len(SALES_TAX_RUN_KINDS))
+    row = conn.execute(
+        f"SELECT counts_json FROM runs WHERE kind IN ({marks}) AND counts_json IS NOT NULL"
+        " AND status IN ('ok','partial') ORDER BY started_at DESC, id DESC LIMIT 1",
+        SALES_TAX_RUN_KINDS,
+    ).fetchone()
+    if row is None:
+        return {}
+    try:
+        counts = json.loads(row["counts_json"])
+    except ValueError:
+        return {}
+    return counts if isinstance(counts, dict) else {}
+
+
+def _place_rows(conn: sqlite3.Connection, settings) -> List[dict]:
+    """Per active town: businesses in the archive, by scope, ready to publish, and other ZIPs seen.
+
+    Only once a town besides Longview is on; counts only."""
+    active = places.active(settings)
+    if tuple(p.slug for p in active) == (places.LONGVIEW.slug,):
+        return []
+    by_place = _latest_sales_tax_counts(conn).get("other_zips_by_place")
+    by_place = by_place if isinstance(by_place, dict) else {}
+    rows = []
+    for p in active:
+        zips = by_place.get(p.slug) if isinstance(by_place.get(p.slug), dict) else {}
+        rows.append({
+            "slug": p.slug,
+            "name": p.name,
+            "zipsKnown": p.zips_known,
+            "businesses": _one(conn, "SELECT COUNT(*) FROM businesses WHERE active=1 AND place=?", (p.slug,)),
+            "inCity": _one(conn, "SELECT COUNT(*) FROM businesses WHERE active=1 AND scope='city' AND place=?",
+                           (p.slug,)),
+            "nearby": _one(conn, "SELECT COUNT(*) FROM businesses WHERE active=1 AND scope='nearby' AND place=?",
+                           (p.slug,)),
+            "ready": _one(conn, "SELECT COUNT(*) FROM businesses WHERE publish_state='ready' AND place=?",
+                          (p.slug,)),
+            "otherZips": {z: int(n) for z, n in sorted(zips.items())
+                          if (re.fullmatch(r"\d{5}", str(z)) or z == "missing")
+                          and isinstance(n, int) and not isinstance(n, bool)},
+        })
+    return rows
+
+
 def _other_zips(conn: sqlite3.Connection) -> Dict[str, int]:
     marks = ",".join("?" * len(SALES_TAX_RUN_KINDS))
     row = conn.execute(
@@ -102,6 +148,10 @@ def _other_zips(conn: sqlite3.Connection) -> Dict[str, int]:
     except ValueError:
         return {}
     zips = counts.get("other_zips", counts.get("otherZips")) if isinstance(counts, dict) else None
+    by_place = counts.get("other_zips_by_place") if isinstance(counts, dict) else None
+    if isinstance(by_place, dict):
+        # Several towns are on: this table is Longview's; the Towns table has the others'.
+        zips = by_place.get(places.LONGVIEW.slug) or {}
     if not isinstance(zips, dict):
         return {}
     return {
@@ -179,7 +229,7 @@ def collect(conn: sqlite3.Connection, settings, now: Any = None) -> dict:
         for r in error_rows
     ]
 
-    return {
+    data = {
         "generatedAt": now_s,
         "version": config.VERSION,
         "state": state,
@@ -214,6 +264,11 @@ def collect(conn: sqlite3.Connection, settings, now: Any = None) -> dict:
         "lastExportAt": db.get_meta(conn, "last_export_at"),
         "directorySite": _site_info(conn, settings),
     }
+    towns = _place_rows(conn, settings)
+    if towns:
+        # Only once a town besides Longview is on, so Longview's status.json keeps its shape.
+        data["places"] = towns
+    return data
 
 
 def _site_info(conn: sqlite3.Connection, settings) -> dict:
@@ -315,11 +370,32 @@ def _directory_site(info: dict) -> str:
         items.append(("Waiting for approval", "Nothing"))
     held = info.get("heldForPerson")
     if held:
+        towns = "".join(
+            f" {t.get('place')}: {t.get('removed', 0):,} of {t.get('approved', 0):,}." for t in held.get("places") or [])
         items.append(("Needs a person", '<span class="warn">' + _e(
             f"Auto-approve is holding batch {held.get('batchId')}: it would remove {held.get('removed', 0):,} of"
-            f" the {held.get('approved', 0):,} approved businesses. Check it, then run: lva approve") + "</span>"))
+            f" the {held.get('approved', 0):,} approved businesses."
+            + (f" Towns losing more than a quarter:{towns}" if towns else "")
+            + " Check it, then run: lva approve") + "</span>"))
     items.append(("Search engines", "Allowed (indexable)" if info.get("indexable") else "Kept out (noindex)"))
     return _dl(items) + '<p><a href="/longview/businesses/">Open the directory</a></p>'
+
+
+def _towns_section(rows: List[dict]) -> str:
+    """Per town, once a town besides Longview is on: counts only, and a link to each section."""
+    if not rows:
+        return ""
+    table = _table(
+        "Businesses per town (active in the archive, and ready to publish)",
+        ("Town", "Active", "In the city", "Nearby", "Ready", "Other ZIPs seen"),
+        [(f'<a href="/{_e(r.get("slug"))}/businesses/">{_e(r.get("name"))}</a>'
+          + ("" if r.get("zipsKnown") else " <small>(no ZIP list: matched by town name)</small>"),
+          _n(r.get("businesses")), _n(r.get("inCity")), _n(r.get("nearby")), _n(r.get("ready")),
+          _e(", ".join(f"{z} ({n:,})" for z, n in (r.get("otherZips") or {}).items()) or "None"))
+         for r in rows],
+        "No towns yet.",
+    )
+    return _section("towns", "Towns", table)
 
 
 def render_html(data: dict) -> str:
@@ -406,6 +482,7 @@ def render_html(data: dict) -> str:
               _n(s.get("rows"))) for s in data.get("sources") or [] if s.get("id") != "website"],
             "No sources recorded yet.",
         )),
+        _towns_section(data.get("places") or []),
         _section("zips", "Other ZIP codes seen with city Longview", _table(
             "Other ZIP codes from the latest sales-tax sync", ("ZIP", "Rows"),
             [(_e(z), _n(n)) for z, n in (data.get("otherZips") or {}).items()],

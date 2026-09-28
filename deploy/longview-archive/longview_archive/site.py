@@ -1,8 +1,11 @@
-"""The public Longview business directory as a static site, served by Caddy.
+"""The public business directory as a static site, served by Caddy: one section per town.
 
 Input: a publish export (the contract in SPEC.md), normally the APPROVED batch
-(``approval.py``). Output: every page under ``www/longview/businesses/``, so the
-path on the droplet matches the future theleadflowpro.com/longview/businesses/.
+(``approval.py``). Output: every page under ``www/<town>/businesses/`` for each
+active town (``places.py``; Longview's is ``www/longview/businesses/``, the path
+it has on theleadflowpro.com), and, once a town besides Longview is on, a small
+hub at ``www/places/`` that links the towns with their counts. A town that is
+turned off loses its pages at the next build.
 
 The pages port the removed Next.js pages (profile, category, new, hiring,
 about, and the A to Z index) and their copy. Rules every page follows:
@@ -21,7 +24,7 @@ about, and the A to Z index) and their copy. Rules every page follows:
 * ``noindex,nofollow`` on every page while ``settings.indexable`` is off.
 
 The site is written atomically: pages are built in a new folder under
-``www/longview/.builds/``, and the ``businesses`` symbolic link is switched to
+``www/<town>/.builds/``, and the ``businesses`` symbolic link is switched to
 it in one rename. A build that fails leaves the previous site exactly as it was.
 """
 
@@ -35,19 +38,24 @@ import re
 import shutil
 import tempfile
 import unicodedata
+from contextvars import ContextVar
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
 from urllib.parse import quote, urlencode, urlsplit
 
-from . import config
+from . import config, places
 from .fetcher import ROBOTS_TOKEN
 from .publish import local_date, resolve_now
-from .validate import ValidationResult, empty_directory, http_url, shown_fields, validate_directory
+from .validate import (ValidationResult, empty_directory, http_url, recount_categories, shown_fields,
+                       validate_directory)
 
 log = logging.getLogger(__name__)
 
-BASE = config.DIRECTORY_PATH + "/"            # /longview/businesses/
+BASE = config.DIRECTORY_PATH + "/"            # /longview/businesses/ (Longview's section)
+# The town being rendered; every path below is inside its section.
+_PLACE: ContextVar[places.Place] = ContextVar("site_place", default=places.LONGVIEW)
+HUB_DIR = "places"
 LEADFLOW_LONGVIEW = config.SITE_URL + "/longview"
 PAGE_SIZE = 50
 NEW_WINDOW_DAYS = 180
@@ -61,11 +69,12 @@ DISCLAIMER = "Not affiliated with the businesses listed. No rankings, no reviews
 SAMPLE_BANNER = "Sample data: fictional businesses for layout testing"
 FOOTER_RESOURCE = "A free community resource from The LeadFlow Pro."
 FOOTER_PITCH = "The LeadFlow Pro builds websites and follow-up systems for Longview businesses."
+FOOTER_PITCH_OTHER = "The LeadFlow Pro builds websites and follow-up systems for local businesses."
 CATEGORY_LEAD = "Every one we could verify, listed A to Z. Not ranked."
 # Bump whenever the pages' wording or markup changes: a site built with another
 # version is rebuilt at the next service start (``build_key``), so an upgrade
 # never leaves the old copy public until the next approval.
-COPY_VERSION = "4"
+COPY_VERSION = "5"
 
 SOURCE_LABELS = {
     "tx_sales_tax": "Texas Comptroller open data",
@@ -109,8 +118,8 @@ ABOUT_SOURCES = (
      "Active franchise taxpayers: companies such as LLCs, corporations, and partnerships in good standing,"
      " published as open data on the Texas Open Data Portal.",
      "The registered company name and the year its franchise-tax registration began, for a company with a"
-     " Longview address and no sales-tax location. Its mailing address is never shown; the listing says"
-     " Longview, TX. The list names no kind of business, so none is guessed.",
+     " {town} address and no sales-tax location. Its mailing address is never shown; the listing says"
+     " {town}, TX. The list names no kind of business, so none is guessed.",
      "https://data.texas.gov"),
     ("Texas Alcoholic Beverage Commission", "License records.",
      "Confirming a business name and a storefront address.", "https://www.tabc.texas.gov"),
@@ -136,9 +145,14 @@ def safe_url(value: Any) -> Optional[str]:
     return http_url(value)
 
 
+def base() -> str:
+    """The section of the town being rendered: /longview/businesses/, /marshall/businesses/, ..."""
+    return _PLACE.get().base
+
+
 def path(*parts: str) -> str:
     """A site path with a trailing slash: path("category", "auto") -> /longview/businesses/category/auto/."""
-    return BASE + "".join(f"{p}/" for p in parts if p)
+    return base() + "".join(f"{p}/" for p in parts if p)
 
 
 def page_path(base_parts: Sequence[str], page: int) -> str:
@@ -207,8 +221,10 @@ def category_class(slug: str) -> str:
 
 
 def address_line(b: Mapping) -> str:
+    """The street line with the town, or the town alone ("Marshall, TX") when no street may be shown."""
     street, zip_code = b["address"]["street"], b["address"]["zip"]
-    return f"{street}, Longview, TX {zip_code}" if street and zip_code else "Longview, TX"
+    town = b["address"].get("city") or "Longview"
+    return f"{street}, {town}, TX {zip_code}" if street and zip_code else f"{town}, TX"
 
 
 PREMISES_SOURCES = frozenset({"tx_sales_tax", "tx_tabc", "npi"})
@@ -220,7 +236,7 @@ def has_premises(b: Mapping) -> bool:
 
 
 def maps_url(b: Mapping) -> str:
-    query = f"{b['name']}, {address_line(b)}" if b["address"]["street"] else f"{b['name']}, Longview, TX"
+    query = f"{b['name']}, {address_line(b)}"
     return "https://www.google.com/maps/search/?" + urlencode({"api": "1", "query": query})
 
 
@@ -236,14 +252,15 @@ def mailto(subject: str, body: str) -> str:
 
 def claim_mailto(d: "Directory", b: Mapping) -> str:
     return mailto(
-        f"Longview directory: {b['name']} ({b['id']})",
+        f"{d.town} directory: {b['name']} ({b['id']})",
         "\n".join([f"Listing: {canonical(d, path(b['slug']))}", "",
                    "I would like to claim, correct, or remove this listing.", "What should change:", ""]),
     )
 
 
-def directory_mailto() -> str:
-    return mailto("Longview directory: claim, correct, or remove a listing",
+def directory_mailto(d: Optional["Directory"] = None) -> str:
+    town = d.town if d is not None else "Longview"
+    return mailto(f"{town} directory: claim, correct, or remove a listing",
                   "Business name:\nListing link (if you have it):\nWhat should change:\n")
 
 
@@ -267,9 +284,13 @@ def paginate(items: Sequence, page: int, size: int = PAGE_SIZE) -> Tuple[list, i
 class Directory:
     """The validated directory plus what every page needs to know about it."""
 
-    def __init__(self, data: dict, settings):
+    def __init__(self, data: dict, settings, place: places.Place = places.LONGVIEW, hub: bool = False):
         self.data = data
         self.settings = settings
+        self.place = place
+        self.town = place.name
+        # Other towns are on too: the pages link the hub at /places/.
+        self.hub = hub
         self.businesses: List[dict] = sorted(data["businesses"], key=name_key)
         self.categories: List[dict] = data["categories"]
         self.names = {c["slug"]: c["name"] for c in self.categories}
@@ -330,7 +351,9 @@ def render_page(d: Directory, *, title: str, description: str, site_path: str, h
                 items.append(f"<li><span{current}>{e(label)}</span></li>")
         crumb_html = f'<nav class="crumbs" aria-label="Breadcrumb"><ol>{"".join(items)}</ol></nav>'
     sample = f'<p class="sample" role="note">{e(SAMPLE_BANNER)}</p>\n' if d.sample else ""
-    script_tag = f'<script src="{BASE}{JS_NAME}" defer></script>\n' if script else ""
+    script_tag = f'<script src="{base()}{JS_NAME}" defer></script>\n' if script else ""
+    pitch = FOOTER_PITCH if d.place is places.LONGVIEW else FOOTER_PITCH_OTHER
+    hub_link = f'<p><a href="{places.HUB_PATH}">Other towns in the directory</a></p>' if d.hub else ""
     foot_disclaimer = f'<p class="disclaimer">{e(DISCLAIMER)}</p>' if disclaimer_in_footer else ""
     hero_cls = "hero" + (f" {hero_class}" if hero_class else "")
     return (
@@ -343,12 +366,12 @@ def render_page(d: Directory, *, title: str, description: str, site_path: str, h
         f'<meta name="description" content="{e(description)}">\n'
         f'<link rel="canonical" href="{e(canonical(d, site_path))}">\n'
         '<link rel="icon" href="data:,">\n'
-        f'<link rel="stylesheet" href="{BASE}{CSS_NAME}">\n'
+        f'<link rel="stylesheet" href="{base()}{CSS_NAME}">\n'
         f"{script_tag}"
         "</head>\n<body>\n"
         '<a class="skip" href="#main">Skip to the content</a>\n'
         f"{sample}"
-        f'<header class="brand"><div class="shell"><a href="{BASE}">Longview businesses</a>'
+        f'<header class="brand"><div class="shell"><a href="{base()}">{e(d.town)} businesses</a>'
         '<span> · The LeadFlow Pro</span></div></header>\n'
         '<main id="main">\n'
         f'<section class="{hero_cls}"><div class="shell">{crumb_html}{art}'
@@ -361,8 +384,9 @@ def render_page(d: Directory, *, title: str, description: str, site_path: str, h
         '<footer class="foot"><div class="shell">'
         f"{foot_disclaimer}"
         f"<p>{e(FOOTER_RESOURCE)}</p>"
-        f'<p><a href="{e(LEADFLOW_LONGVIEW)}">{e(FOOTER_PITCH)}</a></p>'
+        f'<p><a href="{e(LEADFLOW_LONGVIEW)}">{e(pitch)}</a></p>'
         f'<p><a href="{path("about")}">About this directory</a></p>'
+        f"{hub_link}"
         "</div></footer>\n"
         "</body>\n</html>\n"
     )
@@ -419,12 +443,13 @@ def category_chips(d: Directory, current: Optional[str] = None) -> str:
     return f'<ul class="chips">{"".join(items)}</ul>'
 
 
-MORE_LINKS = (("all", "", "All businesses"), ("new", "new", "New in Longview"),
-              ("hiring", "hiring", "Longview is hiring"), ("about", "about", "About this directory"))
+MORE_LINKS = (("all", "", "All businesses"), ("new", "new", "New in {town}"),
+              ("hiring", "hiring", "{town} is hiring"), ("about", "about", "About this directory"))
 
 
-def more_links(current: Optional[str] = None) -> str:
-    items = [f'<li><a href="{e(path(p))}">{e(label)}</a></li>' for key, p, label in MORE_LINKS if key != current]
+def more_links(d: "Directory", current: Optional[str] = None) -> str:
+    items = [f'<li><a href="{e(path(p))}">{e(label.format(town=d.town))}</a></li>'
+             for key, p, label in MORE_LINKS if key != current]
     return f'<ul class="links">{"".join(items)}</ul>'
 
 
@@ -433,7 +458,7 @@ def browse_band(d: Directory, current: Optional[str] = None, category: Optional[
     return ('<section class="band" aria-labelledby="browse-title"><div class="shell">'
             + (f'<h2 id="browse-title">Browse by category</h2>{chips}'
                '<h2 class="subhead">More ways in</h2>' if chips else '<h2 id="browse-title">More ways in</h2>')
-            + f"{more_links(current)}</div></section>")
+            + f"{more_links(d, current)}</div></section>")
 
 
 def count_line(page: int, shown: int, total: int, pages: int) -> str:
@@ -462,18 +487,23 @@ def list_section(d: Directory, heading: str, items: List[dict], page: int, pages
 # ---------------------------------------------------------------- what is covered
 
 def covers_longview_addresses(d: "Directory") -> bool:
-    """The batch lists every business with a Longview address (not only inside the city limits)."""
+    """The batch lists every business with a <Town> address (not only inside the city limits).
+
+    An unincorporated town has no city limits: its section always lists by address."""
+    if not d.place.incorporated:
+        return True
     if d.data.get("generatedAt"):
         return d.data.get("scope") == config.SCOPE_LABEL_POSTAL
     return config.scope_label(d.settings.publish_scopes) == config.SCOPE_LABEL_POSTAL
 
 
 def where_long(d: "Directory") -> str:
-    return "with a Longview, Texas address" if covers_longview_addresses(d) else "in the City of Longview, Texas"
+    return (f"with a {d.town}, Texas address" if covers_longview_addresses(d)
+            else f"in the City of {d.town}, Texas")
 
 
 def where_short(d: "Directory") -> str:
-    return "with a Longview address" if covers_longview_addresses(d) else "in the City of Longview"
+    return f"with a {d.town} address" if covers_longview_addresses(d) else f"in the City of {d.town}"
 
 
 # ---------------------------------------------------------------- the pages
@@ -482,7 +512,7 @@ def index_pages(d: Directory) -> Dict[str, str]:
     """The A to Z index, 50 per page: index.html, page-2/index.html, ..."""
     out: Dict[str, str] = {}
     count = len(d.businesses)
-    title = "Longview businesses, A to Z | The LeadFlow Pro"
+    title = f"{d.town} businesses, A to Z | The LeadFlow Pro"
     description = (f"Businesses {where_long(d)}, listed A to Z with the source and check date"
                    " for every fact. Not ranked, no reviews.")
     if not count:
@@ -492,8 +522,8 @@ def index_pages(d: Directory) -> Dict[str, str]:
                 " meantime.</p>"
                 f'<p><a href="{path("about")}">How the directory works</a></p></div></section>')
         out["index.html"] = render_page(
-            d, title=title, description=description, site_path=BASE, h1="Longview businesses",
-            eyebrow="Longview, Texas",
+            d, title=title, description=description, site_path=base(), h1=f"{d.town} businesses",
+            eyebrow=f"{d.town}, Texas",
             lead=e(f"A free, sourced list of businesses {where_long(d)}. The first batch is being"
                    " checked."),
             body=body, index=False)
@@ -508,7 +538,8 @@ def index_pages(d: Directory) -> Dict[str, str]:
         parts = []
         if page == 1:
             parts.append(
-                f'<section class="band" id="search" hidden aria-labelledby="search-title" data-base="{BASE}">'
+                f'<section class="band" id="search" hidden aria-labelledby="search-title" data-base="{base()}"'
+                + (f' data-town="{e(d.town)}"' if d.place is not places.LONGVIEW else "") + ">"
                 '<div class="shell"><h2 id="search-title">Find a business</h2>'
                 '<form class="search" id="search-form" role="search">'
                 '<div class="field field-q"><label for="search-q">Search businesses</label>'
@@ -533,9 +564,9 @@ def index_pages(d: Directory) -> Dict[str, str]:
             parts.append(browse_band(d, current=None))
         site_path = page_path((), page)
         out[("" if page == 1 else f"page-{page}/") + "index.html"] = render_page(
-            d, title=title if page == 1 else f"Longview businesses, page {page} | The LeadFlow Pro",
-            description=description, site_path=site_path, h1="Longview businesses", eyebrow="Longview, Texas",
-            lead=lead, hero_extra=more_links("all"), body="\n".join(parts), index=d.indexable,
+            d, title=title if page == 1 else f"{d.town} businesses, page {page} | The LeadFlow Pro",
+            description=description, site_path=site_path, h1=f"{d.town} businesses", eyebrow=f"{d.town}, Texas",
+            lead=lead, hero_extra=more_links(d, "all"), body="\n".join(parts), index=d.indexable,
             paged=page > 1, script=page == 1)
     return out
 
@@ -557,12 +588,12 @@ def category_pages(d: Directory) -> Dict[str, str]:
                     "</div></section>" + browse_band(d, category=c["slug"]))
             rel = f"category/{c['slug']}/" + ("" if page == 1 else f"page-{page}/") + "index.html"
             out[rel] = render_page(
-                d, title=f"{c['name']} in Longview, TX | Longview businesses",
+                d, title=f"{c['name']} in {d.town}, TX | {d.town} businesses",
                 description=f"{c['name']} {where_long(d)}, listed A to Z with the source and check"
                             " date for every fact. Not ranked, no reviews.",
-                site_path=page_path(("category", c["slug"]), page), h1=f"{c['name']} in Longview",
-                eyebrow="Longview businesses", lead=e(CATEGORY_LEAD),
-                crumbs=(("Longview businesses", BASE), (c["name"], None)), body=body, index=d.indexable,
+                site_path=page_path(("category", c["slug"]), page), h1=f"{c['name']} in {d.town}",
+                eyebrow=f"{d.town} businesses", lead=e(CATEGORY_LEAD),
+                crumbs=((f"{d.town} businesses", base()), (c["name"], None)), body=body, index=d.indexable,
                 paged=page > 1)
     return out
 
@@ -582,13 +613,13 @@ def new_pages(d: Directory) -> Dict[str, str]:
                  " brand-new business.",
             empty="No new sales-tax permits in this window in the current batch.")
         out[("new/" if page == 1 else f"new/page-{page}/") + "index.html"] = render_page(
-            d, title="New in Longview, TX | Longview businesses",
-            description=f"Longview businesses whose Texas sales-tax permit started in the {NEW_WINDOW_DAYS} days"
+            d, title=f"New in {d.town}, TX | {d.town} businesses",
+            description=f"{d.town} businesses whose Texas sales-tax permit started in the {NEW_WINDOW_DAYS} days"
                         " before the latest batch, newest first.",
-            site_path=page_path(("new",), page), h1="New in Longview", eyebrow="Longview businesses",
+            site_path=page_path(("new",), page), h1=f"New in {d.town}", eyebrow=f"{d.town} businesses",
             lead=e(f"Businesses whose Texas sales-tax permit started in the {NEW_WINDOW_DAYS} days before this"
                    f" batch{as_of}, newest first."),
-            crumbs=(("Longview businesses", BASE), ("New in Longview", None)),
+            crumbs=((f"{d.town} businesses", base()), (f"New in {d.town}", None)),
             body=body + browse_band(d, current="new"), index=d.indexable, paged=page > 1)
     return out
 
@@ -615,19 +646,20 @@ def hiring_pages(d: Directory) -> Dict[str, str]:
                             total=len(found), extra=_hiring_extra,
                             empty="No careers pages found on business websites in the current batch.")
         out[("hiring/" if page == 1 else f"hiring/page-{page}/") + "index.html"] = render_page(
-            d, title="Longview is hiring | Longview businesses",
-            description="Longview businesses with a careers page on their own website, linked out, with the roles"
+            d, title=f"{d.town} is hiring | {d.town} businesses",
+            description=f"{d.town} businesses with a careers page on their own website, linked out, with the roles"
                         " mentioned there and the date each page was checked.",
-            site_path=page_path(("hiring",), page), h1="Longview is hiring", eyebrow="Longview businesses",
+            site_path=page_path(("hiring",), page), h1=f"{d.town} is hiring", eyebrow=f"{d.town} businesses",
             lead=e("Businesses with a careers page on their own website, A to Z. Apply on their site; we do not"
                    " take applications."),
-            crumbs=(("Longview businesses", BASE), ("Longview is hiring", None)),
+            crumbs=((f"{d.town} businesses", base()), (f"{d.town} is hiring", None)),
             body=body + browse_band(d, current="hiring"), index=d.indexable, paged=page > 1)
     return out
 
 
 def _profile_description(b: Mapping, category_name: str) -> str:
-    parts = [f"{b['name']} in Longview, TX. {b['categoryLabel'] or category_name}."]
+    town = b["address"].get("city") or "Longview"
+    parts = [f"{b['name']} in {town}, TX. {b['categoryLabel'] or category_name}."]
     if b["address"]["street"]:
         parts.append(f"{address_line(b)}.")
     listed = [w for w, present in (("website", b["website"]), ("phone", b["phone"]), ("hours", b["hours"]),
@@ -720,17 +752,18 @@ def profile_page(d: Directory, b: Mapping) -> str:
             " listing. The button opens an email to The LeadFlow Pro.</p>"
             f'<a class="btn btn-primary" href="{e(claim_mailto(d, b))}">Claim, correct, or remove this listing</a>'
             f'<p class="own">Own this business? <a href="{e(LEADFLOW_LONGVIEW)}">See what The LeadFlow Pro does for'
-            " Longview businesses</a>.</p></div></section>")
+            f" {'Longview' if d.place is places.LONGVIEW else 'local'} businesses</a>.</p></div></section>")
     # No Directions link without a place to visit: a listing with no street and no
     # record that places it anywhere (known only from the franchise-tax list, whose
     # address is a mailing address) could send a visitor to a home or an accountant.
     directions = (f'<a href="{e(maps_url(b))}" rel="{REL}">Directions</a>' if has_premises(b) else "")
     hero_extra = f'<p class="where"><span>{e(address_line(b))}</span>{directions}</p>'
     return render_page(
-        d, title=f"{b['name']} in Longview, TX | Longview businesses",
+        d, title=f"{b['name']} in {d.town}, TX | {d.town} businesses",
         description=_profile_description(b, category_name), site_path=path(b["slug"]), h1=b["name"],
         eyebrow=category_name,
-        crumbs=(("Longview businesses", BASE), (category_name, path("category", b["category"])), (b["name"], None)),
+        crumbs=((f"{d.town} businesses", base()), (category_name, path("category", b["category"])),
+                (b["name"], None)),
         art=cover(b), hero_extra=hero_extra, body=body, index=d.profile_indexable(b),
         disclaimer_in_footer=False, hero_class="hero-profile")
 
@@ -749,7 +782,8 @@ def about_page(d: Directory) -> str:
         batch = "<p>No batch has been published yet. The first batch is being checked; listings appear here once" \
                 " it is approved.</p>"
     sources = "".join(
-        f"<li><strong>{ext_link(href, name) if href else e(name)}.</strong> {e(what)} Used for: {e(use)}</li>"
+        f"<li><strong>{ext_link(href, name) if href else e(name)}.</strong> {e(what)} Used for:"
+        f" {e(use.format(town=d.town))}</li>"
         for name, what, use, href in ABOUT_SOURCES)
     if d.data["sources"]:
         datasets = '<ul class="datasets" aria-label="Datasets in the latest batch">' + "".join(
@@ -771,16 +805,20 @@ def about_page(d: Directory) -> str:
 
     body = "".join([
         section("what", "What it is",
-                (("<p>One listing per business with a Longview, Texas address, drawn from public records and"
+                ((f"<p>One listing per business with a {e(d.town)}, Texas address, drawn from public records and"
                   " each business's own website: locations that hold a Texas sales-tax permit, licensed or"
                   " registered practices, and companies in good standing on the Texas franchise-tax list that"
-                  " have no sales-tax location. That includes businesses just outside the city limits whose"
-                  " address has a Longview ZIP code. A listing whose name may be a person's is held back until the business"
+                  " have no sales-tax location. "
+                  + (f"That includes businesses just outside the city limits whose address has a {e(d.town)} ZIP"
+                     " code." if d.place.incorporated else
+                     f"{e(d.town)} is not an incorporated city, so this covers every business whose address says"
+                     f" {e(d.town)}, Texas.")
+                  + " A listing whose name may be a person's is held back until the business"
                   " has a public presence and a person has checked it, and some listings wait for review, so"
                   " not every business on those lists appears here yet. Organizations exempt from franchise tax"
                   " (most nonprofits) are not listed from that list.")
                  if covers_longview_addresses(d) else
-                 "<p>One listing per business location in the City of Longview, drawn from public records and each"
+                 f"<p>One listing per business location in the City of {e(d.town)}, drawn from public records and each"
                  " business's own website.")
                 + " Listings are A to Z. Nothing is ranked, scored, or promoted.</p>" + batch),
         section("sources", "Where the facts come from",
@@ -809,7 +847,7 @@ def about_page(d: Directory) -> str:
                 " list matched to the site's own headings and menus.</li>"
                 "<li>No personal names. Only business and trade names are shown.</li>"
                 "<li>No home addresses. A street address is shown only with public evidence of a storefront;"
-                " otherwise the listing says Longview, TX.</li>"
+                f" otherwise the listing says {e(d.town)}, TX.</li>"
                 "<li>No contact details a business did not publish itself.</li>"
                 "<li>It never contacts a listed business: no calls, texts, emails, or messages, and the crawler never"
                 " fills in forms or logs in.</li></ul>", tint=True),
@@ -831,7 +869,7 @@ def about_page(d: Directory) -> str:
                 " name and what should change. A business can ask us to correct a fact, add one from its own"
                 " website, or remove its listing. A removal takes effect as soon as we act on it, without waiting"
                 " for the next batch.</p>"
-                f'<p><a class="btn btn-primary" href="{e(directory_mailto())}">Claim, correct, or remove a'
+                f'<p><a class="btn btn-primary" href="{e(directory_mailto(d))}">Claim, correct, or remove a'
                 " listing</a></p>", tint=True),
         section("affiliation", "Not affiliated",
                 f'<p class="disclaimer">{e(DISCLAIMER)}</p>'
@@ -842,13 +880,13 @@ def about_page(d: Directory) -> str:
     if published:
         body += browse_band(d, current="about")
     return render_page(
-        d, title="About the Longview business directory | The LeadFlow Pro",
+        d, title=f"About the {d.town} business directory | The LeadFlow Pro",
         description="Where the directory's facts come from, how they are checked, what it never shows, how the"
                     " crawler behaves, and how to claim, correct, or remove a listing.",
-        site_path=path("about"), h1="About this directory", eyebrow="Longview business directory",
+        site_path=path("about"), h1="About this directory", eyebrow=f"{d.town} business directory",
         lead=e(f"A free, sourced list of businesses {where_long(d)}, kept by The LeadFlow Pro. Every"
                " fact on a listing shows where it came from and the date it was checked."),
-        crumbs=(("Longview businesses", BASE), ("About", None)), body=body, index=d.indexable,
+        crumbs=((f"{d.town} businesses", base()), ("About", None)), body=body, index=d.indexable,
         disclaimer_in_footer=False)
 
 
@@ -861,12 +899,12 @@ def search_json(d: Directory) -> str:
             row["zip"] = b["address"]["zip"]
         row["hours"] = b["hours"]
         rows.append(row)
-    return json.dumps({"schemaVersion": 1, "base": BASE, "categories": d.names, "businesses": rows},
+    return json.dumps({"schemaVersion": 1, "base": base(), "categories": d.names, "businesses": rows},
                       ensure_ascii=False, separators=(",", ":")) + "\n"
 
 
 def sitemap_xml(d: Directory) -> str:
-    urls: List[Tuple[str, Optional[str]]] = [(BASE, None)]
+    urls: List[Tuple[str, Optional[str]]] = [(base(), None)]
     urls += [(path("category", c["slug"]), None) for c in d.categories]
     if d.new_in_longview():
         urls.append((path("new"), None))
@@ -880,38 +918,124 @@ def sitemap_xml(d: Directory) -> str:
             '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n' + body + "</urlset>\n")
 
 
-def render_site(data: dict, settings) -> Dict[str, str]:
-    """Every file of the site, by path relative to the site folder."""
-    d = Directory(data, settings)
-    files: Dict[str, str] = {CSS_NAME: SITE_CSS}
-    files.update(index_pages(d))
-    files["about/index.html"] = about_page(d)
-    if d.businesses:
-        files[JS_NAME] = SEARCH_JS
-        files[JSON_NAME] = search_json(d)
-        files.update(category_pages(d))
-        files.update(new_pages(d))
-        files.update(hiring_pages(d))
-        for b in d.businesses:
-            files[f"{b['slug']}/index.html"] = profile_page(d, b)
-        if d.indexable:
-            files["sitemap.xml"] = sitemap_xml(d)
-    return files
+COUNT_KEYS = ("published", "inArchive", "heldForPrivacy", "needsReview")
+
+
+def place_directory(data: dict, place: places.Place) -> dict:
+    """One town's part of a validated directory: its businesses, categories, sources, and counts.
+
+    A batch without per-town counts (every batch written while only Longview
+    was on) is Longview's as it is; any other town has nothing in it."""
+    if "places" not in data:
+        if place is places.LONGVIEW:
+            return data
+        out = dict(data, businesses=[], categories=[], sources=[])
+        out["counts"] = {k: 0 for k in COUNT_KEYS}
+        return out
+    businesses = [b for b in data["businesses"] if b.get("place", places.LONGVIEW.slug) == place.slug]
+    used = {f["source"] for b in businesses for f in b["facts"]}
+    entry = next((p for p in data["places"] if p["slug"] == place.slug), None)
+    out = {k: v for k, v in data.items() if k != "places"}
+    out["businesses"] = businesses
+    out["categories"] = recount_categories(businesses, {c["slug"]: c["name"] for c in data["categories"]})
+    out["sources"] = [s for s in data["sources"] if s["id"] in used]
+    out["counts"] = {k: (entry or {}).get(k, 0) for k in COUNT_KEYS}
+    out["counts"]["published"] = len(businesses)
+    return out
+
+
+def render_site(data: dict, settings, place: places.Place = places.LONGVIEW, hub: bool = False) -> Dict[str, str]:
+    """Every file of one town's section, by path relative to its folder (Longview's by default)."""
+    token = _PLACE.set(place)
+    try:
+        d = Directory(place_directory(data, place), settings, place, hub)
+        files: Dict[str, str] = {CSS_NAME: SITE_CSS}
+        files.update(index_pages(d))
+        files["about/index.html"] = about_page(d)
+        if d.businesses:
+            files[JS_NAME] = SEARCH_JS
+            files[JSON_NAME] = search_json(d)
+            files.update(category_pages(d))
+            files.update(new_pages(d))
+            files.update(hiring_pages(d))
+            for b in d.businesses:
+                files[f"{b['slug']}/index.html"] = profile_page(d, b)
+            if d.indexable:
+                files["sitemap.xml"] = sitemap_xml(d)
+        return files
+    finally:
+        _PLACE.reset(token)
+
+
+def hub_page(data: dict, settings, active: Sequence[places.Place]) -> str:
+    """/places/: the towns that are on, each with the number of businesses listed there. Links only."""
+    per = places.counts_by_place(data["businesses"]) if "places" in data else {
+        places.LONGVIEW.slug: len(data["businesses"])}
+    sample = bool(data.get("sample"))
+    index = bool(settings.indexable) and not sample and bool(data["businesses"])
+    items = "".join(
+        f'<li class="card"><div><h3 class="card-name"><a href="{e(p.base)}">{e(p.name)}, TX</a></h3>'
+        f'<p class="card-meta">{e(plural(per.get(p.slug, 0), "business", "businesses"))} listed</p>'
+        + ("" if p.incorporated else '<p class="card-addr">Not an incorporated city: every business whose'
+           " address says this town.</p>")
+        + "</div></li>" for p in active)
+    base_url = str(settings.public_base_url).rstrip("/")
+    return (
+        "<!doctype html>\n"
+        '<html lang="en">\n<head>\n<meta charset="utf-8">\n'
+        '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
+        f"{_robots(index)}"
+        '<meta name="referrer" content="no-referrer">\n'
+        "<title>Businesses by town | The LeadFlow Pro</title>\n"
+        '<meta name="description" content="The towns in the directory, each with its own A to Z list of'
+        ' businesses and the source and check date for every fact.">\n'
+        f'<link rel="canonical" href="{e(base_url + places.HUB_PATH)}">\n'
+        '<link rel="icon" href="data:,">\n'
+        f'<link rel="stylesheet" href="{places.HUB_PATH}{CSS_NAME}">\n'
+        "</head>\n<body>\n"
+        '<a class="skip" href="#main">Skip to the content</a>\n'
+        + (f'<p class="sample" role="note">{e(SAMPLE_BANNER)}</p>\n' if sample else "")
+        + f'<header class="brand"><div class="shell"><a href="{places.HUB_PATH}">Businesses by town</a>'
+        '<span> · The LeadFlow Pro</span></div></header>\n'
+        '<main id="main">\n'
+        '<section class="hero"><div class="shell"><p class="eyebrow">East Texas</p><h1>Businesses by town</h1>'
+        '<p class="lead">Each town has its own list: businesses with an address in that town, A to Z, with the'
+        " source and check date for every fact. Not ranked, no reviews.</p></div></section>\n"
+        '<section class="band band-tint" aria-labelledby="towns-title"><div class="shell">'
+        f'<h2 id="towns-title">Towns</h2><ul class="cards">{items}</ul></div></section>\n'
+        "</main>\n"
+        '<footer class="foot"><div class="shell">'
+        f'<p class="disclaimer">{e(DISCLAIMER)}</p><p>{e(FOOTER_RESOURCE)}</p>'
+        f'<p><a href="{e(LEADFLOW_LONGVIEW)}">{e(FOOTER_PITCH_OTHER)}</a></p>'
+        "</div></footer>\n"
+        "</body>\n</html>\n"
+    )
 
 
 # ---------------------------------------------------------------- writing it
 
+def place_root(settings, place: places.Place) -> Path:
+    """www/<town>/: the served ``businesses`` link and the ``.builds`` it points into."""
+    return Path(settings.www_dir) / place.slug
+
+
 def site_root(settings) -> Path:
-    return Path(settings.www_dir) / "longview"
+    return place_root(settings, places.LONGVIEW)
 
 
 def site_dir(settings) -> Path:
-    """The served folder: a symbolic link to the live build."""
+    """Longview's served folder: a symbolic link to the live build."""
     return site_root(settings) / "businesses"
 
 
+def hub_dir(settings) -> Path:
+    return Path(settings.www_dir) / HUB_DIR
+
+
 def site_exists(settings) -> bool:
-    return (site_dir(settings) / "index.html").is_file()
+    """Every active town has a built section (a town just turned on has none yet)."""
+    return all((place_root(settings, p) / "businesses" / "index.html").is_file()
+               for p in places.active(settings))
 
 
 def build_key(settings) -> str:
@@ -924,7 +1048,7 @@ def build_key(settings) -> str:
     """
     return "|".join(str(value) for value in (
         COPY_VERSION, int(bool(settings.indexable)), str(settings.public_base_url).rstrip("/"),
-        ",".join(settings.publish_scopes),
+        ",".join(settings.publish_scopes), ",".join(p.slug for p in places.active(settings)),
         settings.user_agent, settings.max_sites_concurrent, settings.min_host_delay_s,
         settings.max_pages_per_visit, settings.max_page_bytes, settings.robots_ttl_s))
 
@@ -937,13 +1061,13 @@ def _write_file(folder: Path, rel: str, text: str) -> None:
     os.chmod(target, 0o644)
 
 
-def _swap(root: Path, build: Path) -> None:
-    """Point ``businesses`` at ``build`` in one rename (readers see the old site or the new one)."""
-    link = root / "businesses"
+def _swap(root: Path, build: Path, name: str = "businesses") -> None:
+    """Point ``name`` at ``build`` in one rename (readers see the old site or the new one)."""
+    link = root / name
     if link.exists() and not link.is_symlink():
         # A plain folder from an older layout: move it aside once, then use the link.
         os.replace(link, build.parent / f"legacy-{os.getpid()}")
-    tmp = root / f".businesses-{os.getpid()}-{build.name}"
+    tmp = root / f".{name}-{os.getpid()}-{build.name}"
     if tmp.is_symlink() or tmp.exists():
         tmp.unlink()
     os.symlink(os.path.join(build.parent.name, build.name), tmp)
@@ -975,10 +1099,36 @@ def build_site(settings, export: Optional[dict], now: Any = None) -> Dict[str, A
                     len(result.dropped), ", ".join(f"{k} {v}" for k, v in sorted(reasons.items())))
     if result.issues:
         log.warning("site: %d file-level issue(s) in the batch", len(result.issues))
-    files = render_site(result.directory, settings)
+    active = places.active(settings)
+    hub = len(active) > 1
+    pages = shown = 0
+    per_place: Dict[str, int] = {}
+    for place in active:
+        files = render_site(result.directory, settings, place, hub)
+        _publish(place_root(settings, place), ".builds", "businesses", files, now)
+        pages += sum(1 for rel in files if rel.endswith(".html"))
+        per_place[place.slug] = len(place_directory(result.directory, place)["businesses"])
+        shown += per_place[place.slug]
+    # A town that is not on keeps no pages: its section answers 404 until it is turned on again.
+    for place in places.PLACES:
+        if place not in active:
+            _take_down(place_root(settings, place), ".builds", "businesses")
+    if hub:
+        _publish(Path(settings.www_dir), ".places-builds", HUB_DIR,
+                 {"index.html": hub_page(result.directory, settings, active), CSS_NAME: SITE_CSS}, now)
+        pages += 1
+    else:
+        _take_down(Path(settings.www_dir), ".places-builds", HUB_DIR)
+    counts = {"businesses": shown, "dropped": len(result.dropped), "pages": pages, "issues": len(result.issues)}
+    if hub:
+        counts["places"] = per_place
+    log.info("site built: %s", counts)
+    return counts
 
-    root = site_root(settings)
-    builds = root / ".builds"
+
+def _publish(root: Path, builds_name: str, link_name: str, files: Mapping[str, str], now: Any) -> None:
+    """Write ``files`` into a new build under ``root/builds_name`` and switch ``root/link_name`` to it."""
+    builds = root / builds_name
     builds.mkdir(parents=True, exist_ok=True)
     for folder in (root, builds):
         try:
@@ -987,22 +1137,28 @@ def build_site(settings, export: Optional[dict], now: Any = None) -> Dict[str, A
             pass
     stamp = resolve_now(now).strftime("%Y%m%dT%H%M%S")
     build = Path(tempfile.mkdtemp(prefix=f"build-{stamp}-", dir=str(builds)))
+    link = root / link_name
     try:
         for rel, text in sorted(files.items()):
             _write_file(build, rel, text)
         for folder in [build, *(p for p in build.rglob("*") if p.is_dir())]:
             os.chmod(folder, 0o755)
-        previous = site_dir(settings).resolve() if site_dir(settings).is_symlink() else None
-        _swap(root, build)
+        previous = link.resolve() if link.is_symlink() else None
+        _swap(root, build, link_name)
     except BaseException:
         shutil.rmtree(build, ignore_errors=True)
         raise
     _prune(builds, [build] + ([previous] if previous is not None else []))
-    pages = sum(1 for rel in files if rel.endswith(".html"))
-    counts = {"businesses": len(result.directory["businesses"]), "dropped": len(result.dropped),
-              "pages": pages, "issues": len(result.issues)}
-    log.info("site built: %s", counts)
-    return counts
+
+
+def _take_down(root: Path, builds_name: str, link_name: str) -> None:
+    """Remove a section that is no longer on: its served link first, then its builds."""
+    link = root / link_name
+    if link.is_symlink():
+        link.unlink()
+    elif link.is_dir():
+        shutil.rmtree(link, ignore_errors=True)
+    shutil.rmtree(root / builds_name, ignore_errors=True)
 
 
 # ---------------------------------------------------------------- the stylesheet and the script
@@ -1283,7 +1439,7 @@ a.btn-primary { color: #FFFFFF; text-decoration: none; }
 """
 
 SEARCH_JS = """\
-/* Longview business directory: search and "Open now" over search.json.
+/* Business directory (one town's section): search and "Open now" over search.json.
    Optional: without this script the A to Z pages and the category pages are
    plain links. Builds every node with createElement and textContent (never
    parsed markup) and asks only this site for search.json. */
@@ -1299,6 +1455,7 @@ SEARCH_JS = """\
   var list = document.getElementById("search-list");
   var az = document.getElementById("az");
   var base = root.getAttribute("data-base") || "/longview/businesses/";
+  var town = root.getAttribute("data-town") || "Longview";
   var MAX = 50;
   var DAYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
   var SVG = "http://www.w3.org/2000/svg";
@@ -1374,7 +1531,7 @@ SEARCH_JS = """\
     h.appendChild(a);
     box.appendChild(h);
     box.appendChild(el("p", "card-meta", b.categoryLabel || (data.categories[b.category] || "")));
-    box.appendChild(el("p", "card-addr", b.zip ? "Longview, TX " + b.zip : "Longview, TX"));
+    box.appendChild(el("p", "card-addr", b.zip ? town + ", TX " + b.zip : town + ", TX"));
     if (open) {
       var badges = el("ul", "badges");
       badges.appendChild(el("li", "badge badge-hiring", "Open now"));

@@ -212,7 +212,7 @@ class PublicBaseUrl(unittest.TestCase):
         parts = urlsplit(url)
         caddy = CADDY.read_text(encoding="utf-8")
         self.assertRegex(caddy, rf"(?m)^{re.escape(parts.hostname)} \{{$")
-        self.assertIn("handle /longview/businesses/* {", caddy)
+        self.assertIn("handle @longview_directory_files {", caddy)
         self.assertTrue(parts.path.startswith(BASE))
         settings = self.settings()
         site.build_site(settings, None, NOW)

@@ -20,7 +20,7 @@ from datetime import datetime
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple
 from urllib.parse import urlsplit
 
-from . import normalize
+from . import normalize, places
 from .categories import CATEGORIES
 from .extract.careers import is_ats_host
 from .privacy import GENERIC_EMAIL_LOCALS
@@ -153,7 +153,7 @@ def is_reserved_slug(slug: str) -> bool:
 
 # ---------------------------------------------------------------- one business
 
-def _address(raw: Any) -> dict:
+def _address(raw: Any, place: "places.Place" = places.LONGVIEW) -> dict:
     if not _is_record(raw):
         _fail("bad_address")
     street = _optional_text(raw.get("street"), 120, "bad_address_street")
@@ -164,11 +164,11 @@ def _address(raw: Any) -> dict:
         _fail("bad_address_zip")
     city = _plain(raw.get("city"), 60, "bad_address_city")
     state = _plain(raw.get("state"), 2, "bad_address_state")
-    # The directory covers businesses with a Longview address only; anything
-    # else would make the "Longview, TX" fallback untrue.
-    if city.lower() != "longview" or state != "TX":
-        _fail("address_outside_longview")
-    return {"street": street, "city": "Longview", "state": "TX", "zip": zip_code}
+    # A town's section lists businesses with that town's address only; anything
+    # else would make its "<Town>, TX" fallback untrue.
+    if city.lower() != place.name.lower() or state != "TX":
+        _fail("address_outside_longview" if place is places.LONGVIEW else "address_outside_place")
+    return {"street": street, "city": place.name, "state": "TX", "zip": zip_code}
 
 
 def _website(raw: Any) -> Optional[dict]:
@@ -304,7 +304,12 @@ def check_business(raw: Any, known_categories: Iterable[str]) -> dict:
     if category not in set(known_categories):
         _fail("unknown_category")
     category_label = _optional_text(raw.get("categoryLabel"), 120, "bad_category_label")
-    address = _address(raw.get("address"))
+    # No "place" key is Longview (every batch before the towns); any other must be a known town.
+    place_slug = raw.get("place", places.LONGVIEW.slug)
+    if not isinstance(place_slug, str) or place_slug not in places.BY_SLUG:
+        _fail("unknown_place")
+    place = places.BY_SLUG[place_slug]
+    address = _address(raw.get("address"), place)
     permit = raw.get("permitSince")
     permit_since = None if permit is None else _date(permit, "bad_permit_since")
     registered = raw.get("registeredSince")  # absent in batches written before the franchise-tax source
@@ -350,6 +355,8 @@ def check_business(raw: Any, known_categories: Iterable[str]) -> dict:
         "hours": hours, "social": social, "careersUrl": careers_url, "hiringRoles": list(roles),
         "services": services, "facts": facts, "updatedAt": updated_at, "indexable": raw["indexable"],
     }
+    if place is not places.LONGVIEW:
+        business["place"] = place.slug
 
     # Provenance: contact details only from the business's own site, the permit
     # date only from the Comptroller, and a source for every shown field.
@@ -512,6 +519,7 @@ def validate_directory(raw: Any) -> ValidationResult:
         businesses.append(business)
 
     scope = raw.get("scope")
+    town_counts = _places(raw.get("places"), issues) if "places" in raw else None
     directory = {
         "schemaVersion": SCHEMA_VERSION,
         "generatedAt": generated_at,
@@ -526,4 +534,29 @@ def validate_directory(raw: Any) -> ValidationResult:
         "businesses": businesses,
     }
     directory["counts"]["published"] = len(businesses)
+    if town_counts is not None:
+        per = places.counts_by_place(businesses)
+        for entry in town_counts:
+            entry["published"] = per.get(entry["slug"], 0)
+        directory["places"] = town_counts
     return ValidationResult(directory, dropped, issues)
+
+
+def _places(raw: Any, issues: List[str]) -> List[dict]:
+    """The per-town counts of a batch that covers towns besides Longview: known towns only."""
+    if not isinstance(raw, list):
+        issues.append("places is not a list")
+        return []
+    out, seen = [], set()
+    for entry in raw:
+        if not _is_record(entry) or entry.get("slug") not in places.BY_SLUG or entry["slug"] in seen:
+            issues.append("a places entry is malformed")
+            continue
+        seen.add(entry["slug"])
+        values = {k: _non_negative_int(entry.get(k)) for k in ("published", "inArchive", "heldForPrivacy",
+                                                                "needsReview")}
+        if any(v is None for v in values.values()):
+            issues.append("a places entry has counts that are not whole numbers")
+        out.append(dict({"slug": entry["slug"], "name": places.BY_SLUG[entry["slug"]].name},
+                        **{k: v or 0 for k, v in values.items()}))
+    return out

@@ -40,10 +40,10 @@ import re
 import sqlite3
 from typing import Any, Dict, Mapping, Optional, Set, Tuple
 
-from .. import db, normalize, privacy
-from ..config import LONGVIEW_POSTAL_ZIPS
+from .. import db, normalize, places, privacy
+from ..places import LONGVIEW, Place, PlaceIndex
 from . import socrata
-from .comptroller import parse_date
+from .comptroller import bump_zip, count_place, parse_date, place_counts
 from .http import EmptyResult, RecordWriter, as_now, bump, finish_failed, finish_ok
 from .socrata import DatasetNotFound, SchemaMismatch
 
@@ -119,27 +119,50 @@ def outlet_taxpayer(outlet_key: Any) -> str:
     return str(outlet_key or "").split(":", 1)[0]
 
 
-def sales_tax_taxpayers(conn: sqlite3.Connection) -> Set[str]:
-    """Taxpayer numbers with at least one ACTIVE sales-tax outlet (outlet keys are 'taxpayer:outlet')."""
+def sales_tax_taxpayers(conn: sqlite3.Connection, place: Optional[str] = None) -> Set[str]:
+    """Taxpayer numbers with at least one ACTIVE sales-tax outlet (outlet keys are 'taxpayer:outlet').
+
+    With ``place``, only outlets in that town."""
     numbers: Set[str] = set()
-    for (key,) in conn.execute(
-        "SELECT source_key FROM source_records WHERE source_id=? AND active=1", (SALES_TAX_SOURCE,)
-    ):
+    sql = "SELECT source_key FROM source_records WHERE source_id=? AND active=1"
+    params: tuple = (SALES_TAX_SOURCE,)
+    if place is not None:
+        sql += " AND place=?"
+        params += (place,)
+    for (key,) in conn.execute(sql, params):
         number = outlet_taxpayer(key)
         if number:
             numbers.add(number)
     return numbers
 
 
-def has_sales_tax_outlet(conn: sqlite3.Connection, number: str) -> bool:
+def sales_tax_taxpayer_places(conn: sqlite3.Connection) -> Set[Tuple[str, str]]:
+    """(taxpayer number, place) for every ACTIVE sales-tax outlet."""
+    pairs: Set[Tuple[str, str]] = set()
+    for row in conn.execute(
+        "SELECT source_key, place FROM source_records WHERE source_id=? AND active=1", (SALES_TAX_SOURCE,)
+    ):
+        number = outlet_taxpayer(row[0])
+        if number:
+            pairs.add((number, row[1] or LONGVIEW.slug))
+    return pairs
+
+
+def has_sales_tax_outlet(conn: sqlite3.Connection, number: str, place: Optional[str] = None) -> bool:
     """One taxpayer: any active sales-tax outlet whose key starts 'number:' (the same
-    comparison as ``outlet_taxpayer``: an index range, no normalization)."""
+    comparison as ``outlet_taxpayer``: an index range, no normalization).
+
+    With ``place``, only an outlet in that town counts: a company is listed in a
+    town by its outlet there, and turning on another town never takes a listing
+    away from this one."""
     if not number:
         return False
-    return conn.execute(
-        "SELECT 1 FROM source_records WHERE source_id=? AND active=1 AND source_key>=? AND source_key<? LIMIT 1",
-        (SALES_TAX_SOURCE, f"{number}:", f"{number};"),
-    ).fetchone() is not None
+    sql = "SELECT 1 FROM source_records WHERE source_id=? AND active=1 AND source_key>=? AND source_key<?"
+    params: tuple = (SALES_TAX_SOURCE, f"{number}:", f"{number};")
+    if place is not None:
+        sql += " AND place=?"
+        params += (place,)
+    return conn.execute(sql + " LIMIT 1", params).fetchone() is not None
 
 
 def _get(row: Mapping[str, Any], fields: Mapping[str, Optional[str]], logical: str) -> str:
@@ -156,14 +179,15 @@ def bare_name(name: str) -> str:
     return " ".join(words)
 
 
-def scope_for(zip_code: Optional[str]) -> str:
-    """'city' for a Longview postal ZIP (75601-75608, PO boxes included); anything else is 'out'.
+def scope_for(zip_code: Optional[str], place: Place = LONGVIEW) -> str:
+    """'city' for a postal ZIP of the town (Longview: 75601-75608, PO boxes included); anything else is 'out'.
 
     A row says LONGVIEW but its ZIP is missing or not a Longview, Texas ZIP
     (Longview, Washington is 98632): nothing shows the company has a Longview,
     Texas address, so it is never published (held ``out_of_scope``, and the sync
-    counts it under ``other_zips``)."""
-    return "city" if zip_code in LONGVIEW_POSTAL_ZIPS else "out"
+    counts it under ``other_zips``). Every town follows the same rule
+    (``places.Place.mailing_scope``)."""
+    return place.mailing_scope(zip_code)
 
 
 def family_vehicle(name: str) -> bool:
@@ -340,7 +364,8 @@ def privacy_flags(name: str, org_code: str) -> Tuple[bool, bool, bool]:
     return is_individual, personal, personal
 
 
-def project_row(row: Mapping[str, Any], fields: Mapping[str, Optional[str]]) -> Tuple[Optional[str], Optional[Dict[str, Any]], str]:
+def project_row(row: Mapping[str, Any], fields: Mapping[str, Optional[str]],
+                index: Optional[PlaceIndex] = None) -> Tuple[Optional[str], Optional[Dict[str, Any]], str]:
     """(taxpayer number, record, note). A skipped row has key None and the reason as note."""
     number = taxpayer_number(_get(row, fields, "taxpayer_number"))
     if not number:
@@ -352,7 +377,8 @@ def project_row(row: Mapping[str, Any], fields: Mapping[str, Optional[str]]) -> 
     name = _get(row, fields, "taxpayer_name")
     if not name:
         return None, None, "skipped_no_name"
-    if _get(row, fields, "city").upper() != "LONGVIEW":
+    place = (index or PlaceIndex()).for_city(_get(row, fields, "city"))
+    if place is None:
         return None, None, "skipped_city"
     # Longview, Washington is a real city, and the list carries out-of-state
     # mailing addresses: only a Texas row can be "Longview, TX".
@@ -375,12 +401,13 @@ def project_row(row: Mapping[str, Any], fields: Mapping[str, Optional[str]]) -> 
         # The taxpayer address is a mailing address: never stored here, never shown,
         # never evidence of a storefront. The ZIP only decides the scope below.
         "street": None, "street_norm": None, "suite": None, "zip": None, "phone": None,
-        "city": "Longview",
+        "city": place.name,
         "naics": None,
         "permit_start": None,
         "is_individual": is_individual,
         "personal_name": personal,
-        "scope": scope_for(zip_code),
+        "scope": scope_for(zip_code, place),
+        "place": place.slug,
         "tags_json": db.dumps(tags),
     }
     return number, record, zip_code or ""
@@ -395,10 +422,11 @@ def _new_counts() -> Dict[str, Any]:
 
 
 def sync_franchise(conn: sqlite3.Connection, settings, now=None, transport=None) -> Dict[str, Any]:
-    """Pull Longview franchise taxpayers in good standing. Never raises: skips or records the error."""
+    """Pull the active places' franchise taxpayers in good standing. Never raises: skips or records the error."""
     now = as_now(now)
     run_id = db.start_run(conn, RUN_KIND, now)
-    counts = _new_counts()
+    index = PlaceIndex.for_settings(settings)
+    counts = place_counts(_new_counts(), index)
     try:
         info = socrata.discover_dataset(
             settings, QUERY, NAME_PATTERN, [FIELD_CANDIDATES[f] for f in REQUIRED_FIELDS], transport=transport
@@ -416,17 +444,17 @@ def sync_franchise(conn: sqlite3.Connection, settings, now=None, transport=None)
         # Only the columns used: the mailing address is never requested.
         wanted = sorted({column for column in fields.values() if column})
         select = ", ".join(wanted)
-        where = f"upper({fields['city']}) = 'LONGVIEW'"
+        where = index.where(fields["city"])
         if fields.get("state"):
             where += f" AND upper({fields['state']}) = 'TX'"
-        with_outlet = sales_tax_taxpayers(conn)
+        with_outlet = sales_tax_taxpayer_places(conn)
         writer = RecordWriter(conn, SOURCE_ID, now, counts)
         for row in socrata.fetch_rows(settings, info.id, where, page_size=PAGE_SIZE, transport=transport,
                                       select=select):
             counts["fetched"] += 1
             # Keep only the requested columns, even if a server sent more (the mailing address above all).
             row = {column: row.get(column) for column in wanted if column in row}
-            key, record, note = project_row(row, fields)
+            key, record, note = project_row(row, fields, index)
             if key is None:
                 bump(counts, note)
                 continue
@@ -434,15 +462,16 @@ def sync_franchise(conn: sqlite3.Connection, settings, now=None, transport=None)
             if not writer.add(key, record, row, info.license, info.url):
                 continue
             counts["kept"] += 1
-            counts[record["scope"]] += 1
+            bump(counts, record["scope"])
+            place = places.get(record["place"])
+            count_place(counts, place.slug, record["scope"])
             counts["personal_name"] += 1 if record["personal_name"] else 0
-            counts["with_sales_tax_outlet"] += 1 if key in with_outlet else 0
-            if zip_code not in LONGVIEW_POSTAL_ZIPS:
-                zip_key = zip_code or "missing"
-                counts["other_zips"][zip_key] = counts["other_zips"].get(zip_key, 0) + 1
+            counts["with_sales_tax_outlet"] += 1 if (key, place.slug) in with_outlet else 0
+            if not zip_code or zip_code not in place.all_zips:
+                bump_zip(counts, place.slug, zip_code or "missing")
         if counts["fetched"] == 0:
             raise EmptyResult()
-        writer.deactivate_unseen()
+        writer.deactivate_unseen(index.slugs)
         finish_ok(conn, run_id, SOURCE_ID, counts, now, license=info.license, dataset_id=info.id,
                   dataset_url=info.url, columns_json=db.dumps(list(info.columns)))
     except Exception as exc:

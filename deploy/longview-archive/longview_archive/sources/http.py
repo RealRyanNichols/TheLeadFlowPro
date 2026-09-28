@@ -28,7 +28,7 @@ import urllib.error
 import urllib.request
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
-from typing import Any, Callable, Dict, Mapping, Optional, Tuple, Union
+from typing import Any, Callable, Dict, Mapping, Optional, Sequence, Tuple, Union
 from urllib.parse import quote, urlencode, urlsplit
 
 from .. import db, privacy
@@ -245,9 +245,25 @@ def get_json(
 PROJECTION_COLUMNS = (
     "name", "name_norm", "street", "street_norm", "suite", "city", "zip", "phone",
     "website", "website_domain", "naics", "lat", "lon", "permit_start",
-    "is_individual", "personal_name", "scope", "tags_json",
+    "is_individual", "personal_name", "scope", "place", "tags_json",
 )
 BATCH_SIZE = 500
+# meta key: the towns (place slugs, JSON list) a source's last COMPLETE sync covered.
+COVERED_KEY = "synced_places:{}"
+# A source synced before towns existed covered Longview only.
+LEGACY_COVERED = ("longview",)
+
+
+def covered_places(conn: sqlite3.Connection, source_id: str) -> Tuple[str, ...]:
+    """The towns ``source_id``'s last complete sync covered (its records elsewhere may be stale)."""
+    raw = db.get_meta(conn, COVERED_KEY.format(source_id))
+    if raw is None:
+        return LEGACY_COVERED
+    try:
+        value = json.loads(raw)
+    except ValueError:
+        return ()
+    return tuple(str(v) for v in value) if isinstance(value, list) else ()
 
 
 def as_now(now: Union[str, datetime, None]) -> str:
@@ -363,6 +379,7 @@ class RecordWriter:
         values["is_individual"] = 1 if values["is_individual"] else 0
         values["personal_name"] = 1 if values["personal_name"] else 0
         values["scope"] = values["scope"] or "city"
+        values["place"] = values["place"] or "longview"
         raw_json = db.dumps(raw)
         existing = self.conn.execute(
             f"SELECT id, business_id, active, {', '.join(PROJECTION_COLUMNS)} FROM source_records"
@@ -399,20 +416,36 @@ class RecordWriter:
             return "reactivated"
         return "updated" if changed else "unchanged"
 
-    def deactivate_unseen(self) -> int:
-        """Retire records of this source not seen in this (complete) sync."""
+    def deactivate_unseen(self, places: Optional[Sequence[str]] = None,
+                          covered: Optional[Sequence[str]] = None) -> int:
+        """Retire records of this source not seen in this (complete) sync.
+
+        With ``places``, only the records of those places: a town that was not
+        queried (turned off, or its query failed) keeps its records as they are.
+        The towns this complete sync covered (``covered``, default ``places``) are
+        written to ``meta`` (``covered_places``): a business of any other town
+        whose record comes from this source is held until a sync covers its town
+        again (``publish._decide``, reason ``place_not_synced``), so a town turned
+        back on never shows records nobody re-checked while it was off.
+        """
         self.flush()
         if not self.seen:
             raise EmptyResult()
         with db.transaction(self.conn):
-            active = self.conn.execute(
-                "SELECT id, source_key, business_id FROM source_records WHERE source_id=? AND active=1",
-                (self.source_id,),
-            ).fetchall()
+            sql = "SELECT id, source_key, business_id FROM source_records WHERE source_id=? AND active=1"
+            params: list = [self.source_id]
+            if places is not None:
+                wanted = list(places)
+                sql += f" AND place IN ({','.join('?' * len(wanted))})" if wanted else " AND 0"
+                params += wanted
+            active = self.conn.execute(sql, params).fetchall()
             gone = [row for row in active if row["source_key"] not in self.seen]
             for row in gone:
                 self.conn.execute("UPDATE source_records SET active=0 WHERE id=?", (row["id"],))
             businesses_off = 0
+            if places is not None:
+                db.set_meta(self.conn, COVERED_KEY.format(self.source_id),
+                            json.dumps(sorted(set(covered if covered is not None else places))))
             for business_id in sorted({row["business_id"] for row in gone if row["business_id"]}):
                 cur = self.conn.execute(
                     "UPDATE businesses SET active=0, updated_at=? WHERE id=? AND active=1 AND NOT EXISTS"

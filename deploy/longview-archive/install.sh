@@ -350,7 +350,7 @@ PY
 # KEY's value in the settings file ("" when unset), read by the engine's own
 # parser (config.read_env_file), so the installer and the engine always agree.
 # With KEY "", it only checks the file. A file the engine would refuse (a key
-# other than LVA_PUBLIC_HOST and LVA_PUBLIC_BASE_URL, an unclosed quote) fails
+# other than LVA_PUBLIC_HOST, LVA_PUBLIC_BASE_URL and LVA_PLACES, an unclosed quote) fails
 # with the engine's message on stderr.
 env_file_value() {
 	[ -f "$LVA_ENV_FILE" ] || return 0
@@ -707,8 +707,8 @@ write_public_env() {
 			[ -z "$(tail -c 1 "$LVA_ENV_FILE")" ] || printf '\n'
 		else
 			printf '# Longview Business Archive settings, read by the service and the lva command line.\n'
-			printf '# Only LVA_PUBLIC_HOST and LVA_PUBLIC_BASE_URL may be set here, one KEY=VALUE per\n'
-			printf '# line; any other LVA_ key is refused. A variable set in the environment wins.\n'
+			printf '# Only LVA_PUBLIC_HOST, LVA_PUBLIC_BASE_URL and LVA_PLACES (the towns, places.py) may be set\n'
+			printf '# here, one KEY=VALUE per line; any other LVA_ key is refused. A variable set in the environment wins.\n'
 			printf '# After a change: systemctl restart longview-archive\n'
 		fi
 		printf '%s\n' "${add[@]}"

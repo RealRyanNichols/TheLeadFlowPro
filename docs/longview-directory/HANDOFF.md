@@ -216,6 +216,18 @@ See `docs/longview-directory/DECISIONS.md`. In short:
    no sales-tax location). `LVA_PUBLISH_SCOPES=city` goes back to the city
    limits only. Gregg County or about 25 miles would need new sources.
 
+7. **More towns.** Added Sept 27, 2026: the engine can cover many towns, each
+   with its own section (`/marshall/businesses/`, ...) and a hub at `/places/`.
+   Longview plus the first ring (Marshall, Kilgore, White Oak, Hallsville,
+   Diana, Harleton, Gladewater, Clarksville City, Easton, Scottsville, Elysian
+   Fields, Waskom, Ore City, Gilmer, Karnack, Jefferson, Tatum, Henderson,
+   Carthage) are seeded; only Longview is on. To turn a ring on: run the
+   "Longview data probe" workflow first (counts per town, no names), then add
+   `LVA_PLACES=longview,marshall,...` (or `LVA_PLACES=all`) to
+   `/etc/longview-archive/env` and run `systemctl restart longview-archive`.
+   The README's "More towns" section has the steps. Which ring goes on next is
+   your call.
+
 ## Pause, undo, cost
 
 - **Pause:** in the droplet console, `touch /var/lib/longview-archive/PAUSE`.

@@ -3,10 +3,20 @@
 # from. Counts, dataset ids and column names only: this log is public, so it
 # never prints a business name, address, phone or taxpayer number. It reads no
 # business website, uses no secrets, and changes nothing anywhere.
+#
+# The towns it runs the engine for are LVA_PLACES (longview_archive/places.py):
+# every seeded town ("all", the first ring around Longview) unless a manual run
+# names others, for example "longview,marshall". Each ring is counted here
+# before it is turned on in /etc/longview-archive/env on the droplet.
 name: Longview data probe
 
 on:
   workflow_dispatch:
+    inputs:
+      places:
+        description: "Towns to run (LVA_PLACES): all, or slugs separated by commas (longview,marshall)"
+        required: false
+        default: all
   push:
     branches: [claude/serene-edison-daodg6]
     paths:
@@ -20,7 +30,7 @@ permissions:
 jobs:
   probe:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -28,4 +38,6 @@ jobs:
           python-version: "3.12"
       - name: Probe the public sources (counts only)
         working-directory: deploy/longview-archive
+        env:
+          LVA_PLACES: ${{ github.event.inputs.places || 'all' }}
         run: python3 tools/probe_public_data.py

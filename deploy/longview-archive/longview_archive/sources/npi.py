@@ -18,7 +18,7 @@ import string
 from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple
 
 from .. import db, normalize
-from ..config import LONGVIEW_ZIPS, longview_scope
+from ..places import PlaceIndex
 from .http import ApiError, EmptyResult, RecordWriter, as_now, bump, finish_failed, finish_ok, get_json
 
 logger = logging.getLogger(__name__)
@@ -33,14 +33,19 @@ PREFIX_CHARS = string.ascii_uppercase + string.digits
 DBA_CODE = "3"
 
 
-def _query(settings, transport, counts: Dict[str, Any], zip_code: str, prefix: Optional[str]) -> Tuple[List[dict], bool, bool]:
-    """All pages of one query: (results, reached_cap, api_reported_errors)."""
+def _query(settings, transport, counts: Dict[str, Any], zip_code: Optional[str], prefix: Optional[str],
+           city: str = "LONGVIEW") -> Tuple[List[dict], bool, bool]:
+    """All pages of one query: (results, reached_cap, api_reported_errors).
+
+    ``zip_code`` None asks for the whole postal city (a town whose ZIPs are not listed)."""
     results: List[dict] = []
     for skip in range(0, MAX_SKIP + 1, PAGE_SIZE):
         params: Dict[str, Any] = {
-            "version": "2.1", "enumeration_type": "NPI-2", "city": "LONGVIEW", "state": "TX",
+            "version": "2.1", "enumeration_type": "NPI-2", "city": city, "state": "TX",
             "postal_code": zip_code, "limit": PAGE_SIZE, "skip": skip,
         }
+        if not zip_code:
+            del params["postal_code"]
         if prefix:
             params["organization_name"] = prefix + "*"
         payload = get_json(settings.npi_url, settings, params=params, transport=transport)
@@ -70,9 +75,11 @@ def _collect(by_npi: Dict[str, dict], results: Iterable[dict], counts: Dict[str,
         by_npi[number] = result
 
 
-def fetch_zip(settings, transport, counts: Dict[str, Any], zip_code: str, by_npi: Dict[str, dict]) -> bool:
-    """Collect every organization for one ZIP into ``by_npi``. False when coverage is incomplete."""
-    results, capped, errored = _query(settings, transport, counts, zip_code, None)
+def fetch_zip(settings, transport, counts: Dict[str, Any], zip_code: Optional[str], by_npi: Dict[str, dict],
+              city: str = "LONGVIEW") -> bool:
+    """Collect every organization for one ZIP (or a whole postal city) into ``by_npi``.
+    False when coverage is incomplete."""
+    results, capped, errored = _query(settings, transport, counts, zip_code, None, city)
     if errored:
         raise ApiError(200, "npi_errors", "npi")
     _collect(by_npi, results, counts)
@@ -81,13 +88,13 @@ def fetch_zip(settings, transport, counts: Dict[str, Any], zip_code: str, by_npi
     bump(counts, "capped_queries")
     complete = True
     for first in PREFIX_CHARS:
-        results, capped, errored = _query(settings, transport, counts, zip_code, first)
+        results, capped, errored = _query(settings, transport, counts, zip_code, first, city)
         _collect(by_npi, results, counts)
         if not (capped or errored):
             continue
         bump(counts, "capped_queries" if capped else "prefix_errors")
         for second in PREFIX_CHARS:
-            results, capped2, errored2 = _query(settings, transport, counts, zip_code, first + second)
+            results, capped2, errored2 = _query(settings, transport, counts, zip_code, first + second, city)
             _collect(by_npi, results, counts)
             if capped2 or errored2:
                 bump(counts, "still_capped" if capped2 else "prefix_errors")
@@ -112,8 +119,11 @@ def _display_name(result: Mapping[str, Any]) -> str:
     return str((result.get("basic") or {}).get("organization_name") or "").strip()
 
 
-def result_record(result: Mapping[str, Any], settings) -> Tuple[Optional[str], Optional[Dict[str, Any]], str]:
-    """(npi, record, note) using the LOCATION address only; skipped results have key None."""
+def result_record(result: Mapping[str, Any], settings,
+                  index: Optional[PlaceIndex] = None) -> Tuple[Optional[str], Optional[Dict[str, Any]], str]:
+    """(npi, record, note) using the LOCATION address only; skipped results have key None.
+
+    The location's city must be one of the active places; the record belongs to it."""
     number = str(result.get("number") or "").strip()
     if not number.isdigit():
         return None, None, "skipped_no_number"
@@ -125,7 +135,8 @@ def result_record(result: Mapping[str, Any], settings) -> Tuple[Optional[str], O
     loc = _location(result)
     if loc is None:
         return None, None, "skipped_no_location"
-    if str(loc.get("city") or "").strip().upper() != "LONGVIEW" or str(loc.get("state") or "").strip().upper() != "TX":
+    place = (index or PlaceIndex.for_settings(settings)).for_city(str(loc.get("city") or ""))
+    if place is None or str(loc.get("state") or "").strip().upper() != "TX":
         return None, None, "skipped_location_elsewhere"
     name = _display_name(result)
     if not name:
@@ -145,17 +156,21 @@ def result_record(result: Mapping[str, Any], settings) -> Tuple[Optional[str], O
         "street": normalize.display_street(line) or None,
         "street_norm": street_norm or None,
         "suite": suite or None,
-        "city": "Longview",
+        "city": place.name,
         "zip": zip_code,
         "phone": normalize.norm_phone(loc.get("telephone_number"), allow_fictional=settings.allow_fictional_phones),
-        "scope": longview_scope(zip_code),
+        "scope": place.scope(zip_code),
+        "place": place.slug,
         "tags_json": db.dumps({"taxonomy": primary, "taxonomies": descs}),
     }
     return number, record, ""
 
 
 def sync_npi(conn: sqlite3.Connection, settings, now=None, transport=None) -> Dict[str, Any]:
-    """Pull every Longview NPI-2 organization. Failures are recorded, then raised.
+    """Pull every NPI-2 organization of the active places. Failures are recorded, then raised.
+
+    A town with ZIP codes is asked ZIP by ZIP (as Longview always was); a town
+    without them is asked by its postal city alone.
 
     When a prefix split still hits the ceiling, the records found are stored
     but nothing is deactivated and the run is ``partial``.
@@ -171,13 +186,16 @@ def sync_npi(conn: sqlite3.Connection, settings, now=None, transport=None) -> Di
     try:
         by_npi: Dict[str, dict] = {}
         complete = True
-        for zip_code in LONGVIEW_ZIPS:
-            complete = fetch_zip(settings, transport, counts, zip_code, by_npi) and complete
+        index = PlaceIndex.for_settings(settings)
+        for place in index.places:
+            for city in place.postal_cities:
+                for zip_code in (place.zips or (None,)):
+                    complete = fetch_zip(settings, transport, counts, zip_code, by_npi, city) and complete
         counts["unique"] = len(by_npi)
         writer = RecordWriter(conn, SOURCE_ID, now, counts)
         for number in sorted(by_npi):
             result = by_npi[number]
-            key, record, note = result_record(result, settings)
+            key, record, note = result_record(result, settings, index)
             if key is None:
                 bump(counts, note)
                 continue
@@ -185,10 +203,13 @@ def sync_npi(conn: sqlite3.Connection, settings, now=None, transport=None) -> Di
                 continue
             counts["kept"] += 1
             counts[record["scope"]] += 1
+            if len(index.places) > 1:
+                one = counts.setdefault("places", {}).setdefault(record["place"], {"kept": 0})
+                one["kept"] += 1
         if counts["fetched"] == 0:
             raise EmptyResult()
         if complete:
-            writer.deactivate_unseen()
+            writer.deactivate_unseen(index.slugs)
             finish_ok(conn, run_id, SOURCE_ID, counts, now, license=LICENSE, dataset_url=DATASET_URL)
         else:
             writer.flush()

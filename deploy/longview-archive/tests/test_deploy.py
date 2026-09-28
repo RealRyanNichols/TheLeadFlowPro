@@ -27,7 +27,10 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-from longview_archive import config
+from longview_archive import config, places
+
+# The directory's paths: every seeded town's section and the /places/ hub (places.py).
+ANY_PATH = places.path_pattern()
 
 ROOT = Path(__file__).resolve().parent.parent
 UNIT = ROOT / "systemd" / "longview-archive.service"
@@ -295,8 +298,8 @@ class CaddyFileTest(unittest.TestCase):
         self.assertEqual(directory["connect-src"], ["'self'"])
 
     def test_script_policy_only_on_the_directory_paths(self):
-        self.assertIn("@longview_directory path /longview/businesses /longview/businesses/*", self.text)
-        self.assertIn("@longview_not_directory not path /longview/businesses /longview/businesses/*", self.text)
+        self.assertIn(f"@longview_directory path_regexp {ANY_PATH}", self.text)
+        self.assertIn(f"@longview_not_directory not path_regexp {ANY_PATH}", self.text)
         self.assertRegex(self.text, r"(?m)^\timport longview_archive_csp_directory @longview_directory$")
         self.assertRegex(self.text, r"(?m)^\timport longview_archive_csp_strict @longview_not_directory$")
         errors = re.search(r"handle_errors \{(.*?)\n\t\}", self.text, re.S).group(1)
@@ -317,8 +320,11 @@ class CaddyFileTest(unittest.TestCase):
     def test_serves_only_the_directory_and_status_paths(self):
         self.assertIn("@status path /status /status/ /status/* /status.json", self.text)
         self.assertRegex(self.text, r"handle / \{\s*redir \* /longview/businesses/ 302\s*\}")
-        self.assertRegex(self.text, r"handle /longview/businesses \{\s*redir \* /longview/businesses/ 308\s*\}")
-        block = re.search(r"handle /longview/businesses/\* \{(.*?)\n\t\}", self.text, re.S)
+        self.assertIn(places.caddy_bare_redirects("longview_directory_bare", "longview_directory_hub_bare"),
+                      self.text)
+        self.assertNotIn("redir * {path}", self.text)
+        self.assertIn(f"@longview_directory_files path_regexp {places.files_path_pattern()}", self.text)
+        block = re.search(r"handle @longview_directory_files \{(.*?)\n\t\}", self.text, re.S)
         self.assertIsNotNone(block)
         self.assertIn("try_files {path} {path}/index.html", block.group(1))
         self.assertIn("file_server", block.group(1))
@@ -1339,14 +1345,16 @@ class WebsitePathTest(unittest.TestCase):
     def test_routes_fragment_is_self_contained(self):
         code = self.code(self.routes)
         self.assertNotRegex(code, r"(?m)^\s*import\b", "no snippet from another file")
-        self.assertIn("@longview_archive_directory path /longview/businesses /longview/businesses/*", code)
+        self.assertIn(f"@longview_archive_directory path_regexp {ANY_PATH}", code)
         self.assertRegex(code, r"(?m)^handle @longview_archive_directory \{$")
         self.assertRegex(code, r"(?m)^\troot \* /var/lib/longview-archive/www$")
         # Exactly one top-level handle, so it is mutually exclusive with the
         # importing site's own handle blocks.
         self.assertEqual(len(re.findall(r"(?m)^handle\b", code)), 1)
         self.assertEqual(len(re.findall(r"(?m)^[^\s}]", code)), 2)
-        self.assertRegex(code, r"handle /longview/businesses \{\s*redir \* /longview/businesses/ 308\s*\}")
+        self.assertIn(self.code(places.caddy_bare_redirects("longview_archive_bare", "longview_archive_hub_bare")),
+                      code)
+        self.assertNotIn("redir * {path}", code)
         self.assertIn("try_files {path} {path}/index.html", code)
         self.assertIn("file_server", code)
         self.assertIn('respond "Not found" 404', code)
@@ -1391,7 +1399,7 @@ class WebsitePathTest(unittest.TestCase):
         errors = ERRORS.read_text()
         code = self.code(errors)
         self.assertNotRegex(code, r"(?m)^\s*import\b", "no snippet from another file")
-        self.assertIn("@longview_archive_directory_error path /longview/businesses /longview/businesses/*", code)
+        self.assertIn(f"@longview_archive_directory_error path_regexp {ANY_PATH}", code)
         self.assertEqual(len(re.findall(r"(?m)^[^\s}]", code)), 2)
         self.assertRegex(code, r"(?m)^handle @longview_archive_directory_error \{$")
         self.assertIn('respond "{err.status_code}" {err.status_code}', code)
@@ -1466,8 +1474,7 @@ class WebsitePathTest(unittest.TestCase):
         self.assertRegex(self.template, r"(?m)^@PUBLIC_HOST@ \{$")
         self.assertIn("\timport /etc/caddy/longview-archive/website.routes\n", self.template)
         self.assertIn("\timport longview_archive_headers\n", self.template)
-        self.assertIn("@longview_public_not_directory not path /longview/businesses /longview/businesses/*",
-                      self.template)
+        self.assertIn(f"@longview_public_not_directory not path_regexp {ANY_PATH}", self.template)
         self.assertIn("import longview_archive_csp_strict @longview_public_not_directory", self.template)
         self.assertIn("Disallow: /", self.template)
         self.assertIn("handle_errors", self.template)
@@ -1653,7 +1660,8 @@ class EnvFileTest(unittest.TestCase):
         self.assertEqual(config.environment({"LVA_X": "1"}, self.tmp / "absent"), {"LVA_X": "1"})
 
     def test_only_the_address_keys_and_never_other_variables(self):
-        self.assertEqual(config.ENV_FILE_KEYS, {"LVA_PUBLIC_BASE_URL", "LVA_PUBLIC_HOST"})
+        # Where the directory is served, and which towns it covers (LVA_PLACES, places.py).
+        self.assertEqual(config.ENV_FILE_KEYS, {"LVA_PUBLIC_BASE_URL", "LVA_PUBLIC_HOST", "LVA_PLACES"})
         self.path.write_text(
             "# comment\n\n"
             "LVA_PUBLIC_BASE_URL=https://longview.theleadflowpro.com\n"

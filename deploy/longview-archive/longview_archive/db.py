@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Iterable, Optional
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2  # 2: businesses.place and source_records.place (places.py)
 
 SCHEMA = r"""
 CREATE TABLE IF NOT EXISTS meta (
@@ -50,6 +50,7 @@ CREATE TABLE IF NOT EXISTS businesses (
   lat             REAL,
   lon             REAL,
   scope           TEXT NOT NULL DEFAULT 'city' CHECK (scope IN ('city','nearby','out')),
+  place           TEXT NOT NULL DEFAULT 'longview', -- the town (places.py); set when created
   naics           TEXT,
   category        TEXT NOT NULL DEFAULT 'other',
   category_label  TEXT,
@@ -107,6 +108,7 @@ CREATE TABLE IF NOT EXISTS source_records (
   is_individual  INTEGER NOT NULL DEFAULT 0,
   personal_name  INTEGER NOT NULL DEFAULT 0,  -- outlet name is the taxpayer's own name
   scope          TEXT NOT NULL DEFAULT 'city' CHECK (scope IN ('city','nearby','out')),
+  place          TEXT NOT NULL DEFAULT 'longview', -- the town its postal city names (places.py)
   tags_json      TEXT,                        -- OSM tags or other structured hints
   match_state    TEXT NOT NULL DEFAULT 'new'
                  CHECK (match_state IN ('new','matched','created','review','ignored')),
@@ -317,8 +319,28 @@ def connect(path: Path | str) -> sqlite3.Connection:
     return conn
 
 
+# Columns added after version 1: (table, column, definition). An archive made
+# before them gets them with their default (every row then was Longview's).
+ADDED_COLUMNS = (
+    ("businesses", "place", "TEXT NOT NULL DEFAULT 'longview'"),
+    ("source_records", "place", "TEXT NOT NULL DEFAULT 'longview'"),
+)
+ADDED_INDEXES = (
+    "CREATE INDEX IF NOT EXISTS businesses_place ON businesses(place)",
+    "CREATE INDEX IF NOT EXISTS source_records_place ON source_records(place)",
+    # A record's merge history is read when it lands on a business (a removal request follows it).
+    "CREATE INDEX IF NOT EXISTS merges_record ON merges(source_record_id)",
+)
+
+
 def migrate(conn: sqlite3.Connection) -> None:
     conn.executescript(SCHEMA)
+    for table, column, definition in ADDED_COLUMNS:
+        have = {row[1] for row in conn.execute(f"PRAGMA table_info({table})")}
+        if column not in have:
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {definition}")
+    for statement in ADDED_INDEXES:
+        conn.execute(statement)
     with transaction(conn):
         for source_id, name, publisher, license_, terms in SOURCE_DEFAULTS:
             conn.execute(
