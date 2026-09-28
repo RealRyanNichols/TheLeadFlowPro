@@ -14,6 +14,17 @@ import LeadThread, { type LeadMsg } from "./LeadThread";
 import DeleteLead from "./DeleteLead";
 import LeadHistory from "./LeadHistory";
 import LiveRefresh from "@/app/admin/command-center/LiveRefresh";
+import Client360 from "./Client360";
+import type { RetainerState } from "@/lib/agencyRetainer";
+import {
+  buildClientStory,
+  failed,
+  notLinkedYet,
+  ready,
+  type Source,
+  type StoryFollowUp,
+  type StoryReachSet,
+} from "@/lib/client360";
 import {
   buildLeadTimeline,
   leadSourceLabel,
@@ -114,6 +125,25 @@ export type DiagnosticNotification = {
   last_error: string | null;
   created_at: string;
 };
+
+/**
+ * What the server worked out for the whole story (page.tsx): the follow-up
+ * and the Call, Text, and Email buttons by the call card's rules, the monthly
+ * plan, which history reads failed, and the server's clock, so the first
+ * paint and the browser agree. Everything else comes from this workspace's
+ * own state, so a note or reply added here shows in the story at once.
+ */
+export type Client360Context = {
+  now: string;
+  followUp: StoryFollowUp;
+  reach: StoryReachSet;
+  plan: RetainerState | null;
+  failed: { notes: boolean; tasks: boolean; activity: boolean; emails: boolean; messages: boolean; calls: boolean };
+};
+
+function loaded<T>(didFail: boolean, rows: T): Source<T> {
+  return didFail ? failed<T>() : ready(rows);
+}
 
 function fmt(ts: string) {
   return new Date(ts).toLocaleString();
@@ -704,6 +734,7 @@ export default function LeadWorkspace({
   calls = [],
   actorName,
   unavailableSections = [],
+  client360 = null,
 }: {
   lead: Lead;
   initialNotes: Note[];
@@ -716,6 +747,7 @@ export default function LeadWorkspace({
   calls?: LeadCallRecord[];
   actorName?: string;
   unavailableSections?: string[];
+  client360?: Client360Context | null;
 }) {
   const [status, setStatusState] = useState(lead.status);
   const [owner, setOwnerState] = useState(lead.owner ?? "");
@@ -737,6 +769,33 @@ export default function LeadWorkspace({
     emails,
     calls,
   });
+  // Money, builds, and website messages are not linked to a lead yet; they
+  // join when the droplet database is set up (lib/client360.ts NOT_LINKED_YET).
+  const story = client360
+    ? buildClientStory({
+        lead: {
+          id: lead.id,
+          created_at: lead.created_at,
+          full_name: lead.full_name,
+          business_name: lead.business_name,
+          source: lead.source,
+          notes: lead.notes,
+        },
+        now: new Date(client360.now),
+        followUp: client360.followUp,
+        notes: loaded(client360.failed.notes, notes),
+        messages: loaded(client360.failed.messages, thread),
+        emails: loaded(client360.failed.emails, emails),
+        calls: loaded(client360.failed.calls, calls),
+        activity: loaded(client360.failed.activity, activity),
+        tasks: loaded(client360.failed.tasks, tasks),
+        websiteMessages: notLinkedYet("websiteMessages"),
+        purchases: notLinkedYet("purchases"),
+        invoices: notLinkedYet("invoices"),
+        plan: ready(client360.plan),
+        projects: notLinkedYet("projects"),
+      })
+    : null;
   useEffect(() => {
     setNotes(initialNotes);
   }, [initialNotes]);
@@ -940,6 +999,19 @@ export default function LeadWorkspace({
           </span>
         )}
       </div>
+
+      {story && client360 ? (
+        <Client360
+          story={story}
+          reach={client360.reach}
+          anchors={{
+            history: "#lead-history",
+            reply: "#lead-reply",
+            note: "#lead-team-note",
+            tasks: "#lead-tasks",
+          }}
+        />
+      ) : null}
 
       <nav
         className="flex flex-wrap gap-2"
@@ -1209,7 +1281,7 @@ export default function LeadWorkspace({
             </form>
           </div>
 
-          <div className="card !p-4">
+          <div id="lead-tasks" className="card scroll-mt-24 !p-4">
             <h2 className="text-sm font-bold uppercase tracking-wide text-[var(--muted)]">
               Tasks
             </h2>
