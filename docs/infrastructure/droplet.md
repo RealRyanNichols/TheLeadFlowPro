@@ -1,5 +1,11 @@
 # The LeadFlow Pro on the DigitalOcean droplet
 
+> **Sep 28, 2026:** this runbook was never installed on the droplet. The live
+> site is deployed with `leadflow-release` (a release pipeline another session
+> built), not with `deploy.sh`. Read `CLAUDE.md`, "The droplet as it really is",
+> before running anything here. Do not run `deploy.sh` on the droplet: it would
+> build the site in Docker without the memory guard.
+
 Decided September 24, 2026: the site moves off Vercel onto the DigitalOcean
 droplet that already runs the central brain, so the business runs on one
 server Ryan pays for, next to Google Workspace. This replaces the

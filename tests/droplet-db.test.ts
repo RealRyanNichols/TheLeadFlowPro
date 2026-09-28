@@ -3,11 +3,11 @@ import { spawnSync } from "node:child_process";
 import { readdirSync, readFileSync } from "node:fs";
 import test from "node:test";
 
-// Step 1 of the Back Office build proposes the site's own database on the
-// droplet (docs/infrastructure/database.md). Until Ryan says yes it must stay
-// written down but switched off: deploys never start it, nothing depends on
-// it, and no secret is in the repository. These tests pin that, and the
-// safety rules of deploy/droplet/db.sh.
+// Step 1 of the Back Office build: the site's own database on the droplet
+// (decided Sep 28, 2026; docs/infrastructure/database.md). Deploys never start
+// or restart it, nothing depends on it yet, its secrets stay where no container
+// can read them, and no secret is in the repository. These tests pin that, and
+// the safety rules of deploy/droplet/db.sh.
 
 const read = (path: string) => readFileSync(path, "utf8");
 const compose = read("deploy/droplet/compose.yml");

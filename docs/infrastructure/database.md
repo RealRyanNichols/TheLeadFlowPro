@@ -89,24 +89,32 @@ test below, the database used 30 to 45 MB of memory; it is capped at 512 MB.
 
 ## Turning it on
 
-1. In DigitalOcean, take a snapshot of the droplet (the undo button).
-2. After the merge, in the droplet console:
+The live site is not deployed with `deploy.sh` on this droplet (see
+`CLAUDE.md`, "The droplet as it really is"), so the database gets its own copy
+of the repository. DigitalOcean's weekly backups are the undo button for the
+whole droplet; a fresh snapshot of this droplet takes an hour or more. As root,
+in the droplet console:
 
-   ```bash
-   sudo /opt/theleadflowpro/deploy/droplet/deploy.sh
-   sudo /opt/theleadflowpro/deploy/droplet/db.sh setup
-   sudo /opt/theleadflowpro/deploy/droplet/db.sh drive-link
-   sudo /opt/theleadflowpro/deploy/droplet/check.sh
-   ```
+```bash
+git clone --depth 50 https://github.com/RealRyanNichols/TheLeadFlowPro.git /opt/theleadflowpro
+install -d -m 700 /etc/theleadflowpro
+install -m 600 /opt/theleadflowpro/deploy/droplet/web.env.example /etc/theleadflowpro/web.env
+/opt/theleadflowpro/deploy/droplet/db.sh setup
+/opt/theleadflowpro/deploy/droplet/db.sh drive-link
+/opt/theleadflowpro/deploy/droplet/db.sh status
+```
 
-   `deploy.sh` brings the new scripts onto the droplet (it is a normal deploy
-   of main). `db.sh setup` asks you to type `CREATE THE DATABASE`.
-   `db.sh drive-link` asks you to type `LINK GOOGLE DRIVE`, shows a Google
-   link to open in any browser, and asks you to paste back the address the
-   browser lands on after you sign in as The LeadFlow Pro's account and press
-   Allow. What you paste is not shown on screen. Good looks like: Database
-   `running healthy`, `port on the droplet none`, one backup, a Google Drive
-   copy `ok`, restore check `ok`.
+`web.env` stays the empty template (names only): nothing reads it, but the
+Docker setup expects the file to exist. Do not run `deploy.sh` here. `db.sh
+status` runs `check.sh`: read its Database section (its site sections stay
+empty here, because the live site does not run in Docker).
+`db.sh setup` asks you to type `CREATE THE DATABASE`.
+`db.sh drive-link` asks you to type `LINK GOOGLE DRIVE`, shows a Google
+link to open in any browser, and asks you to paste back the address the
+browser lands on after you sign in as The LeadFlow Pro's account and press
+Allow. What you paste is not shown on screen. Good looks like: Database
+`running healthy`, `port on the droplet none`, one backup, a Google Drive
+copy `ok`, restore check `ok`.
 
 ## Everyday commands (all as root, on the droplet)
 

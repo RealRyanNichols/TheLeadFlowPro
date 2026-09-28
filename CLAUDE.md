@@ -31,6 +31,29 @@ there is no need to verify it against Vercel or Supabase.
   configuration, real sends, and any change to live data need the owner's explicit approval for
   that action. Never commit secrets: this repository is public.
 
+## The droplet as it really is (read-only check, Sep 28, 2026)
+
+This replaces the Sep 24 picture below wherever they differ.
+
+- **Droplet:** `leadflow-web`, 8 GB memory, 80 GB disk, NYC3, Ubuntu 24.04. On Sep 28, memory was
+  about 85% used with swap full, and the disk 89% used (about 9 GB free). DigitalOcean's weekly
+  backups are on (Sundays).
+- **The live site** is the systemd service `site@leadflow`: Next.js on 127.0.0.1:3109, run from
+  `/var/lib/leadflow-releases/current` with settings in `/srv/site-env/leadflow.env`. Caddy sends
+  www.theleadflowpro.com there. On Sep 28 it was serving `ddeb372` (Sep 26).
+- **Deploys** use `/usr/local/bin/leadflow-release`: `leadflow-release` builds origin/main,
+  `leadflow-release <sha>` builds one commit, `--status` shows the last result and `--rollback`
+  goes back one release. It checks a new build on port 3129 before switching. Its guard
+  (`/usr/local/lib/leadflow-build-guard.sh`) builds only with 5.5 GiB of memory free and 12 GiB
+  of disk free, so on Sep 28 it could not build. `leadflow-autopull.timer` (automatic deploys) is
+  off, and so are the site's `leadflow-cron-*` timers. Another session set this pipeline up and
+  owns it: coordinate before changing it.
+- **Not installed on this droplet:** `/opt/theleadflowpro`, `/etc/theleadflowpro`, and the Docker
+  setup in `deploy/droplet/` (`install.sh`, `deploy.sh`, `cutover.sh`). **Do not run `deploy.sh`
+  here:** it would build the site inside Docker with none of that memory guard.
+- **Also on it:** a self-hosted Supabase stack for Real Ryan Nichols (`/opt/rrn-supabase`), the
+  brain and its Postgres, the LeadFlow Hub, and the other `/srv/sites/*` sites.
+
 ## The droplet (facts from `docs/infrastructure/droplet.md` and `deploy/droplet/`, Sep 24, 2026)
 
 - **What it is:** Ryan's DigitalOcean droplet. Run commands in DigitalOcean's web console
