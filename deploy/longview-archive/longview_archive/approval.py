@@ -9,7 +9,12 @@ more than 25% of the approved businesses: that one waits for a person, and the
 status page says so. The same share is checked for each town that has at least
 ``PLACE_HOLD_MIN`` approved listings, so a large town's losses are never hidden
 by another town's gains. Turning a town ON only adds listings and never trips
-the hold; turning one OFF removes its listings and waits for a person.
+the hold. Turning a town OFF (LVA_PLACES) takes its pages down at the next site
+build, without waiting for a person (``site.build_site`` renders only the towns
+that are on); its listings are not counted as removals, since the approved
+batch is compared only for the towns that are on, so the other towns keep
+updating by themselves and the off town's listings leave the approved batch
+with the next approval.
 
 Removal requests do not wait: ``apply_suppressions`` takes a suppressed
 business out of the approved batch at once and the site is rebuilt. Every
@@ -231,6 +236,24 @@ def approve(conn: sqlite3.Connection, settings, actor: str = "operator", batch: 
     return dict(counts, batchId=data.get("batchId"))
 
 
+def approved_in(approved: Optional[dict], active: Optional[Any] = None) -> Optional[dict]:
+    """The approved batch limited to the towns in ``active`` (slugs; None: every town).
+
+    A town that is off has no pages, so its listings are not "removed" by a batch
+    that leaves them out."""
+    if approved is None or active is None:
+        return approved
+    wanted = set(active)
+    out = dict(approved)
+    out["businesses"] = [b for b in approved.get("businesses") or []
+                         if isinstance(b, dict) and str(b.get("place") or places.LONGVIEW.slug) in wanted]
+    return out
+
+
+def _active_slugs(settings) -> Tuple[str, ...]:
+    return tuple(p.slug for p in places.active(settings))
+
+
 def removal_share(approved: Optional[dict], export: dict) -> Tuple[int, int]:
     """(businesses the export would remove, businesses approved now)."""
     before = {b.get("id") for b in (approved or {}).get("businesses") or [] if isinstance(b, dict)}
@@ -256,8 +279,12 @@ def place_removals(approved: Optional[dict], export: dict) -> List[dict]:
     return out
 
 
-def large_removal(approved: Optional[dict], export: dict) -> Optional[dict]:
-    """Why auto-approve must wait, or None: the whole batch, or one town, loses more than 25%."""
+def large_removal(approved: Optional[dict], export: dict, active: Optional[Any] = None) -> Optional[dict]:
+    """Why auto-approve must wait, or None: the whole batch, or one town, loses more than 25%.
+
+    With ``active`` (the slugs of the towns that are on), only those towns' approved
+    listings are compared: a town turned off never freezes the others."""
+    approved = approved_in(approved, active)
     removed, base = removal_share(approved, export)
     towns = place_removals(approved, export)
     if (base and removed > LARGE_REMOVAL_SHARE * base) or towns:
@@ -283,7 +310,7 @@ def auto_approve(conn: sqlite3.Connection, settings, now: Any = None) -> dict:
     approved = approved if is_export(approved) else None
     if approved is not None and approved.get("batchId") == export.get("batchId"):
         return {"status": "same"}
-    hold = large_removal(approved, export)
+    hold = large_removal(approved, export, _active_slugs(settings))
     if hold is not None:
         removed, base = hold["removed"], hold["approved"]
         batch_id = str(export.get("batchId") or "")
@@ -339,9 +366,10 @@ def status_info(conn: sqlite3.Connection, settings) -> dict:
     held = db.get_meta(conn, HELD_KEY)
     held_info = None
     if held and export is not None and held == export.get("batchId"):
-        removed, base = removal_share(approved, export)
+        on_approved = approved_in(approved, _active_slugs(settings))
+        removed, base = removal_share(on_approved, export)
         held_info = {"batchId": held, "removed": removed, "approved": base}
-        towns = place_removals(approved, export)
+        towns = place_removals(on_approved, export)
         if towns:
             held_info["places"] = towns
     info = {

@@ -135,8 +135,10 @@ residential or mailing address shows "<Town>, TX" only.
 
 ZIP codes were seeded only where certain. Clarksville City has none (its mail is
 mostly addressed to Gladewater or White Oak), so it is matched by its own name
-only; Gilmer's and Henderson's PO-box ZIPs are left out, so a row with one is
-`out` and shows on the status page to be checked. **Owner decisions:** which
+only. Gilmer has 75644 and 75645; Henderson 75652 and 75654, with PO boxes at
+75653 (added Sept 28 after the live-data probe showed many Gilmer and Henderson
+rows as `out`). Any other ZIP a town's rows carry is `out` and shows on the
+status page to be checked. **Owner decisions:** which
 ring to turn on and when (each after the data probe has counted it), whether a
 town with few listings is worth a section, and whether the hub at `/places/` is
 the right address for the list of towns on theleadflowpro.com.

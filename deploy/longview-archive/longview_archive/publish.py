@@ -214,6 +214,25 @@ def _digits(value: Any) -> str:
 
 # ---------------------------------------------------------------- evaluate
 
+SYNCED_SOURCES = ("tx_sales_tax", "tx_tabc", "tx_franchise", "npi", "osm")
+
+
+def _place_synced(conn: sqlite3.Connection, business) -> bool:
+    """Every open-data source with an active record of this business covered its town
+    in its last complete sync (``sources.http.covered_places``)."""
+    from .sources.http import covered_places  # sources import publish's neighbours; keep this lazy
+
+    slug = places.slug_of(business)
+    for row in conn.execute(
+        f"SELECT DISTINCT source_id FROM source_records WHERE business_id=? AND active=1"
+        f" AND source_id IN ({','.join('?' * len(SYNCED_SOURCES))})",
+        (business["id"], *SYNCED_SOURCES),
+    ):
+        if slug not in covered_places(conn, row["source_id"]):
+            return False
+    return True
+
+
 def _linked_records(conn: sqlite3.Connection, business_id: int) -> list:
     # Never select raw_json: the taxpayer's name lives there.
     return list(conn.execute(
@@ -273,6 +292,10 @@ def _decide(conn: sqlite3.Connection, settings, business, now: str) -> Tuple[str
     if places.slug_of(business) not in {p.slug for p in places.active(settings)}:
         # A town that is not turned on (LVA_PLACES) is not published.
         return "held", "place_not_active"
+    if not _place_synced(conn, business):
+        # Turned (back) on, but a source listing it has not synced that town since:
+        # its records may be stale (a shop that closed while the town was off).
+        return "held", "place_not_synced"
     if business["scope"] not in settings.publish_scopes:
         return "held", "out_of_scope"
     records = _linked_records(conn, bid)
@@ -338,7 +361,8 @@ def _decide(conn: sqlite3.Connection, settings, business, now: str) -> Tuple[str
 def evaluate(conn: sqlite3.Connection, settings, now: Any = None) -> Dict[str, int]:
     """Set publish_state and publish_reason for every business.
 
-    Order: suppressed; held (inactive, place_not_active, out_of_scope, personal_name_no_presence,
+    Order: suppressed; held (inactive, place_not_active, place_not_synced, out_of_scope,
+    personal_name_no_presence,
     dba_legal_name); review (osm_only_needs_primary_source, name_contains_address,
     person_name_check, open_merge_review); otherwise ready. A person's "no" to a
     name check holds it (name_address_rejected, person_name_rejected). A reason

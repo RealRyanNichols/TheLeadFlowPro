@@ -328,6 +328,8 @@ ADDED_COLUMNS = (
 ADDED_INDEXES = (
     "CREATE INDEX IF NOT EXISTS businesses_place ON businesses(place)",
     "CREATE INDEX IF NOT EXISTS source_records_place ON source_records(place)",
+    # A record's merge history is read when it lands on a business (a removal request follows it).
+    "CREATE INDEX IF NOT EXISTS merges_record ON merges(source_record_id)",
 )
 
 

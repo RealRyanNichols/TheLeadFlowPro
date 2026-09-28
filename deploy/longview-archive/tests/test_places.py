@@ -198,8 +198,9 @@ class MapAndNpiRequests(NoWaitCase):
 
         def serve(call):
             query = parse_qs(call.body.decode())["data"][0]
-            town = re.search(r'area\["name"="([^"]+)"\]\["boundary"', query).group(1)
-            return {"elements": [{"type": "node", "id": sum(map(ord, town)), "lat": 32.5, "lon": -94.7,
+            town = re.search(r'area\.here\["name"="([^"]+)"\]\["boundary"', query).group(1)
+            lat, lon = next(p.center for p in places.PLACES if p.name == town)
+            return {"elements": [{"type": "node", "id": sum(map(ord, town)), "lat": lat, "lon": lon,
                                   "tags": {"name": f"Example Cafe {town}", "amenity": "cafe"}}]}
         t.on("POST", OVERPASS_HOST, "/api/interpreter", serve)
         counts = osm.sync_osm(self.conn, self.settings, now=SYNC_NOW, transport=t)
@@ -207,7 +208,7 @@ class MapAndNpiRequests(NoWaitCase):
         self.assertEqual(counts["skipped_places"], 1)
         rows = {r["place"]: r["city"] for r in self.conn.execute("SELECT place, city FROM source_records")}
         self.assertEqual(rows, {"longview": "Longview", "marshall": "Marshall", "clarksville-city": "Clarksville City"})
-        self.assertIn('area["name"="Longview"]', osm.build_query())  # Longview alone: the same query as ever
+        self.assertIn('area.here["name"="Longview"]', osm.build_query())
 
     def test_npi_by_zip_or_by_town_name(self):
         t = FakeTransport()
@@ -265,6 +266,8 @@ class TownsCase(NoWaitCase):
         rid = add_record(self.conn, "tx_tabc", key, name, street=street, zip_code=zip_code)
         self.conn.execute("UPDATE source_records SET place=?, city=? WHERE id=?",
                           (place, places.get(place).name, rid))
+        # As if a complete TABC sync had covered the ring (a record no sync covered is held).
+        db.set_meta(self.conn, "synced_places:tx_tabc", json.dumps(sorted(RING)))
         matching.match_pending(self.conn, SYNC_NOW)
 
     def export(self, settings=None):
@@ -555,23 +558,33 @@ class CaddyPaths(unittest.TestCase):
     PATTERN = re.compile(places.path_pattern())
 
     def test_the_caddy_files_list_every_seeded_town(self):
-        for name, patterns in (("website.routes", (places.path_pattern(), places.bare_path_pattern())),
+        for name, patterns in (("website.routes", (places.path_pattern(), places.hub_bare_pattern())),
                                ("website.errors", (places.path_pattern(),)),
-                               ("longview-archive.caddy", (places.path_pattern(), places.bare_path_pattern(),
+                               ("longview-archive.caddy", (places.path_pattern(), places.hub_bare_pattern(),
                                                            places.files_path_pattern())),
                                ("public-host.caddy.in", (places.path_pattern(),))):
             text = (CADDY_DIR / name).read_text()
             for pattern in patterns:
                 with self.subTest(file=name, pattern=pattern):
                     self.assertIn(f"path_regexp {pattern}\n", text)
+        # The bare-path redirects, town map included, are exactly what places.py generates.
+        for name, matchers in (("website.routes", ("longview_archive_bare", "longview_archive_hub_bare")),
+                               ("longview-archive.caddy", ("longview_directory_bare", "longview_directory_hub_bare"))):
+            with self.subTest(file=name):
+                text = (CADDY_DIR / name).read_text()
+                self.assertIn(places.caddy_bare_redirects(*matchers) + "\n", text)
+                self.assertIn(f"path_regexp lva_bare {places.bare_path_pattern()}\n", text)
+                self.assertNotIn("redir * {path}", text, "a redirect built from the raw path")
 
     def test_which_paths_are_the_directory(self):
         yes = ("/longview/businesses", "/longview/businesses/", "/longview/businesses/about/",
                "/marshall/businesses/town-shop-0001/", "/white-oak/businesses/search.json", "/places", "/places/",
                "/places/directory.css")
+        # Any case, as Caddy's plain path matcher always matched Longview's section.
+        yes += ("/Longview/businesses/", "/LONGVIEW/BUSINESSES", "/longview/Businesses", "/Places/")
         no = ("/", "/longview", "/longview/", "/longview/businesses-old", "/businesses", "/businesses/",
               "/marshall", "/tyler/businesses/", "/placesx", "/status/", "/longview/.builds/b1/",
-              "/Longview/businesses/", "/x/longview/businesses/")
+              "/x/longview/businesses/", "/Longview/")
         for path in yes:
             with self.subTest(path=path):
                 self.assertRegex(path, self.PATTERN)
@@ -745,7 +758,7 @@ class RemovalHold(unittest.TestCase):
         hold = approval.large_removal(approved, export)
         self.assertEqual(hold["places"], [{"place": "longview", "removed": 11, "approved": 40}])
 
-    def test_turning_a_town_off_waits_for_a_person(self):
+    def test_a_town_losing_its_listings_counts_when_no_active_towns_are_given(self):
         approved = batch({"longview": self.LV, "marshall": self.MH[:30]}, "a")
         hold = approval.large_removal(approved, batch({"longview": self.LV}, "b"))
         self.assertEqual(hold["places"], [{"place": "marshall", "removed": 30, "approved": 30}])

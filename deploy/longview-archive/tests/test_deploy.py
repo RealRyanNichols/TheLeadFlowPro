@@ -320,8 +320,9 @@ class CaddyFileTest(unittest.TestCase):
     def test_serves_only_the_directory_and_status_paths(self):
         self.assertIn("@status path /status /status/ /status/* /status.json", self.text)
         self.assertRegex(self.text, r"handle / \{\s*redir \* /longview/businesses/ 302\s*\}")
-        self.assertIn(f"@longview_directory_bare path_regexp {places.bare_path_pattern()}", self.text)
-        self.assertRegex(self.text, r"handle @longview_directory_bare \{\s*redir \* \{path\}/ 308\s*\}")
+        self.assertIn(places.caddy_bare_redirects("longview_directory_bare", "longview_directory_hub_bare"),
+                      self.text)
+        self.assertNotIn("redir * {path}", self.text)
         self.assertIn(f"@longview_directory_files path_regexp {places.files_path_pattern()}", self.text)
         block = re.search(r"handle @longview_directory_files \{(.*?)\n\t\}", self.text, re.S)
         self.assertIsNotNone(block)
@@ -1351,8 +1352,9 @@ class WebsitePathTest(unittest.TestCase):
         # importing site's own handle blocks.
         self.assertEqual(len(re.findall(r"(?m)^handle\b", code)), 1)
         self.assertEqual(len(re.findall(r"(?m)^[^\s}]", code)), 2)
-        self.assertIn(f"@longview_archive_bare path_regexp {places.bare_path_pattern()}", code)
-        self.assertRegex(code, r"handle @longview_archive_bare \{\s*redir \* \{path\}/ 308\s*\}")
+        self.assertIn(self.code(places.caddy_bare_redirects("longview_archive_bare", "longview_archive_hub_bare")),
+                      code)
+        self.assertNotIn("redir * {path}", code)
         self.assertIn("try_files {path} {path}/index.html", code)
         self.assertIn("file_server", code)
         self.assertIn('respond "Not found" 404', code)

@@ -26,6 +26,7 @@ while a slow visit runs.
 
 from __future__ import annotations
 
+import json
 import logging
 import shutil
 import threading
@@ -38,7 +39,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, Mapping, Optional
 
-from . import approval, backup, categories, db, matching, publish, status, worker
+from . import approval, backup, categories, db, matching, places, publish, status, worker
 from .fetcher import PoliteFetcher
 from .sources import comptroller, franchise, npi, osm, tabc
 from .sources import http as api_http
@@ -86,6 +87,24 @@ SYNC_JOBS = (
     SyncJob("osm", osm.RUN_KIND, osm, "sync_osm", "osm_sync_days", "overpass"),
 )
 SYNC_BY_NAME = {job.name: job for job in SYNC_JOBS}
+# meta key: the towns (JSON list of slugs) a job's last finished run was asked for.
+RAN_PLACES_KEY = "sync_ran_places:{}"
+
+
+def _active_slugs(settings) -> set:
+    return {p.slug for p in places.active(settings)}
+
+
+def ran_places(conn, job: "SyncJob") -> set:
+    """The towns ``job``'s last finished run was asked for (a run before towns existed: Longview)."""
+    raw = db.get_meta(conn, RAN_PLACES_KEY.format(job.kind))
+    if raw is None:
+        return {places.LONGVIEW.slug}
+    try:
+        value = json.loads(raw)
+    except ValueError:
+        return set()
+    return {str(v) for v in value} if isinstance(value, list) else set()
 
 
 @dataclass
@@ -110,6 +129,8 @@ def run_sync(conn, settings, job: SyncJob, now: Any = None, transport=None) -> S
         return SyncOutcome(job, "error", {}, api_http.error_text(exc), type(exc).__name__)
     counts = counts if isinstance(counts, dict) else {}
     state = str(counts.get("status") or "ok")
+    if state in DONE_STATUSES:
+        db.set_meta(conn, RAN_PLACES_KEY.format(job.kind), json.dumps(sorted(_active_slugs(settings))))
     error = None
     if state == "error":
         error = str(counts.get("error") or "error")
@@ -121,7 +142,10 @@ def run_sync(conn, settings, job: SyncJob, now: Any = None, transport=None) -> S
 def sync_due_at(conn, settings, job: SyncJob) -> Optional[datetime]:
     """When ``job`` is next due (None: now).
 
-    A finished run (ok, partial, skipped) sets the next run one period later. A
+    A finished run (ok, partial, skipped) sets the next run one period later,
+    unless a town is on now that the last finished run was not asked for (a town
+    turned on, or on again): then it is due at once, so the town's section is
+    not empty, or showing records nobody re-checked, for up to a period. A
     later attempt that failed, or that never finished because the process
     died, holds the retry off for six hours so a broken API or a crash loop is
     not hit again at once. A run the service interrupted on purpose does not.
@@ -136,6 +160,8 @@ def sync_due_at(conn, settings, job: SyncJob) -> Optional[datetime]:
     ).fetchone()[0]
     done_at = publish.as_datetime(last_done)
     due = done_at + job.period(settings) if done_at else None
+    if done_at is not None and not _active_slugs(settings) <= ran_places(conn, job):
+        due = None
     tried_at = publish.as_datetime(last_try)
     if tried_at is not None and (done_at is None or tried_at > done_at):
         retry = tried_at + timedelta(seconds=SYNC_RETRY_S)

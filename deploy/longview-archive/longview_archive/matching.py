@@ -36,7 +36,11 @@ A business belongs to exactly one place (``places.py``): the town its records'
 postal city names. Every rule below compares a record only with businesses of
 its own place, so two towns' records are never joined, whatever they share (a
 chain's phone line, a name). A record whose place changes leaves its old
-business and is matched again in the new place.
+business and is matched again in the new place. A removal request follows it:
+the move is written to ``merges`` (rule ``left_place``), and whatever business
+the record lands on later (created, joined now, or joined after a review) is
+suppressed too, under its own public id (``_carry_suppression``). A removed
+listing is never published again because its record moved town.
 
 A batch is processed by source priority and then by source key, so the same
 records produce the same businesses, public ids, and slugs whatever order they
@@ -103,6 +107,8 @@ RULE_NEW = "new_business"
 RULE_OSM_ONLY = OSM_ONLY_REASON
 RULE_SAME_NAME = "same_name_franchise"
 RULE_FRANCHISE_OUTLET = "franchise_has_sales_tax_outlet"
+RULE_LEFT_PLACE = "left_place"
+CARRIED_REASON = "removal request carried over: the record moved town"
 REVIEW_PHONE_STREET = "same_phone_different_street"
 REVIEW_PHONE_MANY = "same_phone_several_businesses"
 REVIEW_ADDRESS_MANY = "same_address_several_businesses"
@@ -294,7 +300,17 @@ def _same_place(biz: Optional[sqlite3.Row], rec: "_Rec") -> bool:
 
 def _leave_place(conn: sqlite3.Connection, rec: "_Rec", old: sqlite3.Row, stamp: str) -> "_Rec":
     """The record now names another town: unlink it from its business, which is retired
-    when no other active record keeps it, and match it again as a new record."""
+    when no other active record keeps it, and match it again as a new record.
+
+    The move is written to ``merges`` (rule ``left_place``, on the old business) so a
+    removal request on the old business follows the record (``_carry_suppression``)."""
+    conn.execute(
+        "INSERT INTO merges(business_id, source_record_id, rule, evidence_json, explanation, created_at)"
+        " VALUES (?,?,?,?,?,?)",
+        (old["id"], rec.id, RULE_LEFT_PLACE,
+         db.dumps({"from_place": old["place"] or "longview", "to_place": rec.place}),
+         f"The {rec.label} record left this business because it now names another town.", stamp),
+    )
     conn.execute("UPDATE source_records SET business_id=NULL, match_state='new' WHERE id=?", (rec.id,))
     conn.execute(
         "UPDATE businesses SET active=0, updated_at=? WHERE id=? AND active=1 AND NOT EXISTS"
@@ -307,6 +323,37 @@ def _leave_place(conn: sqlite3.Connection, rec: "_Rec", old: sqlite3.Row, stamp:
 
 def _is_suppressed(conn: sqlite3.Connection, biz: sqlite3.Row) -> bool:
     return biz["publish_state"] == "suppressed" or privacy.is_suppressed(conn, biz)
+
+
+def _carry_suppression(conn: sqlite3.Connection, record_id: int, business_id: Optional[int], stamp: str) -> bool:
+    """A record that left a suppressed business (it moved town) suppresses the business it lands on.
+
+    The suppression is stored under the new business's public id, so every later
+    check (publish, approval, the site build, the worker) honors it like any other
+    removal request."""
+    if business_id is None:
+        return False
+    biz = _business(conn, business_id)
+    if biz is None:
+        return False
+    for row in conn.execute(
+        "SELECT DISTINCT business_id FROM merges WHERE source_record_id=? AND rule=? AND business_id != ?",
+        (record_id, RULE_LEFT_PLACE, business_id),
+    ).fetchall():
+        old = _business(conn, row["business_id"])
+        if old is None or not _is_suppressed(conn, old):
+            continue
+        public_id, _ = assign_identity(conn, business_id)
+        conn.execute(
+            "INSERT OR IGNORE INTO suppressions(kind, value, reason, note, created_at) VALUES ('public_id',?,?,?,?)",
+            (public_id, CARRIED_REASON, f"from {_ref(old)}", stamp),
+        )
+        conn.execute(
+            "UPDATE businesses SET publish_state='suppressed', publish_reason='suppressed', updated_at=?"
+            " WHERE id=?", (stamp, business_id),
+        )
+        return True
+    return False
 
 
 def _ref(biz: sqlite3.Row) -> str:
@@ -988,6 +1035,13 @@ def _match_by_name(conn: sqlite3.Connection, rec: _Rec, rejected: set, stamp: st
 # ---------------------------------------------------------------- the rules
 
 def _match(conn: sqlite3.Connection, source_record_id: int, stamp: str) -> MatchResult:
+    result = _match_rules(conn, source_record_id, stamp)
+    if result.business_id is not None and result.action in ("created", "matched"):
+        _carry_suppression(conn, source_record_id, result.business_id, stamp)
+    return result
+
+
+def _match_rules(conn: sqlite3.Connection, source_record_id: int, stamp: str) -> MatchResult:
     row = conn.execute("SELECT * FROM source_records WHERE id=?", (source_record_id,)).fetchone()
     if row is None:
         return MatchResult("ignored", None, "missing", "No source record has this id.")
