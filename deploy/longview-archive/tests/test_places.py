@@ -80,12 +80,14 @@ class Registry(unittest.TestCase):
         self.assertEqual(config.Settings().places, ("longview",))
         self.assertEqual(config.Settings().site_dir, config.Settings().place_site_dir("longview"))
 
-    def test_first_ring_is_seeded(self):
+    def test_first_and_second_rings_are_seeded(self):
         self.assertEqual(
             [p.slug for p in places.PLACES],
             ["longview", "marshall", "kilgore", "white-oak", "hallsville", "diana", "harleton", "gladewater",
              "clarksville-city", "easton", "scottsville", "elysian-fields", "waskom", "ore-city", "gilmer",
-             "karnack", "jefferson", "tatum", "henderson", "carthage"])
+             "karnack", "jefferson", "tatum", "henderson", "carthage",
+             "tyler", "big-sandy", "hawkins", "winona", "arp", "overton", "new-london", "beckville",
+             "pittsburg", "daingerfield", "lone-star", "hughes-springs", "linden"])
         for p in places.PLACES:
             with self.subTest(place=p.slug):
                 self.assertEqual(p.state, "TX")
@@ -100,8 +102,8 @@ class Registry(unittest.TestCase):
         self.assertEqual(load({}).places, ("longview",))
         self.assertEqual(load({"LVA_PLACES": "marshall, longview"}).places, ("longview", "marshall"))
         self.assertEqual(load({"LVA_PLACES": "all"}).places, tuple(p.slug for p in places.PLACES))
-        with self.assertRaisesRegex(ValueError, "unknown places: tyler"):
-            load({"LVA_PLACES": "longview,tyler"})
+        with self.assertRaisesRegex(ValueError, "unknown places: dallas"):
+            load({"LVA_PLACES": "longview,dallas"})
         self.assertEqual([p.name for p in load({"LVA_PLACES": "diana,longview"}).active_places],
                          ["Longview", "Diana"])
 
@@ -583,7 +585,7 @@ class CaddyPaths(unittest.TestCase):
         # Any case, as Caddy's plain path matcher always matched Longview's section.
         yes += ("/Longview/businesses/", "/LONGVIEW/BUSINESSES", "/longview/Businesses", "/Places/")
         no = ("/", "/longview", "/longview/", "/longview/businesses-old", "/businesses", "/businesses/",
-              "/marshall", "/tyler/businesses/", "/placesx", "/status/", "/longview/.builds/b1/",
+              "/marshall", "/dallas/businesses/", "/placesx", "/status/", "/longview/.builds/b1/",
               "/x/longview/businesses/", "/Longview/")
         for path in yes:
             with self.subTest(path=path):
@@ -666,7 +668,7 @@ class CaddyPaths(unittest.TestCase):
             self.assertEqual(code, 404)
             self.assertIn("noindex", headers["X-Robots-Tag"])
             for path in ("/", "/longview", "/longview/", "/marshall", "/businesses/", "/marshall/.builds/",
-                         "/.places-builds/", "/tyler/businesses/"):
+                         "/.places-builds/", "/dallas/businesses/"):
                 with self.subTest(path=path):
                     code, headers, text = status_code(path)
                     self.assertEqual((code, text), (200, f"app {path}"))
