@@ -1,0 +1,15 @@
+# Installed by deploy/droplet/db.sh setup (docs/infrastructure/database.md).
+[Unit]
+Description=The LeadFlow Pro: back up the site's database (db.sh backup)
+Wants=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+# A hung run is stopped, so it cannot block the next night's backup. Longer
+# than db.sh's own limits added up (lock wait, dump, Drive copy), so those
+# fire first and write down what failed.
+TimeoutStartSec=1h
+ExecStart=/opt/theleadflowpro/deploy/droplet/db.sh backup
+Nice=10
+IOSchedulingClass=idle

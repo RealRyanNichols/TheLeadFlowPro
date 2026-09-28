@@ -1,0 +1,12 @@
+# Installed by deploy/droplet/db.sh setup (docs/infrastructure/database.md).
+[Unit]
+Description=The LeadFlow Pro: restore the newest backup into a scratch copy and check it (db.sh restore-check)
+Wants=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+TimeoutStartSec=1h
+ExecStart=/opt/theleadflowpro/deploy/droplet/db.sh restore-check
+Nice=10
+IOSchedulingClass=idle

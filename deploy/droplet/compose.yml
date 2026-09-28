@@ -6,6 +6,8 @@
 #   cron    Replaces Vercel Cron. Idle until /etc/theleadflowpro/cron-enabled
 #           exists (deploy/droplet/cutover.sh crons-on).
 #   worker  Content Command queue worker. Opt in with COMPOSE_PROFILES=worker.
+#   db      The site's own database (docs/infrastructure/database.md). deploy.sh
+#           never starts or restarts it; db.sh owns it.
 
 name: theleadflowpro
 
@@ -69,9 +71,49 @@ services:
     restart: unless-stopped
     logging: *logging
 
+  # The site's own database (decided Sep 28, 2026; docs/infrastructure/database.md).
+  # Its own profile keeps deploys away from it: deploy.sh never starts or
+  # restarts it. "db.sh setup" starts it once; Docker then keeps it running
+  # across restarts. No port is published, so the internet cannot reach it;
+  # the site's containers use db:5432. Small memory settings: the droplet is
+  # short on memory (Sep 28, 2026).
+  db:
+    profiles: ["db"]
+    # Pinned to the tested build: a new image can change how text sorts (ICU).
+    image: postgres:17.11-alpine3.24
+    command: ["postgres", "-c", "shared_buffers=64MB", "-c", "max_connections=20"]
+    environment:
+      POSTGRES_DB: leadflow
+      POSTGRES_PASSWORD_FILE: /run/leadflow/db-password
+      # Sort text the way Supabase does (ICU, en-US). Used on the first start only.
+      POSTGRES_INITDB_ARGS: "--locale-provider=icu --icu-locale=en-US"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      # Written by db.sh setup, in a root-only folder no container mounts
+      # whole. A missing file stops the start instead of Docker creating an
+      # empty folder in its place.
+      - type: bind
+        source: ${DB_SECRETS_DIR:-/etc/theleadflowpro-db}/db-password
+        target: /run/leadflow/db-password
+        read_only: true
+        bind:
+          create_host_path: false
+    healthcheck:
+      # Over TCP, so it passes only once the real server is up (the first-run
+      # setup server listens on the socket alone).
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "postgres", "-d", "leadflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 30s
+    mem_limit: 512m
+    restart: unless-stopped
+    logging: *logging
+
 secrets:
   webenv:
     file: ${WEB_ENV_FILE:-/etc/theleadflowpro/web.env}
 
 volumes:
   cron-state:
+  db-data:

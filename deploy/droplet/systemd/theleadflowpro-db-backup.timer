@@ -1,0 +1,11 @@
+# Installed by deploy/droplet/db.sh setup (docs/infrastructure/database.md).
+[Unit]
+Description=The LeadFlow Pro: nightly database backup, 3:15 AM Central
+
+[Timer]
+OnCalendar=*-*-* 03:15:00 America/Chicago
+# A night missed while the droplet was off runs at the next start.
+Persistent=true
+
+[Install]
+WantedBy=timers.target
