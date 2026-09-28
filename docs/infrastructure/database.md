@@ -2,8 +2,8 @@
 
 **Decided September 28, 2026 (owner):** the site's data and logins live in a
 Postgres database in a container on the droplet, next to the site. It is
-backed up every night, with a copy of each backup in The LeadFlow Pro's Google
-Drive. `CLAUDE.md` records the decision.
+backed up every night, with a copy of every nightly backup in The LeadFlow
+Pro's Google Drive. `CLAUDE.md` records the decision.
 
 ## Decisions (September 28, 2026)
 
@@ -45,8 +45,11 @@ Other options considered:
 - **Who can reach it:** no port is opened on the droplet, so nothing on the
   internet can reach it. The site's own containers reach it as `db:5432`.
   Programs on the droplet itself would also need the password.
-- **Password:** `db.sh setup` makes one in `/etc/theleadflowpro/db-password`,
-  readable by root only. It is never shown, logged or committed.
+- **Password:** `db.sh setup` makes one in `/etc/theleadflowpro-db/db-password`,
+  readable by root only. It is never shown, logged or committed. That folder
+  is separate from `/etc/theleadflowpro` on purpose: the site's scheduled-jobs
+  container can read `/etc/theleadflowpro`, but no container can read
+  `/etc/theleadflowpro-db`.
 - **Nightly backup:** 3:15 AM Central. `db.sh backup` saves a compressed copy in
   `/var/backups/theleadflowpro/db/`, checks that the file reads back, and keeps
   the newest 14. A backup never overwrites another, and one that hangs stops
@@ -55,7 +58,8 @@ Other options considered:
   needs.
 - **Copy in Google Drive:** right after each nightly backup, `db.sh backup`
   copies it to The LeadFlow Pro's Google Drive, folder "LeadFlow Pro database
-  backups", and removes copies there older than 30 days. rclone does the copy
+  backups", and removes copies there older than 30 days (they go to Drive's
+  trash, which Google empties after 30 days). rclone does the copy
   and checks its size and checksum. The link is made once with
   `db.sh drive-link`: one Google sign-in as The LeadFlow Pro's account, in any
   browser. Its access covers only the files it creates, and the sign-in stays
@@ -180,9 +184,9 @@ undone by pointing back.
 
 - **Before phase B:** `db.sh off`. To remove every trace of the (still empty)
   database: `docker volume rm theleadflowpro_db-data`, delete
-  `/etc/theleadflowpro/db-password` and `/var/backups/theleadflowpro/`, and
+  `/etc/theleadflowpro-db/db-password` and `/var/backups/theleadflowpro/`, and
   remove the four `theleadflowpro-db-*` files from `/etc/systemd/system/`.
-- **The Google Drive link:** delete `/etc/theleadflowpro/rclone.conf` on the
+- **The Google Drive link:** delete `/etc/theleadflowpro-db/rclone.conf` on the
   droplet, and remove "rclone" under Third-party access in The LeadFlow Pro's
   Google account (Security settings). The copies already in Drive stay until
   someone deletes them.
@@ -237,11 +241,17 @@ below were re-run on the final version.
 - **Google Drive copy:** tested with a local folder standing in for Drive,
   since the real link needs The LeadFlow Pro's Google sign-in. A backup's copy
   arrived byte for byte and `check.sh` showed it; copies older than 30 days
-  were removed while a 10-day-old copy and an unrelated file stayed; a failed
-  copy kept the new backup on the droplet and showed `FAILED`. The link: a
-  wrong phrase, a wrong address and a sign-in Google refused each linked
-  nothing and left nothing behind, and a failed re-link kept the working
-  link. The Google link it shows asks only for access to its own files.
+  were removed while a 10-day-old copy, an unrelated file and a copy in a
+  subfolder stayed; a failed copy kept the new backup on the droplet and
+  showed `FAILED`; in setup, a failed copy no longer skips the restore check.
+  The link: a wrong phrase, a wrong address and a sign-in Google refused each
+  linked nothing and left nothing behind; a failed re-link kept the working
+  link; a backup ran in a second while the sign-in prompt was open; a second
+  link at the same time was turned away. The Google link asks only for access
+  to its own files. The site's scheduled-jobs container cannot see the
+  password or the Drive sign-in. A third independent review, of the Drive
+  copy, found 9 problems (the worst: the sign-in would have sat where that
+  container could read it); all were fixed and re-tested.
 - **Timers:** valid systemd units. 3:15 AM Central stays 3:15 AM Central after
   daylight saving time ends (08:15 UTC in summer, 09:15 UTC in winter).
 - `tests/droplet-db.test.ts` pins these rules so a later change cannot quietly
@@ -275,7 +285,16 @@ below were re-run on the final version.
   of the comma-separated names in `/etc/theleadflowpro/compose-profiles`.
 - The Google Drive copy uses rclone from Ubuntu's packages (1.60 on Ubuntu
   24.04) with the `drive.file` scope, so it can see and change only the files
-  it creates. Its sign-in is in `/etc/theleadflowpro/rclone.conf` (mode 600).
-  The address pasted during `db.sh drive-link` carries a one-time code; it is
-  read without being shown and handed straight to rclone, and rclone's own
-  output (which repeats the sign-in) is deleted as soon as it finishes.
+  it creates. Its sign-in is in `/etc/theleadflowpro-db/rclone.conf` (mode
+  600), in the folder no container mounts. The address pasted during
+  `db.sh drive-link` carries a one-time code: it is read without being shown,
+  handed to rclone through curl's standard input (so it never appears in the
+  droplet's process list), and rclone's own output, which repeats the sign-in,
+  is deleted as soon as rclone finishes. The link refuses to show a Google
+  link that asks for more than `drive.file`.
+- A sign-in left open at the prompt never holds up the nightly backup: the
+  link takes the backup lock only for the moment it swaps the new sign-in in.
+  The prompt gives up after 15 minutes, and rclone after 20, even if the
+  script is killed.
+- Installing rclone sets `NEEDRESTART_SUSPEND=1`, so Ubuntu's package tools do
+  not restart the droplet's other services while it installs.

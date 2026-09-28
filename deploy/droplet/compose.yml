@@ -89,10 +89,11 @@ services:
       POSTGRES_INITDB_ARGS: "--locale-provider=icu --icu-locale=en-US"
     volumes:
       - db-data:/var/lib/postgresql/data
-      # Written by db.sh setup (root only). A missing file stops the start
-      # instead of Docker creating an empty folder in its place.
+      # Written by db.sh setup, in a root-only folder no container mounts
+      # whole. A missing file stops the start instead of Docker creating an
+      # empty folder in its place.
       - type: bind
-        source: ${CONFIG_DIR:-/etc/theleadflowpro}/db-password
+        source: ${DB_SECRETS_DIR:-/etc/theleadflowpro-db}/db-password
         target: /run/leadflow/db-password
         read_only: true
         bind:

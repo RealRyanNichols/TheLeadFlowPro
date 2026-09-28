@@ -157,18 +157,47 @@ test("each nightly backup is copied to The LeadFlow Pro's Google Drive once link
   assert.ok(pos(copy, "if ! drive_linked; then") < pos(copy, "copyto"), "nothing is sent until the link exists");
   assert.match(copy, /record_drive FAILED/, "a failed copy is written down for check.sh");
   assert.ok(pos(copy, "record_drive ok") < pos(copy, "delete "), "old Drive copies go only after the new one is there");
-  assert.match(copy, /--include 'leadflow-\*\.dump' --min-age "\$\{DRIVE_KEEP_DAYS\}d"/, "only its own old backups are removed from Drive");
+  assert.match(copy, /--max-depth 1 --include 'leadflow-\*\.dump' --min-age "\$\{DRIVE_KEEP_DAYS\}d"/, "only its own old backups, in its own folder, are removed");
   assert.match(dbScript, /^DRIVE_KEEP_DAYS=30$/m);
+  const setup = fn("do_setup");
+  assert.ok(pos(setup, "do_restore_check") < pos(setup, '(do_drive_copy "$LAST_BACKUP") ||'), "in setup, a failed Drive copy cannot skip the restore check");
+});
+
+test("the Google Drive link asks only for its own files, never shows the sign-in, and never breaks a working link or the nightly backup", () => {
   const link = fn("do_drive_link");
-  assert.match(link, /scope=drive\.file/, "the access covers only the files it creates");
-  assert.match(link, /read -rs back/, "the address carrying the sign-in code is not shown on screen");
-  assert.ok(pos(link, '\n  rm -f "$DRIVE_LOG"\n') > pos(link, 'curl -s -o /dev/null --max-time 60 "$back"'), "rclone's output, which repeats the sign-in, is deleted");
-  assert.ok(pos(link, `trap 'kill "$DRIVE_PID" 2>/dev/null || true; rm -f "$DRIVE_LOG" "$DRIVE_NEW"' EXIT`) < pos(link, "read -rs back"), "and is deleted even if the link stops early");
-  assert.ok(pos(link, `grep -q '^token = ' "$DRIVE_NEW"`) < pos(link, 'mv -f "$DRIVE_NEW" "$DRIVE_CONF"'), "a link that works is replaced only by one that works");
+  assert.match(link, /config create "\$DRIVE_REMOTE" drive scope drive\.file config_is_local true/, "the pair form, which older rclone also reads as drive.file");
+  assert.ok(pos(link, "auth%2Fdrive.file&") < pos(link, "$google\n"), "the Google link is shown only if it asks for drive.file");
+  assert.match(link, /read -rs -t 900 back/, "the pasted address is not shown on screen, and the prompt does not wait forever");
+  assert.match(link, /printf 'url = "%s"\\n' "\$back" \| curl -s -o \/dev\/null --max-time 60 -K -/, "the one-time code never shows in the process list");
+  assert.doesNotMatch(link, /curl[^|\n]*"\$back"/, "the address is never a curl argument");
+  assert.ok(pos(link, '\n  rm -f "$DRIVE_LOG"\n') > pos(link, "-K -"), "rclone's output, which repeats the sign-in, is deleted");
+  assert.ok(
+    pos(link, `trap 'kill "$DRIVE_PID" 2>/dev/null || true; wait "$DRIVE_PID" 2>/dev/null || true; rm -f "$DRIVE_LOG" "$DRIVE_NEW"*' EXIT`) < pos(link, "read -rs"),
+    "and is deleted even if the link stops early",
+  );
+  assert.ok(pos(link, 'rm -f "$SECRETS_DIR"/.drive-link.* "$DRIVE_NEW"*') < pos(link, "config create"), "leftovers of a killed try are cleared first");
+  assert.match(link, /exec timeout 1200 rclone .* 7>&- 9>&-\)/, "rclone gives up on its own and holds none of the script's locks");
+  assert.ok(pos(link, 'exec 7>"$DRIVE_LOCK"') < pos(link, "config create"), "one link at a time, on a lock of its own");
+  assert.ok(pos(link, `grep -q '^token = ' "$DRIVE_NEW"`) < pos(link, 'mkdir "$DRIVE_REMOTE:$DRIVE_FOLDER"'), "Google must accept the sign-in");
+  assert.ok(pos(link, 'rclone --config "$DRIVE_NEW" mkdir') < pos(link, 'mv -f "$DRIVE_NEW" "$DRIVE_CONF"'), "the new link is proven before it replaces a working one");
+  assert.ok(pos(link, "\n  lock\n") < pos(link, 'mv -f "$DRIVE_NEW" "$DRIVE_CONF"'), "swapped in under the backup lock");
+  assert.ok(pos(link, "read -rs") < pos(link, "\n  lock\n"), "the backup lock is not held while the prompt waits");
   assert.doesNotMatch(dbScript, /(?:cat|less|head|tail)\s+"?\$DRIVE_(?:CONF|LOG|NEW)/, "the sign-in is never printed");
+  assert.match(fn("install_rclone"), /NEEDRESTART_SUSPEND=1/, "installing rclone does not restart the droplet's services");
   const check = read("deploy/droplet/check.sh");
-  assert.match(check, /grep -q '\^token = ' "\$CONF_DIR\/rclone\.conf"/, "check.sh only asks whether a sign-in is there");
+  assert.match(check, /grep -q '\^token = ' \/etc\/theleadflowpro-db\/rclone\.conf/, "check.sh only asks whether a sign-in is there");
   assert.match(check, /row "Google Drive copy"/);
+});
+
+test("the database password and the Drive sign-in live where no container can read them", () => {
+  assert.match(dbScript, /^SECRETS_DIR="\/etc\/theleadflowpro-db"$/m);
+  assert.match(dbScript, /^PASS_FILE="\$SECRETS_DIR\/db-password"$/m);
+  assert.match(dbScript, /^DRIVE_CONF="\$SECRETS_DIR\/rclone\.conf"$/m);
+  assert.match(dbScript, /^CONF_DIR="\/etc\/theleadflowpro"$/m, "a different folder from the one the cron container mounts");
+  assert.match(service("db"), /source: \$\{DB_SECRETS_DIR:-\/etc\/theleadflowpro-db\}\/db-password/, "the database gets only its password file");
+  for (const name of ["web", "cron", "worker"]) {
+    assert.doesNotMatch(service(name), /theleadflowpro-db/, `${name} cannot see the secrets folder`);
+  }
 });
 
 test("no secret in the repository: names only, and the password is made on the droplet and never read back", () => {

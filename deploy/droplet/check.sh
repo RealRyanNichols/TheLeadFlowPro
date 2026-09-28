@@ -112,7 +112,7 @@ else
   row "restore check" "not run yet"
 fi
 # Only whether a sign-in is there; its contents are never read out.
-if grep -q '^token = ' "$CONF_DIR/rclone.conf" 2>/dev/null; then
+if grep -q '^token = ' /etc/theleadflowpro-db/rclone.conf 2>/dev/null; then
   if [ -f "$DB_BACKUPS/last-drive-copy" ]; then
     db_drive_stale=""
     [ -n "$(find "$DB_BACKUPS/last-drive-copy" -mmin +1560 2>/dev/null)" ] && db_drive_stale="  !! no copy in over a day"

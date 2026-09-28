@@ -26,7 +26,11 @@ export LC_ALL=C
 
 APP_DIR="/opt/theleadflowpro"
 CONF_DIR="/etc/theleadflowpro"
-PASS_FILE="$CONF_DIR/db-password"
+# Root-only folder for the database password and the Google Drive sign-in. No
+# container mounts it (the cron container mounts CONF_DIR, so nothing secret
+# of the database's goes there).
+SECRETS_DIR="/etc/theleadflowpro-db"
+PASS_FILE="$SECRETS_DIR/db-password"
 BACKUP_DIR="/var/backups/theleadflowpro/db"
 CHECK_FILE="$BACKUP_DIR/last-restore-check"
 LOCK_FILE="/run/lock/theleadflowpro-db.lock"
@@ -38,11 +42,13 @@ SETUP_MIN_FREE_MB=2048
 SETUP_MIN_MEMORY_MB=300
 # The Google Drive copy (db.sh drive-link). Its access covers only the files
 # it creates, and its sign-in stays in DRIVE_CONF (root only).
-DRIVE_CONF="$CONF_DIR/rclone.conf"
+DRIVE_CONF="$SECRETS_DIR/rclone.conf"
 DRIVE_REMOTE="leadflow-drive"
 DRIVE_FOLDER="LeadFlow Pro database backups"
 DRIVE_KEEP_DAYS=30
+DRIVE_COPY_TIMEOUT=900
 DRIVE_FILE="$BACKUP_DIR/last-drive-copy"
+DRIVE_LOCK="/run/lock/theleadflowpro-drive-link.lock"
 UNITS="theleadflowpro-db-backup.service theleadflowpro-db-backup.timer theleadflowpro-db-restore-check.service theleadflowpro-db-restore-check.timer"
 TIMERS="theleadflowpro-db-backup.timer theleadflowpro-db-restore-check.timer"
 LAST_BACKUP=""
@@ -171,8 +177,9 @@ record_drive() {
 }
 
 # Copies one backup to Google Drive, then removes Drive copies older than
-# DRIVE_KEEP_DAYS. rclone checks the size and checksum of what it uploads. A
-# failed copy leaves the backup on this droplet as it is.
+# DRIVE_KEEP_DAYS (they go to Drive's trash, which Google empties after 30
+# days). rclone checks the size and checksum of what it uploads. A failed copy
+# leaves the backup on this droplet as it is.
 do_drive_copy() {
   local file="$1" name
   name=$(basename "$file")
@@ -180,14 +187,26 @@ do_drive_copy() {
     note "Google Drive copy: not linked yet (db.sh drive-link)"
     return 0
   fi
-  if ! timeout 1800 rclone --config "$DRIVE_CONF" copyto "$file" "$DRIVE_REMOTE:$DRIVE_FOLDER/$name" --retries 3 --low-level-retries 10; then
+  if ! timeout "$DRIVE_COPY_TIMEOUT" rclone --config "$DRIVE_CONF" copyto "$file" "$DRIVE_REMOTE:$DRIVE_FOLDER/$name" --retries 3 --low-level-retries 10; then
     record_drive FAILED "$name"
     die "The backup is saved on this droplet, but its Google Drive copy failed. The next backup tries again."
   fi
   record_drive ok "$name"
   ok "copied $name to Google Drive (\"$DRIVE_FOLDER\")"
-  timeout 600 rclone --config "$DRIVE_CONF" delete "$DRIVE_REMOTE:$DRIVE_FOLDER" --include 'leadflow-*.dump' --min-age "${DRIVE_KEEP_DAYS}d" ||
+  timeout 300 rclone --config "$DRIVE_CONF" delete "$DRIVE_REMOTE:$DRIVE_FOLDER" --max-depth 1 --include 'leadflow-*.dump' --min-age "${DRIVE_KEEP_DAYS}d" ||
     note "could not remove Drive copies older than $DRIVE_KEEP_DAYS days; the next backup tries again"
+}
+
+# Installs rclone from Ubuntu's packages. NEEDRESTART_SUSPEND keeps Ubuntu's
+# package tools from restarting the droplet's other services along the way.
+install_rclone() {
+  local out apt=(env NEEDRESTART_SUSPEND=1 DEBIAN_FRONTEND=noninteractive apt-get -y -q)
+  out=$(mktemp)
+  if "${apt[@]}" install --no-install-recommends rclone > "$out" 2>&1; then rm -f "$out"; return 0; fi
+  if "${apt[@]}" update > "$out" 2>&1 && "${apt[@]}" install --no-install-recommends rclone > "$out" 2>&1; then rm -f "$out"; return 0; fi
+  tail -n 5 "$out" >&2
+  rm -f "$out"
+  return 1
 }
 
 record_check() {
@@ -317,33 +336,44 @@ do_drive_link() {
    droplet ($DRIVE_CONF, root only).
 EOF
   confirm "LINK GOOGLE DRIVE"
-  lock
+  # One link at a time. The backup lock is taken only at the very end, so a
+  # sign-in left open never holds up the nightly backup.
+  exec 7>"$DRIVE_LOCK"
+  flock -n 7 || die "Another db.sh drive-link is running. Finish or close it first."
   if ! command -v rclone > /dev/null 2>&1; then
     say "Installing rclone (it copies files to Google Drive)"
-    DEBIAN_FRONTEND=noninteractive apt-get install -y -q rclone > /dev/null || die "Could not install rclone. Nothing changed."
+    install_rclone || die "Could not install rclone. Nothing changed."
   fi
-  install -d -m 700 "$CONF_DIR"
-  # The new link is made in a file of its own. It replaces an earlier link
-  # only once it works, so a failed try never breaks a link that works.
+  install -d -m 700 "$SECRETS_DIR"
   DRIVE_NEW="$DRIVE_CONF.new"
-  rm -f "$DRIVE_NEW"
+  # Leftovers of a try that was killed outright (they may hold a sign-in).
+  rm -f "$SECRETS_DIR"/.drive-link.* "$DRIVE_NEW"*
   local url google back waited=0
-  # rclone's output repeats the sign-in it receives, so it goes to a root-only
-  # file that is deleted as soon as rclone finishes.
-  DRIVE_LOG=$(mktemp -p "$CONF_DIR" .drive-link.XXXXXX)
-  (umask 077 && exec rclone --config "$DRIVE_NEW" config create "$DRIVE_REMOTE" drive scope=drive.file config_is_local=true > "$DRIVE_LOG" 2>&1) &
+  # The new link is made in a file of its own and replaces an earlier link
+  # only once it works. rclone's output repeats the sign-in, so it goes to a
+  # root-only file that is deleted as soon as rclone finishes. rclone gives up
+  # after 20 minutes even if this script is killed, and holds none of its locks.
+  DRIVE_LOG=$(mktemp -p "$SECRETS_DIR" .drive-link.XXXXXX)
+  (umask 077 && exec timeout 1200 rclone --config "$DRIVE_NEW" config create "$DRIVE_REMOTE" drive scope drive.file config_is_local true > "$DRIVE_LOG" 2>&1 7>&- 9>&-) &
   DRIVE_PID=$!
   # "|| true": under set -e a failed kill (rclone already gone) would end the
   # trap before the clean-up.
-  trap 'kill "$DRIVE_PID" 2>/dev/null || true; rm -f "$DRIVE_LOG" "$DRIVE_NEW"' EXIT
+  trap 'kill "$DRIVE_PID" 2>/dev/null || true; wait "$DRIVE_PID" 2>/dev/null || true; rm -f "$DRIVE_LOG" "$DRIVE_NEW"*' EXIT
   for _ in $(seq 1 20); do
     url=$(grep -oE 'http://127\.0\.0\.1:53682/auth\?state=[A-Za-z0-9_-]+' "$DRIVE_LOG" | head -n 1 || true)
     [ -n "$url" ] && break
     sleep 1
   done
-  [ -n "$url" ] || die "The Google sign-in did not start. Nothing was linked."
+  if [ -z "$url" ]; then
+    # No sign-in exists yet, so rclone's own reason is safe to show.
+    sed 's/^/   rclone: /' "$DRIVE_LOG" | tail -n 5 >&2
+    die "The Google sign-in did not start. Nothing was linked."
+  fi
   google=$(curl -s -o /dev/null -w '%{redirect_url}' "$url" || true)
-  [ -n "$google" ] || die "The Google sign-in did not start. Nothing was linked."
+  case "$google" in
+    https://accounts.google.com/*"scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fdrive.file&"*) ;;
+    *) die "The Google sign-in did not ask for the narrow access this link needs, so nothing was linked. Send this output to Claude." ;;
+  esac
   cat <<EOF
 
    1. Open this link in a browser, on any computer or phone, and sign in as
@@ -354,29 +384,32 @@ $google
    2. Press Allow. The browser then shows a page that does not load, with an
       address starting http://127.0.0.1:53682/. That is expected.
    3. Copy that whole address from the address bar, paste it here and press
-      Enter. It is not shown on screen.
+      Enter within 15 minutes. It is not shown on screen.
 
 EOF
   printf '   Address: '
-  read -rs back || back=""
+  read -rs -t 900 back || back=""
   printf '\n'
-  case "$back" in
-    "http://127.0.0.1:53682/?"*) ;;
-    *) die "That is not the address from the sign-in, so nothing was linked. Run db.sh drive-link again." ;;
-  esac
-  curl -s -o /dev/null --max-time 60 "$back" || true
+  [[ "$back" =~ ^http://127\.0\.0\.1:53682/\?[A-Za-z0-9._~%/+=\&-]+$ ]] ||
+    die "That is not the address from the sign-in, so nothing was linked. Run db.sh drive-link again."
+  # Handed to curl on its standard input, so the one-time code never shows in
+  # the droplet's process list.
+  printf 'url = "%s"\n' "$back" | curl -s -o /dev/null --max-time 60 -K - || true
   while kill -0 "$DRIVE_PID" 2>/dev/null && [ "$waited" -lt 60 ]; do sleep 1; waited=$((waited + 1)); done
   kill "$DRIVE_PID" 2>/dev/null || true
+  wait "$DRIVE_PID" 2>/dev/null || true
   rm -f "$DRIVE_LOG"
   grep -q '^token = ' "$DRIVE_NEW" 2>/dev/null ||
     die "Google did not accept the sign-in, so nothing was linked. Run db.sh drive-link again."
   chmod 600 "$DRIVE_NEW"
+  say "Checking the link"
+  rclone --config "$DRIVE_NEW" mkdir "$DRIVE_REMOTE:$DRIVE_FOLDER" ||
+    die "Google accepted the sign-in, but the folder \"$DRIVE_FOLDER\" could not be made in Google Drive, so nothing was linked. Send this output to Claude."
+  # Swapped in under the backup lock, so no backup is copying meanwhile.
+  lock
   mv -f "$DRIVE_NEW" "$DRIVE_CONF"
   trap - EXIT
   drive_linked || die "The link was saved but rclone cannot use it. Send this output to Claude."
-  say "Checking the link"
-  rclone --config "$DRIVE_CONF" mkdir "$DRIVE_REMOTE:$DRIVE_FOLDER" ||
-    die "Linked, but could not make the folder \"$DRIVE_FOLDER\" in Google Drive. Send this output to Claude."
   ok "linked: backups will be copied to \"$DRIVE_FOLDER\" in The LeadFlow Pro's Google Drive"
   local newest
   newest=$(newest_backup)
@@ -417,6 +450,7 @@ EOF
   lock
 
   say "Password"
+  install -d -m 700 "$SECRETS_DIR"
   if [ -s "$PASS_FILE" ]; then
     ok "kept the existing $PASS_FILE"
   else
@@ -441,9 +475,14 @@ EOF
 
   say "Backup"
   do_backup
-  do_drive_copy "$LAST_BACKUP"
   say "Restore check (the live database is not touched)"
   do_restore_check
+  if drive_linked; then
+    say "Google Drive copy"
+    (do_drive_copy "$LAST_BACKUP") || note "the Google Drive copy failed; the backup is on this droplet, and tonight's backup tries again"
+  else
+    note "Google Drive copy: not linked yet (db.sh drive-link)"
+  fi
 
   if [ "$existing" -eq 1 ]; then
     printf '\nDone. The database is back on, with its data, and backed up.\n'
