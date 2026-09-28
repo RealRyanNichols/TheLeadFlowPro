@@ -225,7 +225,10 @@ def franchise_overlap(settings) -> None:
 RING_ONE = ("MARSHALL", "KILGORE", "WHITE OAK", "HALLSVILLE", "DIANA", "HARLETON", "GLADEWATER", "CLARKSVILLE CITY",
             "EASTON", "SCOTTSVILLE", "ELYSIAN FIELDS", "WASKOM", "ORE CITY", "GILMER", "KARNACK", "JEFFERSON",
             "TATUM", "HENDERSON", "CARTHAGE", "BECKVILLE", "LONE STAR", "DAINGERFIELD", "BIG SANDY", "HAWKINS",
-            "OVERTON", "NEW LONDON", "TYLER", "LONGVIEW")
+            "OVERTON", "NEW LONDON", "TYLER", "WINONA", "ARP", "PITTSBURG", "HUGHES SPRINGS", "LINDEN", "LONGVIEW")
+# Towns whose ZIP lists are new: print the ZIPs their outlets use (counts only), to check the registry.
+ZIP_CHECK = ("TYLER", "BIG SANDY", "HAWKINS", "WINONA", "ARP", "OVERTON", "NEW LONDON", "BECKVILLE",
+             "PITTSBURG", "DAINGERFIELD", "LONE STAR", "HUGHES SPRINGS", "LINDEN")
 
 
 def towns(settings) -> None:
@@ -244,6 +247,13 @@ def towns(settings) -> None:
         s_in = count_where(settings, sales["id"], f"upper(outlet_city)='{town}' AND outlet_inside_outside_city_limits_indicator='I'") if sales else None
         f_n = count_where(settings, franchise["id"], f"upper(taxpayer_city)='{town}' AND right_to_transact_business_code='A'") if franchise else None
         say(f"{town}: sales_tax_outlets={s_n} (inside city limits {s_in}) franchise_good_standing={f_n}")
+        if sales and town in ZIP_CHECK:
+            try:
+                zips = Counter(str(r.get("outlet_zip_code") or "")[:5] for r in socrata.fetch_rows(
+                    settings, sales["id"], f"upper(outlet_city)='{town}'", select="outlet_zip_code"))
+                say(f"  {town} outlet ZIPs: {dict(zips.most_common(12))}")
+            except Exception as exc:  # noqa: BLE001
+                say(f"  {town} outlet ZIPs: {type(exc).__name__}")
 
 
 def where_things_answer() -> None:

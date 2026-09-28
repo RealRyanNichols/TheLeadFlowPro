@@ -54,8 +54,8 @@ longview.165-227-248-110.sslip.io {
 	root * /var/lib/longview-archive/www
 	import longview_archive_headers
 
-	@longview_directory path_regexp (?i)^/(?:(?:longview|marshall|kilgore|white-oak|hallsville|diana|harleton|gladewater|clarksville-city|easton|scottsville|elysian-fields|waskom|ore-city|gilmer|karnack|jefferson|tatum|henderson|carthage)/businesses|places)(?:/.*)?$
-	@longview_not_directory not path_regexp (?i)^/(?:(?:longview|marshall|kilgore|white-oak|hallsville|diana|harleton|gladewater|clarksville-city|easton|scottsville|elysian-fields|waskom|ore-city|gilmer|karnack|jefferson|tatum|henderson|carthage)/businesses|places)(?:/.*)?$
+	@longview_directory path_regexp (?i)^/(?:(?:longview|marshall|kilgore|white-oak|hallsville|diana|harleton|gladewater|clarksville-city|easton|scottsville|elysian-fields|waskom|ore-city|gilmer|karnack|jefferson|tatum|henderson|carthage|tyler|big-sandy|hawkins|winona|arp|overton|new-london|beckville|pittsburg|daingerfield|lone-star|hughes-springs|linden)/businesses|places)(?:/.*)?$
+	@longview_not_directory not path_regexp (?i)^/(?:(?:longview|marshall|kilgore|white-oak|hallsville|diana|harleton|gladewater|clarksville-city|easton|scottsville|elysian-fields|waskom|ore-city|gilmer|karnack|jefferson|tatum|henderson|carthage|tyler|big-sandy|hawkins|winona|arp|overton|new-london|beckville|pittsburg|daingerfield|lone-star|hughes-springs|linden)/businesses|places)(?:/.*)?$
 	import longview_archive_csp_strict @longview_not_directory
 	import longview_archive_csp_directory @longview_directory
 
@@ -79,7 +79,7 @@ longview.165-227-248-110.sslip.io {
 	# cleaned path, lower-cased by the map, never the request's raw path: a raw
 	# //longview/businesses must not become the protocol-relative (another host)
 	# //longview/businesses/.
-	@longview_directory_bare path_regexp lva_bare (?i)^/(longview|marshall|kilgore|white-oak|hallsville|diana|harleton|gladewater|clarksville-city|easton|scottsville|elysian-fields|waskom|ore-city|gilmer|karnack|jefferson|tatum|henderson|carthage)/businesses$
+	@longview_directory_bare path_regexp lva_bare (?i)^/(longview|marshall|kilgore|white-oak|hallsville|diana|harleton|gladewater|clarksville-city|easton|scottsville|elysian-fields|waskom|ore-city|gilmer|karnack|jefferson|tatum|henderson|carthage|tyler|big-sandy|hawkins|winona|arp|overton|new-london|beckville|pittsburg|daingerfield|lone-star|hughes-springs|linden)/businesses$
 	handle @longview_directory_bare {
 		map {re.lva_bare.1} {lva_town} {
 			~(?i)^longview$ longview
@@ -102,6 +102,19 @@ longview.165-227-248-110.sslip.io {
 			~(?i)^tatum$ tatum
 			~(?i)^henderson$ henderson
 			~(?i)^carthage$ carthage
+			~(?i)^tyler$ tyler
+			~(?i)^big-sandy$ big-sandy
+			~(?i)^hawkins$ hawkins
+			~(?i)^winona$ winona
+			~(?i)^arp$ arp
+			~(?i)^overton$ overton
+			~(?i)^new-london$ new-london
+			~(?i)^beckville$ beckville
+			~(?i)^pittsburg$ pittsburg
+			~(?i)^daingerfield$ daingerfield
+			~(?i)^lone-star$ lone-star
+			~(?i)^hughes-springs$ hughes-springs
+			~(?i)^linden$ linden
 			default longview
 		}
 		redir * /{lva_town}/businesses/ 308
@@ -113,7 +126,7 @@ longview.165-227-248-110.sslip.io {
 
 	# The static directory. A profile, category, or list is a folder with an
 	# index.html; "businesses" (and "places") is a link the engine switches in one rename.
-	@longview_directory_files path_regexp (?i)^/(?:(?:longview|marshall|kilgore|white-oak|hallsville|diana|harleton|gladewater|clarksville-city|easton|scottsville|elysian-fields|waskom|ore-city|gilmer|karnack|jefferson|tatum|henderson|carthage)/businesses|places)/.*$
+	@longview_directory_files path_regexp (?i)^/(?:(?:longview|marshall|kilgore|white-oak|hallsville|diana|harleton|gladewater|clarksville-city|easton|scottsville|elysian-fields|waskom|ore-city|gilmer|karnack|jefferson|tatum|henderson|carthage|tyler|big-sandy|hawkins|winona|arp|overton|new-london|beckville|pittsburg|daingerfield|lone-star|hughes-springs|linden)/businesses|places)/.*$
 	handle @longview_directory_files {
 		try_files {path} {path}/index.html
 		file_server
