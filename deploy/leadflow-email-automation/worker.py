@@ -260,8 +260,11 @@ class Ledger:
         SAME payload and key. Crash/unknown response leaves a durable claim.
         """
         real_clock = now is None
-        now = time.time() if real_clock else now
         with self.transaction():
+            # BEGIN IMMEDIATE may wait for another writer. Sample only after
+            # acquiring it so freshness, lease and retry checks cannot use a
+            # pre-lock clock reading. Explicit test timestamps stay stable.
+            now = time.time() if real_clock else now
             d = self.db.execute("SELECT * FROM deliveries WHERE id=?",(claim["id"],)).fetchone()
             e = self.db.execute("SELECT * FROM enrollments WHERE id=?",(claim["enrollment_id"],)).fetchone()
             if not d or d["claim_token"] != claim["claim_token"] or d["state"] != "pending" or d["lease_until"] <= now:

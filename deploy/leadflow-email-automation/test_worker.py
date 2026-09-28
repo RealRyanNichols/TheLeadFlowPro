@@ -269,6 +269,21 @@ class WorkerTests(unittest.TestCase):
         finally:
             server.shutdown(); server.server_close(); thread.join()
 
+    def test_dispatch_samples_freshness_after_waiting_for_database_lock(self):
+        eid=self.enroll(); due=self.due(eid); claim=self.ledger.claim(eid,due)
+        self.config["suppression_reconciled_at"]=w.datetime.fromtimestamp(due-3599,w.UTC).isoformat()
+        clock={"now":due}; original_transaction=self.ledger.transaction
+        @w.contextlib.contextmanager
+        def delayed_transaction():
+            with original_transaction():
+                clock["now"]=due+2  # Evidence expired while acquiring the lock.
+                yield
+        transport=MagicMock(return_value=("accepted","provider-test"))
+        with patch.object(self.ledger,"transaction",delayed_transaction),patch("worker.time.time",side_effect=lambda:clock["now"]):
+            self.assertFalse(self.ledger.dispatch(claim,transport))
+        transport.assert_not_called()
+        self.assertEqual(self.ledger.db.execute("SELECT error_code FROM deliveries").fetchone()[0],"suppression_reconciliation_required")
+
     def test_disabled_gate_and_preview_never_needs_secret(self):
         self.assertIn("enabled",w.send_gaps(self.config,self.sequence))
         fixture={"id":"preview","sequence_json":w.canonical(self.sequence),"next_day":1,"first_name":"<script>","email":"preview@example.invalid"}

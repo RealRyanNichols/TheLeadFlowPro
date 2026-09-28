@@ -1,6 +1,6 @@
 {
   "status": "disabled-review-only",
-  "tests_passed": 31,
+  "tests_passed": 32,
   "live_sends": 0,
   "excluded": [
     "context/",
@@ -23,8 +23,8 @@
     },
     {
       "path": "worker.py",
-      "bytes": 32552,
-      "sha256": "9f3ebd0c9d5307244d1adf10b401262cbbfaed03db94fc7f1a2ab529fee79c58"
+      "bytes": 32786,
+      "sha256": "5e3678c9ff32392fdae4f0f0577fdb6ca6e8eb378a4a6ac969df7686bf1f2983"
     },
     {
       "path": "meta_import.py",
@@ -33,8 +33,8 @@
     },
     {
       "path": "test_worker.py",
-      "bytes": 21294,
-      "sha256": "c863e390915134df3c82576c56cd7cff8e29e06ac7ef0550af9f4b4e2e0ddc89"
+      "bytes": 22290,
+      "sha256": "449e1ba7e2ba64002ce1645924b31f2ba42571587e909e1049db9d099146fd43"
     },
     {
       "path": "test_meta_import.py",
@@ -82,5 +82,5 @@
       "sha256": "108d08808e082ad2a1e1759c026076e2866a2b983f0da2bcebe8a132d17de77e"
     }
   ],
-  "focused_independent_review": "prior worker/importer review found no blocking findings; new suppression/freshness changes awaiting focused review; live integration unverified"
+  "focused_independent_review": "worker/importer and suppression freshness changes reviewed; delayed-lock timing finding fixed with regression; no remaining blocking findings in disabled review code; live integrations unverified"
 }
