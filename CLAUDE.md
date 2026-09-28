@@ -17,6 +17,10 @@ there is no need to verify it against Vercel or Supabase.
   to the droplet too.
 - **Not decided yet: where the database and logins will run on the droplet.** Do not invent it.
   Get it from the owner, then record it here.
+  - A proposal is waiting for his answer (Sep 28, 2026): Postgres 17 in a Docker container on
+    the droplet, backed up nightly, with logins moving into the same database later
+    (`docs/infrastructure/database.md`). It is not the decision until he says yes; then replace
+    this bullet with the decision and its date.
 - Every Supabase reference in this repo (`supabase/`, "Supabase is the agent memory and task
   bus" in `AGENTS.md`, the Supabase rows in the droplet runbook) describes the platform being
   retired. Read it as the map of what has to be ported.

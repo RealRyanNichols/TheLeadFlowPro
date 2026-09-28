@@ -74,6 +74,48 @@ else row "state" "idle (Vercel still runs the jobs until cutover.sh crons-on)"; 
     }
   } catch { console.log("   no runs recorded yet"); }' 2>/dev/null || echo "   cron container not running"
 
+say "Database (proposed: docs/infrastructure/database.md)"
+DB_COMPOSE=(docker compose -f "$APP_DIR/deploy/droplet/compose.yml" --profile db)
+DB_BACKUPS="/var/backups/theleadflowpro/db"
+# -a: a stopped container counts too, so a database that is down never reads as "not set up".
+db_id=$("${DB_COMPOSE[@]}" ps -a -q db 2>/dev/null)
+if [ -n "$db_id" ]; then
+  row "state" "$(docker inspect -f '{{.State.Status}}{{if .State.Health}} {{.State.Health.Status}}{{end}}' "$db_id" 2>/dev/null)"
+  row "size" "$("${DB_COMPOSE[@]}" exec -T db psql -X -t -A -U postgres -d leadflow -c "SELECT pg_size_pretty(pg_database_size('leadflow'))" 2>/dev/null || echo 'no answer')"
+  db_ports=$(docker port "$db_id" 2>/dev/null | paste -sd' ' -)
+  row "port on the droplet" "${db_ports:-none (the internet cannot reach it)}"
+elif docker volume inspect theleadflowpro_db-data >/dev/null 2>&1; then
+  row "state" "off; its data is kept (db.sh setup turns it back on)"
+else
+  row "state" "not set up (after Ryan's yes: db.sh setup)"
+fi
+db_newest=""
+db_count=0
+for f in "$DB_BACKUPS"/leadflow-*.dump; do
+  [ -e "$f" ] || continue
+  db_newest="$f"
+  db_count=$((db_count + 1))
+done
+if [ -n "$db_newest" ]; then
+  db_age=$(( ($(date +%s) - $(stat -c %Y "$db_newest")) / 3600 ))
+  db_stale=""
+  [ "$db_age" -gt 26 ] && db_stale="  !! no backup in over a day"
+  row "backups" "$db_count kept; newest $(basename "$db_newest"), $(du -h "$db_newest" | cut -f1), ${db_age}h ago$db_stale"
+else
+  row "backups" "none yet"
+fi
+if [ -f "$DB_BACKUPS/last-restore-check" ]; then
+  db_check_stale=""
+  [ -n "$(find "$DB_BACKUPS/last-restore-check" -mtime +8 2>/dev/null)" ] && db_check_stale="  !! older than 8 days"
+  row "restore check" "$(cat "$DB_BACKUPS/last-restore-check")$db_check_stale"
+else
+  row "restore check" "not run yet"
+fi
+db_timer=$(systemctl is-enabled theleadflowpro-db-backup.timer 2>/dev/null)
+case "$db_timer" in "" | not-found) db_timer="not installed" ;; esac
+row "backup timer" "$db_timer"
+[ "$db_timer" = "enabled" ] && row "next backup" "$(systemctl show theleadflowpro-db-backup.timer -p NextElapseUSecRealtime --value 2>/dev/null)"
+
 say "DNS"
 for host in theleadflowpro.com www.theleadflowpro.com; do
   addrs=$(getent ahostsv4 "$host" 2>/dev/null | awk '{print $1}' | sort -u | paste -sd' ' -)
