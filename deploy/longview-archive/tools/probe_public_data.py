@@ -31,6 +31,7 @@ from longview_archive import config, db, matching, places, privacy, publish  # n
 from longview_archive.sources import franchise as franchise_source  # noqa: E402
 from longview_archive.service import SYNC_JOBS, bootstrap, run_sync  # noqa: E402
 from longview_archive.sources import http as api_http  # noqa: E402
+from longview_archive.sources import socrata  # noqa: E402
 
 DROPLET_IP = "165.227.248.110"
 CITY_COLUMNS = ("outlet_city", "taxpayer_city", "city", "location_city", "physical_city", "business_city",
@@ -194,7 +195,6 @@ def franchise_overlap(settings) -> None:
     if not franchise or not sales:
         say(f"franchise dataset found={bool(franchise)} sales dataset found={bool(sales)}")
         return
-    from longview_archive.sources import socrata
     fcols = {c.lower() for c in franchise.get("columns_field_name") or []}
     fcity = next((c for c in ("taxpayer_city", "city") if c in fcols), None)
     say(f"franchise dataset {franchise['id']} {franchise.get('name')!r} city column={fcity}")
