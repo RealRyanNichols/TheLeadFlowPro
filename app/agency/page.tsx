@@ -365,7 +365,7 @@ export default function AgencyHubPage() {
             <div>
               <p className="cb-eyebrow">Before you fill in the form</p>
               <h2 id="fit-title" className="cb-h2 cb-heading">
-                Three things that are always true here.
+                {countWord(ALWAYS_TRUE.length, true)} things that are always true here.
               </h2>
             </div>
           </div>
