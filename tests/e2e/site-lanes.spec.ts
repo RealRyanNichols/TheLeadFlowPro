@@ -81,6 +81,11 @@ for (const vp of VIEWPORTS) {
       await expect(page.locator('[data-cta="agency_door_pay"]')).toHaveAttribute("href", "/agency/pay");
       await expect(page.locator('[data-cta="agency_door_connect"]')).toHaveAttribute("href", "/connect");
       await expect(page.locator("#intake form")).toBeVisible();
+      // The "always true" heading counts its own list, so it cannot say three over two lines again.
+      const fit = page.locator('section[aria-labelledby="fit-title"]');
+      const words = ["zero", "one", "two", "three", "four", "five", "six"];
+      const bullets = await fit.locator("li").count();
+      await expect(fit.locator("#fit-title")).toHaveText(new RegExp(`^${words[bullets]} things`, "i"));
       await page.goto("/agency/pay?service=meta-ads");
       await noHorizontalScroll(page);
       await expect(page.locator('input[name="service"][value="meta-ads"]')).toBeChecked();
