@@ -8,7 +8,7 @@ import CaseStudies from "@/components/site/CaseStudy";
 import AgencyIntake from "./start/AgencyIntake";
 import { AGENCY_PAYMENT, agencyFixedPriceUsd, agencyPayHref } from "@/lib/agencyPayment";
 import { PLUGIN } from "@/lib/pluginDocs";
-import { AGENCY_HUB, AGENCY_PROCESS, AGENCY_SERVICES, OWNERSHIP_PROMISE, agencyOffer } from "@/lib/site/agency";
+import { AGENCY_HUB, AGENCY_PROCESS, AGENCY_SERVICES, OWNERSHIP_PROMISE, agencyOffer, countWord } from "@/lib/site/agency";
 import { BUSINESS } from "@/lib/site/business";
 import { TBD_PRICE_LABEL } from "@/lib/site/offers";
 import { breadcrumbJsonLd, graph, jsonLdText, localBusinessJsonLd } from "@/lib/site/structuredData";
@@ -25,7 +25,7 @@ import { breadcrumbJsonLd, graph, jsonLdText, localBusinessJsonLd } from "@/lib/
 export const metadata: Metadata = withPublicPageMetadata("/agency", {
   title: "Agency: Meta ads, Google Ads, websites, automation, video, content | The LeadFlow Pro",
   description:
-    "Full-service ads, websites, automation, video, and content for East Texas businesses, run in accounts you own. You pay the platforms directly and keep the pixel, audiences, leads, and reporting.",
+    "Full-service ads, websites, automation, video, and content for East Texas businesses, plus help desks for online communities, run in accounts you own. You pay the platforms directly and keep the pixel, audiences, leads, and reporting.",
 });
 
 const ALWAYS_TRUE = [
@@ -40,7 +40,7 @@ export default function AgencyHubPage() {
       name: `${BUSINESS.name} Agency`,
       catalogName: "Agency services",
       offerIds: AGENCY_SERVICES.map((s) => s.offerId),
-      knowsAbout: ["Meta ads management", "Google Ads management", "Business websites", "Marketing automation", "Video production", "Content marketing"],
+      knowsAbout: ["Meta ads management", "Google Ads management", "Business websites", "Marketing automation", "Video production", "Content marketing", "Community help desks"],
     }),
     breadcrumbJsonLd([
       { name: "Home", path: "/" },
@@ -63,7 +63,7 @@ export default function AgencyHubPage() {
           caption: "Capture, record, follow up, sell, deliver, report. In your accounts.",
         }}
         primary={{ href: "#intake", label: "Tell Ryan what is leaking" }}
-        secondary={{ href: "#services", label: "See the six services" }}
+        secondary={{ href: "#services", label: `See the ${countWord(AGENCY_SERVICES.length)} services` }}
         trustLine={OWNERSHIP_PROMISE.headline}
       />
 
@@ -71,7 +71,7 @@ export default function AgencyHubPage() {
         <div className="cb-shell">
           <div className="cb-headrow">
             <div>
-              <p className="cb-eyebrow">Six services, one loop</p>
+              <p className="cb-eyebrow">{countWord(AGENCY_SERVICES.length, true)} services, one loop</p>
               <h2 className="cb-h2 cb-heading">Pick the piece that is leaking.</h2>
             </div>
             <p className="cb-lead">

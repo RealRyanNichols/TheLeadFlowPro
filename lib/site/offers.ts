@@ -564,6 +564,19 @@ export const OFFERS: readonly Offer[] = [
     href: "/agency/content",
     source: "docs/decisions-needed.md",
   },
+  {
+    id: "agency_community_help_desk",
+    name: "Community help desk",
+    category: "agency",
+    priceUsd: null,
+    priceLabel: TBD_PRICE_LABEL,
+    terms: TBD_PRICE_TERMS,
+    status: "tbd_ryan",
+    effectiveDate: "2026-09-29",
+    reviewDate: "2026-10-15",
+    href: "/agency/community-help-desk",
+    source: "docs/decisions-needed.md",
+  },
 
   // -------------------------------------------------- plugin vertical packs --
   // Industry editions of the plugin (lib/hq/verticals.ts). A pack is marketed

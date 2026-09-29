@@ -1,5 +1,5 @@
 // Agency payments: a client pays the number in a written scope, one time or
-// monthly, against one of the six agency services.
+// monthly, against one of the agency services in lib/site/agency.ts.
 //
 // The browser never sets a product. It sends a service slug, a billing
 // choice, a scope reference, and (until Ryan publishes a price for that

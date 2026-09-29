@@ -1,5 +1,6 @@
-// The agency lane: Meta ads, Google Ads, websites, automation, video, and
-// content, run for the client in accounts the client owns.
+// The agency lane: Meta ads, Google Ads, websites, automation, video,
+// content, and community help desks, run for the client in accounts the
+// client owns.
 //
 // Every page under /agency renders from this file. Prices come from
 // lib/site/offers.ts, where every agency offer is `tbd_ryan` until Ryan sets
@@ -55,7 +56,22 @@ export type AgencyService = {
   intakeHref: string;
   /** Existing pages this service hands off to, when the work already exists. */
   related: { href: string; label: string }[];
+  /**
+   * Sold to online communities anywhere rather than to local shops, so the
+   * Longview page leaves it out of its local service grid.
+   */
+  online?: boolean;
+  /** The line under the hero. Absent means the ads line every other page uses. */
+  trustLine?: string;
 };
+
+const COUNT_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"] as const;
+
+/** "seven" or "Seven": copy that counts services reads the list, so it cannot drift. */
+export function countWord(n: number, capitalized = false): string {
+  const word = COUNT_WORDS[n] ?? String(n);
+  return capitalized ? word.charAt(0).toUpperCase() + word.slice(1) : word;
+}
 
 const intake = (slug: string) => `/agency/start?service=${slug}`;
 
@@ -265,7 +281,63 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
       { href: "/operator-academy/content-engine", label: "The Content Engine course" },
     ],
   },
+  {
+    // Built for online communities, crypto and XRP Ledger projects among them.
+    // The help desk never talks prices or investing, and nothing here promotes
+    // a token: a bot that speaks for a team can make a claim nobody approved.
+    slug: "community-help-desk",
+    offerId: "agency_community_help_desk",
+    name: "Community help desk",
+    navLabel: "Help desk",
+    online: true,
+    seoTitle: "AI Help Desk for Discord and Telegram Communities | The LeadFlow Pro",
+    metaDescription:
+      "An AI help desk for your Discord server, Telegram group, or website chat, trained on your own answers, with scam warnings, a hand-off to a real moderator, and a safer server setup first. Built in accounts you own.",
+    eyebrow: "Discord, Telegram, and website chat",
+    audience: "Online communities that answer the same questions every day: crypto and XRP Ledger projects, creators, and course or membership groups.",
+    problem: "Moderators answer the same ten questions all day, new members give up before anyone replies, and scammers message them pretending to be the team.",
+    promise: "A help desk trained on your own answers that replies day and night, warns members about scams, and hands anything it should not answer to a real moderator. It never talks prices or investing.",
+    trustLine: "No price talk, no investment advice, and a real moderator for anything the bot should not answer.",
+    included: [
+      "Safe server setup first: roles and permissions, member verification, link and name filters, two-factor sign-in for every admin, and one official-links page",
+      "A written plan for raids and impersonators: who locks the server, what gets posted, and how members report a fake account",
+      "An AI help desk on one platform, trained on your docs, FAQ, and rules",
+      "Scam warnings in its answers: the team never messages first and never asks for a recovery phrase",
+      "A hand-off to a real moderator, with the question logged so nothing gets lost",
+      "Refusal rules in writing: no price talk, no investment advice, no promises about the project",
+      "A test run on your 25 most-asked questions before it goes live",
+      "Thirty days of weekly tuning from the questions it could not answer",
+    ],
+    clientOwns: [
+      "The server or group, the bot account, and every setting",
+      "The knowledge base the help desk answers from",
+      "The chat logs and the list of questions it could not answer",
+    ],
+    clientPaysDirectly: ["The help desk software subscription, billed to you by its maker"],
+    notIncluded: [
+      "Price talk, investment advice, or promoting a token, sale, or listing",
+      "Paid shilling, raids, or rewards for posting, liking, or reviewing",
+      "Holding wallet keys, recovery phrases, or anyone's money",
+      "Replacing your moderators' judgment on bans, refunds, or disputes",
+    ],
+    faq: [
+      { q: "Which platforms does it work on?", a: "Discord, Telegram, or the chat on your website. The first build covers one platform. Adding another is a new line on the written scope." },
+      { q: "Will it talk about our token price?", a: "No. It refuses price talk, predictions, and investment questions, and points members to your official links instead. A bot speaking for your team can make a claim nobody approved, so price talk stays out." },
+      { q: "Does it replace our moderators?", a: "No. It takes the repeat questions so your moderators have time for the ones that need a person. Bans, refunds, and disputes stay with your team." },
+      { q: "Can you just lock down our server?", a: "Yes. The safe server setup can be scoped on its own: roles, verification, filters, two-factor sign-in for admins, the official-links page, and the written raid plan." },
+      { q: "Who owns the bot and the answers?", a: "You do. The bot account, the server settings, the knowledge base, and the logs are in your name. If we part ways, it keeps running without us." },
+      { q: "What does it cost?", a: "Pricing is confirmed on the scoping call and put in writing before anything starts. The help desk software is billed to you by its maker, separately." },
+    ],
+    intakeHref: intake("community-help-desk"),
+    related: [
+      { href: "/agency/automation", label: "Automation" },
+      { href: "/agency/websites", label: "Websites" },
+    ],
+  },
 ];
+
+/** The services a local shop buys, for pages about the local lead system. */
+export const LOCAL_AGENCY_SERVICES: readonly AgencyService[] = AGENCY_SERVICES.filter((s) => !s.online);
 
 export function agencyService(slug: string): AgencyService | null {
   return AGENCY_SERVICES.find((s) => s.slug === slug) ?? null;
@@ -278,7 +350,7 @@ export function agencyOffer(service: AgencyService): Offer {
 export const AGENCY_HUB = {
   eyebrow: "Run it for me",
   title: "The agency lane.",
-  lead: `Meta ads, Google Ads, websites, automation, video, and content, run by ${BUSINESS.operator} in accounts you own. This is the lane for owners who want the whole loop handled.`,
+  lead: `Meta ads, Google Ads, websites, automation, video, content, and community help desks, run by ${BUSINESS.operator} in accounts you own. This is the lane for owners who want the whole loop handled.`,
   budgetNote: "The intake asks for the monthly ad budget you are genuinely prepared to spend. A $0 answer does not disqualify you; it routes you to the right lane.",
   contact: {
     phone: BUSINESS.phone.display,

@@ -25,11 +25,12 @@ const good = {
   email: "owner@example.com",
 };
 
-test("five agency services are payable on /agency/pay; websites keeps its own door", () => {
+test("six agency services are payable on /agency/pay; websites keeps its own door", () => {
   assert.deepEqual(
     payableAgencyServices().map((s) => s.slug),
-    ["meta-ads", "google-ads", "automation", "video", "content"],
+    ["meta-ads", "google-ads", "automation", "video", "content", "community-help-desk"],
   );
+  assert.equal(agencyPayHref("community-help-desk"), "/agency/pay?service=community-help-desk");
   assert.equal(agencyFixedPriceUsd(agencyService("websites")!), null);
   assert.equal(agencyPayHref("websites"), AGENCY_PAYMENT.payPath);
   assert.equal(agencyPayHref("meta-ads"), "/agency/pay?service=meta-ads");
@@ -171,5 +172,5 @@ test("the pay page is catalogued, unindexed, and chrome-free like the intake", (
   assert.equal((entry as { index?: boolean }).index, false);
   assert.equal(hidesSiteChrome(AGENCY_PAYMENT.payPath), true);
   assert.equal(hidesSiteChrome(AGENCY_PAYMENT.paidPath), false);
-  assert.equal(AGENCY_SERVICES.length, 6);
+  assert.equal(AGENCY_SERVICES.length, 7);
 });
