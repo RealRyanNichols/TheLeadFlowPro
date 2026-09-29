@@ -8,8 +8,9 @@ import {
   AGENCY_HUB,
   AGENCY_PROCESS,
   AGENCY_SERVICES,
-  LOCAL_AGENCY_SERVICES,
+  CORE_AGENCY_SERVICES,
   OWNERSHIP_PROMISE,
+  SPECIALTY_AGENCY_SERVICES,
   agencyOffer,
   agencyService,
   countWord,
@@ -19,10 +20,10 @@ import { TBD_PRICE_LABEL, offer } from "../lib/site/offers.ts";
 
 const BANNED = ["guarantee", "guaranteed", "roas", "#1", "best in", "lowest", "only agency", "testimonial:", "% increase", "x return"];
 
-test("seven agency services, each with one audience, one problem, inclusions, ownership, vendor costs, process, FAQ, and one CTA", () => {
+test("eight agency services, each with one audience, one problem, inclusions, ownership, vendor costs, process, FAQ, and one CTA", () => {
   assert.deepEqual(
     AGENCY_SERVICES.map((s) => s.slug),
-    ["meta-ads", "google-ads", "websites", "automation", "video", "content", "community-help-desk"],
+    ["meta-ads", "google-ads", "websites", "automation", "video", "content", "community-help-desk", "crypto-tax-intake"],
   );
   for (const s of AGENCY_SERVICES) {
     assert.ok(s.audience.length > 30, s.slug);
@@ -88,7 +89,7 @@ test("the video page requires a signed release before anyone appears on camera",
 
 test("the community help desk starts with server safety, refuses price talk, and never promotes a token", () => {
   const desk = agencyService("community-help-desk")!;
-  assert.equal(desk.online, true);
+  assert.equal(desk.specialty, "Online communities");
   assert.equal(offer("agency_community_help_desk").href, "/agency/community-help-desk");
   // The safe server setup is the first thing in scope, before any bot is trained.
   assert.match(desk.included[0], /^Safe server setup first/);
@@ -112,15 +113,53 @@ test("the community help desk starts with server safety, refuses price talk, and
   }
 });
 
-test("service counts in copy come from the list, and the Longview page keeps to local services", () => {
-  assert.equal(countWord(AGENCY_SERVICES.length), "seven");
-  assert.equal(countWord(LOCAL_AGENCY_SERVICES.length, true), "Six");
+test("crypto tax intake gathers paperwork for the firm: no tax advice, no credentials, texts only with consent", () => {
+  const tax = agencyService("crypto-tax-intake")!;
+  assert.equal(tax.specialty, "CPA and tax firms");
+  assert.equal(offer("agency_crypto_tax_intake").href, "/agency/crypto-tax-intake");
+  assert.match(tax.seoTitle, /East Texas/);
+  // The firm does the tax work; the page says so where a buyer reads first.
+  assert.match(tax.trustLine ?? "", /never tax advice/i);
+  assert.ok(tax.faq.some((f) => /tax advice/i.test(f.q) && /^No\./.test(f.a)));
+  assert.ok(tax.notIncluded.some((n) => /tax advice/i.test(n) && /return preparation/i.test(n)));
+  assert.ok(tax.faq.some((f) => /approves every question/i.test(f.a)), "the firm approves the questionnaire");
+  // Public addresses and exported files only, never anything that moves money.
+  for (const secret of ["password", "api key", "private key", "recovery phrase"]) {
+    assert.ok(tax.notIncluded.some((n) => n.toLowerCase().includes(secret)), `refuses ${secret}`);
+  }
+  assert.ok(tax.included.some((i) => /public wallet addresses/i.test(i)));
+  // Texts only to clients who agreed, and STOP is honored.
+  const reminders = tax.included.find((i) => /reminders/i.test(i)) ?? "";
+  assert.match(reminders, /only to clients who agreed/);
+  assert.match(reminders, /STOP/);
+  // Client data stays the firm's and is used for nothing else.
+  assert.ok(tax.notIncluded.some((n) => /our own marketing/i.test(n)));
+  assert.ok(tax.notIncluded.some((n) => /keeping copies/i.test(n)));
+  assert.match(tax.clientOwns.join(" "), /every uploaded file/);
+  // The 1099-DA explanation stays general and dated to the rule, not advice.
+  const form = tax.faq.find((f) => /1099-DA/.test(f.q))!;
+  assert.match(form.a, /from 2025/);
+  assert.match(form.a, /before 2026/);
+  const text = JSON.stringify(tax).toLowerCase();
+  for (const phrase of ["save you", "lower your tax", "audit-proof", "irs approved", "irs-approved", "compliant", "certified"]) {
+    assert.ok(!text.includes(phrase), `tax intake copy contains "${phrase}"`);
+  }
+});
+
+test("service counts in copy come from the list; specialty builds sit in their own band and off the Longview grid", () => {
+  assert.equal(countWord(AGENCY_SERVICES.length), "eight");
+  assert.equal(countWord(CORE_AGENCY_SERVICES.length, true), "Six");
   assert.equal(countWord(99), "99");
   assert.deepEqual(
-    LOCAL_AGENCY_SERVICES.map((s) => s.slug),
-    AGENCY_SERVICES.filter((s) => s.slug !== "community-help-desk").map((s) => s.slug),
+    CORE_AGENCY_SERVICES.map((s) => s.slug),
+    ["meta-ads", "google-ads", "websites", "automation", "video", "content"],
   );
-  assert.match(AGENCY_HUB.lead, /community help desks/);
+  assert.deepEqual(
+    SPECIALTY_AGENCY_SERVICES.map((s) => s.slug),
+    ["community-help-desk", "crypto-tax-intake"],
+  );
+  for (const s of SPECIALTY_AGENCY_SERVICES) assert.ok((s.specialty ?? "").length > 3, s.slug);
+  assert.match(AGENCY_HUB.lead, /online communities and CPA firms/);
 });
 
 test("case studies render only approved entries with approved, dated metrics and the Premier disclosure", () => {

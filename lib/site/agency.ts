@@ -1,6 +1,6 @@
-// The agency lane: Meta ads, Google Ads, websites, automation, video,
-// content, and community help desks, run for the client in accounts the
-// client owns.
+// The agency lane: Meta ads, Google Ads, websites, automation, video, and
+// content, plus specialty builds (community help desks, crypto tax intake),
+// run for the client in accounts the client owns.
 //
 // Every page under /agency renders from this file. Prices come from
 // lib/site/offers.ts, where every agency offer is `tbd_ryan` until Ryan sets
@@ -57,10 +57,11 @@ export type AgencyService = {
   /** Existing pages this service hands off to, when the work already exists. */
   related: { href: string; label: string }[];
   /**
-   * Sold to online communities anywhere rather than to local shops, so the
-   * Longview page leaves it out of its local service grid.
+   * Who a specialty service is built for ("Online communities"). The six
+   * core services every local business buys have none; a specialty service
+   * sits in its own band on the hub and stays off the Longview grid.
    */
-  online?: boolean;
+  specialty?: string;
   /** The line under the hero. Absent means the ads line every other page uses. */
   trustLine?: string;
 };
@@ -289,7 +290,7 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
     offerId: "agency_community_help_desk",
     name: "Community help desk",
     navLabel: "Help desk",
-    online: true,
+    specialty: "Online communities",
     seoTitle: "AI Help Desk for Discord and Telegram Communities | The LeadFlow Pro",
     metaDescription:
       "An AI help desk for your Discord server, Telegram group, or website chat, trained on your own answers, with scam warnings, a hand-off to a real moderator, and a safer server setup first. Built in accounts you own.",
@@ -334,10 +335,68 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
       { href: "/agency/websites", label: "Websites" },
     ],
   },
+  {
+    // For CPA and tax prep firms. It gathers answers and files; the firm does
+    // the tax work. It never asks for a password, key, or recovery phrase,
+    // and client information is used for the firm's intake and nothing else.
+    // The Form 1099-DA lines follow the IRS digital assets page as cited in
+    // the Sept 2026 crypto research: gross proceeds for sales from 2025, cost
+    // basis for crypto bought from 2026. Recheck it before each tax season.
+    slug: "crypto-tax-intake",
+    offerId: "agency_crypto_tax_intake",
+    name: "Crypto tax intake",
+    navLabel: "Crypto tax intake",
+    specialty: "CPA and tax firms",
+    seoTitle: "Crypto Tax Client Intake for CPA Firms in East Texas | The LeadFlow Pro",
+    metaDescription:
+      "A crypto client intake for Longview and East Texas CPA and tax prep firms: a plain-English questionnaire, a document checklist, uploads to your own storage, reminders, and a tracker. Paperwork, not tax advice.",
+    eyebrow: "For CPA and tax prep firms",
+    audience: "CPA and tax prep firms in East Texas whose clients bought, sold, swapped, or got paid in crypto, and whose staff spends tax season chasing the paperwork.",
+    problem: "Clients send a screenshot and a shrug. Form 1099-DA shows what they sold for, often not what they paid, and trades from their own wallets are usually on no form at all.",
+    promise: "A crypto intake your clients can finish from a phone: plain questions, a checklist built from their answers, uploads straight to your firm's storage, and reminders until every item is in.",
+    trustLine: "Paperwork and reminders, never tax advice. No passwords, keys, or recovery phrases, ever.",
+    included: [
+      "A client questionnaire written for crypto: which exchanges, which wallets, and what happened during the year, in plain words",
+      "A document checklist built from the answers: each Form 1099-DA, exchange exports, and public wallet addresses",
+      "Uploads that go straight to storage your firm already uses, one folder per client",
+      "Reminders by email, and by text only to clients who agreed to texts, until each item arrives, with STOP honored immediately",
+      "A tracker for your staff: who is complete, what is missing, and who to call",
+      "Exports gathered and labeled for the crypto tax software your firm already uses",
+      "Setup that follows your firm's written information security plan, with access limited to the people you name",
+    ],
+    clientOwns: [
+      "The intake, the client records, and every uploaded file",
+      "The storage, the reminder accounts, and the tracker",
+      "The questionnaire and checklist, to use again next season",
+    ],
+    clientPaysDirectly: ["Crypto tax software, if your firm uses one", "Storage, email, or texting subscriptions the reminders run on"],
+    notIncluded: [
+      "Tax advice, return preparation, or a review of anyone's return",
+      "Asking clients for passwords, API keys, private keys, or recovery phrases",
+      "Using your clients' information for anything but your intake, including our own marketing",
+      "Keeping copies of your clients' files on our systems",
+    ],
+    faq: [
+      { q: "Is this tax advice?", a: "No. It collects answers and documents so your firm can do the tax work. Your firm approves every question on the form before it goes to a client." },
+      { q: "What is Form 1099-DA?", a: "The form crypto brokers send for sales from 2025 on. It shows what a client sold for. For crypto bought before 2026 it usually leaves out what they paid, so that number comes from the client's own records, which is what the checklist asks for." },
+      { q: "Do clients share wallet passwords?", a: "Never. The intake asks for public wallet addresses and exported files only. It never asks for a password, an API key, a private key, or a recovery phrase." },
+      { q: "Where do the files go?", a: "Straight to storage your firm already uses, in a folder per client. It is tested with made-up files, then handed over, and we keep no copies of your clients' files." },
+      { q: "When should we set it up?", a: "Before engagement letters go out, so the intake link can go with them." },
+      { q: "What does it cost?", a: "Pricing is confirmed on the scoping call and put in writing before anything starts. Crypto tax software, storage, and texting are billed to your firm by their makers." },
+    ],
+    intakeHref: intake("crypto-tax-intake"),
+    related: [
+      { href: "/agency/automation", label: "Automation" },
+      { href: "/agency/websites", label: "Websites" },
+    ],
+  },
 ];
 
-/** The services a local shop buys, for pages about the local lead system. */
-export const LOCAL_AGENCY_SERVICES: readonly AgencyService[] = AGENCY_SERVICES.filter((s) => !s.online);
+/** The six services every local business buys, for pages about the local lead system. */
+export const CORE_AGENCY_SERVICES: readonly AgencyService[] = AGENCY_SERVICES.filter((s) => !s.specialty);
+
+/** Services built for one kind of client, shown in their own band on the hub. */
+export const SPECIALTY_AGENCY_SERVICES: readonly AgencyService[] = AGENCY_SERVICES.filter((s) => Boolean(s.specialty));
 
 export function agencyService(slug: string): AgencyService | null {
   return AGENCY_SERVICES.find((s) => s.slug === slug) ?? null;
@@ -350,7 +409,7 @@ export function agencyOffer(service: AgencyService): Offer {
 export const AGENCY_HUB = {
   eyebrow: "Run it for me",
   title: "The agency lane.",
-  lead: `Meta ads, Google Ads, websites, automation, video, content, and community help desks, run by ${BUSINESS.operator} in accounts you own. This is the lane for owners who want the whole loop handled.`,
+  lead: `Meta ads, Google Ads, websites, automation, video, and content, run by ${BUSINESS.operator} in accounts you own, plus specialty builds for online communities and CPA firms. This is the lane for owners who want the whole loop handled.`,
   budgetNote: "The intake asks for the monthly ad budget you are genuinely prepared to spend. A $0 answer does not disqualify you; it routes you to the right lane.",
   contact: {
     phone: BUSINESS.phone.display,

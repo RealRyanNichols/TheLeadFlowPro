@@ -235,7 +235,7 @@ export const PUBLIC_PAGE_CATALOG = [
     path: "/agency",
     title: "Ads, websites, automation, video, and content, run for you",
     description:
-      "The agency lane: Meta ads, Google Ads, websites, automation, video, content, and community help desks in accounts you own. You pay the platforms directly and keep the leads.",
+      "The agency lane: Meta ads, Google Ads, websites, automation, video, and content in accounts you own, plus community help desks and crypto tax intake. You pay the platforms directly and keep the leads.",
     eyebrow: "Run it for me",
   },
   {
@@ -286,6 +286,13 @@ export const PUBLIC_PAGE_CATALOG = [
     description:
       "An AI help desk trained on your own answers, with scam warnings, a hand-off to a real moderator, and a safer server setup first. It never talks prices or investing.",
     eyebrow: "Agency · Community help desk",
+  },
+  {
+    path: "/agency/crypto-tax-intake",
+    title: "Crypto tax intake for CPA and tax prep firms",
+    description:
+      "A plain-English crypto questionnaire, a document checklist, uploads to your firm's own storage, reminders, and a tracker. Paperwork, not tax advice.",
+    eyebrow: "Agency · Crypto tax intake",
   },
   {
     path: "/agency/start",
