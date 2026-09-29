@@ -6,7 +6,7 @@ import { ArrowRight, Check, CreditCard, KeyRound, ShieldCheck, X } from "lucide-
 import SiteHero from "@/components/site/system/SiteHero";
 import FinalCta from "@/components/site/system/FinalCta";
 import { agencyPayHref } from "@/lib/agencyPayment";
-import { AGENCY_PROCESS, AGENCY_SERVICES, OWNERSHIP_PROMISE, agencyOffer, agencyService } from "@/lib/site/agency";
+import { AGENCY_PROCESS, AGENCY_SERVICES, OWNERSHIP_PROMISE, agencyOffer, agencyService, countWord } from "@/lib/site/agency";
 import { BUSINESS } from "@/lib/site/business";
 import { TBD_PRICE_LABEL, TBD_PRICE_TERMS } from "@/lib/site/offers";
 import { breadcrumbJsonLd, faqJsonLd, graph, jsonLdText } from "@/lib/site/structuredData";
@@ -35,8 +35,8 @@ export default async function AgencyServicePage({ params }: { params: Promise<{ 
   if (!s) notFound();
   const offer = agencyOffer(s);
   const priced = offer.status === "live";
-  // Websites is paid through the Website Launch deposit; the other five take
-  // the written-scope payment on /agency/pay.
+  // Websites is paid through the Website Launch deposit; every other service
+  // takes the written-scope payment on /agency/pay.
   const payable = s.slug !== "websites";
   // Ads and automation are built inside the client's own accounts, so the
   // access step is the first thing after payment.
@@ -79,7 +79,7 @@ export default async function AgencyServicePage({ params }: { params: Promise<{ 
         }}
         primary={{ href: s.intakeHref, label: "Start the intake" }}
         secondary={{ href: "#included", label: "What is included" }}
-        trustLine="No guaranteed leads, cost per lead, ranking, or return on ad spend."
+        trustLine={s.trustLine ?? "No guaranteed leads, cost per lead, ranking, or return on ad spend."}
       />
 
       <section className="cb-band" aria-labelledby="problem-title">
@@ -266,7 +266,7 @@ export default async function AgencyServicePage({ params }: { params: Promise<{ 
         title="Get the scope in writing."
         body={`Ten questions, one business day to a reply from ${BUSINESS.operator}. Or call or text ${BUSINESS.phone.display}.`}
         primary={{ href: s.intakeHref, label: "Start the intake" }}
-        secondary={{ href: "/agency", label: "All six services" }}
+        secondary={{ href: "/agency", label: `All ${countWord(AGENCY_SERVICES.length)} services` }}
       />
       <p className="cb-shell" style={{ paddingBlock: 24 }}>
         <Link href="/agency" className="cb-textlink">

@@ -235,7 +235,7 @@ export const PUBLIC_PAGE_CATALOG = [
     path: "/agency",
     title: "Ads, websites, automation, video, and content, run for you",
     description:
-      "The agency lane: Meta ads, Google Ads, websites, automation, video, and content in accounts you own. You pay the platforms directly and keep the leads.",
+      "The agency lane: Meta ads, Google Ads, websites, automation, video, content, and community help desks in accounts you own. You pay the platforms directly and keep the leads.",
     eyebrow: "Run it for me",
   },
   {
@@ -279,6 +279,13 @@ export const PUBLIC_PAGE_CATALOG = [
     description:
       "A content engine built around one offer at a time, drafted in your voice and published in your accounts on a calendar you approve.",
     eyebrow: "Agency · Content",
+  },
+  {
+    path: "/agency/community-help-desk",
+    title: "A help desk for your Discord or Telegram community",
+    description:
+      "An AI help desk trained on your own answers, with scam warnings, a hand-off to a real moderator, and a safer server setup first. It never talks prices or investing.",
+    eyebrow: "Agency · Community help desk",
   },
   {
     path: "/agency/start",

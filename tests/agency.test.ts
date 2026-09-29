@@ -4,16 +4,25 @@ import path from "node:path";
 import test from "node:test";
 import { copyProblems } from "../lib/hq/copy.ts";
 import { PUBLIC_PAGE_CATALOG } from "../lib/publicPageCatalog.ts";
-import { AGENCY_PROCESS, AGENCY_SERVICES, OWNERSHIP_PROMISE, agencyOffer, agencyService } from "../lib/site/agency.ts";
+import {
+  AGENCY_HUB,
+  AGENCY_PROCESS,
+  AGENCY_SERVICES,
+  LOCAL_AGENCY_SERVICES,
+  OWNERSHIP_PROMISE,
+  agencyOffer,
+  agencyService,
+  countWord,
+} from "../lib/site/agency.ts";
 import { CASE_STUDIES, renderableCaseStudies } from "../lib/site/caseStudies.ts";
 import { TBD_PRICE_LABEL, offer } from "../lib/site/offers.ts";
 
 const BANNED = ["guarantee", "guaranteed", "roas", "#1", "best in", "lowest", "only agency", "testimonial:", "% increase", "x return"];
 
-test("six agency services, each with one audience, one problem, inclusions, ownership, vendor costs, process, FAQ, and one CTA", () => {
+test("seven agency services, each with one audience, one problem, inclusions, ownership, vendor costs, process, FAQ, and one CTA", () => {
   assert.deepEqual(
     AGENCY_SERVICES.map((s) => s.slug),
-    ["meta-ads", "google-ads", "websites", "automation", "video", "content"],
+    ["meta-ads", "google-ads", "websites", "automation", "video", "content", "community-help-desk"],
   );
   for (const s of AGENCY_SERVICES) {
     assert.ok(s.audience.length > 30, s.slug);
@@ -29,6 +38,10 @@ test("six agency services, each with one audience, one problem, inclusions, owne
     const text = JSON.stringify(s).toLowerCase();
     for (const banned of BANNED) assert.ok(!text.includes(banned), `${s.slug} contains "${banned}"`);
     for (const f of s.faq) assert.deepEqual(copyProblems(f.a), [], `${s.slug}: ${f.q}`);
+    // Every visible line of the page, not only the FAQ, passes the copy rules.
+    for (const line of [s.promise, s.problem, s.audience, s.metaDescription, s.trustLine ?? "", ...s.included, ...s.clientOwns, ...s.clientPaysDirectly, ...s.notIncluded]) {
+      assert.deepEqual(copyProblems(line), [], `${s.slug}: ${line}`);
+    }
   }
   assert.equal(AGENCY_PROCESS.map((p) => p.name).join(" → "), "Map → Scope → Build → Launch → Measure");
   assert.equal(agencyService("nope"), null);
@@ -71,6 +84,43 @@ test("the video page requires a signed release before anyone appears on camera",
   assert.match(text, /signed release/);
   assert.match(text, /consent/);
   assert.ok(video.notIncluded.some((n) => /release/i.test(n)));
+});
+
+test("the community help desk starts with server safety, refuses price talk, and never promotes a token", () => {
+  const desk = agencyService("community-help-desk")!;
+  assert.equal(desk.online, true);
+  assert.equal(offer("agency_community_help_desk").href, "/agency/community-help-desk");
+  // The safe server setup is the first thing in scope, before any bot is trained.
+  assert.match(desk.included[0], /^Safe server setup first/);
+  assert.ok(desk.included.some((i) => /raid/i.test(i)), "a written raid and impersonation plan");
+  assert.ok(desk.included.some((i) => /recovery phrase/i.test(i)), "scam warnings name the recovery phrase");
+  assert.ok(desk.included.some((i) => /real moderator/i.test(i)), "a hand-off to a person");
+  // Refusals are in scope and in the FAQ, so a buyer sees them before paying.
+  assert.ok(desk.included.some((i) => /no price talk/i.test(i) && /no investment advice/i.test(i)));
+  assert.match(desk.trustLine ?? "", /no price talk/i);
+  assert.ok(desk.faq.some((f) => /token price/i.test(f.q) && /^No\./.test(f.a)));
+  assert.ok(desk.notIncluded.some((n) => /promoting a token/i.test(n)));
+  assert.ok(desk.notIncluded.some((n) => /shilling/i.test(n) && /rewards for posting/i.test(n)));
+  assert.ok(desk.notIncluded.some((n) => /wallet keys/i.test(n) && /recovery phrase/i.test(n)));
+  // The buyer owns the bot and pays the software maker directly.
+  assert.match(desk.clientOwns.join(" "), /bot account/);
+  assert.match(desk.clientPaysDirectly.join(" "), /billed to you by its maker/);
+  // Nothing on the page reads as investment copy.
+  const text = JSON.stringify(desk).toLowerCase();
+  for (const phrase of ["to the moon", "moon", "100x", "profit", "passive income", "returns", "buy now", "presale", "airdrop", "financial advice"]) {
+    assert.ok(!text.includes(phrase), `help desk copy contains "${phrase}"`);
+  }
+});
+
+test("service counts in copy come from the list, and the Longview page keeps to local services", () => {
+  assert.equal(countWord(AGENCY_SERVICES.length), "seven");
+  assert.equal(countWord(LOCAL_AGENCY_SERVICES.length, true), "Six");
+  assert.equal(countWord(99), "99");
+  assert.deepEqual(
+    LOCAL_AGENCY_SERVICES.map((s) => s.slug),
+    AGENCY_SERVICES.filter((s) => s.slug !== "community-help-desk").map((s) => s.slug),
+  );
+  assert.match(AGENCY_HUB.lead, /community help desks/);
 });
 
 test("case studies render only approved entries with approved, dated metrics and the Premier disclosure", () => {

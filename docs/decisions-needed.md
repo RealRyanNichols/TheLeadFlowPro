@@ -806,3 +806,42 @@ checkout both ship switched off.
       wording. Default: keep as built.
     - AGENTS.md says work on `main`; this was built on a harness branch.
       Default: you choose the merge target.
+
+## M. Community help desk (September 29)
+
+Added September 29, 2026 at the owner's request to build the community help
+desk and put it live. The page is `/agency/community-help-desk`. Its offer,
+`agency_community_help_desk`, is `tbd_ryan`, so the page prints "Pricing
+confirmed on the scoping call". Nothing below has been sent, charged, or
+switched on, and no help desk software account has been opened.
+
+100. **The help desk price.** Suggested, not published: a one-time setup
+     (the safe server setup, training on the client's docs, the 25-question
+     test run, and 30 days of weekly tuning), then an optional monthly fee
+     for tuning after day 30. The safe server setup can also be sold alone.
+     Suggested numbers from the September 29 market scan in the crypto
+     research doc (not approved): $497 setup plus $97 to $297 a month; the
+     safe server setup alone $297 once.
+     - While the price is TBD, `/agency/pay` takes $250 to $25,000 per
+       charge. A $497 setup fits. A monthly fee under $250 cannot be paid
+       there until it is published as a live `$X/mo` price, which bills
+       monthly and skips that window (`lib/agencyPayment.ts`).
+     - One offer row holds one price. Setup plus monthly needs a second
+       offer row for the monthly part, or the setup is paid as a written
+       scope and only the monthly fee is published.
+     - Default: publish nothing yet and scope each buyer in writing.
+       Consequence of doing nothing: the page stays live with the TBD line,
+       and the intake and the written-scope payment both work.
+
+101. **Which help desk software to set up.** The client pays the software
+     maker directly, and the page names no vendor. The market scan found
+     tools built for Discord and Telegram support at about $39 to $599 a
+     month. Default: choose per client on the scoping call, and put the
+     tool's current plan price in the written scope. Consequence of doing
+     nothing: none until the first scope.
+
+102. **Ads for this page.** Meta and Google both have crypto ad rules, and
+     an ad that talks about tokens can be reviewed as a crypto ad. Default:
+     ads for this page talk about moderators, repeat questions, and scams,
+     never tokens, prices, or trading. Consequence of doing nothing: none
+     until someone runs an ad.
