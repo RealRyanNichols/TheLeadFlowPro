@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowRight, Check, MapPin, ShieldCheck } from "lucide-react";
 import SiteHero from "@/components/site/system/SiteHero";
 import ConsultationForm from "@/components/site/ConsultationForm";
-import { LOCAL_AGENCY_SERVICES, OWNERSHIP_PROMISE, countWord } from "@/lib/site/agency";
+import { CORE_AGENCY_SERVICES, OWNERSHIP_PROMISE, countWord } from "@/lib/site/agency";
 import { BUSINESS } from "@/lib/site/business";
 import { CONSULTATION } from "@/lib/site/consultation";
 import { PRICES, usd } from "@/lib/site/prices";
@@ -84,14 +84,14 @@ export default function LongviewPage() {
           <div className="cb-headrow">
             <div>
               <p className="cb-eyebrow">What we build and run</p>
-              <h2 className="cb-h2 cb-heading">{countWord(LOCAL_AGENCY_SERVICES.length, true)} pieces of one system. Take the one that is leaking.</h2>
+              <h2 className="cb-h2 cb-heading">{countWord(CORE_AGENCY_SERVICES.length, true)} pieces of one system. Take the one that is leaking.</h2>
             </div>
             <p className="cb-lead">
               Each service is scoped on its own and priced in writing before it starts. You pay the platforms directly and keep the accounts, the leads, and the reporting.
             </p>
           </div>
           <div className="cb-servicegrid">
-            {LOCAL_AGENCY_SERVICES.map((service) => (
+            {CORE_AGENCY_SERVICES.map((service) => (
               <article key={service.slug} className="cb-servicecard" data-service={service.slug}>
                 <p className="cb-eyebrow">{service.eyebrow}</p>
                 <h3>{service.name}</h3>

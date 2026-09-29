@@ -780,13 +780,15 @@ checkout both ship switched off.
     - AGENTS.md says work on `main`; this was built on a harness branch.
       Default: you choose the merge target.
 
-## M. Community help desk (September 29)
+## M. Community help desk and crypto tax intake (September 29)
 
 Added September 29, 2026 at the owner's request to build the community help
-desk and put it live. The page is `/agency/community-help-desk`. Its offer,
-`agency_community_help_desk`, is `tbd_ryan`, so the page prints "Pricing
-confirmed on the scoping call". Nothing below has been sent, charged, or
-switched on, and no help desk software account has been opened.
+desk, put it live, and continue with the next builds (the crypto tax intake
+is the second). The help desk page is `/agency/community-help-desk`. Its
+offer, `agency_community_help_desk`, is `tbd_ryan`, so the page prints
+"Pricing confirmed on the scoping call". Nothing below has been sent,
+charged, or switched on, and no help desk software account has been opened.
+Both pages sit in the hub's "Specialty builds" band and stay off `/longview`.
 
 100. **The help desk price.** Suggested, not published: a one-time setup
      (the safe server setup, training on the client's docs, the 25-question
@@ -818,3 +820,26 @@ switched on, and no help desk software account has been opened.
      ads for this page talk about moderators, repeat questions, and scams,
      never tokens, prices, or trading. Consequence of doing nothing: none
      until someone runs an ad.
+
+103. **The crypto tax intake price.** The page is `/agency/crypto-tax-intake`,
+     offer `agency_crypto_tax_intake`, `tbd_ryan`. Suggested, not published:
+     a one-time setup per firm, then an optional monthly fee during tax
+     season. Suggested numbers from the September 29 market scan (not
+     approved): $497 to $997 setup plus $49 to $97 a month. The same $250
+     floor on `/agency/pay` applies (item 100). Default: publish nothing
+     yet and scope each firm in writing.
+
+104. **Attorney check before the first firm signs.** The service handles
+     tax clients' files for a CPA firm. Before the first scope, have the
+     attorney review the service agreement against the firm's data rules:
+     IRS section 7216 limits how a preparer and its service providers may
+     use return information, and the FTC Safeguards Rule requires the firm
+     to keep a written information security plan. The page already
+     promises no tax advice, no passwords or keys, no use of client
+     information beyond the intake, and no copies kept on our systems.
+     Default: no firm is onboarded until the agreement is reviewed.
+
+105. **Recheck the Form 1099-DA facts each season.** The FAQ says brokers
+     report what a client sold for from 2025, and usually not what they
+     paid for crypto bought before 2026. Default: recheck the IRS digital
+     assets page every October and before any ad runs.
