@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import json
 import os
+import resource
 import socket
 import sys
 import tempfile
@@ -27,7 +28,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from longview_archive import config, db, matching, places, privacy, publish  # noqa: E402
+from longview_archive import approval, config, db, matching, places, privacy, publish  # noqa: E402
 from longview_archive.sources import franchise as franchise_source  # noqa: E402
 from longview_archive.service import SYNC_JOBS, bootstrap, run_sync  # noqa: E402
 from longview_archive.sources import http as api_http  # noqa: E402
@@ -73,7 +74,25 @@ def engine_run(settings) -> None:
     say(f"PROFILES READY TO PUBLISH (first batch): {shown}")
     per_town(conn, towns)
     published_by_source(conn)
+    footprint(conn, settings)
     conn.close()
+
+
+def footprint(conn, settings) -> None:
+    """What the directory costs the droplet: approve and build it here, then peak memory and disk."""
+    say()
+    say("== 1b. What it costs the droplet (the service is capped at 700 MB of memory)")
+    try:
+        result = approval.approve(conn, settings, actor="probe")
+        say(f"approved and built: {result['businesses']} businesses")
+    except Exception as exc:  # noqa: BLE001 - report and keep going
+        say(f"approve/build failed: {exc.__class__.__name__}: {str(exc)[:300]}")
+    say(f"peak memory of this whole run (sync, match, publish, build): "
+        f"{resource.getrusage(resource.RUSAGE_SELF).ru_maxrss // 1024} MB")
+    for part in sorted(Path(settings.data_dir).iterdir()):
+        files = [f for f in part.rglob("*") if f.is_file()] if part.is_dir() else [part]
+        size = sum(f.stat().st_size for f in files)
+        say(f"disk {part.name}: {size / 1e6:.0f} MB in {len(files)} files")
 
 
 def per_town(conn, towns) -> None:

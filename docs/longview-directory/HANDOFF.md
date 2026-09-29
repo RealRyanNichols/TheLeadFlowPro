@@ -60,29 +60,43 @@ For Amanda and Ryan. Written Sept 24, 2026 (Central time).
     `https://longview.theleadflowpro.com/longview/businesses/`, but only after
     that address is live.
 
-## Turn it on (the one step)
+## Turn it on (two pastes: a read-only check, then the install)
 
-**Live on www.theleadflowpro.com in one paste (Sept 27, 2026).** The website
-already answers from this droplet, so this installs the engine, turns on
-auto-approve, and switches the directory on at
-https://www.theleadflowpro.com/longview/businesses/ (`website-on.sh`: it
-backs up the website's Caddy block, lets Caddy check the new one, and puts the
-old one back if anything fails). A real-data run of this code on Sept 27
-found 6,232 Longview profiles ready for the first batch. In DigitalOcean, open
-the droplet **leadflow-web**, then **Access**, then **Launch Droplet
-Console**, and paste:
+**Sept 29, 2026.** A read-only check of the droplet on Sept 28 (`CLAUDE.md`,
+"The droplet as it really is") found the website running as the systemd
+service `site@leadflow` on 127.0.0.1:3109, deployed by `leadflow-release`,
+not the Docker setup in `deploy/droplet/`. It also found memory about 85% used
+with swap full, and about 9 GB of disk free. So `website-on.sh` no longer swaps
+in the repo's Caddy block (that proxies to :3100). It finds the block that
+serves www.theleadflowpro.com today and adds one line to it,
+`import /etc/caddy/longview-archive/*.routes`. It checks the site before and
+after, and puts the block back if anything fails. `--undo` removes that one line.
+The engine itself is capped at 700 MB and half a CPU (`systemd/longview-archive.service`).
+
+In DigitalOcean, open the droplet **leadflow-web**, then **Access**, then
+**Launch Droplet Console**.
+
+**1. Check (read-only, changes nothing).** Paste this and send the output to Claude:
 
 ```bash
-bash -c 'set -e; d=$(mktemp -d); trap "rm -rf $d" EXIT; git clone --depth 1 --branch claude/serene-edison-daodg6 https://github.com/RealRyanNichols/TheLeadFlowPro.git "$d/src"; bash "$d/src/deploy/longview-archive/install.sh"; runuser -u lvarchive -- env -C /opt/longview-archive/app PYTHONPATH=/opt/longview-archive/app PYTHONDONTWRITEBYTECODE=1 /opt/longview-archive/venv/bin/python -m longview_archive approve --auto on; bash "$d/src/deploy/longview-archive/website-on.sh"'
+bash -c 'd=$(mktemp -d); trap "rm -rf $d" EXIT; git clone -q --depth 1 --branch main https://github.com/RealRyanNichols/TheLeadFlowPro.git "$d/src"; free -m; df -h /; bash "$d/src/deploy/longview-archive/install.sh" --dry-run; bash "$d/src/deploy/longview-archive/website-on.sh" --check'
 ```
 
-Merge the pull request afterwards so a later website deploy keeps the two
-import lines in the website's Caddy block.
+**2. Install and go live**, once the check is clean. This installs the
+engine, turns on the towns, turns on auto-approve, and adds the directory to
+the website:
+
+```bash
+bash -c 'set -e; install -d -m 755 /etc/longview-archive; touch /etc/longview-archive/env; sed -i "/^LVA_PLACES=/d" /etc/longview-archive/env; echo "LVA_PLACES=longview,marshall,kilgore,white-oak,hallsville,diana,harleton,gladewater,clarksville-city,easton,scottsville,elysian-fields,waskom,ore-city,gilmer,karnack,jefferson,tatum,henderson,carthage,tyler,big-sandy,hawkins,winona,arp,overton,new-london,beckville,pittsburg,daingerfield,lone-star,hughes-springs,linden" >> /etc/longview-archive/env; d=$(mktemp -d); trap "rm -rf $d" EXIT; git clone -q --depth 1 --branch main https://github.com/RealRyanNichols/TheLeadFlowPro.git "$d/src"; bash "$d/src/deploy/longview-archive/install.sh"; runuser -u lvarchive -- env -C /opt/longview-archive/app PYTHONPATH=/opt/longview-archive/app PYTHONDONTWRITEBYTECODE=1 /opt/longview-archive/venv/bin/python -m longview_archive approve --auto on; bash "$d/src/deploy/longview-archive/website-on.sh"'
+```
+
+The site block belongs to the release pipeline another session set up. If a
+later change to that block drops the import line, run `website-on.sh` again.
 
 The older options follow. To install only, without going live, paste:
 
 ```bash
-bash -c 'set -e; d=$(mktemp -d); trap "rm -rf $d" EXIT; git clone --depth 1 --branch claude/serene-edison-daodg6 https://github.com/RealRyanNichols/TheLeadFlowPro.git "$d/src"; bash "$d/src/deploy/longview-archive/install.sh"'
+bash -c 'set -e; d=$(mktemp -d); trap "rm -rf $d" EXIT; git clone --depth 1 --branch main https://github.com/RealRyanNichols/TheLeadFlowPro.git "$d/src"; bash "$d/src/deploy/longview-archive/install.sh"'
 ```
 
 **To install and go live in the same paste** (the owner said "make live" on
@@ -95,10 +109,10 @@ approves it at once. A batch that would remove more than a quarter of the
 listings still waits for a person:
 
 ```bash
-bash -c 'set -e; d=$(mktemp -d); trap "rm -rf $d" EXIT; git clone --depth 1 --branch claude/serene-edison-daodg6 https://github.com/RealRyanNichols/TheLeadFlowPro.git "$d/src"; bash "$d/src/deploy/longview-archive/install.sh"; runuser -u lvarchive -- env -C /opt/longview-archive/app PYTHONPATH=/opt/longview-archive/app PYTHONDONTWRITEBYTECODE=1 /opt/longview-archive/venv/bin/python -m longview_archive approve --auto on'
+bash -c 'set -e; d=$(mktemp -d); trap "rm -rf $d" EXIT; git clone --depth 1 --branch main https://github.com/RealRyanNichols/TheLeadFlowPro.git "$d/src"; bash "$d/src/deploy/longview-archive/install.sh"; runuser -u lvarchive -- env -C /opt/longview-archive/app PYTHONPATH=/opt/longview-archive/app PYTHONDONTWRITEBYTECODE=1 /opt/longview-archive/venv/bin/python -m longview_archive approve --auto on'
 ```
 
-After the pull request merges, use `--branch main` instead. The installer:
+The installer:
 
 - Checks the droplet first. It stops without changing anything if Caddy is too
   old, disk space is short, or it is not on leadflow-web.
