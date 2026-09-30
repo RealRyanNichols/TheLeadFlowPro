@@ -141,12 +141,59 @@ class CardSince(SiteTestBase):
         pages_ = self.build(fixture_export())
         seen = 0
         for rel, text in pages_.items():
-            for li in re.findall(r'<li class="card">.*?</li>(?=<li class="card">|</ul>)', text):
+            for li in re.findall(r'<li class="card"[^>]*>.*?</li>(?=<li class="card"|</ul>)', text):
                 self.assertLessEqual(li.count('class="card-since"'), 1, rel)
                 seen += li.count('class="card-since"')
                 self.assertNotRegex(li.lower(), r"founded|opened|established|years in business")
         self.assertGreater(seen, 0)
         self.assertNotIn('class="card-since"', pages_["new/index.html"])  # that page shows the full date
+
+
+class LetterJump(SiteTestBase):
+    """Long lists: jump by letter and by page number, with no script."""
+
+    def setUp(self):
+        super().setUp()
+        data = fixture_export()
+        base = data["businesses"][0]
+        words = ["Acme", "Bayou", "Cedar", "Delta", "Echo", "Fair", "Mesa", "Pine", "Zephyr", "4th Street"]
+        for n in range(120):
+            b = clone(base, n)
+            b["name"] = f"{words[n % len(words)]} Shop {n:03d}"
+            data["businesses"].append(b)
+        self.pages = self.build(data)
+
+    def test_letter_bar_links_resolve_to_anchors_on_built_pages(self):
+        first = self.pages["index.html"]
+        bar = re.search(r'<nav class="letters" aria-label="Jump to letter">(.*?)</nav>', first).group(1)
+        self.assertEqual(bar.count("<a ") + bar.count("<span "), 27)
+        self.assertIn('<span aria-disabled="true">Q</span>', bar)  # no Q names: no link
+        hrefs = re.findall(r'href="([^"]*)"', bar)
+        self.assertTrue(hrefs)
+        for href in hrefs:
+            page_part, _, anchor = href.partition("#")
+            rel = "index.html" if not page_part else page_part[len(BASE):] + "index.html"
+            self.assertIn(rel, self.pages, href)
+            self.assertIn(f'id="{anchor}"', self.pages[rel], href)
+            self.assertTrue(page_part == "" or page_part.startswith(BASE), href)
+
+    def test_numbered_pages(self):
+        second = self.pages["page-2/index.html"]
+        nav = re.search(r'<nav class="pages" aria-label="Pages">(.*?)</nav>', second).group(1)
+        self.assertIn('<span class="pages-now" aria-current="page">2</span>', nav)
+        self.assertIn(f'href="{BASE}"', nav)                 # page 1
+        self.assertIn(f'href="{BASE}page-3/"', nav)
+        self.assertIn("Page 2 of 3", Page(second).text)
+        self.assertIn('rel="prev"', nav)
+        self.assertIn('rel="next"', nav)
+        self.assertEqual(site.page_window(1, 9), [1, 2, None, 9])
+        self.assertEqual(site.page_window(5, 9), [1, None, 4, 5, 6, None, 9])
+        self.assertEqual(site.page_window(2, 3), [1, 2, 3])
+
+    def test_letter_of(self):
+        self.assertEqual(site.letter_of({"name": "Éclair Bakery"}), "e")
+        self.assertEqual(site.letter_of({"name": "4th Street Shop"}), "#")
+        self.assertEqual(site.letter_of({"name": "'Bout Time"}), "#")
 
 
 # ---------------------------------------------------------------- the pages

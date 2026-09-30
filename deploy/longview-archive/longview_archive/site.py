@@ -74,7 +74,7 @@ CATEGORY_LEAD = "Every one we could verify, listed A to Z. Not ranked."
 # Bump whenever the pages' wording or markup changes: a site built with another
 # version is rebuilt at the next service start (``build_key``), so an upgrade
 # never leaves the old copy public until the next approval.
-COPY_VERSION = "7"
+COPY_VERSION = "8"
 
 SOURCE_LABELS = {
     "tx_sales_tax": "Texas Comptroller open data",
@@ -507,7 +507,7 @@ def action_bar(b: Mapping) -> Tuple[str, List[str]]:
     return f'<nav class="actions" aria-label="Contact {e(b["name"])}">{"".join(buttons)}</nav>', used
 
 
-def card(d: Directory, b: Mapping, extra: str = "", since: bool = True) -> str:
+def card(d: Directory, b: Mapping, extra: str = "", since: bool = True, anchor: str = "") -> str:
     badges = []
     if b["website"] and b["website"]["status"] != "dead":
         badges.append('<li class="badge">Website</li>')
@@ -518,10 +518,63 @@ def card(d: Directory, b: Mapping, extra: str = "", since: bool = True) -> str:
     badge_html = f'<ul class="badges" aria-label="Listed on this profile">{"".join(badges)}</ul>' if badges else ""
     line = since_line(b) if since else None
     since_html = f'<p class="card-since">{e(line)}</p>' if line else ""
-    return (f'<li class="card">{mono_span(b)}<div>'
+    ident = f' id="{e(anchor)}"' if anchor else ""
+    return (f'<li class="card"{ident}>{mono_span(b)}<div>'
             f'<h3 class="card-name"><a href="{e(path(b["slug"]))}">{e(b["name"])}</a></h3>'
             f'<p class="card-meta">{e(b["categoryLabel"] or d.category_name(b["category"]))}</p>'
             f'<p class="card-addr">{e(address_line(b))}</p>{since_html}{badge_html}{extra}</div></li>')
+
+
+LETTERS = tuple("abcdefghijklmnopqrstuvwxyz")
+NUMERAL_ANCHOR = "0"  # the '#' group: names that start with a digit or a sign
+
+
+def letter_of(b: Mapping) -> str:
+    """The A to Z group a name falls in: a to z, or '#' for anything else."""
+    first = _fold(b["name"]).casefold().lstrip()[:1]
+    return first if first in LETTERS else "#"
+
+
+def letter_map(items: Sequence[Mapping], size: int = PAGE_SIZE) -> Dict[str, Tuple[int, str]]:
+    """Each letter's first business in an A to Z list: letter -> (page, slug)."""
+    out: Dict[str, Tuple[int, str]] = {}
+    for i, b in enumerate(items):
+        out.setdefault(letter_of(b), (i // size + 1, b["slug"]))
+    return out
+
+
+def letter_anchor(letter: str) -> str:
+    return f"l-{NUMERAL_ANCHOR if letter == '#' else letter}"
+
+
+def letter_bar(lmap: Mapping[str, Tuple[int, str]], href: Callable[[int], str], page: int) -> str:
+    """Jump to a letter: 27 targets, a link where the letter has businesses. No script."""
+    items = []
+    for letter in ("#",) + LETTERS:
+        label = letter.upper()
+        if letter in lmap:
+            target_page = lmap[letter][0]
+            url = ("" if target_page == page else href(target_page)) + "#" + letter_anchor(letter)
+            items.append(f'<a href="{e(url)}">{e(label)}</a>')
+        else:
+            items.append(f'<span aria-disabled="true">{e(label)}</span>')
+    return f'<nav class="letters" aria-label="Jump to letter">{"".join(items)}</nav>'
+
+
+def anchors_on_page(lmap: Mapping[str, Tuple[int, str]], page: int) -> Dict[str, str]:
+    """slug -> anchor id for the first business of each letter that starts on this page."""
+    return {slug: letter_anchor(letter) for letter, (p, slug) in lmap.items() if p == page}
+
+
+def page_window(page: int, pages: int) -> List[Optional[int]]:
+    """1, a gap, page-1..page+1, a gap, last. None marks a gap."""
+    wanted = sorted({1, pages, page - 1, page, page + 1} & set(range(1, pages + 1)))
+    out: List[Optional[int]] = []
+    for n in wanted:
+        if out and n - out[-1] > 1:
+            out.append(None)
+        out.append(n)
+    return out
 
 
 def pagination(page: int, pages: int, href: Callable[[int], str]) -> str:
@@ -530,7 +583,16 @@ def pagination(page: int, pages: int, href: Callable[[int], str]) -> str:
     prev = (f'<a href="{e(href(page - 1))}" rel="prev">Previous</a>' if page > 1
             else '<span class="pages-off"></span>')
     nxt = f'<a href="{e(href(page + 1))}" rel="next">Next</a>' if page < pages else '<span class="pages-off"></span>'
-    return f'<nav class="pages" aria-label="Pages">{prev}<span>Page {page} of {pages}</span>{nxt}</nav>'
+    numbers = []
+    for n in page_window(page, pages):
+        if n is None:
+            numbers.append('<span class="pages-gap" aria-hidden="true">…</span>')
+        elif n == page:
+            numbers.append(f'<span class="pages-now" aria-current="page">{n}</span>')
+        else:
+            numbers.append(f'<a class="pages-n" href="{e(href(n))}" aria-label="Page {n}">{n}</a>')
+    return (f'<nav class="pages" aria-label="Pages">{prev}<span class="pages-list">{"".join(numbers)}</span>{nxt}'
+            f'<span class="pages-of">Page {page} of {pages}</span></nav>')
 
 
 def category_chips(d: Directory, current: Optional[str] = None) -> str:
@@ -631,9 +693,11 @@ def index_pages(d: Directory) -> Dict[str, str]:
     lead = e(f"{plural(count, 'business', 'businesses')} {where_short(d)}, each listed with the source"
              " and check date for every fact. A to Z, not ranked.")
     all_pages = paginate(d.businesses, 1)[1]
+    lmap = letter_map(d.businesses)
     for page in range(1, all_pages + 1):
         items, pages = paginate(d.businesses, page)
         start = (page - 1) * PAGE_SIZE + 1
+        marks = anchors_on_page(lmap, page) if all_pages > 1 else {}
         parts = []
         if page == 1:
             parts.append(
@@ -657,7 +721,8 @@ def index_pages(d: Directory) -> Dict[str, str]:
         parts.append(
             f'<section class="band band-tint" id="az" aria-labelledby="az-title"><div class="shell">'
             f'<h2 id="az-title">All businesses, A to Z</h2>{showing}'
-            f'<ul class="cards">{"".join(card(d, b) for b in items)}</ul>'
+            + (letter_bar(lmap, lambda p: page_path((), p), page) if all_pages > 1 else "")
+            + f'<ul class="cards">{"".join(card(d, b, anchor=marks.get(b["slug"], "")) for b in items)}</ul>'
             f"{pagination(page, pages, lambda p: page_path((), p))}</div></section>")
         if page > 1:
             parts.append(browse_band(d, current=None))
@@ -677,12 +742,16 @@ def category_pages(d: Directory) -> Dict[str, str]:
         if not members:
             continue
         total_pages = paginate(members, 1)[1]
+        lmap = letter_map(members)
         for page in range(1, total_pages + 1):
             items, pages = paginate(members, page)
+            marks = anchors_on_page(lmap, page) if pages > 1 else {}
+            bar = (letter_bar(lmap, lambda p, s=c['slug']: page_path(('category', s), p), page)
+                   if pages > 1 else "")
             body = (f'<section class="band band-tint" id="list" aria-labelledby="list-title"><div class="shell">'
                     f'<h2 id="list-title">{e(plural(len(members), "business", "businesses"))}</h2>'
-                    f"{count_line(page, len(items), len(members), pages)}"
-                    f'<ul class="cards">{"".join(card(d, b) for b in items)}</ul>'
+                    f"{count_line(page, len(items), len(members), pages)}{bar}"
+                    f'<ul class="cards">{"".join(card(d, b, anchor=marks.get(b["slug"], "")) for b in items)}</ul>'
                     f"{pagination(page, pages, lambda p, s=c['slug']: page_path(('category', s), p))}"
                     "</div></section>" + browse_band(d, category=c["slug"]))
             rel = f"category/{c['slug']}/" + ("" if page == 1 else f"page-{page}/") + "index.html"
@@ -1525,6 +1594,27 @@ svg.mono { display: block; width: 48px; height: 48px; background: none; }
   border: 1.5px solid var(--ink); border-radius: 12px; color: var(--ink); font-weight: 800; text-decoration: none;
 }
 .pages-off { min-width: 90px; }
+.pages-list { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.pages .pages-n, .pages-now { min-width: 44px; justify-content: center; padding: 0 10px; }
+.pages .pages-n { border-color: var(--line); background: var(--panel); }
+.pages-now {
+  display: inline-flex; align-items: center; min-height: 44px; border-radius: 12px;
+  background: var(--ink); color: var(--canvas); font-weight: 800;
+}
+.pages-gap { color: var(--muted); }
+.pages-of { flex-basis: 100%; color: var(--muted); font-variant-numeric: tabular-nums; }
+.letters {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 6px;
+  margin-top: var(--s4);
+}
+.letters a, .letters span {
+  display: grid; place-items: center; min-height: 44px; border-radius: var(--r-sm);
+  font-weight: 800; text-decoration: none;
+}
+.letters a { background: var(--panel); border: 1px solid var(--line); color: var(--ink); }
+.letters a:hover { border-color: var(--cobalt); color: var(--cobalt); }
+.letters span { color: var(--muted); opacity: 0.5; }
+.card[id] { scroll-margin-top: 16px; }
 .empty { margin-top: 16px; padding: 20px; border: 1px dashed var(--empty-line); border-radius: 18px; background: var(--panel); }
 
 /* category colours: white initials clear 4.5:1 on each */

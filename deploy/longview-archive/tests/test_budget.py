@@ -30,7 +30,7 @@ PROFILE_AVERAGE_MAX = 7_000
 SPRITE_MAX = 900
 HUB_MAX = 20_000
 
-CARD_RE = re.compile(r'<li class="card">.*?</li>(?=<li class="card">|</ul>)', re.S)
+CARD_RE = re.compile(r'<li class="card"[^>]*>.*?</li>(?=<li class="card"|</ul>)', re.S)
 
 
 def _built(extra_rows: int = 0):
