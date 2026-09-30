@@ -67,10 +67,12 @@ This replaces the Sep 24 picture below wherever they differ.
   8 vCPU / 16 GB plan ($96/mo) is locked. A limit increase was requested through support on
   Sep 29 (1 to 2 business days). The instant alternative is a one-time $250 prepay, credited to
   future bills; not used.
-- Waiting to launch: branch `release/help-desk-on-live` (`ca2b708`) is the live `ddeb372` plus
-  the community help desk, the crypto tax intake, and the agency heading fix, with nothing else
-  from main. `leadflow-release` only fetches `main`, so fetch the branch into
-  `/srv/sites/leadflow` first, then run `leadflow-release ca2b708fe895b23d96301dcf1df3c3c47bdb5be4`.
+- Waiting to launch (owner-approved Sep 29): branch `release/help-desk-on-live` (`3e33415`) is
+  the live `ddeb372` plus four agency pages (community help desk, crypto tax intake, XRPL
+  treasury alerts, crypto checkout) and the agency heading fix, with nothing else from main.
+  `leadflow-release` only fetches `main`, so fetch the branch into `/srv/sites/leadflow` first,
+  then run `leadflow-release 3e3341544d77279bbfefd7ca5cc2d9443dc3eb2f`. The owner chose to wait
+  for DigitalOcean's limit increase rather than prepay.
 
 ## The droplet (facts from `docs/infrastructure/droplet.md` and `deploy/droplet/`, Sep 24, 2026)
 
