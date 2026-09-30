@@ -54,8 +54,8 @@ longview.165-227-248-110.sslip.io {
 	root * /var/lib/longview-archive/www
 	import longview_archive_headers
 
-	@longview_directory path_regexp (?i)^/(?:(?:longview|marshall|kilgore|white-oak|hallsville|diana|harleton|gladewater|clarksville-city|easton|scottsville|elysian-fields|waskom|ore-city|gilmer|karnack|jefferson|tatum|henderson|carthage|tyler|big-sandy|hawkins|winona|arp|overton|new-london|beckville|pittsburg|daingerfield|lone-star|hughes-springs|linden)/businesses|places)(?:/.*)?$
-	@longview_not_directory not path_regexp (?i)^/(?:(?:longview|marshall|kilgore|white-oak|hallsville|diana|harleton|gladewater|clarksville-city|easton|scottsville|elysian-fields|waskom|ore-city|gilmer|karnack|jefferson|tatum|henderson|carthage|tyler|big-sandy|hawkins|winona|arp|overton|new-london|beckville|pittsburg|daingerfield|lone-star|hughes-springs|linden)/businesses|places)(?:/.*)?$
+	@longview_directory path_regexp (?i)^/(?:(?:longview|marshall|kilgore|white-oak|hallsville|diana|harleton|gladewater|clarksville-city|easton|scottsville|elysian-fields|waskom|ore-city|gilmer|karnack|jefferson|tatum|henderson|carthage|tyler|big-sandy|hawkins|winona|arp|overton|new-london|beckville|pittsburg|daingerfield|lone-star|hughes-springs|linden|mount-pleasant|nacogdoches|palestine|jacksonville|athens|mineola|quitman|winnsboro|mount-vernon|atlanta|queen-city|naples|omaha|avinger|lindale|whitehouse|bullard|troup|rusk|mount-enterprise|center|timpson|tenaha|chandler|brownsboro|van|edgewood|grand-saline|canton|wills-point|frankston|alba|yantis|leesburg|laneville|cushing|garrison|chireno|joaquin)/businesses|places)(?:/.*)?$
+	@longview_not_directory not path_regexp (?i)^/(?:(?:longview|marshall|kilgore|white-oak|hallsville|diana|harleton|gladewater|clarksville-city|easton|scottsville|elysian-fields|waskom|ore-city|gilmer|karnack|jefferson|tatum|henderson|carthage|tyler|big-sandy|hawkins|winona|arp|overton|new-london|beckville|pittsburg|daingerfield|lone-star|hughes-springs|linden|mount-pleasant|nacogdoches|palestine|jacksonville|athens|mineola|quitman|winnsboro|mount-vernon|atlanta|queen-city|naples|omaha|avinger|lindale|whitehouse|bullard|troup|rusk|mount-enterprise|center|timpson|tenaha|chandler|brownsboro|van|edgewood|grand-saline|canton|wills-point|frankston|alba|yantis|leesburg|laneville|cushing|garrison|chireno|joaquin)/businesses|places)(?:/.*)?$
 	import longview_archive_csp_strict @longview_not_directory
 	import longview_archive_csp_directory @longview_directory
 
@@ -79,7 +79,7 @@ longview.165-227-248-110.sslip.io {
 	# cleaned path, lower-cased by the map, never the request's raw path: a raw
 	# //longview/businesses must not become the protocol-relative (another host)
 	# //longview/businesses/.
-	@longview_directory_bare path_regexp lva_bare (?i)^/(longview|marshall|kilgore|white-oak|hallsville|diana|harleton|gladewater|clarksville-city|easton|scottsville|elysian-fields|waskom|ore-city|gilmer|karnack|jefferson|tatum|henderson|carthage|tyler|big-sandy|hawkins|winona|arp|overton|new-london|beckville|pittsburg|daingerfield|lone-star|hughes-springs|linden)/businesses$
+	@longview_directory_bare path_regexp lva_bare (?i)^/(longview|marshall|kilgore|white-oak|hallsville|diana|harleton|gladewater|clarksville-city|easton|scottsville|elysian-fields|waskom|ore-city|gilmer|karnack|jefferson|tatum|henderson|carthage|tyler|big-sandy|hawkins|winona|arp|overton|new-london|beckville|pittsburg|daingerfield|lone-star|hughes-springs|linden|mount-pleasant|nacogdoches|palestine|jacksonville|athens|mineola|quitman|winnsboro|mount-vernon|atlanta|queen-city|naples|omaha|avinger|lindale|whitehouse|bullard|troup|rusk|mount-enterprise|center|timpson|tenaha|chandler|brownsboro|van|edgewood|grand-saline|canton|wills-point|frankston|alba|yantis|leesburg|laneville|cushing|garrison|chireno|joaquin)/businesses$
 	handle @longview_directory_bare {
 		map {re.lva_bare.1} {lva_town} {
 			~(?i)^longview$ longview
@@ -115,6 +115,45 @@ longview.165-227-248-110.sslip.io {
 			~(?i)^lone-star$ lone-star
 			~(?i)^hughes-springs$ hughes-springs
 			~(?i)^linden$ linden
+			~(?i)^mount-pleasant$ mount-pleasant
+			~(?i)^nacogdoches$ nacogdoches
+			~(?i)^palestine$ palestine
+			~(?i)^jacksonville$ jacksonville
+			~(?i)^athens$ athens
+			~(?i)^mineola$ mineola
+			~(?i)^quitman$ quitman
+			~(?i)^winnsboro$ winnsboro
+			~(?i)^mount-vernon$ mount-vernon
+			~(?i)^atlanta$ atlanta
+			~(?i)^queen-city$ queen-city
+			~(?i)^naples$ naples
+			~(?i)^omaha$ omaha
+			~(?i)^avinger$ avinger
+			~(?i)^lindale$ lindale
+			~(?i)^whitehouse$ whitehouse
+			~(?i)^bullard$ bullard
+			~(?i)^troup$ troup
+			~(?i)^rusk$ rusk
+			~(?i)^mount-enterprise$ mount-enterprise
+			~(?i)^center$ center
+			~(?i)^timpson$ timpson
+			~(?i)^tenaha$ tenaha
+			~(?i)^chandler$ chandler
+			~(?i)^brownsboro$ brownsboro
+			~(?i)^van$ van
+			~(?i)^edgewood$ edgewood
+			~(?i)^grand-saline$ grand-saline
+			~(?i)^canton$ canton
+			~(?i)^wills-point$ wills-point
+			~(?i)^frankston$ frankston
+			~(?i)^alba$ alba
+			~(?i)^yantis$ yantis
+			~(?i)^leesburg$ leesburg
+			~(?i)^laneville$ laneville
+			~(?i)^cushing$ cushing
+			~(?i)^garrison$ garrison
+			~(?i)^chireno$ chireno
+			~(?i)^joaquin$ joaquin
 			default longview
 		}
 		redir * /{lva_town}/businesses/ 308
@@ -126,7 +165,7 @@ longview.165-227-248-110.sslip.io {
 
 	# The static directory. A profile, category, or list is a folder with an
 	# index.html; "businesses" (and "places") is a link the engine switches in one rename.
-	@longview_directory_files path_regexp (?i)^/(?:(?:longview|marshall|kilgore|white-oak|hallsville|diana|harleton|gladewater|clarksville-city|easton|scottsville|elysian-fields|waskom|ore-city|gilmer|karnack|jefferson|tatum|henderson|carthage|tyler|big-sandy|hawkins|winona|arp|overton|new-london|beckville|pittsburg|daingerfield|lone-star|hughes-springs|linden)/businesses|places)/.*$
+	@longview_directory_files path_regexp (?i)^/(?:(?:longview|marshall|kilgore|white-oak|hallsville|diana|harleton|gladewater|clarksville-city|easton|scottsville|elysian-fields|waskom|ore-city|gilmer|karnack|jefferson|tatum|henderson|carthage|tyler|big-sandy|hawkins|winona|arp|overton|new-london|beckville|pittsburg|daingerfield|lone-star|hughes-springs|linden|mount-pleasant|nacogdoches|palestine|jacksonville|athens|mineola|quitman|winnsboro|mount-vernon|atlanta|queen-city|naples|omaha|avinger|lindale|whitehouse|bullard|troup|rusk|mount-enterprise|center|timpson|tenaha|chandler|brownsboro|van|edgewood|grand-saline|canton|wills-point|frankston|alba|yantis|leesburg|laneville|cushing|garrison|chireno|joaquin)/businesses|places)/.*$
 	handle @longview_directory_files {
 		try_files {path} {path}/index.html
 		file_server

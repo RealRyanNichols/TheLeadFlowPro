@@ -625,6 +625,19 @@ class WriteAndDiff(unittest.TestCase):
         self.assertEqual(publish.diff_exports(None, old)["added"], sorted(ids))
         self.assertEqual(publish.diff_exports(old, old), {"added": [], "removed": [], "changed": []})
 
+    def test_fingerprint_diff_matches_the_full_comparison(self):
+        old = json.loads(json.dumps(self.data))
+        new = json.loads(json.dumps(self.data))
+        new["businesses"][0]["facts"][0]["checkedAt"] = "2026-10-01"      # not a change
+        new["businesses"][1]["name"] = new["businesses"][1]["name"] + " Co"  # a change
+        reordered = dict(reversed(list(new["businesses"][2].items())))     # key order only: not a change
+        new["businesses"][2] = reordered
+        self.assertEqual(publish.diff_exports(old, new), publish._diff_exports_full(old, new))
+        self.assertEqual(publish.diff_exports(old, new)["changed"], [new["businesses"][1]["id"]])
+        digests = publish.export_digests(new)
+        self.assertEqual(set(digests), {b["id"] for b in new["businesses"]})
+        self.assertTrue(all(len(d) == 64 for d in digests.values()))
+
     def test_run_publish_writes_file_and_records_the_run(self):
         out = Path(self.tmp.name) / "out" / "directory.json"
         counts = publish.run_publish(self.conn, self.settings, NOW, out_path=out)
