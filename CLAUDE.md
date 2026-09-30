@@ -54,6 +54,24 @@ This replaces the Sep 24 picture below wherever they differ.
 - **Also on it:** a self-hosted Supabase stack for Real Ryan Nichols (`/opt/rrn-supabase`), the
   brain and its Postgres, the LeadFlow Hub, and the other `/srv/sites/*` sites.
 
+### Sep 29, 2026 (evening): capacity check and a clean restart
+
+- Before: memory 1.1 GiB available with swap full, disk 7.3 GiB free. The biggest memory users
+  were `site@leadflow` (1.8 GB) and `site@repwatchr` (1.7 GB). Old LeadFlow builds in
+  `/var/lib/leadflow-releases` take about 1.4 GB each; current is `ddeb372`, previous `c48b6b2`.
+- With the owner's OK the droplet was shut down cleanly for a resize to 16 GB and turned back on
+  about three minutes later. Every service and Docker container that had been running came back
+  (checked against `/root/pre-resize-state.txt`). After the restart memory was about 4.7 GiB
+  available, still under the release guard's 5.5 GiB.
+- The resize did not happen: the account is on DigitalOcean's Tier 2 limits and the
+  8 vCPU / 16 GB plan ($96/mo) is locked. A limit increase was requested through support on
+  Sep 29 (1 to 2 business days). The instant alternative is a one-time $250 prepay, credited to
+  future bills; not used.
+- Waiting to launch: branch `release/help-desk-on-live` (`ca2b708`) is the live `ddeb372` plus
+  the community help desk, the crypto tax intake, and the agency heading fix, with nothing else
+  from main. `leadflow-release` only fetches `main`, so fetch the branch into
+  `/srv/sites/leadflow` first, then run `leadflow-release ca2b708fe895b23d96301dcf1df3c3c47bdb5be4`.
+
 ## The droplet (facts from `docs/infrastructure/droplet.md` and `deploy/droplet/`, Sep 24, 2026)
 
 - **What it is:** Ryan's DigitalOcean droplet. Run commands in DigitalOcean's web console
