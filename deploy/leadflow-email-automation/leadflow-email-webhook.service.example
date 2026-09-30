@@ -1,0 +1,21 @@
+[Unit]
+Description=LeadFlow email opt-out and verified Resend events (review template)
+After=network.target
+
+[Service]
+Type=simple
+User=leadflowemail
+Group=leadflowemail
+WorkingDirectory=/opt/leadflow-email-automation/current
+EnvironmentFile=/etc/leadflow-email-automation/worker.env
+ExecStart=/usr/bin/python3 worker.py --config /etc/leadflow-email-automation/config.json serve
+Restart=on-failure
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/leadflow-email-automation
+
+[Install]
+WantedBy=multi-user.target

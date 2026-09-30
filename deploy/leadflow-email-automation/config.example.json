@@ -1,0 +1,28 @@
+{
+  "enabled": false,
+  "sender_verified": false,
+  "suppression_reconciled": false,
+  "suppression_reconciled_at": null,
+  "suppression_reconciliation_max_age_seconds": 3600,
+  "webhook_ready": false,
+  "approved_sequence_sha256": null,
+  "db_path": "/var/lib/leadflow-email-automation/ledger.sqlite3",
+  "sequence_path": "/opt/leadflow-email-automation/sequence.json",
+  "public_base_url": "https://www.theleadflowpro.com/automation-email",
+  "port": 8817,
+  "max_per_run": 25,
+  "allowed_sources": ["meta_lead_ad"],
+  "allowed_form_ids": ["2206768963231960"],
+  "consent_notice": "Would you like The LeadFlow Pro’s 30-day email series? One helpful email a day with business tools, examples and service offers. Unsubscribe anytime. Optional—your callback does not depend on this.",
+  "campaign_start_at": null,
+  "meta_import": {
+    "enabled": false,
+    "page_id": "887023637835514",
+    "form_id": "2206768963231960",
+    "question_key": "would_you_like_the_leadflow_pro’s_30-day_email_series?_one_helpful_email_a_day_with_business_tools,_examples_and_service_offers._unsubscribe_anytime._optional—your_callback_does_not_depend_on_this.",
+    "yes_values": ["Yes, email me the 30-day series.", "yes,_email_me_the_30-day_series."],
+    "notice_version": "callback_email_choice_v2",
+    "graph_version": "v21.0",
+    "max_pages": 5
+  }
+}
