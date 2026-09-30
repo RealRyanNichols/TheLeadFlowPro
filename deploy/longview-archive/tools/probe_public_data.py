@@ -23,6 +23,7 @@ import resource
 import socket
 import sys
 import tempfile
+import urllib.request
 from collections import Counter
 from pathlib import Path
 
@@ -50,6 +51,11 @@ def numbers(counts) -> dict:
     return {k: v for k, v in sorted((counts or {}).items()) if isinstance(v, int) and not isinstance(v, bool)}
 
 
+def peak_mb() -> int:
+    """This process's peak memory so far (it only grows, so each step shows where the peak came from)."""
+    return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss // 1024
+
+
 def engine_run(settings) -> None:
     towns = places.active(settings)
     say("== 1. The engine's own sync -> match -> publish against the live sources")
@@ -57,16 +63,16 @@ def engine_run(settings) -> None:
     conn = bootstrap(settings)
     for job in SYNC_JOBS:
         outcome = run_sync(conn, settings, job, db.now_iso())
-        say(f"sync {job.name}: {outcome.status} {numbers(outcome.counts)}"
+        say(f"sync {job.name}: {outcome.status} {numbers(outcome.counts)} [peak so far {peak_mb()} MB]"
             + (f" error={outcome.error}" if outcome.error else ""))
         for slug, one in sorted(((outcome.counts or {}).get("places") or {}).items()):
             say(f"    {slug}: {numbers(one)}")
         for slug, zips in sorted(((outcome.counts or {}).get("other_zips_by_place") or {}).items()):
             # ZIP codes are not personal data; they show which ZIPs a town's rows carry.
             say(f"    {slug} ZIPs outside its list: {dict(sorted(zips.items()))}")
-    say(f"match: {numbers(matching.match_pending(conn))}")
+    say(f"match: {numbers(matching.match_pending(conn))} [peak so far {peak_mb()} MB]")
     counts = publish.run_publish(conn, settings)
-    say(f"publish: {numbers(counts)}")
+    say(f"publish: {numbers(counts)} [peak so far {peak_mb()} MB]")
     for row in conn.execute("SELECT scope, publish_state, IFNULL(publish_reason,'') AS reason, COUNT(*) AS n"
                             " FROM businesses GROUP BY 1,2,3 ORDER BY 1,2,4 DESC"):
         say(f"  scope={row['scope']} state={row['publish_state']} reason={row['reason'] or '-'}: {row['n']}")
@@ -275,6 +281,87 @@ def towns(settings) -> None:
                 say(f"  {town} outlet ZIPs: {type(exc).__name__}")
 
 
+# The third ring (about 35 to 70 miles out). Not in places.py yet: this surveys them first.
+RING_THREE = ("MOUNT PLEASANT", "NACOGDOCHES", "PALESTINE", "JACKSONVILLE", "ATHENS", "MINEOLA", "QUITMAN",
+              "WINNSBORO", "MOUNT VERNON", "ATLANTA", "QUEEN CITY", "NAPLES", "OMAHA", "AVINGER", "LINDALE",
+              "WHITEHOUSE", "BULLARD", "TROUP", "RUSK", "MOUNT ENTERPRISE", "CENTER", "TIMPSON", "TENAHA", "GARY",
+              "CHANDLER", "BROWNSBORO", "VAN", "EDGEWOOD", "GRAND SALINE", "CANTON", "WILLS POINT", "FRANKSTON",
+              "ALBA", "YANTIS", "LEESBURG", "LANEVILLE", "CUSHING", "GARRISON", "CHIRENO", "JOAQUIN")
+GAZETTEER = "https://www2.census.gov/geo/docs/maps-data/data/gazetteer/{y}_Gazetteer/{y}_Gaz_{kind}_national.zip"
+
+
+def _gazetteer(kind: str):
+    """The Census Gazetteer file for 'place' or 'zcta5' as a list of dicts (newest year that downloads)."""
+    import io
+    import zipfile
+    for year in (2024, 2023, 2022):
+        url = GAZETTEER.format(y=year, kind=kind)
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": config.USER_AGENT})
+            with urllib.request.urlopen(req, timeout=60) as resp:
+                raw = resp.read(60_000_000)
+            with zipfile.ZipFile(io.BytesIO(raw)) as zf:
+                text = zf.read(zf.namelist()[0]).decode("latin-1")
+            lines = text.splitlines()
+            head = [h.strip() for h in lines[0].split("\t")]
+            say(f"census {kind}: {year} ({len(lines) - 1} rows)")
+            return [dict(zip(head, (v.strip() for v in line.split("\t")))) for line in lines[1:]]
+        except Exception as exc:  # noqa: BLE001
+            say(f"census {kind} {year}: {exc.__class__.__name__} {getattr(exc, 'code', '')}")
+    return []
+
+
+def next_ring(settings) -> None:
+    """Counts, outlet ZIPs, and Census place and ZIP-area facts for RING_THREE. Public data, counts only."""
+    import math
+    say()
+    say("== 6. Next ring: counts, outlet ZIPs (ZCTA = street delivery), Census point, type and land area")
+    sales = next((r["resource"] for r in catalog(settings, "active sales tax permit holders")
+                  if "sales tax" in str(r.get("resource", {}).get("name", "")).lower()), None)
+    franchise = next((r["resource"] for r in catalog(settings, "active franchise taxpayers")
+                      if "franchise" in str(r.get("resource", {}).get("name", "")).lower()), None)
+    tx_places = {}
+    for row in _gazetteer("place"):
+        if row.get("USPS") != "TX":
+            continue
+        name = row.get("NAME", "")
+        for suffix, kind in ((" city", "city"), (" town", "town"), (" village", "village"), (" CDP", "CDP")):
+            if name.endswith(suffix):
+                tx_places.setdefault(name[: -len(suffix)].upper(), []).append((kind, row))
+    zctas = {row.get("GEOID"): row for row in _gazetteer("zcta5")}
+
+    def km(a_lat, a_lon, b_lat, b_lon):
+        dlat, dlon = math.radians(b_lat - a_lat), math.radians(b_lon - a_lon)
+        h = math.sin(dlat / 2) ** 2 + math.cos(math.radians(a_lat)) * math.cos(math.radians(b_lat)) * math.sin(dlon / 2) ** 2
+        return 6371 * 2 * math.asin(math.sqrt(h))
+
+    for town in RING_THREE:
+        s_n = count_where(settings, sales["id"], f"upper(outlet_city)='{town}'") if sales else None
+        f_n = count_where(settings, franchise["id"], f"upper(taxpayer_city)='{town}' AND right_to_transact_business_code='A'") if franchise else None
+        found = tx_places.get(town, [])
+        census = "; ".join(f"{kind} {float(r['INTPTLAT']):.4f},{float(r['INTPTLONG']):.4f} land={float(r['ALAND_SQMI']):.1f}sqmi"
+                           for kind, r in found) or "no Census place"
+        say(f"{town}: sales_tax_outlets={s_n} franchise_good_standing={f_n} | {census}")
+        if not sales:
+            continue
+        try:
+            zips = Counter(str(r.get("outlet_zip_code") or "")[:5] for r in socrata.fetch_rows(
+                settings, sales["id"], f"upper(outlet_city)='{town}'", select="outlet_zip_code"))
+        except Exception as exc:  # noqa: BLE001
+            say(f"  outlet ZIPs: {type(exc).__name__}")
+            continue
+        parts = []
+        for z, n in zips.most_common(12):
+            area = zctas.get(z)
+            if area and found:
+                lat, lon = float(found[0][1]["INTPTLAT"]), float(found[0][1]["INTPTLONG"])
+                d = km(lat, lon, float(area["INTPTLAT"]), float(area["INTPTLONG"]))
+                parts.append(f"{z}:{n} zcta {d:.0f}km")
+            else:
+                parts.append(f"{z}:{n} {'zcta' if area else 'no-zcta'}")
+        say(f"  outlet ZIPs: {', '.join(parts)}")
+
+
 def where_things_answer() -> None:
     say()
     say("== 4. Where the website and the directory answer from")
@@ -306,7 +393,7 @@ def main() -> int:
     with tempfile.TemporaryDirectory() as tmp:
         os.environ["LVA_DATA_DIR"] = tmp
         settings = config.load_settings(os.environ)
-        for step in (engine_run, franchise_overlap, towns):
+        for step in (engine_run, franchise_overlap, towns, next_ring):
             try:
                 step(settings)
             except Exception as exc:  # noqa: BLE001 - report and keep going
