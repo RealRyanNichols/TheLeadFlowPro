@@ -20,10 +20,10 @@ import { TBD_PRICE_LABEL, offer } from "../lib/site/offers.ts";
 
 const BANNED = ["guarantee", "guaranteed", "roas", "#1", "best in", "lowest", "only agency", "testimonial:", "% increase", "x return"];
 
-test("eight agency services, each with one audience, one problem, inclusions, ownership, vendor costs, process, FAQ, and one CTA", () => {
+test("nine agency services, each with one audience, one problem, inclusions, ownership, vendor costs, process, FAQ, and one CTA", () => {
   assert.deepEqual(
     AGENCY_SERVICES.map((s) => s.slug),
-    ["meta-ads", "google-ads", "websites", "automation", "video", "content", "community-help-desk", "crypto-tax-intake"],
+    ["meta-ads", "google-ads", "websites", "automation", "video", "content", "community-help-desk", "crypto-tax-intake", "xrpl-treasury-alerts"],
   );
   for (const s of AGENCY_SERVICES) {
     assert.ok(s.audience.length > 30, s.slug);
@@ -146,8 +146,36 @@ test("crypto tax intake gathers paperwork for the firm: no tax advice, no creden
   }
 });
 
+test("XRPL treasury alerts are watch-only: no keys, no prices or trading calls, no tracking other people, texts only with consent", () => {
+  const alerts = agencyService("xrpl-treasury-alerts")!;
+  assert.equal(alerts.specialty, "XRP Ledger projects and merchants");
+  assert.equal(offer("agency_xrpl_treasury_alerts").href, "/agency/xrpl-treasury-alerts");
+  assert.match(alerts.trustLine ?? "", /watch-only/i);
+  assert.match(alerts.trustLine ?? "", /no keys/i);
+  assert.match(alerts.trustLine ?? "", /no price alerts/i);
+  assert.match(alerts.included[0], /public XRP Ledger addresses you name/);
+  assert.ok(alerts.notIncluded.some((n) => /holding, moving, or signing/i.test(n)));
+  assert.ok(alerts.notIncluded.some((n) => /price alerts/i.test(n) && /buy or sell/i.test(n)));
+  assert.ok(alerts.notIncluded.some((n) => /other people/i.test(n)));
+  assert.ok(alerts.notIncluded.some((n) => /not agreed/i.test(n)));
+  assert.ok(alerts.faq.some((f) => /keys/i.test(f.q) && /^No\./.test(f.a)));
+  assert.ok(alerts.faq.some((f) => /buy or sell/i.test(f.q) && /^No\./.test(f.a)));
+  assert.ok(alerts.faq.some((f) => /STOP is honored/.test(f.a)));
+  assert.ok(alerts.faq.some((f) => /written permission/.test(f.a)));
+  assert.match(alerts.clientOwns.join(" "), /keys/);
+  // It reports what moved; nothing on the page sells a price view or a trade.
+  const text = JSON.stringify(alerts).toLowerCase();
+  for (const phrase of ["moon", "100x", "profit", "passive income", "buy now", "presale", "airdrop", "financial advice", "whale", "pump"]) {
+    assert.ok(!text.includes(phrase), `treasury alerts copy contains "${phrase}"`);
+  }
+  // "signals" only ever appears as something it does not do.
+  for (const line of [alerts.promise, alerts.trustLine ?? "", alerts.metaDescription]) {
+    if (/signal/i.test(line)) assert.match(line, /(never|no) [^.]*signals/i, line);
+  }
+});
+
 test("service counts in copy come from the list; specialty builds sit in their own band and off the Longview grid", () => {
-  assert.equal(countWord(AGENCY_SERVICES.length), "eight");
+  assert.equal(countWord(AGENCY_SERVICES.length), "nine");
   assert.equal(countWord(CORE_AGENCY_SERVICES.length, true), "Six");
   assert.equal(countWord(99), "99");
   assert.deepEqual(
@@ -156,10 +184,10 @@ test("service counts in copy come from the list; specialty builds sit in their o
   );
   assert.deepEqual(
     SPECIALTY_AGENCY_SERVICES.map((s) => s.slug),
-    ["community-help-desk", "crypto-tax-intake"],
+    ["community-help-desk", "crypto-tax-intake", "xrpl-treasury-alerts"],
   );
   for (const s of SPECIALTY_AGENCY_SERVICES) assert.ok((s.specialty ?? "").length > 3, s.slug);
-  assert.match(AGENCY_HUB.lead, /online communities and CPA firms/);
+  assert.match(AGENCY_HUB.lead, /online communities, CPA firms, and XRP Ledger projects/);
 });
 
 test("case studies render only approved entries with approved, dated metrics and the Premier disclosure", () => {
