@@ -196,6 +196,45 @@ class LetterJump(SiteTestBase):
         self.assertEqual(site.letter_of({"name": "'Bout Time"}), "#")
 
 
+class ProfileHoursAndNeighbours(SiteTestBase):
+    def setUp(self):
+        super().setUp()
+        self.data = fixture_export()
+        self.pages = self.build(self.data)
+
+    def test_hours_rows_carry_stated_days_only(self):
+        tire = self.pages["example-tire-and-lube/index.html"]
+        self.assertIn('<tr data-d="mon" data-h="0730-1800">', tire)
+        self.assertIn('<tr data-d="sun" data-h="-">', tire)  # stated closed
+        self.assertIn('<p class="now" role="status" hidden></p>', tire)
+        self.assertIn(f'<script src="{BASE}search.js" defer></script>', tire)
+        taq = self.pages["example-taqueria/index.html"]
+        self.assertNotIn('data-d="sun"', taq)  # never stated: no row at all
+        lawn = self.pages["example-lawn-care/index.html"]
+        self.assertNotIn('class="now"', lawn)
+        self.assertNotIn("search.js", lawn)
+
+    def test_neighbours_are_a_to_z_in_the_same_category(self):
+        by_cat = {}
+        for b in sorted(self.data["businesses"], key=site.name_key):
+            by_cat.setdefault(b["category"], []).append(b)
+        for b in self.data["businesses"]:
+            page = self.pages[f"{b['slug']}/index.html"]
+            members = by_cat[b["category"]]
+            band = re.search(r'<ul class="links near">(.*?)</ul>', page)
+            if len(members) < 2:
+                self.assertIsNone(band, b["slug"])
+                continue
+            self.assertIn(", A to Z</h2>", page)
+            self.assertIn("Neighbours in A to Z order. Not ranked, not recommendations.", page)
+            hrefs = re.findall(r'href="([^"]+)"', band.group(1))
+            self.assertLessEqual(len(hrefs), 4)
+            same = {BASE + m["slug"] + "/" for m in members if m["slug"] != b["slug"]}
+            for href in hrefs:
+                self.assertIn(href, same)
+                self.assertIn(href[len(BASE):] + "index.html", self.pages)
+
+
 # ---------------------------------------------------------------- the pages
 
 class SitePages(SiteTestBase):

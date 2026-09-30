@@ -75,7 +75,7 @@ CATEGORY_LEAD = "Every one we could verify, listed A to Z. Not ranked."
 # Bump whenever the pages' wording or markup changes: a site built with another
 # version is rebuilt at the next service start (``build_key``), so an upgrade
 # never leaves the old copy public until the next approval.
-COPY_VERSION = "10"
+COPY_VERSION = "11"
 
 SOURCE_LABELS = {
     "tx_sales_tax": "Texas Comptroller open data",
@@ -309,7 +309,19 @@ class Directory:
         return self.indexable and any(f["source"] == "website" for f in b["facts"])
 
     def in_category(self, slug: str) -> List[dict]:
-        return [b for b in self.businesses if b["category"] == slug]
+        if not hasattr(self, "_by_category"):
+            self._by_category: Dict[str, List[dict]] = {}
+            self._category_pos: Dict[str, int] = {}
+            for b in self.businesses:
+                group = self._by_category.setdefault(b["category"], [])
+                self._category_pos[b["slug"]] = len(group)
+                group.append(b)
+        return self._by_category.get(slug, [])
+
+    def category_position(self, b: Mapping) -> Optional[int]:
+        """Where a business sits in its category's A to Z list."""
+        self.in_category(b["category"])
+        return self._category_pos.get(b["slug"])
 
     def new_in_longview(self) -> List[dict]:
         if not self.batch_date:
@@ -889,8 +901,26 @@ def _dl_row(term: str, value: str) -> str:
     return f"<div><dt>{e(term)}</dt><dd>{value}</dd></div>"
 
 
+def neighbour_band(d: "Directory", b: Mapping, category_name: str) -> str:
+    """The two businesses before and after this one in its category, A to Z. Not a recommendation."""
+    members = d.in_category(b["category"])
+    if len(members) < 2:
+        return ""
+    at = d.category_position(b)
+    if at is None or members[at]["slug"] != b["slug"]:
+        return ""
+    near = members[max(0, at - 2):at] + members[at + 1:at + 3]
+    links = "".join(f'<li><a href="{e(path(m["slug"]))}">{e(m["name"])}</a></li>' for m in near)
+    return ('<section class="band" aria-labelledby="near-title"><div class="shell">'
+            f'<h2 id="near-title">More {e(category_name)} in {e(d.town)}, A to Z</h2>'
+            f'<ul class="links near">{links}</ul>'
+            f'<p><a href="{e(path("category", b["category"]))}">See all {len(members):,}</a></p>'
+            '<p class="note">Neighbours in A to Z order. Not ranked, not recommendations.</p></div></section>')
+
+
 def profile_page(d: Directory, b: Mapping) -> str:
     category_name = d.category_name(b["category"])
+    neighbours = neighbour_band(d, b, category_name)
     rows = []
     if b["categoryLabel"]:
         rows.append(_dl_row("Kind of business", e(b["categoryLabel"])))
@@ -915,9 +945,16 @@ def profile_page(d: Directory, b: Mapping) -> str:
 
     if b["hours"]:
         table_rows, missing = hours_rows(b["hours"])
-        hours_html = ('<table class="hours"><caption class="sr-only">Hours as the business lists them</caption>'
-                      "<tbody>" + "".join(f'<tr><th scope="row">{e(day)}</th><td>{e(text)}</td></tr>'
-                                          for day, text in table_rows) + "</tbody></table>")
+        checked = next((f["checkedAt"] for f in b["facts"] if f["field"] == "hours"), "")
+        stated = [(key, label) for key, label in DAY_NAMES if key in b["hours"]]
+        # data-h carries the stated ranges for search.js's "Open now" line ('-': stated closed).
+        hours_html = ('<p class="now" role="status" hidden></p>'
+                      f'<table class="hours" data-hours="1" data-checked="{e(format_day(checked) if checked else "")}">'
+                      '<caption class="sr-only">Hours as the business lists them</caption>'
+                      "<tbody>" + "".join(
+                          f'<tr data-d="{key}" data-h="{e(hours_code({key: b["hours"][key]})[3:])}">'
+                          f'<th scope="row">{e(day)}</th><td>{e(text)}</td></tr>'
+                          for (key, day), (_, text) in zip(stated, table_rows)) + "</tbody></table>")
         if missing:
             hours_html += '<p class="fallback"><span class="missing">Hours not listed for other days.</span></p>'
         hours_html += '<p class="fallback">As listed on the business\'s own website. Times are Central.</p>'
@@ -961,7 +998,7 @@ def profile_page(d: Directory, b: Mapping) -> str:
                   f'<ul class="sources">{"".join(source_items)}</ul></div>')
 
     body = (f'<section class="band" aria-label="Listing details"><div class="shell grid">{fact_strip(d, b)}'
-            f'{"".join(panels)}</div></section>'
+            f'{"".join(panels)}</div></section>{neighbours}'
             '<section class="band band-tint" aria-labelledby="claim-title"><div class="shell claim-wrap">'
             '<div class="claim"><h2 id="claim-title">Is this your business?</h2>'
             f'<p class="disclaimer">{e(DISCLAIMER)}</p>'
@@ -989,7 +1026,7 @@ def profile_page(d: Directory, b: Mapping) -> str:
         crumbs=((f"{d.town} businesses", base()), (category_name, path("category", b["category"])),
                 (b["name"], None)),
         art=identity(b), hero_extra=hero_extra, body=body, index=d.profile_indexable(b),
-        disclaimer_in_footer=False, hero_class="hero-profile", sprite=sprite(used))
+        disclaimer_in_footer=False, hero_class="hero-profile", sprite=sprite(used), script=bool(b["hours"]))
 
 
 def about_page(d: Directory) -> str:
@@ -1890,6 +1927,10 @@ svg [class^="cat-"] { fill: var(--c); }
 .hours th, .hours td { padding: 8px 0; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
 .hours th { width: 42%; font-weight: 700; color: var(--ink); }
 .hours td { color: var(--body); }
+.hours tr.today th, .hours tr.today td { color: var(--ink); font-weight: 800; }
+.now { padding: var(--s2) var(--s3); border-radius: var(--r-sm); background: var(--tint); font-weight: 700; }
+.now.is-open { background: var(--open-soft); color: var(--open); }
+.near { flex-direction: column; gap: 0; }
 .tags { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; list-style: none; }
 .tags li {
   padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px;
@@ -1968,6 +2009,8 @@ SEARCH_JS = """\
    asks only this site for base + "idx/" files. */
 (function () {
   "use strict";
+  var DAYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+  if (window.Intl) { profileNow(); }
   var root = document.getElementById("search");
   if (!root || !window.fetch || !window.Intl || !window.Set || !("hidden" in root)) { return; }
   function $(id) { return document.getElementById(id); }
@@ -1980,7 +2023,6 @@ SEARCH_JS = """\
   var base = root.getAttribute("data-base") || "/longview/businesses/";
   var PAGE = 50, CAP = 500, FLAG = { web: 1, hrs: 2, hire: 4, fresh: 8 };
   var STOP = ["the", "and", "of", "a", "an", "at", "in", "on", "for", "llc", "inc", "co"];
-  var DAYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
   var man = null, manP = null, cache = {}, found = [], shown = 0, seq = 0;
 
   function norm(text) {
@@ -2054,6 +2096,47 @@ SEARCH_JS = """\
       if (cl < o && c.at < cl) { return true; }
     }
     return today === undefined ? null : false;
+  }
+  function hhmm(t) {
+    var m = minutes(t) % 1440, h = Math.floor(m / 60), ap = h < 12 ? " AM" : " PM";
+    return ((h + 11) % 12 + 1) + ":" + ("0" + (m % 60)).slice(-2) + ap;
+  }
+  /* A profile's hours table: "Open now · closes 6:00 PM", or when it opens next. */
+  function profileNow() {
+    var table = document.querySelector("table[data-hours]"), line = document.querySelector("p.now");
+    if (!table || !line) { return; }
+    var h = {}, c = clock(), text, i, d, r, o, cl;
+    Array.prototype.forEach.call(table.querySelectorAll("tr[data-d]"), function (tr) {
+      var v = tr.getAttribute("data-h") || "-";
+      h[tr.getAttribute("data-d")] = v === "-" ? [] : v.split(",").map(function (x) { return x.split("-"); });
+      if (tr.getAttribute("data-d") === DAYS[c.day]) { tr.className = "today"; }
+    });
+    var now = openNow(h, c);
+    if (now === null) {
+      text = "Today\u2019s hours are not listed";
+    } else if (now) {
+      text = "Open now";
+      (h[DAYS[c.day]] || []).concat(h[DAYS[(c.day + 6) % 7]] || []).forEach(function (x) {
+        o = minutes(x[0]); cl = minutes(x[1]);
+        if ((cl > o && c.at >= o && c.at < cl) || (cl <= o && (c.at >= o || c.at < cl))) { text = "Open now \u00b7 closes " + hhmm(x[1]); }
+      });
+    } else {
+      text = "Closed now";
+      for (i = 0; i < 7 && text === "Closed now"; i++) {
+        d = DAYS[(c.day + i) % 7];
+        for (r = 0; h[d] && r < h[d].length; r++) {
+          if (i > 0 || minutes(h[d][r][0]) > c.at) {
+            text = "Closed now \u00b7 opens " + (i ? d.charAt(0).toUpperCase() + d.slice(1) + " " : "") + hhmm(h[d][r][0]);
+            break;
+          }
+        }
+      }
+    }
+    var checked = table.getAttribute("data-checked");
+    line.textContent = text + " (by the hours on its own website" + (checked ? ", checked " + checked : "") +
+      "; holidays may differ)";
+    line.className = now ? "now is-open" : "now";
+    line.hidden = false;
   }
   function el(name, cls, text) {
     var node = document.createElement(name);

@@ -23,10 +23,10 @@ LIST_PAGE_MAX = 36_000
 LIST_PAGE_GZIP_MAX = 8_000
 CSS_MAX = 18_000
 CSS_GZIP_MAX = 5_000
-# A profile with every field (action bar, fact chips, hours, services, sources) is under 9 KB;
-# the average across a town stays under 7 KB.
-PROFILE_MAX = 9_000
-PROFILE_AVERAGE_MAX = 7_000
+# A profile with every field (action bar, fact chips, hours, services, sources, A to Z
+# neighbours) is under 10 KB; the average across a town stays under 7.5 KB.
+PROFILE_MAX = 10_000
+PROFILE_AVERAGE_MAX = 7_500
 SPRITE_MAX = 900
 HUB_MAX = 20_000
 

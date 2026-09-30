@@ -248,7 +248,7 @@ class IndexSize(unittest.TestCase):
         for name, text in files.items():
             self.assertLessEqual(len(text.encode()), FILE_MAX, name)
         self.assertLessEqual(len(files["manifest.json"].encode()), MANIFEST_MAX)
-        self.assertLessEqual(len(site.SEARCH_JS.encode()), 15_000)  # about 4 KB gzipped
+        self.assertLessEqual(len(site.SEARCH_JS.encode()), 16_500)  # about 5.5 KB gzipped
         self.assertGreaterEqual(len(word_lists(files)["repair"]), 2500)
 
 
