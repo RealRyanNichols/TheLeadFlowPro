@@ -74,7 +74,7 @@ CATEGORY_LEAD = "Every one we could verify, listed A to Z. Not ranked."
 # Bump whenever the pages' wording or markup changes: a site built with another
 # version is rebuilt at the next service start (``build_key``), so an upgrade
 # never leaves the old copy public until the next approval.
-COPY_VERSION = "5"
+COPY_VERSION = "6"
 
 SOURCE_LABELS = {
     "tx_sales_tax": "Texas Comptroller open data",
@@ -399,6 +399,21 @@ def monogram(b: Mapping) -> str:
             f"{e(monogram_initials(b['name']))}</text></svg>")
 
 
+def mono_span(b: Mapping) -> str:
+    """The card's monogram: the category colour and initials, as a CSS box (smaller than the SVG)."""
+    return (f'<span class="mono {category_class(b["category"])}" aria-hidden="true">'
+            f"{e(monogram_initials(b['name']))}</span>")
+
+
+def since_line(b: Mapping) -> Optional[str]:
+    """One true, dated line for a card: the year a public record started. Never 'founded' or 'opened'."""
+    if b.get("permitSince"):
+        return f"Permit on file since {b['permitSince'][:4]}"
+    if b.get("registeredSince"):
+        return f"Registered since {b['registeredSince'][:4]}"
+    return None
+
+
 def cover(b: Mapping) -> str:
     return ('<svg class="cover" viewBox="0 0 960 300" preserveAspectRatio="xMinYMid slice" aria-hidden="true"'
             ' focusable="false"><defs><pattern id="cover-grid" width="40" height="40"'
@@ -410,7 +425,7 @@ def cover(b: Mapping) -> str:
             "</text></svg>")
 
 
-def card(d: Directory, b: Mapping, extra: str = "") -> str:
+def card(d: Directory, b: Mapping, extra: str = "", since: bool = True) -> str:
     badges = []
     if b["website"] and b["website"]["status"] != "dead":
         badges.append('<li class="badge">Website</li>')
@@ -419,10 +434,12 @@ def card(d: Directory, b: Mapping, extra: str = "") -> str:
     if b["careersUrl"]:
         badges.append('<li class="badge badge-hiring">Hiring</li>')
     badge_html = f'<ul class="badges" aria-label="Listed on this profile">{"".join(badges)}</ul>' if badges else ""
-    return (f'<li class="card">{monogram(b)}<div>'
+    line = since_line(b) if since else None
+    since_html = f'<p class="card-since">{e(line)}</p>' if line else ""
+    return (f'<li class="card">{mono_span(b)}<div>'
             f'<h3 class="card-name"><a href="{e(path(b["slug"]))}">{e(b["name"])}</a></h3>'
             f'<p class="card-meta">{e(b["categoryLabel"] or d.category_name(b["category"]))}</p>'
-            f'<p class="card-addr">{e(address_line(b))}</p>{badge_html}{extra}</div></li>')
+            f'<p class="card-addr">{e(address_line(b))}</p>{since_html}{badge_html}{extra}</div></li>')
 
 
 def pagination(page: int, pages: int, href: Callable[[int], str]) -> str:
@@ -470,7 +487,7 @@ def count_line(page: int, shown: int, total: int, pages: int) -> str:
 
 def list_section(d: Directory, heading: str, items: List[dict], page: int, pages: int,
                  href: Callable[[int], str], total: int, extra: Callable[[dict], str] = lambda b: "",
-                 note: str = "", empty: str = "", ident: str = "list") -> str:
+                 note: str = "", empty: str = "", ident: str = "list", since: bool = True) -> str:
     body = f'<h2 id="{ident}-title">{e(heading)}</h2>'
     if note:
         body += f'<p class="note">{e(note)}</p>'
@@ -478,7 +495,7 @@ def list_section(d: Directory, heading: str, items: List[dict], page: int, pages
         body += f'<div class="empty"><p>{e(empty)}</p></div>'
     else:
         body += count_line(page, len(items), total, pages)
-        body += f'<ul class="cards">{"".join(card(d, b, extra(b)) for b in items)}</ul>'
+        body += f'<ul class="cards">{"".join(card(d, b, extra(b), since) for b in items)}</ul>'
         body += pagination(page, pages, href)
     return (f'<section class="band band-tint" id="{ident}" aria-labelledby="{ident}-title">'
             f'<div class="shell">{body}</div></section>')
@@ -611,7 +628,7 @@ def new_pages(d: Directory) -> Dict[str, str]:
             extra=lambda b: f'<p class="card-extra">Permit on file since {e(format_day(b["permitSince"]))}</p>',
             note="A new sales-tax permit can also mean a new owner, a move, or a new location, not only a"
                  " brand-new business.",
-            empty="No new sales-tax permits in this window in the current batch.")
+            empty="No new sales-tax permits in this window in the current batch.", since=False)
         out[("new/" if page == 1 else f"new/page-{page}/") + "index.html"] = render_page(
             d, title=f"New in {d.town}, TX | {d.town} businesses",
             description=f"{d.town} businesses whose Texas sales-tax permit started in the {NEW_WINDOW_DAYS} days"
@@ -973,12 +990,26 @@ def hub_page(data: dict, settings, active: Sequence[places.Place]) -> str:
         places.LONGVIEW.slug: len(data["businesses"])}
     sample = bool(data.get("sample"))
     index = bool(settings.indexable) and not sample and bool(data["businesses"])
-    items = "".join(
-        f'<li class="card"><div><h3 class="card-name"><a href="{e(p.base)}">{e(p.name)}, TX</a></h3>'
-        f'<p class="card-meta">{e(plural(per.get(p.slug, 0), "business", "businesses"))} listed</p>'
-        + ("" if p.incorporated else '<p class="card-addr">Not an incorporated city: every business whose'
-           " address says this town.</p>")
-        + "</div></li>" for p in active)
+    def town(p: places.Place) -> str:
+        return (f'<li class="town-card"><h4 class="card-name"><a href="{e(p.base)}">{e(p.name)}, TX</a></h4>'
+                f'<p class="card-meta">{e(plural(per.get(p.slug, 0), "business", "businesses"))} listed</p>'
+                + ("" if p.incorporated else '<p class="card-addr">Not an incorporated city: every business'
+                   " whose address says this town.</p>")
+                + "</li>")
+
+    # Grouped by county, counties A to Z and towns A to Z within each; a town with no county last.
+    counties: Dict[str, List[places.Place]] = {}
+    for p in active:
+        counties.setdefault(p.county or "", []).append(p)
+    groups = []
+    for county in sorted(counties, key=lambda c: (c == "", c)):
+        heading = f"{county} County" if county else "Other towns"
+        towns = sorted(counties[county], key=lambda p: p.name)
+        groups.append(f'<h3 class="county">{e(heading)}</h3><ul class="cards">{"".join(town(p) for p in towns)}</ul>')
+    listed = sum(per.get(p.slug, 0) for p in active)
+    summary = (f'<p class="count">{e(plural(listed, "business", "businesses"))} listed in'
+               f' {e(plural(len(active), "town", "towns"))}</p>')
+    items = "".join(groups)
     base_url = str(settings.public_base_url).rstrip("/")
     return (
         "<!doctype html>\n"
@@ -1002,7 +1033,7 @@ def hub_page(data: dict, settings, active: Sequence[places.Place]) -> str:
         '<p class="lead">Each town has its own list: businesses with an address in that town, A to Z, with the'
         " source and check date for every fact. Not ranked, no reviews.</p></div></section>\n"
         '<section class="band band-tint" aria-labelledby="towns-title"><div class="shell">'
-        f'<h2 id="towns-title">Towns</h2><ul class="cards">{items}</ul></div></section>\n'
+        f'<h2 id="towns-title">Towns</h2>{summary}{items}</div></section>\n'
         "</main>\n"
         '<footer class="foot"><div class="shell">'
         f'<p class="disclaimer">{e(DISCLAIMER)}</p><p>{e(FOOTER_RESOURCE)}</p>'
@@ -1180,8 +1211,45 @@ SITE_CSS = """\
   --mint-soft: #E5EEE3;
   --warn: #92400E;
   --warn-soft: #FAE8C7;
+  --open: #0F766E;
+  --open-soft: #E0F2EF;
+  --btn: #1240E8;
+  --btn-hover: #0B2CA8;
+  --hero-a: #EDE6F3;
+  --hero-b: #F6E9DC;
+  --sample-line: #E9C98F;
+  --empty-line: #8C7F90;
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px;
+  --r-sm: 10px; --r: 14px; --r-lg: 20px;
+  --lift: 0 1px 2px rgb(10 18 32 / 0.06), 0 6px 20px rgb(10 18 32 / 0.06);
   --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #F3F1EC;
+    --body: #C9CFDA;
+    --muted: #A3ACBB;
+    --canvas: #0E131C;
+    --panel: #161D29;
+    --tint: #1B2331;
+    --line: #2A3444;
+    --cobalt: #8FA8FF;
+    --cobalt-deep: #B7C6FF;
+    --mint: #6FCF97;
+    --mint-soft: #12301F;
+    --warn: #F5B971;
+    --warn-soft: #3A2A12;
+    --open: #5EEAD4;
+    --open-soft: #0F2E2B;
+    --hero-a: #1A1830;
+    --hero-b: #2A1F16;
+    --sample-line: #6B5324;
+    --empty-line: #6C7688;
+    --lift: 0 1px 2px rgb(0 0 0 / 0.4), 0 6px 20px rgb(0 0 0 / 0.35);
+  }
+  .mono { box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.18); }
 }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
@@ -1195,7 +1263,7 @@ body {
   overflow-wrap: break-word;
 }
 [hidden] { display: none !important; }
-h1, h2, h3, p, ul, ol, dl, figure { margin: 0; }
+h1, h2, h3, h4, p, ul, ol, dl, figure { margin: 0; }
 a { color: var(--cobalt); text-decoration: underline; text-underline-offset: 3px; }
 a:hover { color: var(--cobalt-deep); }
 a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visible {
@@ -1210,7 +1278,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
 .skip {
   position: absolute; left: 8px; top: -60px; z-index: 10;
   padding: 10px 14px; border-radius: 8px;
-  background: var(--ink); color: #FFFFFF; font-weight: 700;
+  background: #0A1220; color: #FFFFFF; font-weight: 700;
 }
 .skip:focus { top: 8px; color: #FFFFFF; }
 .shell { width: 100%; max-width: 72rem; margin: 0 auto; padding: 0 16px; }
@@ -1218,7 +1286,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
 .sample {
   padding: 10px 16px;
   background: var(--warn-soft);
-  border-bottom: 1px solid #E9C98F;
+  border-bottom: 1px solid var(--sample-line);
   color: var(--warn);
   font-size: 15px;
   font-weight: 800;
@@ -1232,14 +1300,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
 
 /* hero */
 .hero {
-  padding: 20px 0 28px;
-  background: linear-gradient(120deg, #EDE6F3, var(--canvas) 52%, #F6E9DC);
+  padding: 14px 0 20px;
+  background: linear-gradient(120deg, var(--hero-a), var(--canvas) 52%, var(--hero-b));
   border-bottom: 1px solid var(--line);
 }
 .eyebrow {
   margin-bottom: 10px;
-  font-size: 13px;
-  font-weight: 800;
+  font-size: 12.5px;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted);
@@ -1265,11 +1333,11 @@ h1 {
 .band { padding: 28px 0; }
 .band-tint { background: var(--tint); }
 .band + .band:not(.band-tint) { border-top: 1px solid var(--line); }
-h2 { font-size: 23px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; }
+h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
 h3 { font-size: 18px; font-weight: 800; line-height: 1.25; }
 .subhead { margin-top: 28px; }
 .note { margin-top: 12px; max-width: 70ch; font-size: 15px; line-height: 1.55; color: var(--muted); }
-.count { margin-top: 8px; font-size: 15px; color: var(--muted); }
+.count { margin-top: 8px; font-size: 15px; font-weight: 500; color: var(--muted); font-variant-numeric: tabular-nums; }
 
 /* search (shown by search.js only) */
 .search { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 16px; }
@@ -1290,9 +1358,9 @@ h3 { font-size: 18px; font-weight: 800; line-height: 1.25; }
   font: inherit; font-size: 16px; font-weight: 800; text-align: center; line-height: 1.2;
   cursor: pointer; text-decoration: none;
 }
-.btn-primary { background: var(--cobalt); color: #FFFFFF; }
+.btn-primary { background: var(--btn); color: #FFFFFF; }
 a.btn-primary { color: #FFFFFF; text-decoration: none; }
-.btn-primary:hover, a.btn-primary:hover { background: var(--cobalt-deep); color: #FFFFFF; }
+.btn-primary:hover, a.btn-primary:hover { background: var(--btn-hover); color: #FFFFFF; }
 
 /* browse */
 .chips, .links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; padding: 0; list-style: none; }
@@ -1304,21 +1372,48 @@ a.btn-primary { color: #FFFFFF; text-decoration: none; }
   font-size: 15px; font-weight: 700; text-decoration: none;
 }
 .chips a:hover, .chips a[aria-current="page"] { border-color: var(--cobalt); color: var(--cobalt); }
-.chips small { color: var(--muted); font-size: 13px; font-weight: 700; }
+.chips small { color: var(--muted); font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .links a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 800; }
 .hero .links { margin-top: 12px; gap: 4px 18px; }
 
 /* cards */
 .cards { display: grid; gap: 12px; margin-top: 16px; padding: 0; list-style: none; }
 .card {
-  display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 14px; align-items: start;
-  padding: 16px; border: 1px solid var(--line); border-radius: 18px; background: var(--panel);
+  position: relative;
+  display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 14px; align-items: start;
+  padding: var(--s4); border: 1px solid var(--line); border-radius: var(--r); background: var(--panel);
+  transition: box-shadow 120ms ease, border-color 120ms ease;
 }
-.mono { display: block; width: 56px; height: 56px; }
+.card:hover, .card:focus-within { box-shadow: var(--lift); border-color: var(--cobalt); }
+.card:focus-within { outline: 3px solid var(--cobalt); outline-offset: 2px; }
+.card-name a::after { content: ""; position: absolute; inset: 0; border-radius: var(--r); }
+.card-name a:focus-visible { outline: none; }
+.card-extra a { position: relative; z-index: 1; }
+.mono {
+  display: grid; place-items: center; width: 48px; height: 48px; border-radius: var(--r);
+  background: var(--c); color: #FFFFFF; font-weight: 800; font-size: 18px; letter-spacing: -0.02em;
+}
+svg.mono { display: block; width: 48px; height: 48px; background: none; }
+.town-card {
+  display: block; padding: var(--s4); border: 1px solid var(--line); border-radius: var(--r);
+  background: var(--panel);
+}
+.county { margin-top: var(--s5); font-size: 16px; font-weight: 700; color: var(--muted); }
+.card-since { margin-top: 4px; font-size: 14px; font-weight: 500; color: var(--muted); }
+.missing {
+  display: inline-block; padding: var(--s1) var(--s2); border: 1px dashed var(--empty-line);
+  border-radius: var(--r-sm); color: var(--muted); font-style: italic;
+}
+.fact {
+  display: inline-flex; align-items: center; min-height: 28px; padding: 0 10px;
+  border: 1px solid var(--line); border-radius: 999px; background: var(--panel);
+  color: var(--ink); font-size: 14px; font-weight: 600;
+}
+.badge-open { background: var(--open-soft); color: var(--open); }
 .mono-text, .cover-text { fill: #FFFFFF; font-family: var(--font); font-weight: 800; letter-spacing: -0.02em; }
 .mono-text { font-size: 22px; }
 .cover-text { font-size: 150px; }
-.card-name { font-size: 19px; line-height: 1.2; letter-spacing: -0.01em; }
+.card-name { font-size: 18px; font-weight: 650; line-height: 1.2; letter-spacing: -0.01em; }
 .card-name a { color: var(--ink); text-decoration: none; }
 .card-name a:hover { color: var(--cobalt); text-decoration: underline; }
 .card-meta, .card-addr, .card-extra { margin-top: 4px; font-size: 15px; line-height: 1.45; color: var(--muted); }
@@ -1339,21 +1434,22 @@ a.btn-primary { color: #FFFFFF; text-decoration: none; }
   border: 1.5px solid var(--ink); border-radius: 12px; color: var(--ink); font-weight: 800; text-decoration: none;
 }
 .pages-off { min-width: 90px; }
-.empty { margin-top: 16px; padding: 20px; border: 1px dashed #8C7F90; border-radius: 18px; background: var(--panel); }
+.empty { margin-top: 16px; padding: 20px; border: 1px dashed var(--empty-line); border-radius: 18px; background: var(--panel); }
 
 /* category colours: white initials clear 4.5:1 on each */
-.cat-restaurants { fill: #9A3412; }
-.cat-auto { fill: #1240E8; }
-.cat-health-dental { fill: #146C34; }
-.cat-beauty { fill: #9D174D; }
-.cat-home-services { fill: #92400E; }
-.cat-retail { fill: #5135E5; }
-.cat-professional { fill: #0A1220; }
-.cat-faith-community { fill: #6B21A8; }
-.cat-lodging-recreation { fill: #0F766E; }
-.cat-education-childcare { fill: #3730A3; }
-.cat-industrial { fill: #374151; }
-.cat-other { fill: #4E5866; }
+.cat-restaurants { --c: #9A3412; }
+.cat-auto { --c: #1240E8; }
+.cat-health-dental { --c: #146C34; }
+.cat-beauty { --c: #9D174D; }
+.cat-home-services { --c: #92400E; }
+.cat-retail { --c: #5135E5; }
+.cat-professional { --c: #0A1220; }
+.cat-faith-community { --c: #6B21A8; }
+.cat-lodging-recreation { --c: #0F766E; }
+.cat-education-childcare { --c: #3730A3; }
+.cat-industrial { --c: #374151; }
+.cat-other { --c: #4E5866; }
+svg [class^="cat-"] { fill: var(--c); }
 .cover-line { fill: none; stroke: #FFFFFF; stroke-opacity: 0.14; stroke-width: 1; }
 .cover-dot { fill: #FFFFFF; fill-opacity: 0.07; }
 
@@ -1420,12 +1516,13 @@ a.btn-primary { color: #FFFFFF; text-decoration: none; }
   .check { min-height: 48px; }
   .claim .btn { width: auto; }
   .cover { height: 180px; }
-  h2 { font-size: 27px; }
+  h2 { font-size: 24px; }
 }
 @media (min-width: 760px) {
-  .hero { padding: 32px 0 40px; }
+  .hero { padding: 24px 0 30px; }
   .band { padding: 44px 0; }
   .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  h2 { font-size: 26px; }
   .panel { padding: 26px; }
   .sources li { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) auto; align-items: baseline; gap: 16px; }
 }
@@ -1435,7 +1532,7 @@ a.btn-primary { color: #FFFFFF; text-decoration: none; }
   .grid-wide { grid-column: 1 / -1; }
   .cover { height: 220px; }
 }
-@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
 """
 
 SEARCH_JS = """\

@@ -508,6 +508,17 @@ class Pages(unittest.TestCase):
             self.assertIn(n, hub)
         self.assertTrue((self.www / "places" / "directory.css").is_file())
         self.assertIn('<meta name="robots" content="noindex,nofollow">', hub)
+        # Town tiles, grouped under county headings; the page frame is complete.
+        self.assertNotIn('<li class="card"', hub)
+        self.assertEqual(hub.count('<li class="town-card">'), 3)
+        for county in ("Gregg County", "Harrison County", "Upshur County"):
+            self.assertIn(f'<h3 class="county">{county}</h3>', hub)
+        self.assertLess(hub.index("Gregg County"), hub.index("Harrison County"))
+        self.assertIn("6 businesses listed in 3 towns", hub)
+        self.assertEqual(hub.count("<h1>"), 1)
+        self.assertIn('<a class="skip" href="#main">', hub)
+        self.assertIn('<link rel="canonical" href="', hub)
+        self.assertIn(site.FOOTER_RESOURCE, hub)
 
     def test_an_address_without_a_street_says_the_town(self):
         data = ring_export()

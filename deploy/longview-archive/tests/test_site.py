@@ -119,6 +119,36 @@ class SiteTestBase(unittest.TestCase):
         return (site.site_dir(settings or self.settings) / rel).read_text(encoding="utf-8")
 
 
+# ---------------------------------------------------------------- card facts
+
+class CardSince(SiteTestBase):
+    """A card's one dated line comes from a public record, in record wording, the year only."""
+
+    def test_since_line_wording(self):
+        data = fixture_export()
+        base = data["businesses"][0]
+        permit, franchise, neither = clone(base, 1), clone(base, 2), clone(base, 3)
+        permit.update(permitSince="2015-03-04", registeredSince=None)
+        franchise.update(permitSince=None, registeredSince="2011-07-01")
+        neither.update(permitSince=None, registeredSince=None)
+        self.assertEqual(site.since_line(permit), "Permit on file since 2015")
+        self.assertEqual(site.since_line(franchise), "Registered since 2011")
+        self.assertIsNone(site.since_line(neither))
+        both = dict(permit, registeredSince="2011-07-01")
+        self.assertEqual(site.since_line(both), "Permit on file since 2015")
+
+    def test_cards_show_at_most_one_since_line_and_never_founded(self):
+        pages_ = self.build(fixture_export())
+        seen = 0
+        for rel, text in pages_.items():
+            for li in re.findall(r'<li class="card">.*?</li>(?=<li class="card">|</ul>)', text):
+                self.assertLessEqual(li.count('class="card-since"'), 1, rel)
+                seen += li.count('class="card-since"')
+                self.assertNotRegex(li.lower(), r"founded|opened|established|years in business")
+        self.assertGreater(seen, 0)
+        self.assertNotIn('class="card-since"', pages_["new/index.html"])  # that page shows the full date
+
+
 # ---------------------------------------------------------------- the pages
 
 class SitePages(SiteTestBase):
