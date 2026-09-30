@@ -698,10 +698,13 @@ class OsmTests(NoWaitCase):
         self.assertGreaterEqual(call.timeout, 180)
         query = parse_qs(call.body.decode())["data"][0]
         self.assertTrue(query.startswith("[out:json][timeout:180];"))
-        self.assertIn('area["ISO3166-2"="US-TX"]["admin_level"="4"]->.tx;', query)
-        self.assertIn('area["name"="Longview"]["boundary"="administrative"]["admin_level"="8"](area.tx)->.lv;', query)
-        for part in ('nwr["shop"](area.lv);', 'nwr["office"](area.lv);', 'nwr["craft"](area.lv);',
-                     'nwr["healthcare"](area.lv);', '"^(hotel|motel|guest_house)$"',
+        # Longview's own boundary: the one that contains its downtown (never Longview, Washington).
+        self.assertIn("is_in(32.5007,-94.7405)->.here;", query)
+        self.assertIn('area.here["name"="Longview"]["boundary"="administrative"]["admin_level"="8"]->.lv;', query)
+        box = "(32.37,-94.845,32.62,-94.61)"
+        for part in (f'nwr["shop"](area.lv){box};', f'nwr["office"](area.lv){box};',
+                     f'nwr["craft"](area.lv){box};', f'nwr["healthcare"](area.lv){box};',
+                     '"^(hotel|motel|guest_house)$"',
                      '"^(fitness_centre|sports_centre|bowling_alley)$"', "dentist", "place_of_worship", "dojo"):
             self.assertIn(part, query)
         self.assertTrue(query.rstrip().endswith("out center tags;"))

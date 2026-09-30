@@ -6,6 +6,7 @@ import { agencyPayHref } from "@/lib/agencyPayment";
 import { BUSINESS } from "@/lib/site/business";
 import CopyButton from "@/app/hq/_components/CopyButton";
 import { retainerActive, retainerCancelPrompt, retainerEndedNote, retainerFromDiagnostic } from "@/lib/agencyRetainer";
+import { followUpForStory, reachForStory } from "@/lib/client360Server";
 import CancelRetainer from "./CancelRetainer";
 import LeadWorkspace from "./LeadWorkspace";
 
@@ -34,7 +35,7 @@ export default async function LeadWorkspacePage({
   const { data: lead } = await supabase
     .from("leads")
     .select(
-      "id, created_at, full_name, email, phone, business_name, website_url, current_platform, monthly_platform_spend, industry, desired_modules, interest, goals, budget_range, timeline, best_contact_method, status, notes, owner, source, utm_source, utm_medium, utm_campaign, is_test, sms_consent, marketing_email_consent, consent_at, email_unsubscribed_at, sms_unsubscribed_at, diagnostic",
+      "id, created_at, full_name, email, phone, business_name, website_url, current_platform, monthly_platform_spend, industry, desired_modules, interest, goals, budget_range, timeline, best_contact_method, status, notes, owner, source, utm_source, utm_medium, utm_campaign, is_test, sms_consent, marketing_email_consent, consent_at, email_unsubscribed_at, sms_unsubscribed_at, next_follow_up_at, last_contacted_at, diagnostic",
     )
     .eq("id", id)
     .is("deleted_at", null)
@@ -125,6 +126,39 @@ export default async function LeadWorkspacePage({
   // The agency retainer door (decision 66): shown only while a monthly
   // retainer from /agency/pay is still renewing on this lead.
   const retainer = retainerFromDiagnostic(lead.diagnostic);
+  // The whole story (Client 360) at the top of the workspace. The follow-up
+  // and the Call, Text, and Email buttons follow the call card's own rules,
+  // worked out here so the browser never loads the call sheet or Quo code.
+  // Built from the rows read above; nothing more is read for it.
+  const now = new Date();
+  const client360 = {
+    now: now.toISOString(),
+    followUp: followUpForStory({
+      leadId: id,
+      nextFollowUpAt: lead.next_follow_up_at ?? null,
+      lastContactedAt: lead.last_contacted_at ?? null,
+      notes: notes.error ? null : (notes.data ?? []),
+      calls: calls.error ? null : (calls.data ?? []),
+      messages: thread.error ? null : (thread.data ?? []),
+      activity: activity.error ? null : (activity.data ?? []),
+      now,
+    }),
+    reach: reachForStory({
+      phone: lead.phone,
+      email: lead.email,
+      sms_consent: lead.sms_consent,
+      sms_unsubscribed_at: lead.sms_unsubscribed_at,
+    }),
+    plan: retainer,
+    failed: {
+      notes: Boolean(notes.error),
+      tasks: Boolean(tasks.error),
+      activity: Boolean(activity.error),
+      emails: Boolean(emails.error),
+      messages: Boolean(thread.error),
+      calls: Boolean(calls.error),
+    },
+  };
 
   return (
     <>
@@ -173,6 +207,7 @@ export default async function LeadWorkspacePage({
       calls={calls.data ?? []}
       actorName={profile.full_name || user.email || "Admin"}
       unavailableSections={unavailableSections}
+      client360={client360}
     />
     </>
   );

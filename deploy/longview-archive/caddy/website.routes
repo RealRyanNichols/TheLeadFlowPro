@@ -10,10 +10,15 @@
 #   - the optional public directory host install.sh adds when LVA_PUBLIC_HOST
 #     already points at this droplet.
 #
-# It answers /longview/businesses (308 to the slash form) and everything below
-# /longview/businesses/ from /var/lib/longview-archive/www, with the same
-# headers and Content-Security-Policy as the staging host's directory. The
-# status pages are not here; they stay on the sslip.io staging host only.
+# It answers every town's section, /<town>/businesses (308 to the slash form)
+# and everything below /<town>/businesses/, and the towns hub /places/, from
+# /var/lib/longview-archive/www, with the same headers and
+# Content-Security-Policy as the staging host's directory. The towns are the
+# ones seeded in longview_archive/places.py (tests/test_places.py keeps this
+# list and that file in step); a town that is not turned on has no files, so its
+# paths answer 404 here. Nothing else under a town's name is claimed: /longview
+# and /longview/ stay the app's. The status pages are not here; they stay on
+# the sslip.io staging host only.
 #
 # Self-contained on purpose: it uses no snippet from another file. It is one
 # handle block with a named matcher, so in the importing site block it is
@@ -25,7 +30,7 @@
 # A missing page is answered here with a plain 404 (with these headers), so the
 # importing site needs no handle_errors of its own.
 
-@longview_archive_directory path /longview/businesses /longview/businesses/*
+@longview_archive_directory path_regexp (?i)^/(?:(?:longview|marshall|kilgore|white-oak|hallsville|diana|harleton|gladewater|clarksville-city|easton|scottsville|elysian-fields|waskom|ore-city|gilmer|karnack|jefferson|tatum|henderson|carthage|tyler|big-sandy|hawkins|winona|arp|overton|new-london|beckville|pittsburg|daingerfield|lone-star|hughes-springs|linden)/businesses|places)(?:/.*)?$
 handle @longview_archive_directory {
 	root * /var/lib/longview-archive/www
 	header {
@@ -39,8 +44,54 @@ handle @longview_archive_directory {
 		-Server
 	}
 
-	handle /longview/businesses {
-		redir * /longview/businesses/ 308
+	# /<town>/businesses and /places without the slash, in any case: the section's
+	# own path with it. The target is the town the pattern captured from the
+	# cleaned path, lower-cased by the map, never the request's raw path: a raw
+	# //longview/businesses must not become the protocol-relative (another host)
+	# //longview/businesses/.
+	@longview_archive_bare path_regexp lva_bare (?i)^/(longview|marshall|kilgore|white-oak|hallsville|diana|harleton|gladewater|clarksville-city|easton|scottsville|elysian-fields|waskom|ore-city|gilmer|karnack|jefferson|tatum|henderson|carthage|tyler|big-sandy|hawkins|winona|arp|overton|new-london|beckville|pittsburg|daingerfield|lone-star|hughes-springs|linden)/businesses$
+	handle @longview_archive_bare {
+		map {re.lva_bare.1} {lva_town} {
+			~(?i)^longview$ longview
+			~(?i)^marshall$ marshall
+			~(?i)^kilgore$ kilgore
+			~(?i)^white-oak$ white-oak
+			~(?i)^hallsville$ hallsville
+			~(?i)^diana$ diana
+			~(?i)^harleton$ harleton
+			~(?i)^gladewater$ gladewater
+			~(?i)^clarksville-city$ clarksville-city
+			~(?i)^easton$ easton
+			~(?i)^scottsville$ scottsville
+			~(?i)^elysian-fields$ elysian-fields
+			~(?i)^waskom$ waskom
+			~(?i)^ore-city$ ore-city
+			~(?i)^gilmer$ gilmer
+			~(?i)^karnack$ karnack
+			~(?i)^jefferson$ jefferson
+			~(?i)^tatum$ tatum
+			~(?i)^henderson$ henderson
+			~(?i)^carthage$ carthage
+			~(?i)^tyler$ tyler
+			~(?i)^big-sandy$ big-sandy
+			~(?i)^hawkins$ hawkins
+			~(?i)^winona$ winona
+			~(?i)^arp$ arp
+			~(?i)^overton$ overton
+			~(?i)^new-london$ new-london
+			~(?i)^beckville$ beckville
+			~(?i)^pittsburg$ pittsburg
+			~(?i)^daingerfield$ daingerfield
+			~(?i)^lone-star$ lone-star
+			~(?i)^hughes-springs$ hughes-springs
+			~(?i)^linden$ linden
+			default longview
+		}
+		redir * /{lva_town}/businesses/ 308
+	}
+	@longview_archive_hub_bare path_regexp (?i)^/places$
+	handle @longview_archive_hub_bare {
+		redir * /places/ 308
 	}
 
 	# A profile, category, or list is a folder with an index.html;

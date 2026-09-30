@@ -8,7 +8,17 @@ import CaseStudies from "@/components/site/CaseStudy";
 import AgencyIntake from "./start/AgencyIntake";
 import { AGENCY_PAYMENT, agencyFixedPriceUsd, agencyPayHref } from "@/lib/agencyPayment";
 import { PLUGIN } from "@/lib/pluginDocs";
-import { AGENCY_HUB, AGENCY_PROCESS, AGENCY_SERVICES, OWNERSHIP_PROMISE, agencyOffer } from "@/lib/site/agency";
+import {
+  AGENCY_HUB,
+  AGENCY_PROCESS,
+  AGENCY_SERVICES,
+  CORE_AGENCY_SERVICES,
+  OWNERSHIP_PROMISE,
+  SPECIALTY_AGENCY_SERVICES,
+  agencyOffer,
+  countWord,
+  type AgencyService,
+} from "@/lib/site/agency";
 import { BUSINESS } from "@/lib/site/business";
 import { TBD_PRICE_LABEL } from "@/lib/site/offers";
 import { breadcrumbJsonLd, graph, jsonLdText, localBusinessJsonLd } from "@/lib/site/structuredData";
@@ -25,13 +35,52 @@ import { breadcrumbJsonLd, graph, jsonLdText, localBusinessJsonLd } from "@/lib/
 export const metadata: Metadata = withPublicPageMetadata("/agency", {
   title: "Agency: Meta ads, Google Ads, websites, automation, video, content | The LeadFlow Pro",
   description:
-    "Full-service ads, websites, automation, video, and content for East Texas businesses, run in accounts you own. You pay the platforms directly and keep the pixel, audiences, leads, and reporting.",
+    "Full-service ads, websites, automation, video, and content for East Texas businesses, plus specialty builds for crypto communities, CPA firms, and shops, run in accounts you own. You pay the platforms directly and keep the pixel, audiences, leads, and reporting.",
 });
 
 const ALWAYS_TRUE = [
   "No guaranteed leads, cost per lead, ranking, or return on ad spend. Anyone promising those is guessing with your money.",
   "Prices for the agency services are confirmed on the scoping call and written down before anything starts. Paying that number happens on this site, by card, against the scope.",
 ];
+
+/** One service card: the promise, the price line, and the two doors. */
+function ServiceCard({ service }: { service: AgencyService }) {
+  const offer = agencyOffer(service);
+  const fixed = agencyFixedPriceUsd(service);
+  const live = offer.status === "live";
+  return (
+    <article className="cb-servicecard" data-service={service.slug}>
+      <p className="cb-eyebrow">{service.eyebrow}</p>
+      <h3>{service.name}</h3>
+      <p>{service.promise}</p>
+      <div className="cb-servicecard-price">
+        {live ? (
+          <>
+            <strong>{offer.priceLabel}</strong>
+            <span>{service.slug === "websites" ? "The five-page Website Launch, bought outright." : "Published price. Pay it on this site."}</span>
+          </>
+        ) : (
+          <>
+            {TBD_PRICE_LABEL}
+            <span>Written down before anything starts. Paid by card against the scope.</span>
+          </>
+        )}
+      </div>
+      <Link href={`/agency/${service.slug}`} className="cb-textlink" data-cta="agency_service_open" data-cta-placement={service.slug}>
+        See what is included <ArrowRight aria-hidden="true" />
+      </Link>
+      {fixed !== null || service.slug !== "websites" ? (
+        <Link href={agencyPayHref(service.slug)} className="cb-textlink" data-cta="agency_service_pay" data-cta-placement={service.slug}>
+          Pay a written scope <CreditCard aria-hidden="true" />
+        </Link>
+      ) : (
+        <Link href="/packages/launch" className="cb-textlink" data-cta="agency_service_launch" data-cta-placement={service.slug}>
+          Buy the Website Launch <ArrowRight aria-hidden="true" />
+        </Link>
+      )}
+    </article>
+  );
+}
 
 export default function AgencyHubPage() {
   const jsonLd = graph(
@@ -40,7 +89,7 @@ export default function AgencyHubPage() {
       name: `${BUSINESS.name} Agency`,
       catalogName: "Agency services",
       offerIds: AGENCY_SERVICES.map((s) => s.offerId),
-      knowsAbout: ["Meta ads management", "Google Ads management", "Business websites", "Marketing automation", "Video production", "Content marketing"],
+      knowsAbout: ["Meta ads management", "Google Ads management", "Business websites", "Marketing automation", "Video production", "Content marketing", "Community help desks", "Crypto tax client intake", "XRP Ledger treasury alerts", "Crypto payment setup"],
     }),
     breadcrumbJsonLd([
       { name: "Home", path: "/" },
@@ -63,7 +112,7 @@ export default function AgencyHubPage() {
           caption: "Capture, record, follow up, sell, deliver, report. In your accounts.",
         }}
         primary={{ href: "#intake", label: "Tell Ryan what is leaking" }}
-        secondary={{ href: "#services", label: "See the six services" }}
+        secondary={{ href: "#services", label: `See the ${countWord(AGENCY_SERVICES.length)} services` }}
         trustLine={OWNERSHIP_PROMISE.headline}
       />
 
@@ -71,7 +120,7 @@ export default function AgencyHubPage() {
         <div className="cb-shell">
           <div className="cb-headrow">
             <div>
-              <p className="cb-eyebrow">Six services, one loop</p>
+              <p className="cb-eyebrow">{countWord(CORE_AGENCY_SERVICES.length, true)} services, one loop</p>
               <h2 className="cb-h2 cb-heading">Pick the piece that is leaking.</h2>
             </div>
             <p className="cb-lead">
@@ -80,43 +129,31 @@ export default function AgencyHubPage() {
             </p>
           </div>
           <div className="cb-servicegrid">
-            {AGENCY_SERVICES.map((service) => {
-              const offer = agencyOffer(service);
-              const fixed = agencyFixedPriceUsd(service);
-              const live = offer.status === "live";
-              return (
-                <article key={service.slug} className="cb-servicecard" data-service={service.slug}>
-                  <p className="cb-eyebrow">{service.eyebrow}</p>
-                  <h3>{service.name}</h3>
-                  <p>{service.promise}</p>
-                  <div className="cb-servicecard-price">
-                    {live ? (
-                      <>
-                        <strong>{offer.priceLabel}</strong>
-                        <span>{service.slug === "websites" ? "The five-page Website Launch, bought outright." : "Published price. Pay it on this site."}</span>
-                      </>
-                    ) : (
-                      <>
-                        {TBD_PRICE_LABEL}
-                        <span>Written down before anything starts. Paid by card against the scope.</span>
-                      </>
-                    )}
-                  </div>
-                  <Link href={`/agency/${service.slug}`} className="cb-textlink" data-cta="agency_service_open" data-cta-placement={service.slug}>
-                    See what is included <ArrowRight aria-hidden="true" />
-                  </Link>
-                  {fixed !== null || service.slug !== "websites" ? (
-                    <Link href={agencyPayHref(service.slug)} className="cb-textlink" data-cta="agency_service_pay" data-cta-placement={service.slug}>
-                      Pay a written scope <CreditCard aria-hidden="true" />
-                    </Link>
-                  ) : (
-                    <Link href="/packages/launch" className="cb-textlink" data-cta="agency_service_launch" data-cta-placement={service.slug}>
-                      Buy the Website Launch <ArrowRight aria-hidden="true" />
-                    </Link>
-                  )}
-                </article>
-              );
-            })}
+            {CORE_AGENCY_SERVICES.map((service) => (
+              <ServiceCard key={service.slug} service={service} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="specialty" className="cb-band cb-band--tight cb-band--hair" aria-labelledby="specialty-title" tabIndex={-1}>
+        <div className="cb-shell">
+          <div className="cb-headrow">
+            <div>
+              <p className="cb-eyebrow">Specialty builds</p>
+              <h2 id="specialty-title" className="cb-h2 cb-heading">
+                Built for one kind of client.
+              </h2>
+            </div>
+            <p className="cb-lead">
+              {countWord(SPECIALTY_AGENCY_SERVICES.length, true)} services with a narrower audience, on the
+              same rules as the rest of the lane: scoped and priced in writing, and built in accounts you own.
+            </p>
+          </div>
+          <div className={SPECIALTY_AGENCY_SERVICES.length % 3 === 0 ? "cb-servicegrid" : "cb-servicegrid cb-servicegrid--two"}>
+            {SPECIALTY_AGENCY_SERVICES.map((service) => (
+              <ServiceCard key={service.slug} service={service} />
+            ))}
           </div>
         </div>
       </section>
@@ -328,7 +365,7 @@ export default function AgencyHubPage() {
             <div>
               <p className="cb-eyebrow">Before you fill in the form</p>
               <h2 id="fit-title" className="cb-h2 cb-heading">
-                Three things that are always true here.
+                {countWord(ALWAYS_TRUE.length, true)} things that are always true here.
               </h2>
             </div>
           </div>

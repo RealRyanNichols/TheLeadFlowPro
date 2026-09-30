@@ -1,5 +1,7 @@
 // The agency lane: Meta ads, Google Ads, websites, automation, video, and
-// content, run for the client in accounts the client owns.
+// content, plus specialty builds (community help desks, crypto tax intake,
+// XRPL treasury alerts, crypto checkout), run for the client in accounts the
+// client owns.
 //
 // Every page under /agency renders from this file. Prices come from
 // lib/site/offers.ts, where every agency offer is `tbd_ryan` until Ryan sets
@@ -55,7 +57,23 @@ export type AgencyService = {
   intakeHref: string;
   /** Existing pages this service hands off to, when the work already exists. */
   related: { href: string; label: string }[];
+  /**
+   * Who a specialty service is built for ("Online communities"). The six
+   * core services every local business buys have none; a specialty service
+   * sits in its own band on the hub and stays off the Longview grid.
+   */
+  specialty?: string;
+  /** The line under the hero. Absent means the ads line every other page uses. */
+  trustLine?: string;
 };
+
+const COUNT_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"] as const;
+
+/** "seven" or "Seven": copy that counts services reads the list, so it cannot drift. */
+export function countWord(n: number, capitalized = false): string {
+  const word = COUNT_WORDS[n] ?? String(n);
+  return capitalized ? word.charAt(0).toUpperCase() + word.slice(1) : word;
+}
 
 const intake = (slug: string) => `/agency/start?service=${slug}`;
 
@@ -265,7 +283,228 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
       { href: "/operator-academy/content-engine", label: "The Content Engine course" },
     ],
   },
+  {
+    // Built for online communities, crypto and XRP Ledger projects among them.
+    // The help desk never talks prices or investing, and nothing here promotes
+    // a token: a bot that speaks for a team can make a claim nobody approved.
+    slug: "community-help-desk",
+    offerId: "agency_community_help_desk",
+    name: "Community help desk",
+    navLabel: "Help desk",
+    specialty: "Online communities",
+    seoTitle: "AI Help Desk for Discord and Telegram Communities | The LeadFlow Pro",
+    metaDescription:
+      "An AI help desk for your Discord server, Telegram group, or website chat, trained on your own answers, with scam warnings, a hand-off to a real moderator, and a safer server setup first. Built in accounts you own.",
+    eyebrow: "Discord, Telegram, and website chat",
+    audience: "Online communities that answer the same questions every day: crypto and XRP Ledger projects, creators, and course or membership groups.",
+    problem: "Moderators answer the same ten questions all day, new members give up before anyone replies, and scammers message them pretending to be the team.",
+    promise: "A help desk trained on your own answers that replies day and night, warns members about scams, and hands anything it should not answer to a real moderator. It never talks prices or investing.",
+    trustLine: "No price talk, no investment advice, and a real moderator for anything the bot should not answer.",
+    included: [
+      "Safe server setup first: roles and permissions, member verification, link and name filters, two-factor sign-in for every admin, and one official-links page",
+      "A written plan for raids and impersonators: who locks the server, what gets posted, and how members report a fake account",
+      "An AI help desk on one platform, trained on your docs, FAQ, and rules",
+      "Scam warnings in its answers: the team never messages first and never asks for a recovery phrase",
+      "A hand-off to a real moderator, with the question logged so nothing gets lost",
+      "Refusal rules in writing: no price talk, no investment advice, no promises about the project",
+      "A test run on your 25 most-asked questions before it goes live",
+      "Thirty days of weekly tuning from the questions it could not answer",
+    ],
+    clientOwns: [
+      "The server or group, the bot account, and every setting",
+      "The knowledge base the help desk answers from",
+      "The chat logs and the list of questions it could not answer",
+    ],
+    clientPaysDirectly: ["The help desk software subscription, billed to you by its maker"],
+    notIncluded: [
+      "Price talk, investment advice, or promoting a token, sale, or listing",
+      "Paid shilling, raids, or rewards for posting, liking, or reviewing",
+      "Holding wallet keys, recovery phrases, or anyone's money",
+      "Replacing your moderators' judgment on bans, refunds, or disputes",
+    ],
+    faq: [
+      { q: "Which platforms does it work on?", a: "Discord, Telegram, or the chat on your website. The first build covers one platform. Adding another is a new line on the written scope." },
+      { q: "Will it talk about our token price?", a: "No. It refuses price talk, predictions, and investment questions, and points members to your official links instead. A bot speaking for your team can make a claim nobody approved, so price talk stays out." },
+      { q: "Does it replace our moderators?", a: "No. It takes the repeat questions so your moderators have time for the ones that need a person. Bans, refunds, and disputes stay with your team." },
+      { q: "Can you just lock down our server?", a: "Yes. The safe server setup can be scoped on its own: roles, verification, filters, two-factor sign-in for admins, the official-links page, and the written raid plan." },
+      { q: "Who owns the bot and the answers?", a: "You do. The bot account, the server settings, the knowledge base, and the logs are in your name. If we part ways, it keeps running without us." },
+      { q: "What does it cost?", a: "Pricing is confirmed on the scoping call and put in writing before anything starts. The help desk software is billed to you by its maker, separately." },
+    ],
+    intakeHref: intake("community-help-desk"),
+    related: [
+      { href: "/agency/automation", label: "Automation" },
+      { href: "/agency/websites", label: "Websites" },
+    ],
+  },
+  {
+    // For CPA and tax prep firms. It gathers answers and files; the firm does
+    // the tax work. It never asks for a password, key, or recovery phrase,
+    // and client information is used for the firm's intake and nothing else.
+    // The Form 1099-DA lines follow the IRS digital assets page as cited in
+    // the Sept 2026 crypto research: gross proceeds for sales from 2025, cost
+    // basis for crypto bought from 2026. Recheck it before each tax season.
+    slug: "crypto-tax-intake",
+    offerId: "agency_crypto_tax_intake",
+    name: "Crypto tax intake",
+    navLabel: "Crypto tax intake",
+    specialty: "CPA and tax firms",
+    seoTitle: "Crypto Tax Client Intake for CPA Firms in East Texas | The LeadFlow Pro",
+    metaDescription:
+      "A crypto client intake for Longview and East Texas CPA and tax prep firms: a plain-English questionnaire, a document checklist, uploads to your own storage, reminders, and a tracker. Paperwork, not tax advice.",
+    eyebrow: "For CPA and tax prep firms",
+    audience: "CPA and tax prep firms in East Texas whose clients bought, sold, swapped, or got paid in crypto, and whose staff spends tax season chasing the paperwork.",
+    problem: "Clients send a screenshot and a shrug. Form 1099-DA shows what they sold for, often not what they paid, and trades from their own wallets are usually on no form at all.",
+    promise: "A crypto intake your clients can finish from a phone: plain questions, a checklist built from their answers, uploads straight to your firm's storage, and reminders until every item is in.",
+    trustLine: "Paperwork and reminders, never tax advice. No passwords, keys, or recovery phrases, ever.",
+    included: [
+      "A client questionnaire written for crypto: which exchanges, which wallets, and what happened during the year, in plain words",
+      "A document checklist built from the answers: each Form 1099-DA, exchange exports, and public wallet addresses",
+      "Uploads that go straight to storage your firm already uses, one folder per client",
+      "Reminders by email, and by text only to clients who agreed to texts, until each item arrives, with STOP honored immediately",
+      "A tracker for your staff: who is complete, what is missing, and who to call",
+      "Exports gathered and labeled for the crypto tax software your firm already uses",
+      "Setup that follows your firm's written information security plan, with access limited to the people you name",
+    ],
+    clientOwns: [
+      "The intake, the client records, and every uploaded file",
+      "The storage, the reminder accounts, and the tracker",
+      "The questionnaire and checklist, to use again next season",
+    ],
+    clientPaysDirectly: ["Crypto tax software, if your firm uses one", "Storage, email, or texting subscriptions the reminders run on"],
+    notIncluded: [
+      "Tax advice, return preparation, or a review of anyone's return",
+      "Asking clients for passwords, API keys, private keys, or recovery phrases",
+      "Using your clients' information for anything but your intake, including our own marketing",
+      "Keeping copies of your clients' files on our systems",
+    ],
+    faq: [
+      { q: "Is this tax advice?", a: "No. It collects answers and documents so your firm can do the tax work. Your firm approves every question on the form before it goes to a client." },
+      { q: "What is Form 1099-DA?", a: "The form crypto brokers send for sales from 2025 on. It shows what a client sold for. For crypto bought before 2026 it usually leaves out what they paid, so that number comes from the client's own records, which is what the checklist asks for." },
+      { q: "Do clients share wallet passwords?", a: "Never. The intake asks for public wallet addresses and exported files only. It never asks for a password, an API key, a private key, or a recovery phrase." },
+      { q: "Where do the files go?", a: "Straight to storage your firm already uses, in a folder per client. It is tested with made-up files, then handed over, and we keep no copies of your clients' files." },
+      { q: "When should we set it up?", a: "Before engagement letters go out, so the intake link can go with them." },
+      { q: "What does it cost?", a: "Pricing is confirmed on the scoping call and put in writing before anything starts. Crypto tax software, storage, and texting are billed to your firm by their makers." },
+    ],
+    intakeHref: intake("crypto-tax-intake"),
+    related: [
+      { href: "/agency/automation", label: "Automation" },
+      { href: "/agency/websites", label: "Websites" },
+    ],
+  },
+  {
+    // Watch-only: it reads public ledger data for addresses the client owns
+    // or may watch, so nobody here holds keys or moves funds. It reports what
+    // moved, never prices or what to do about them: no price alerts, no buy
+    // or sell calls, no "signals".
+    slug: "xrpl-treasury-alerts",
+    offerId: "agency_xrpl_treasury_alerts",
+    name: "XRPL treasury alerts",
+    navLabel: "Treasury alerts",
+    specialty: "XRP Ledger projects and merchants",
+    seoTitle: "XRP Ledger Wallet and Treasury Alerts for Projects and Merchants | The LeadFlow Pro",
+    metaDescription:
+      "Watch-only alerts for your own XRP Ledger wallets: a message in Discord, Telegram, email, or text when a payment lands or treasury funds move, plus a public treasury page. No keys, no price alerts, no trading signals.",
+    eyebrow: "Watch-only, on the XRP Ledger",
+    audience: "Crypto projects, communities, and merchants on the XRP Ledger that need to know when their own wallets receive or send funds, without refreshing an explorer all day.",
+    problem: "Someone keeps checking an explorer to see whether a customer's payment landed or a treasury wallet moved, and holders keep asking the team to show where the funds are.",
+    promise: "Watch-only alerts on the wallets you name: a message to your team when a payment lands or funds move, and a public treasury page anyone can check. It never holds keys and never sends price alerts or trading signals.",
+    trustLine: "Watch-only public addresses. No keys, no price alerts, no trading signals.",
+    included: [
+      "A watch list of the public XRP Ledger addresses you name: treasury, operations, and payment wallets",
+      "Alerts to your team in Discord, Telegram, or email when funds arrive or leave, with the amount, the other account, and a link to the ledger record",
+      "Payment checks for merchants: an alert when a payment with the destination tag you expect lands",
+      "Alerts for tokens issued on the XRP Ledger that your wallets hold, as well as XRP",
+      "A public treasury page on your website that lists each wallet and its balance, read straight from the ledger",
+      "Thresholds and quiet hours so small transactions do not flood the channel",
+      "A monthly movement report your team can share with holders",
+    ],
+    clientOwns: [
+      "The wallets, the keys, and the accounts they sit in",
+      "The alert channels and the list of who gets alerts",
+      "The treasury page and every report",
+    ],
+    clientPaysDirectly: ["Any texting or email software the alerts send through"],
+    notIncluded: [
+      "Holding, moving, or signing for any wallet or funds",
+      "Price alerts, buy or sell calls, or trading of any kind",
+      "Tracking wallets that belong to other people",
+      "Texts to anyone who has not agreed to get them",
+    ],
+    faq: [
+      { q: "Do you need our keys?", a: "No. Alerts read public ledger data for the addresses you name. Nobody at The LeadFlow Pro holds, sees, or asks for a key or a recovery phrase." },
+      { q: "Will it tell us when to buy or sell?", a: "No. It reports what moved on the ledger. It never sends prices, predictions, or trading advice." },
+      { q: "Where do the alerts go?", a: "Discord, Telegram, email, or text. Texts go only to people who agreed to get them, and STOP is honored immediately." },
+      { q: "Can our holders see the treasury?", a: "Yes, if you want them to. A public treasury page on your website lists each wallet and its current balance, read from the ledger, so anyone can check it." },
+      { q: "Can we watch any wallet?", a: "Only wallets your project or business owns, or has written permission to watch. It is not a tool for tracking other people." },
+      { q: "What does it cost?", a: "Pricing is confirmed on the scoping call and put in writing before anything starts. Any texting or email software is billed to you by its maker." },
+    ],
+    intakeHref: intake("xrpl-treasury-alerts"),
+    related: [
+      { href: "/agency/community-help-desk", label: "Community help desk" },
+      { href: "/agency/websites", label: "Websites" },
+    ],
+  },
+  {
+    // For local shops that want to take crypto. The shop opens the processor
+    // account in its own name and the money goes customer, processor, shop:
+    // it never passes through The LeadFlow Pro. No investing or tax advice,
+    // and no promoting any coin. Processor fees and terms are checked at
+    // scoping, never quoted here.
+    slug: "crypto-checkout",
+    offerId: "agency_crypto_checkout",
+    name: "Crypto-ready checkout",
+    navLabel: "Crypto checkout",
+    specialty: "Shops that want to take crypto",
+    seoTitle: "Accept Crypto Payments at Your Longview, TX Business | The LeadFlow Pro",
+    metaDescription:
+      "Crypto payments for East Texas shops, set up the careful way: a processor you sign up with directly, conversion to dollars if you want it, a checkout on your site or at the counter, a staff guide, and bookkeeping that matches. We never touch the money.",
+    eyebrow: "For shops whose customers ask to pay in crypto",
+    audience: "Longview and East Texas shops, restaurants, and service businesses whose customers have asked to pay in crypto, and owners who want to try it without the price swings.",
+    problem: "A customer asks to pay in crypto and nobody knows what to say. Owners worry about the price changing overnight, getting the bookkeeping wrong, and staff accepting a payment that never arrives.",
+    promise: "Crypto payments set up the careful way: a processor you sign up with directly, conversion to dollars if you want it, a checkout on your site or at the counter, a one-page staff guide, and bookkeeping that matches. We never touch the money.",
+    trustLine: "The money goes from your customer to your processor to you. It never passes through The LeadFlow Pro.",
+    included: [
+      "A plain side-by-side of the payment processors that fit your business: fees, payout options, and what each one asks of you",
+      "Setup help once you open the account in your business's name, including conversion to dollars if you want it",
+      "A crypto option in your website checkout, or a payment link and QR code for the counter",
+      "A one-page staff guide: how to take a payment, how to see that it arrived, and what never to do",
+      "How refunds work with your processor, written down so staff are not guessing",
+      "A bookkeeping map so crypto sales land in QuickBooks the same way card sales do, ready for your accountant",
+      "A test payment from start to finish before anything goes live",
+    ],
+    clientOwns: [
+      "The processor account, in your business's name",
+      "Every payment, payout, and record",
+      "The checkout, the QR code, and the staff guide",
+    ],
+    clientPaysDirectly: ["Processor fees, charged by the processor", "The bookkeeping software you already use"],
+    notIncluded: [
+      "Receiving, holding, or moving any payment or crypto for you",
+      "Advice about buying, holding, or investing in crypto",
+      "Tax advice: your accountant decides how crypto sales are reported",
+      "Promoting any coin or token",
+    ],
+    faq: [
+      { q: "Do we have to keep the crypto?", a: "No. Many processors can convert each payment to dollars and pay out to your bank, so the price does not move on you. Keeping any crypto is your choice." },
+      { q: "Who holds the money?", a: "Your processor, then your bank. It never passes through The LeadFlow Pro, and we never hold wallet keys." },
+      { q: "Which processor should we use?", a: "The one that fits your business. We lay out the options, fees, and requirements side by side, and you choose and sign up directly." },
+      { q: "What about taxes?", a: "The bookkeeping map records each crypto sale in dollars, the way your processor reports it, so your accountant has what they need. We don't give tax advice." },
+      { q: "Can it go on our website?", a: "Yes. It can sit beside card payments in your checkout, or work as a payment link and QR code at the counter." },
+      { q: "What does it cost?", a: "Pricing is confirmed on the scoping call and put in writing before anything starts. Processor fees are charged by the processor, separately." },
+    ],
+    intakeHref: intake("crypto-checkout"),
+    related: [
+      { href: "/agency/websites", label: "Websites" },
+      { href: "/packages/launch", label: `Website Launch, ${usd(PRICES.websiteLaunchTotal)}` },
+    ],
+  },
 ];
+
+/** The six services every local business buys, for pages about the local lead system. */
+export const CORE_AGENCY_SERVICES: readonly AgencyService[] = AGENCY_SERVICES.filter((s) => !s.specialty);
+
+/** Services built for one kind of client, shown in their own band on the hub. */
+export const SPECIALTY_AGENCY_SERVICES: readonly AgencyService[] = AGENCY_SERVICES.filter((s) => Boolean(s.specialty));
 
 export function agencyService(slug: string): AgencyService | null {
   return AGENCY_SERVICES.find((s) => s.slug === slug) ?? null;
@@ -278,7 +517,7 @@ export function agencyOffer(service: AgencyService): Offer {
 export const AGENCY_HUB = {
   eyebrow: "Run it for me",
   title: "The agency lane.",
-  lead: `Meta ads, Google Ads, websites, automation, video, and content, run by ${BUSINESS.operator} in accounts you own. This is the lane for owners who want the whole loop handled.`,
+  lead: `Meta ads, Google Ads, websites, automation, video, and content, run by ${BUSINESS.operator} in accounts you own, plus specialty builds for online communities, CPA firms, XRP Ledger projects, and shops that take crypto. This is the lane for owners who want the whole loop handled.`,
   budgetNote: "The intake asks for the monthly ad budget you are genuinely prepared to spend. A $0 answer does not disqualify you; it routes you to the right lane.",
   contact: {
     phone: BUSINESS.phone.display,

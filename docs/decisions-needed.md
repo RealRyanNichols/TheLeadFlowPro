@@ -806,3 +806,101 @@ checkout both ship switched off.
       wording. Default: keep as built.
     - AGENTS.md says work on `main`; this was built on a harness branch.
       Default: you choose the merge target.
+
+## M. Community help desk and crypto tax intake (September 29)
+
+Added September 29, 2026 at the owner's request to build the community help
+desk, put it live, and continue with the next builds (the crypto tax intake
+is the second). The help desk page is `/agency/community-help-desk`. Its
+offer, `agency_community_help_desk`, is `tbd_ryan`, so the page prints
+"Pricing confirmed on the scoping call". Nothing below has been sent,
+charged, or switched on, and no help desk software account has been opened.
+Both pages sit in the hub's "Specialty builds" band and stay off `/longview`.
+
+100. **The help desk price.** Suggested, not published: a one-time setup
+     (the safe server setup, training on the client's docs, the 25-question
+     test run, and 30 days of weekly tuning), then an optional monthly fee
+     for tuning after day 30. The safe server setup can also be sold alone.
+     Suggested numbers from the September 29 market scan in the crypto
+     research doc (not approved): $497 setup plus $97 to $297 a month; the
+     safe server setup alone $297 once.
+     - While the price is TBD, `/agency/pay` takes $250 to $25,000 per
+       charge. A $497 setup fits. A monthly fee under $250 cannot be paid
+       there until it is published as a live `$X/mo` price, which bills
+       monthly and skips that window (`lib/agencyPayment.ts`).
+     - One offer row holds one price. Setup plus monthly needs a second
+       offer row for the monthly part, or the setup is paid as a written
+       scope and only the monthly fee is published.
+     - Default: publish nothing yet and scope each buyer in writing.
+       Consequence of doing nothing: the page stays live with the TBD line,
+       and the intake and the written-scope payment both work.
+
+101. **Which help desk software to set up.** The client pays the software
+     maker directly, and the page names no vendor. The market scan found
+     tools built for Discord and Telegram support at about $39 to $599 a
+     month. Default: choose per client on the scoping call, and put the
+     tool's current plan price in the written scope. Consequence of doing
+     nothing: none until the first scope.
+
+102. **Ads for this page.** Meta and Google both have crypto ad rules, and
+     an ad that talks about tokens can be reviewed as a crypto ad. Default:
+     ads for this page talk about moderators, repeat questions, and scams,
+     never tokens, prices, or trading. Consequence of doing nothing: none
+     until someone runs an ad.
+
+103. **The crypto tax intake price.** The page is `/agency/crypto-tax-intake`,
+     offer `agency_crypto_tax_intake`, `tbd_ryan`. Suggested, not published:
+     a one-time setup per firm, then an optional monthly fee during tax
+     season. Suggested numbers from the September 29 market scan (not
+     approved): $497 to $997 setup plus $49 to $97 a month. The same $250
+     floor on `/agency/pay` applies (item 100). Default: publish nothing
+     yet and scope each firm in writing.
+
+104. **Attorney check before the first firm signs.** The service handles
+     tax clients' files for a CPA firm. Before the first scope, have the
+     attorney review the service agreement against the firm's data rules:
+     IRS section 7216 limits how a preparer and its service providers may
+     use return information, and the FTC Safeguards Rule requires the firm
+     to keep a written information security plan. The page already
+     promises no tax advice, no passwords or keys, no use of client
+     information beyond the intake, and no copies kept on our systems.
+     Default: no firm is onboarded until the agreement is reviewed.
+
+105. **Recheck the Form 1099-DA facts each season.** The FAQ says brokers
+     report what a client sold for from 2025, and usually not what they
+     paid for crypto bought before 2026. Default: recheck the IRS digital
+     assets page every October and before any ad runs.
+
+106. **The XRPL treasury alerts price.** The page is
+     `/agency/xrpl-treasury-alerts`, offer `agency_xrpl_treasury_alerts`,
+     `tbd_ryan`. Suggested, not published, from the September 29 market scan:
+     $97 a month for a project's treasury and team alerts; $20 a month or
+     $97 once for a small merchant's payment checks. Both are under the
+     $250 floor on `/agency/pay` (item 100), so they can be paid there only
+     once the price is published as a live offer. Default: publish nothing
+     yet and scope each buyer in writing.
+
+107. **Where the alerts read the ledger from, and how they send.** The
+     service is watch-only: it reads public XRP Ledger data for addresses
+     the client owns or has written permission to watch, and never holds
+     keys or moves funds. Decisions before the first client: which ledger
+     servers it reads (public servers or a paid node), and which accounts
+     send the alerts (the client's own Discord or Telegram bot, email, or
+     texting account; texts only with recorded consent and STOP honored).
+     Nothing sends until a client's setup is approved. Default: the
+     client's own accounts, public servers until volume needs more.
+
+108. **The crypto checkout price.** The page is `/agency/crypto-checkout`,
+     offer `agency_crypto_checkout`, `tbd_ryan`. Suggested, not published,
+     from the September 29 market scan: $297 to $497 one time, or an add-on
+     to the Website Launch. Default: publish nothing yet and scope each shop
+     in writing.
+
+109. **Processors, fees, and who signs.** The page names no processor and
+     quotes no fee. At scoping, check each processor's current fees, payout
+     options and terms, lay them out side by side, and let the shop choose
+     and sign up in its own name. The money goes customer, processor, shop;
+     The LeadFlow Pro never receives, holds, or moves it, and never holds
+     wallet keys. If a referral or partner fee is ever offered by a
+     processor, disclose it to the shop in writing before they choose.
+     Default: as described.

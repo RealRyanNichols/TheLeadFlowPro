@@ -16,8 +16,8 @@ import sqlite3
 from datetime import datetime
 from typing import Any, Dict, Mapping, Optional, Tuple
 
-from .. import db, normalize, privacy
-from ..config import LONGVIEW_ZIPS, longview_scope
+from .. import db, normalize, places, privacy
+from ..places import LONGVIEW, Place, PlaceIndex
 from . import socrata
 from .http import EmptyResult, RecordWriter, as_now, bump, finish_failed, finish_ok
 from .socrata import DatasetNotFound, SchemaMismatch  # noqa: F401  (re-exported for callers)
@@ -64,13 +64,13 @@ def city_limits(value: Any) -> str:
     return "unknown"
 
 
-def decide_scope(limits: str, zip_code: Optional[str]) -> str:
-    """The indicator decides first; a Longview ZIP is still required for 'city'.
+def decide_scope(limits: str, zip_code: Optional[str], place: Place = LONGVIEW) -> str:
+    """The indicator decides first; a street ZIP of the town is still required for 'city'.
 
-    Outside the limits (or inside with a Longview PO-box ZIP) is 'nearby' only
-    with a Longview, Texas postal ZIP; a missing or other ZIP is 'out', never
-    published: nothing shows it is a Longview, Texas address."""
-    return longview_scope(zip_code, outside_city_limits=(limits == "outside"))
+    Outside the limits (or inside with a PO-box ZIP) is 'nearby' only with a
+    postal ZIP of the town; a missing or other ZIP is 'out', never published:
+    nothing shows it is that town's Texas address (``places.Place.scope``)."""
+    return place.scope(zip_code, outside_city_limits=(limits == "outside"))
 
 
 def parse_date(value: Any) -> Optional[str]:
@@ -98,8 +98,12 @@ def _get(row: Mapping[str, Any], fields: Mapping[str, Optional[str]], logical: s
     return "" if value is None else str(value).strip()
 
 
-def project_row(row: Mapping[str, Any], fields: Mapping[str, Optional[str]]) -> Tuple[Optional[str], Optional[Dict[str, Any]], str]:
-    """(source_key, record, note). A skipped row has key None and the skip reason as note."""
+def project_row(row: Mapping[str, Any], fields: Mapping[str, Optional[str]],
+                index: Optional[PlaceIndex] = None) -> Tuple[Optional[str], Optional[Dict[str, Any]], str]:
+    """(source_key, record, note). A skipped row has key None and the skip reason as note.
+
+    ``index`` holds the active places (Longview alone when None); the outlet's
+    postal city decides which one the record belongs to."""
     taxpayer_number = _get(row, fields, "taxpayer_number")
     outlet_number = _get(row, fields, "outlet_number")
     if not taxpayer_number or not outlet_number:
@@ -108,7 +112,8 @@ def project_row(row: Mapping[str, Any], fields: Mapping[str, Optional[str]]) -> 
     if not outlet_name:
         return None, None, "skipped_no_name"
     city = _get(row, fields, "outlet_city")
-    if city.upper() != "LONGVIEW":
+    place = (index or PlaceIndex()).for_city(city)
+    if place is None:
         return None, None, "skipped_city"
     # Longview, Washington is a real city: a row that names another state is never "Longview, TX".
     state = _get(row, fields, "outlet_state")
@@ -150,16 +155,45 @@ def project_row(row: Mapping[str, Any], fields: Mapping[str, Optional[str]]) -> 
         "street": normalize.display_street(address) or None,
         "street_norm": street_norm or None,
         "suite": suite or None,
-        "city": normalize.title_case_name(city),
+        "city": place.name,
         "zip": zip_code,
         "naics": naics,
         "permit_start": parse_date(_get(row, fields, "permit_start")),
         "is_individual": is_individual,
         "personal_name": personal,
-        "scope": decide_scope(limits, zip_code),
+        "scope": decide_scope(limits, zip_code, place),
+        "place": place.slug,
         "tags_json": db.dumps(tags),
     }
     return f"{taxpayer_number}:{outlet_number}", record, limits
+
+
+def count_place(counts: Dict[str, Any], slug: str, scope: str) -> None:
+    """Per-place counts, kept only once a town besides Longview is active (the probe prints them)."""
+    per = counts.get("places")
+    if per is None:
+        return
+    one = per.setdefault(slug, {"kept": 0, "city": 0, "nearby": 0, "out": 0})
+    one["kept"] += 1
+    one[scope] = one.get(scope, 0) + 1
+
+
+def bump_zip(counts: Dict[str, Any], slug: str, zip_key: str) -> None:
+    """``other_zips`` as before (every place's together), and per place once several are active."""
+    other = counts["other_zips"]
+    other[zip_key] = other.get(zip_key, 0) + 1
+    per = counts.get("other_zips_by_place")
+    if per is not None:
+        place_zips = per.setdefault(slug, {})
+        place_zips[zip_key] = place_zips.get(zip_key, 0) + 1
+
+
+def place_counts(counts: Dict[str, Any], index: PlaceIndex) -> Dict[str, Any]:
+    """Start the per-place counts when a town besides Longview is active (Longview alone keeps its old shape)."""
+    if index.slugs != (LONGVIEW.slug,):
+        counts["places"] = {slug: {"kept": 0, "city": 0, "nearby": 0, "out": 0} for slug in index.slugs}
+        counts["other_zips_by_place"] = {}
+    return counts
 
 
 def _new_counts() -> Dict[str, Any]:
@@ -172,25 +206,26 @@ def _new_counts() -> Dict[str, Any]:
 
 
 def sync_sales_tax(conn: sqlite3.Connection, settings, now=None, transport=None) -> Dict[str, Any]:
-    """Pull Longview outlets, upsert them, retire vanished ones. Returns counts.
+    """Pull the active places' outlets, upsert them, retire vanished ones. Returns counts.
 
     Failures (no dataset, a schema mismatch, an API error, an empty pull) are
     recorded on the run and the ``sources`` row, then raised to the caller.
     """
     now = as_now(now)
     run_id = db.start_run(conn, RUN_KIND, now)
-    counts = _new_counts()
+    counts = place_counts(_new_counts(), PlaceIndex.for_settings(settings))
     try:
         info = socrata.discover_dataset(
             settings, QUERY, NAME_PATTERN, [FIELD_CANDIDATES[f] for f in REQUIRED_FIELDS], transport=transport
         )
         counts["dataset_id"] = info.id
         fields = socrata.resolve_fields(info.columns, FIELD_CANDIDATES, REQUIRED_FIELDS)
-        where = f"upper({fields['outlet_city']}) = 'LONGVIEW'"
+        index = PlaceIndex.for_settings(settings)
+        where = index.where(fields["outlet_city"])
         writer = RecordWriter(conn, SOURCE_ID, now, counts)
         for row in socrata.fetch_rows(settings, info.id, where, page_size=PAGE_SIZE, transport=transport):
             counts["fetched"] += 1
-            key, record, note = project_row(row, fields)
+            key, record, note = project_row(row, fields, index)
             if key is None:
                 bump(counts, note)
                 continue
@@ -198,17 +233,17 @@ def sync_sales_tax(conn: sqlite3.Connection, settings, now=None, transport=None)
                 continue
             counts["kept"] += 1
             counts[record["scope"]] += 1
-            if record["zip"] not in LONGVIEW_ZIPS:
-                other = counts["other_zips"]
-                zip_key = record["zip"] or "missing"
-                other[zip_key] = other.get(zip_key, 0) + 1
+            place = places.get(record["place"])
+            count_place(counts, place.slug, record["scope"])
+            if place.other_zip(record["zip"]):
+                bump_zip(counts, place.slug, record["zip"] or "missing")
                 if note == "inside":
                     counts["inside_other_zip"] += 1
             counts["individual"] += 1 if record["is_individual"] else 0
             counts["personal_name"] += 1 if record["personal_name"] else 0
         if counts["fetched"] == 0:
             raise EmptyResult()
-        writer.deactivate_unseen()
+        writer.deactivate_unseen(index.slugs)
         # Dataset metadata is written only on success: the export cites it as
         # the source of the facts already in the archive.
         finish_ok(conn, run_id, SOURCE_ID, counts, now, license=info.license, dataset_id=info.id,

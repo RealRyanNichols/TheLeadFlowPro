@@ -152,6 +152,48 @@ Field names used in `facts` / `observations` / `review_queue.field`:
 
 ## Modules and their contracts
 
+### `places.py` (the towns)
+- `PLACES`: each town's slug, name, upper-case postal city names, street ZIPs,
+  PO-box ZIPs, and whether it is incorporated. Longview's values are the ones
+  the engine always used. A ZIP is listed only when certain; a town without a
+  ZIP list is matched by its postal city alone and every ZIP seen is reported.
+- `LVA_PLACES` (env or `/etc/longview-archive/env`; slugs or `all`; default
+  `longview`; a list must include `longview`) selects the active towns. Sources
+  query them all at once (`upper(city) IN (...)`; one city keeps
+  `= 'LONGVIEW'`), set `source_records.place` from the postal city, and retire
+  only the unseen records of the towns they queried. OSM asks once per
+  incorporated town: the `admin_level=8` boundary with the town's name that
+  contains the town's point (`Place.center`), limited to its tight box
+  (`Place.bbox`); an element is kept only inside the box and when any
+  `addr:city` / `addr:postcode` it carries is the town's own. NPI per street
+  ZIP, or by city when a town has no ZIP list.
+- Coverage: a complete sync writes the towns it covered to `meta`
+  (`synced_places:<source>`), and the service writes the towns each job ran
+  with (`sync_ran_places:<run kind>`). A job is due at once when a town is on
+  that its last finished run was not asked for. Publishing holds a business
+  (`place_not_synced`) while a source with an active record of it has not
+  covered its town in its last complete sync (an archive from before towns:
+  Longview only).
+- `Place.scope(zip, outside)`: Longview's rule for every town (`city`, `nearby`,
+  `out`); never `city` in an unincorporated town. `Place.mailing_scope` is the
+  franchise-tax rule.
+- Schema 2 adds `place` to `businesses` and `source_records` (default
+  `longview`). Matching compares a record only with businesses of its town; a
+  franchise company steps aside only for a sales-tax outlet in its own town; a
+  record whose town changes leaves its business (a `merges` row, rule
+  `left_place`), and a removal request on that business follows the record: the
+  business it lands on is suppressed under its own public id. Publishing holds a
+  business of a town that is off (`place_not_active`). The export adds `place` to a listing
+  outside Longview and a top-level `places` list (per-town counts) only when a
+  town besides Longview is on, so a Longview batch keeps its exact shape.
+- The site builds `www/<slug>/businesses/` per active town and `www/places/`
+  (the hub) when several are on; a town turned off loses its pages at the next
+  build, and auto-approve compares the approved batch only for the towns that
+  are on (so the others keep updating). The Caddy files match
+  `places.path_pattern()` (every seeded slug, and `/places`, in any case), and
+  redirect a bare section path to `/<town>/businesses/` built from the matched
+  town (`places.caddy_bare_redirects`), never from the raw request path.
+
 ### `normalize.py`
 - `norm_name(s) -> str`: casefold, `&`→`and`, strip punctuation, drop legal
   suffixes (llc, l l c, inc, incorporated, corp, corporation, co, company when
@@ -404,8 +446,9 @@ Field names used in `facts` / `observations` / `review_queue.field`:
   ("Registered Companies"); none is guessed from the name. A franchise record's
   `personal_name` never holds a business that a sales-tax, TABC, or NPI record
   places at a street (only a person's accepted answer puts one there).
-- `sources/osm.py`: Overpass query for the Longview city boundary
-  (`admin_level=8`, inside Texas) for `shop`, business `amenity` values,
+- `sources/osm.py`: Overpass query for each town's own city boundary
+  (`admin_level=8`, the one containing the town's point, within its box) for
+  `shop`, business `amenity` values,
   `office`, `craft`, `healthcare`, lodging `tourism`, and selected `leisure`.
   `out center tags;`. Records carry attribution "© OpenStreetMap contributors,
   ODbL". OSM names, addresses, and phones are never published; OSM is used to

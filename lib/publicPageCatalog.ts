@@ -235,7 +235,7 @@ export const PUBLIC_PAGE_CATALOG = [
     path: "/agency",
     title: "Ads, websites, automation, video, and content, run for you",
     description:
-      "The agency lane: Meta ads, Google Ads, websites, automation, video, and content in accounts you own. You pay the platforms directly and keep the leads.",
+      "The agency lane: Meta ads, Google Ads, websites, automation, video, and content in accounts you own, plus specialty builds for crypto communities, CPA firms, and shops. You pay the platforms directly and keep the leads.",
     eyebrow: "Run it for me",
   },
   {
@@ -279,6 +279,34 @@ export const PUBLIC_PAGE_CATALOG = [
     description:
       "A content engine built around one offer at a time, drafted in your voice and published in your accounts on a calendar you approve.",
     eyebrow: "Agency · Content",
+  },
+  {
+    path: "/agency/community-help-desk",
+    title: "A help desk for your Discord or Telegram community",
+    description:
+      "An AI help desk trained on your own answers, with scam warnings, a hand-off to a real moderator, and a safer server setup first. It never talks prices or investing.",
+    eyebrow: "Agency · Community help desk",
+  },
+  {
+    path: "/agency/crypto-tax-intake",
+    title: "Crypto tax intake for CPA and tax prep firms",
+    description:
+      "A plain-English crypto questionnaire, a document checklist, uploads to your firm's own storage, reminders, and a tracker. Paperwork, not tax advice.",
+    eyebrow: "Agency · Crypto tax intake",
+  },
+  {
+    path: "/agency/xrpl-treasury-alerts",
+    title: "Treasury alerts for your XRP Ledger wallets",
+    description:
+      "Watch-only alerts when your own wallets receive or send funds, sent to Discord, Telegram, email, or text, plus a public treasury page. No keys, no price alerts, no trading signals.",
+    eyebrow: "Agency · XRPL treasury alerts",
+  },
+  {
+    path: "/agency/crypto-checkout",
+    title: "Take crypto payments without touching the price swings",
+    description:
+      "A processor you sign up with directly, conversion to dollars if you want it, a checkout on your site or at the counter, a staff guide, and bookkeeping that matches. We never touch the money.",
+    eyebrow: "Agency · Crypto checkout",
   },
   {
     path: "/agency/start",

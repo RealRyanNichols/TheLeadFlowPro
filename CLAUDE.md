@@ -15,14 +15,62 @@ there is no need to verify it against Vercel or Supabase.
 - This site's move off Vercel was decided on Sep 24 (`docs/infrastructure/droplet.md`). The
   Sep 26 decision adds Supabase: the database, logins, and anything else on Supabase are moving
   to the droplet too.
-- **Not decided yet: where the database and logins will run on the droplet.** Do not invent it.
-  Get it from the owner, then record it here.
+- **Decided Sep 28, 2026 (owner): the database and logins live in Postgres 17, in a Docker
+  container on the droplet beside the site.** It is backed up every night, with a copy in The
+  LeadFlow Pro's Google Drive. Setup, backups, the Drive copy and restores: `deploy/droplet/db.sh`.
+  The plan and the phases off Supabase: `docs/infrastructure/database.md`.
+  - Logins move into the same database (phase F). A client's login links to the lead it came
+    from and is also matched by email. The details a client signed up with are what we use,
+    unless the client says otherwise.
+  - New work that needs a database targets this one. Each phase that moves data or logins off
+    Supabase still needs the owner's approval for that phase.
 - Every Supabase reference in this repo (`supabase/`, "Supabase is the agent memory and task
   bus" in `AGENTS.md`, the Supabase rows in the droplet runbook) describes the platform being
   retired. Read it as the map of what has to be ported.
 - Approval rules still apply on the droplet. Production deploys, DNS changes, payment
   configuration, real sends, and any change to live data need the owner's explicit approval for
   that action. Never commit secrets: this repository is public.
+
+## The droplet as it really is (read-only check, Sep 28, 2026)
+
+This replaces the Sep 24 picture below wherever they differ.
+
+- **Droplet:** `leadflow-web`, 8 GB memory, 80 GB disk, NYC3, Ubuntu 24.04. On Sep 28, memory was
+  about 85% used with swap full, and the disk 89% used (about 9 GB free). DigitalOcean's weekly
+  backups are on (Sundays).
+- **The live site** is the systemd service `site@leadflow`: Next.js on 127.0.0.1:3109, run from
+  `/var/lib/leadflow-releases/current` with settings in `/srv/site-env/leadflow.env`. Caddy sends
+  www.theleadflowpro.com there. On Sep 28 it was serving `ddeb372` (Sep 26).
+- **Deploys** use `/usr/local/bin/leadflow-release`: `leadflow-release` builds origin/main,
+  `leadflow-release <sha>` builds one commit, `--status` shows the last result and `--rollback`
+  goes back one release. It checks a new build on port 3129 before switching. Its guard
+  (`/usr/local/lib/leadflow-build-guard.sh`) builds only with 5.5 GiB of memory free and 12 GiB
+  of disk free, so on Sep 28 it could not build. `leadflow-autopull.timer` (automatic deploys) is
+  off, and so are the site's `leadflow-cron-*` timers. Another session set this pipeline up and
+  owns it: coordinate before changing it.
+- **Not installed on this droplet:** `/opt/theleadflowpro`, `/etc/theleadflowpro`, and the Docker
+  setup in `deploy/droplet/` (`install.sh`, `deploy.sh`, `cutover.sh`). **Do not run `deploy.sh`
+  here:** it would build the site inside Docker with none of that memory guard.
+- **Also on it:** a self-hosted Supabase stack for Real Ryan Nichols (`/opt/rrn-supabase`), the
+  brain and its Postgres, the LeadFlow Hub, and the other `/srv/sites/*` sites.
+
+### Sep 29, 2026 (evening): capacity check and a clean restart
+
+- Before: memory 1.1 GiB available with swap full, disk 7.3 GiB free. The biggest memory users
+  were `site@leadflow` (1.8 GB) and `site@repwatchr` (1.7 GB). Old LeadFlow builds in
+  `/var/lib/leadflow-releases` take about 1.4 GB each; current is `ddeb372`, previous `c48b6b2`.
+- With the owner's OK the droplet was shut down cleanly for a resize to 16 GB and turned back on
+  about three minutes later. Every service and Docker container that had been running came back
+  (checked against `/root/pre-resize-state.txt`). After the restart memory was about 4.7 GiB
+  available, still under the release guard's 5.5 GiB.
+- The resize did not happen: the account is on DigitalOcean's Tier 2 limits and the
+  8 vCPU / 16 GB plan ($96/mo) is locked. A limit increase was requested through support on
+  Sep 29 (1 to 2 business days). The instant alternative is a one-time $250 prepay, credited to
+  future bills; not used.
+- Waiting to launch: branch `release/help-desk-on-live` (`ca2b708`) is the live `ddeb372` plus
+  the community help desk, the crypto tax intake, and the agency heading fix, with nothing else
+  from main. `leadflow-release` only fetches `main`, so fetch the branch into
+  `/srv/sites/leadflow` first, then run `leadflow-release ca2b708fe895b23d96301dcf1df3c3c47bdb5be4`.
 
 ## The droplet (facts from `docs/infrastructure/droplet.md` and `deploy/droplet/`, Sep 24, 2026)
 

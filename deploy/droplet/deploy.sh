@@ -96,7 +96,11 @@ done
 
 say "Cron and worker"
 "${COMPOSE[@]}" up -d --no-build --force-recreate cron
-[ -n "${COMPOSE_PROFILES:-}" ] && "${COMPOSE[@]}" up -d --no-build --force-recreate worker
+# Only when "worker" is one of the listed profiles. The database (profile db)
+# is never started or restarted here: db.sh owns it.
+case ",${COMPOSE_PROFILES:-}," in
+  *,worker,*) "${COMPOSE[@]}" up -d --no-build --force-recreate worker ;;
+esac
 if [ -f "$CONF_DIR/cron-enabled" ]; then ok "cron is ON (runs the vercel.json schedule)"; else ok "cron is idle until cutover.sh crons-on"; fi
 
 docker image prune -f >/dev/null

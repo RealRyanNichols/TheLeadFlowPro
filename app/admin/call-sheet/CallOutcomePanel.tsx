@@ -3,6 +3,7 @@
 import { useEffect, useId, useMemo, useRef, useState, type ReactNode, type RefObject } from "react";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import CopyButton from "@/app/hq/_components/CopyButton";
+import DictationButton, { type DictationHandle } from "@/components/DictationButton";
 import { centralDate, quickCallbackChoices } from "@/lib/businessTime";
 import {
   CALL_OUTCOMES,
@@ -75,6 +76,14 @@ import { closerOffers, payDoorFor, type CloserOfferId, type PayDoor } from "@/li
 //   from its back-forward cache (pageshow with persisted), the panel calls
 //   onRestored, and the call card wrapper refreshes the server state (the
 //   header, the "A call was logged" line). What is on screen here stays.
+// - The note has a tap-to-talk button (components/DictationButton.tsx, the
+//   browser's own speech to text; it renders nothing where the browser has
+//   none). Spoken words are added to the end of the note, never replace it,
+//   and stop at the note's limit. The browser hands over the last words a
+//   moment after the speaker stops, so Save with the mic still on does not
+//   post: it stops the mic, says so, and waits for another tap once the note
+//   is complete. Nothing spoken is kept while a save is in flight, the same
+//   as typing.
 // - Everything that needs lib/quo or lib/callSheet (phone links, texting
 //   consent) is worked out on the server and passed in as plain props. This
 //   file imports no Supabase, Quo, call sheet, or notification code, and no
@@ -249,6 +258,19 @@ export function nextCallLink(queue: CallQueueHandoff | null | undefined, sample:
   if (left === 0) return { href, label: "Finish the list" };
   const count = typeof left === "number" && Number.isInteger(left) && left > 0 ? ` · ${left} left` : "";
   return { href, label: `Next call${count}` };
+}
+
+/**
+ * The note with spoken words added to the end, cut at the note's limit: one
+ * space between, or straight after a line break Ryan typed, so a new line he
+ * started is kept.
+ */
+export function withSpokenText(current: string, spoken: string, max: number = NEXT_STEP_NOTE_MAX): string {
+  const words = typeof spoken === "string" ? spoken.trim() : "";
+  if (!words) return current;
+  const kept = current.replace(/[ \t]+$/, "");
+  const next = !kept.trim() ? words : kept.endsWith("\n") ? `${kept}${words}` : `${kept.trimEnd()} ${words}`;
+  return next.slice(0, max);
 }
 
 /** A pageshow event from the back-forward cache: the page is shown as it was left, server state and all. */
@@ -688,6 +710,10 @@ export default function CallOutcomePanel({
   const [lostReason, setLostReason] = useState("");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
+  // Tap-to-talk: whether the mic is on (until its last words have arrived), and whether a Save was held for it.
+  const micRef = useRef<DictationHandle>(null);
+  const [dictating, setDictating] = useState(false);
+  const [micHeld, setMicHeld] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState<SavedCall | null>(null);
   // The browser clock is read after mount, so the server render and the
@@ -873,6 +899,15 @@ export default function CallOutcomePanel({
   async function save(event: React.FormEvent) {
     event.preventDefault();
     if (sample || busy) return;
+    // The mic is still on, and its last words may not have arrived yet. Stop
+    // it and hold the save, so a sentence is never saved cut off; the line by
+    // Save says to check the note and tap again.
+    if (dictating) {
+      micRef.current?.stop();
+      setMicHeld(true);
+      return;
+    }
+    setMicHeld(false);
     // Not ready yet: take Ryan to what is missing instead of posting. The
     // hint already says it in words, so there is no second alert to go stale.
     if (!outcome || !body) {
@@ -1246,9 +1281,23 @@ export default function CallOutcomePanel({
           {/* Open from step 1 on, so Ryan can jot what was said while he decides what happens next. */}
           {reach ? (
             <div className="mt-5">
-              <label htmlFor={ids.note} className="mb-1 block text-sm font-semibold text-[var(--text)]">
-                {noteLabel}
-              </label>
+              {/* The label and the tap-to-talk button share a row, so the note keeps the full width on a phone. */}
+              <div className="mb-1 flex items-end justify-between gap-3">
+                <label htmlFor={ids.note} className="block min-w-0 text-sm font-semibold text-[var(--text)]">
+                  {noteLabel}
+                </label>
+                <DictationButton
+                  ref={micRef}
+                  onListeningChange={(on) => {
+                    setDictating(on);
+                    if (on) setMicHeld(false);
+                  }}
+                  onText={(spoken) => {
+                    if (busy) return;
+                    setNote((current) => withSpokenText(current, spoken));
+                  }}
+                />
+              </div>
               <textarea
                 id={ids.note}
                 className="input text-base sm:text-sm"
@@ -1307,6 +1356,11 @@ export default function CallOutcomePanel({
           >
             {sample ? "Sample only, nothing is saved" : busy ? "Saving..." : "Save the call"}
           </button>
+          {micHeld ? (
+            <p role="status" className="w-full text-sm font-semibold text-[var(--text)] sm:w-auto">
+              {dictating ? "Stopping the mic so your last words land in the note..." : "The mic is off. Check the note, then tap Save the call."}
+            </p>
+          ) : null}
           {saveWaitsFor ? (
             <p id={ids.pick} className="w-full text-sm font-semibold text-[var(--muted)] sm:w-auto">
               {saveWaitsFor}

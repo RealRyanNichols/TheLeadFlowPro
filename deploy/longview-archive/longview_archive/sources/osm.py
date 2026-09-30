@@ -1,10 +1,20 @@
-"""OpenStreetMap businesses inside the City of Longview boundary (Overpass).
+"""OpenStreetMap businesses inside each active town's city boundary (Overpass).
 
 OSM is for discovery and cross-checking only: it can point to a business the
 open-data lists miss, confirm a storefront at a street, and suggest a website
 the crawler may verify. Its names, addresses, and phones are never published as
-our own (ODbL, © OpenStreetMap contributors). The query uses the city's
-administrative boundary, so every element here is inside city limits.
+our own (ODbL, © OpenStreetMap contributors).
+
+One query per incorporated town. The town's boundary is the administrative
+area with its name that CONTAINS the town's own point (``Place.center``), so a
+same-named city in another state (Henderson, Nevada; Easton, Pennsylvania;
+Longview, Washington) is never asked for, and every statement is also limited
+to the town's tight box (``Place.bbox``). Each element is checked again here
+(``element_town_check``): it must lie inside the box, and an ``addr:city`` or
+``addr:postcode`` it carries must be the town's own (a neighbouring town's
+city or ZIP is not this town's business). An unincorporated community has no
+boundary to ask for and is skipped (``skipped_places``): nothing is guessed
+from a drawn box alone.
 """
 
 from __future__ import annotations
@@ -16,6 +26,7 @@ from typing import Any, Dict, Iterator, List, Mapping, Optional, Tuple
 
 from .. import db, normalize
 from ..fetcher import forbidden_site, forbidden_site_in_doubt
+from ..places import LONGVIEW, Place, PlaceIndex
 from .http import ApiError, EmptyResult, RecordWriter, as_now, bump, finish_failed, finish_ok, get_json
 
 logger = logging.getLogger(__name__)
@@ -38,25 +49,47 @@ TOURISM = ("hotel", "motel", "guest_house")
 LEISURE = ("fitness_centre", "sports_centre", "bowling_alley")
 
 
-def build_query() -> str:
+def build_query(place: Place = LONGVIEW) -> str:
     def one_of(values) -> str:
         return "^(" + "|".join(values) + ")$"
 
+    lat, lon = place.center
+    south, west, north, east = place.bbox
+    box = f"({south},{west},{north},{east})"
     return "\n".join((
         f"[out:json][timeout:{QUERY_TIMEOUT_S}];",
-        'area["ISO3166-2"="US-TX"]["admin_level"="4"]->.tx;',
-        'area["name"="Longview"]["boundary"="administrative"]["admin_level"="8"](area.tx)->.lv;',
+        f"is_in({lat},{lon})->.here;",
+        f'area.here["name"="{place.name}"]["boundary"="administrative"]["admin_level"="8"]->.lv;',
         "(",
-        '  nwr["shop"](area.lv);',
-        '  nwr["office"](area.lv);',
-        '  nwr["craft"](area.lv);',
-        '  nwr["healthcare"](area.lv);',
-        f'  nwr["amenity"~"{one_of(BUSINESS_AMENITIES)}"](area.lv);',
-        f'  nwr["tourism"~"{one_of(TOURISM)}"](area.lv);',
-        f'  nwr["leisure"~"{one_of(LEISURE)}"](area.lv);',
+        f'  nwr["shop"](area.lv){box};',
+        f'  nwr["office"](area.lv){box};',
+        f'  nwr["craft"](area.lv){box};',
+        f'  nwr["healthcare"](area.lv){box};',
+        f'  nwr["amenity"~"{one_of(BUSINESS_AMENITIES)}"](area.lv){box};',
+        f'  nwr["tourism"~"{one_of(TOURISM)}"](area.lv){box};',
+        f'  nwr["leisure"~"{one_of(LEISURE)}"](area.lv){box};',
         ");",
         "out center tags;",
     ))
+
+
+def element_town_check(place: Place, lat: Optional[float], lon: Optional[float],
+                       tags: Mapping[str, Any]) -> str:
+    """'' when an element may be this town's; otherwise the skip reason (a count, no names).
+
+    Inside the town's box, and any postal city or ZIP it states is the town's own."""
+    if not place.in_bbox(lat, lon):
+        return "skipped_outside_town"
+    city = re.sub(r"\s+", " ", str(tags.get("addr:city") or "")).strip().upper()
+    city = re.sub(r",?\s*(?:TX|TEXAS)\.?$", "", city).strip()
+    if city and city not in place.postal_cities:
+        return "skipped_other_city"
+    raw_zip = str(tags.get("addr:postcode") or "").strip()
+    if raw_zip:
+        zip_code = normalize.zip5(raw_zip)
+        if not zip_code or (place.zips_known and zip_code not in place.all_zips):
+            return "skipped_other_zip"
+    return ""
 
 
 def _first_phone(tags: Mapping[str, str], allow_fictional: bool) -> Optional[str]:
@@ -112,7 +145,8 @@ def _review_websites_in_doubt(conn: sqlite3.Connection, items: List[Tuple[str, s
     return filed
 
 
-def element_record(element: Mapping[str, Any], settings) -> Tuple[Optional[str], Optional[Dict[str, Any]], str]:
+def element_record(element: Mapping[str, Any], settings,
+                   place: Place = LONGVIEW) -> Tuple[Optional[str], Optional[Dict[str, Any]], str]:
     """(source_key, record, note) for one Overpass element; skipped elements have key None."""
     kind = element.get("type")
     osm_id = element.get("id")
@@ -125,6 +159,14 @@ def element_record(element: Mapping[str, Any], settings) -> Tuple[Optional[str],
     center = element.get("center") or {}
     lat = element.get("lat", center.get("lat"))
     lon = element.get("lon", center.get("lon"))
+    try:
+        lat = float(lat) if lat is not None else None
+        lon = float(lon) if lon is not None else None
+    except (TypeError, ValueError):
+        return None, None, "skipped_malformed"
+    outside = element_town_check(place, lat, lon, tags)
+    if outside:
+        return None, None, outside
     housenumber = str(tags.get("addr:housenumber") or "").strip()
     street_name = str(tags.get("addr:street") or "").strip()
     street = street_norm = suite = None
@@ -143,21 +185,22 @@ def element_record(element: Mapping[str, Any], settings) -> Tuple[Optional[str],
         "street": street,
         "street_norm": street_norm,
         "suite": suite,
-        "city": str(tags.get("addr:city") or "").strip() or "Longview",
+        "city": str(tags.get("addr:city") or "").strip() or place.name,
         "zip": normalize.zip5(tags.get("addr:postcode")),
         "phone": _first_phone(tags, settings.allow_fictional_phones),
         "website": website,
         "website_domain": normalize.registrable_domain(website) if website else None,
-        "lat": float(lat) if lat is not None else None,
-        "lon": float(lon) if lon is not None else None,
+        "lat": lat,
+        "lon": lon,
         "scope": "city",
+        "place": place.slug,
         "tags_json": db.dumps(tags),
     }
     return f"{kind}/{osm_id}", record, ""
 
 
 def sync_osm(conn: sqlite3.Connection, settings, now=None, transport=None) -> Dict[str, Any]:
-    """One Overpass pull for the city. Failures are recorded, then raised."""
+    """One Overpass pull per active incorporated town. Failures are recorded, then raised."""
     now = as_now(now)
     run_id = db.start_run(conn, RUN_KIND, now)
     counts: Dict[str, Any] = {
@@ -166,35 +209,46 @@ def sync_osm(conn: sqlite3.Connection, settings, now=None, transport=None) -> Di
         "with_website": 0, "with_phone": 0, "with_street": 0,
     }
     try:
-        payload = get_json(
-            settings.overpass_url, settings, data={"data": build_query()}, transport=transport,
-            timeout=max(settings.api_timeout_s, CLIENT_TIMEOUT_S),
-        )
-        if not isinstance(payload, dict):
-            raise ApiError(200, "unexpected_payload", "overpass")
-        if payload.get("remark"):
-            # Overpass reports timeouts and memory limits here with a partial result.
-            raise ApiError(200, "overpass_remark", "overpass")
+        index = PlaceIndex.for_settings(settings)
         writer = RecordWriter(conn, SOURCE_ID, now, counts)
         in_doubt: List[Tuple[str, str]] = []
-        for element in payload.get("elements") or []:
-            if not isinstance(element, dict):
+        queried: List[str] = []
+        for place in index.places:
+            if not place.incorporated:
+                bump(counts, "skipped_places")
                 continue
-            counts["fetched"] += 1
-            key, record, note = element_record(element, settings)
-            if key is None:
-                bump(counts, note)
-                continue
-            if not writer.add(key, record, element, LICENSE, f"https://www.openstreetmap.org/{key}"):
-                continue
-            counts["kept"] += 1
-            counts["with_website"] += 1 if record["website"] else 0
-            counts["with_phone"] += 1 if record["phone"] else 0
-            counts["with_street"] += 1 if record["street_norm"] else 0
-            in_doubt.extend((key, url) for url in _websites_in_doubt(element.get("tags") or {}))
+            payload = get_json(
+                settings.overpass_url, settings, data={"data": build_query(place)}, transport=transport,
+                timeout=max(settings.api_timeout_s, CLIENT_TIMEOUT_S),
+            )
+            if not isinstance(payload, dict):
+                raise ApiError(200, "unexpected_payload", "overpass")
+            if payload.get("remark"):
+                # Overpass reports timeouts and memory limits here with a partial result.
+                raise ApiError(200, "overpass_remark", "overpass")
+            queried.append(place.slug)
+            kept_before = counts["kept"]
+            for element in payload.get("elements") or []:
+                if not isinstance(element, dict):
+                    continue
+                counts["fetched"] += 1
+                key, record, note = element_record(element, settings, place)
+                if key is None:
+                    bump(counts, note)
+                    continue
+                if not writer.add(key, record, element, LICENSE, f"https://www.openstreetmap.org/{key}"):
+                    continue
+                counts["kept"] += 1
+                counts["with_website"] += 1 if record["website"] else 0
+                counts["with_phone"] += 1 if record["phone"] else 0
+                counts["with_street"] += 1 if record["street_norm"] else 0
+                in_doubt.extend((key, url) for url in _websites_in_doubt(element.get("tags") or {}))
+            if len(index.places) > 1:
+                counts.setdefault("places", {})[place.slug] = {"kept": counts["kept"] - kept_before}
         if counts["fetched"] == 0:
             raise EmptyResult()
-        writer.deactivate_unseen()
+        # Covered: every active town; one with no boundary has no map records to re-check.
+        writer.deactivate_unseen(queried, covered=index.slugs)
         if in_doubt:
             bump(counts, "websites_to_review", _review_websites_in_doubt(conn, in_doubt, now))
         finish_ok(conn, run_id, SOURCE_ID, counts, now, license=LICENSE, dataset_url=DATASET_URL)

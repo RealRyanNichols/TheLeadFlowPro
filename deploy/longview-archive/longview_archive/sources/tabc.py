@@ -15,9 +15,10 @@ import re
 import sqlite3
 from typing import Any, Dict, Mapping, Optional, Tuple
 
-from .. import db, normalize
-from ..config import LONGVIEW_ZIPS, longview_scope
+from .. import db, normalize, places
+from ..places import PlaceIndex
 from . import socrata
+from .comptroller import bump_zip, count_place, place_counts
 from .http import EmptyResult, RecordWriter, as_now, bump, finish_failed, finish_ok
 from .socrata import DatasetNotFound, SchemaMismatch
 
@@ -58,7 +59,8 @@ def _get(row: Mapping[str, Any], fields: Mapping[str, Optional[str]], logical: s
     return "" if value is None else str(value).strip()
 
 
-def project_row(row: Mapping[str, Any], fields: Mapping[str, Optional[str]], settings) -> Tuple[Optional[str], Optional[Dict[str, Any]], str]:
+def project_row(row: Mapping[str, Any], fields: Mapping[str, Optional[str]], settings,
+                index: Optional[PlaceIndex] = None) -> Tuple[Optional[str], Optional[Dict[str, Any]], str]:
     license_id = _get(row, fields, "license_id")
     if not license_id:
         return None, None, "skipped_no_key"
@@ -68,7 +70,8 @@ def project_row(row: Mapping[str, Any], fields: Mapping[str, Optional[str]], set
     if not name:
         return None, None, "skipped_no_name"
     city = _get(row, fields, "city")
-    if city.upper() != "LONGVIEW":
+    place = (index or PlaceIndex.for_settings(settings)).for_city(city)
+    if place is None:
         return None, None, "skipped_city"
     state = _get(row, fields, "state")
     if fields.get("state") and state and state.upper() != "TX":
@@ -83,18 +86,19 @@ def project_row(row: Mapping[str, Any], fields: Mapping[str, Optional[str]], set
         "street": normalize.display_street(address) or None,
         "street_norm": street_norm or None,
         "suite": suite or None,
-        "city": normalize.title_case_name(city),
+        "city": place.name,
         "zip": zip_code,
         "phone": normalize.norm_phone(_get(row, fields, "phone"), allow_fictional=settings.allow_fictional_phones),
-        # A missing or non-Longview ZIP is 'out': never published as "Longview, TX".
-        "scope": longview_scope(zip_code),
+        # A missing ZIP, or one the town does not have, is 'out': never published as "<Town>, TX".
+        "scope": place.scope(zip_code),
+        "place": place.slug,
         "tags_json": db.dumps({"county": normalize.title_case_name(county)}) if county else None,
     }
     return license_id, record, ""
 
 
 def sync_tabc(conn: sqlite3.Connection, settings, now=None, transport=None) -> Dict[str, Any]:
-    """Pull active Longview licences. Never raises: skips or records the error and returns counts."""
+    """Pull the active places' licences. Never raises: skips or records the error and returns counts."""
     now = as_now(now)
     run_id = db.start_run(conn, RUN_KIND, now)
     counts: Dict[str, Any] = {
@@ -102,6 +106,8 @@ def sync_tabc(conn: sqlite3.Connection, settings, now=None, transport=None) -> D
         "deactivated": 0, "businesses_deactivated": 0, "duplicates": 0, "suppressed": 0,
         "city": 0, "nearby": 0, "out": 0, "other_zips": {},
     }
+    index = PlaceIndex.for_settings(settings)
+    place_counts(counts, index)
     try:
         info = socrata.discover_dataset(
             settings, QUERY, NAME_PATTERN, [FIELD_CANDIDATES[f] for f in REQUIRED_FIELDS], transport=transport
@@ -116,11 +122,11 @@ def sync_tabc(conn: sqlite3.Connection, settings, now=None, transport=None) -> D
         counts["error"] = finish_failed(conn, run_id, SOURCE_ID, counts, now, exc)
         return counts
     try:
-        where = f"upper({fields['city']}) = 'LONGVIEW'"
+        where = index.where(fields["city"])
         writer = RecordWriter(conn, SOURCE_ID, now, counts)
         for row in socrata.fetch_rows(settings, info.id, where, page_size=PAGE_SIZE, transport=transport):
             counts["fetched"] += 1
-            key, record, note = project_row(row, fields, settings)
+            key, record, note = project_row(row, fields, settings, index)
             if key is None:
                 bump(counts, note)
                 continue
@@ -128,12 +134,13 @@ def sync_tabc(conn: sqlite3.Connection, settings, now=None, transport=None) -> D
                 continue
             counts["kept"] += 1
             counts[record["scope"]] += 1
-            if record["zip"] not in LONGVIEW_ZIPS:
-                zip_key = record["zip"] or "missing"
-                counts["other_zips"][zip_key] = counts["other_zips"].get(zip_key, 0) + 1
+            place = places.get(record["place"])
+            count_place(counts, place.slug, record["scope"])
+            if place.other_zip(record["zip"]):
+                bump_zip(counts, place.slug, record["zip"] or "missing")
         if counts["fetched"] == 0:
             raise EmptyResult()
-        writer.deactivate_unseen()
+        writer.deactivate_unseen(index.slugs)
         finish_ok(conn, run_id, SOURCE_ID, counts, now, license=info.license, dataset_id=info.id,
                   dataset_url=info.url, columns_json=db.dumps(list(info.columns)))
     except Exception as exc:
