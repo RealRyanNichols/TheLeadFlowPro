@@ -59,17 +59,17 @@ for (const vp of VIEWPORTS) {
       await expect(page.getByRole("heading", { level: 1 })).toContainText("manual");
     });
 
-    test("agency hub lists six core services and three specialty builds with no overlapping text, carries the three doors, and the intake preserves entries on a validation error", async ({ page }) => {
+    test("agency hub lists six core services and four specialty builds with no overlapping text, carries the three doors, and the intake preserves entries on a validation error", async ({ page }) => {
       await page.goto("/agency");
       await noHorizontalScroll(page);
       await expect(page.locator("#services .cb-servicecard")).toHaveCount(6);
-      await expect(page.locator("#specialty .cb-servicecard")).toHaveCount(3);
+      await expect(page.locator("#specialty .cb-servicecard")).toHaveCount(4);
       const cards = page.locator(".cb-servicecard");
-      await expect(cards).toHaveCount(9);
+      await expect(cards).toHaveCount(10);
       // The old three-column tool-card grid stacked five children into three
       // cells and the eyebrow, name, and promise drew on top of each other.
       // Every card's children must now sit below the previous one.
-      for (let i = 0; i < 9; i++) {
+      for (let i = 0; i < 10; i++) {
         const boxes = await cards.nth(i).locator(":scope > *").evaluateAll((nodes) =>
           nodes.map((n) => { const r = (n as HTMLElement).getBoundingClientRect(); return { top: r.top, bottom: r.bottom }; }),
         );

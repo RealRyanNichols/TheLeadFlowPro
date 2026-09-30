@@ -235,7 +235,7 @@ export const PUBLIC_PAGE_CATALOG = [
     path: "/agency",
     title: "Ads, websites, automation, video, and content, run for you",
     description:
-      "The agency lane: Meta ads, Google Ads, websites, automation, video, and content in accounts you own, plus community help desks, crypto tax intake, and XRPL treasury alerts. You pay the platforms directly and keep the leads.",
+      "The agency lane: Meta ads, Google Ads, websites, automation, video, and content in accounts you own, plus specialty builds for crypto communities, CPA firms, and shops. You pay the platforms directly and keep the leads.",
     eyebrow: "Run it for me",
   },
   {
@@ -300,6 +300,13 @@ export const PUBLIC_PAGE_CATALOG = [
     description:
       "Watch-only alerts when your own wallets receive or send funds, sent to Discord, Telegram, email, or text, plus a public treasury page. No keys, no price alerts, no trading signals.",
     eyebrow: "Agency · XRPL treasury alerts",
+  },
+  {
+    path: "/agency/crypto-checkout",
+    title: "Take crypto payments without touching the price swings",
+    description:
+      "A processor you sign up with directly, conversion to dollars if you want it, a checkout on your site or at the counter, a staff guide, and bookkeeping that matches. We never touch the money.",
+    eyebrow: "Agency · Crypto checkout",
   },
   {
     path: "/agency/start",
