@@ -9,6 +9,7 @@
 import { useState } from "react";
 import { ArrowRight, Check } from "lucide-react";
 import { SmsConsentText } from "@/components/site/SmsConsentText";
+import { campaignTags, storedCampaignTags } from "@/lib/site/campaignTags";
 
 type ServiceOption = { slug: string; label: string };
 
@@ -92,6 +93,7 @@ export default function AgencyIntake({
 
     setStatus("sending");
     const params = new URLSearchParams(window.location.search);
+    const tags = campaignTags(params, storedCampaignTags(), "agency_intake");
     try {
       const res = await fetch("/api/leads", {
         method: "POST",
@@ -109,9 +111,9 @@ export default function AgencyIntake({
           best_contact_method: smsConsent && phone ? "phone" : "email",
           sms_consent: smsConsent && Boolean(phone),
           marketing_email_consent: form.get("marketing_email_consent") === "on",
-          utm_source: params.get("utm_source"),
-          utm_medium: params.get("utm_medium") ?? "agency_intake",
-          utm_campaign: params.get("utm_campaign"),
+          utm_source: tags.utm_source,
+          utm_medium: tags.utm_medium,
+          utm_campaign: tags.utm_campaign,
           diagnostic: {
             version: 1,
             source: "agency_intake",
