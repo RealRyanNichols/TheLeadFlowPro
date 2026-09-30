@@ -80,14 +80,19 @@ class Registry(unittest.TestCase):
         self.assertEqual(config.Settings().places, ("longview",))
         self.assertEqual(config.Settings().site_dir, config.Settings().place_site_dir("longview"))
 
-    def test_first_and_second_rings_are_seeded(self):
+    def test_three_rings_are_seeded(self):
         self.assertEqual(
             [p.slug for p in places.PLACES],
             ["longview", "marshall", "kilgore", "white-oak", "hallsville", "diana", "harleton", "gladewater",
              "clarksville-city", "easton", "scottsville", "elysian-fields", "waskom", "ore-city", "gilmer",
              "karnack", "jefferson", "tatum", "henderson", "carthage",
              "tyler", "big-sandy", "hawkins", "winona", "arp", "overton", "new-london", "beckville",
-             "pittsburg", "daingerfield", "lone-star", "hughes-springs", "linden"])
+             "pittsburg", "daingerfield", "lone-star", "hughes-springs", "linden",
+             "mount-pleasant", "nacogdoches", "palestine", "jacksonville", "athens", "mineola", "quitman",
+             "winnsboro", "mount-vernon", "atlanta", "queen-city", "naples", "omaha", "avinger", "lindale",
+             "whitehouse", "bullard", "troup", "rusk", "mount-enterprise", "center", "timpson", "tenaha",
+             "chandler", "brownsboro", "van", "edgewood", "grand-saline", "canton", "wills-point", "frankston",
+             "alba", "yantis", "leesburg", "laneville", "cushing", "garrison", "chireno", "joaquin"])
         for p in places.PLACES:
             with self.subTest(place=p.slug):
                 self.assertEqual(p.state, "TX")

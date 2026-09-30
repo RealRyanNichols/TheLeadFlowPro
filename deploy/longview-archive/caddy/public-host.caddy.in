@@ -5,7 +5,7 @@
 # the directory is served here: the status pages stay on the staging host.
 @PUBLIC_HOST@ {
 	import longview_archive_headers
-	@longview_public_not_directory not path_regexp (?i)^/(?:(?:longview|marshall|kilgore|white-oak|hallsville|diana|harleton|gladewater|clarksville-city|easton|scottsville|elysian-fields|waskom|ore-city|gilmer|karnack|jefferson|tatum|henderson|carthage|tyler|big-sandy|hawkins|winona|arp|overton|new-london|beckville|pittsburg|daingerfield|lone-star|hughes-springs|linden)/businesses|places)(?:/.*)?$
+	@longview_public_not_directory not path_regexp (?i)^/(?:(?:longview|marshall|kilgore|white-oak|hallsville|diana|harleton|gladewater|clarksville-city|easton|scottsville|elysian-fields|waskom|ore-city|gilmer|karnack|jefferson|tatum|henderson|carthage|tyler|big-sandy|hawkins|winona|arp|overton|new-london|beckville|pittsburg|daingerfield|lone-star|hughes-springs|linden|mount-pleasant|nacogdoches|palestine|jacksonville|athens|mineola|quitman|winnsboro|mount-vernon|atlanta|queen-city|naples|omaha|avinger|lindale|whitehouse|bullard|troup|rusk|mount-enterprise|center|timpson|tenaha|chandler|brownsboro|van|edgewood|grand-saline|canton|wills-point|frankston|alba|yantis|leesburg|laneville|cushing|garrison|chireno|joaquin)/businesses|places)(?:/.*)?$
 	import longview_archive_csp_strict @longview_public_not_directory
 
 	import /etc/caddy/longview-archive/website.routes

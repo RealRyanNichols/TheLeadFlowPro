@@ -12,6 +12,7 @@ rule and drops a record that breaks one, so every rule is applied here first.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import os
@@ -773,11 +774,37 @@ def _comparable(business: dict) -> dict:
     return out
 
 
+def export_digests(data: Optional[dict]) -> Dict[str, str]:
+    """One short fingerprint per business id (of what ``diff_exports`` compares).
+
+    Comparing fingerprints instead of full copies keeps a publish of tens of
+    thousands of profiles well inside the service's memory cap."""
+    out: Dict[str, str] = {}
+    for b in (data or {}).get("businesses") or []:
+        text = json.dumps(_comparable(b), sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+        out[b["id"]] = hashlib.sha256(text.encode("utf-8")).hexdigest()
+    return out
+
+
+def diff_digests(before: Optional[Dict[str, str]], after: Dict[str, str]) -> Dict[str, List[str]]:
+    before = before or {}
+    return {
+        "added": sorted(set(after) - set(before)),
+        "removed": sorted(set(before) - set(after)),
+        "changed": sorted(i for i in set(before) & set(after) if before[i] != after[i]),
+    }
+
+
 def diff_exports(old: Optional[dict], new: Optional[dict]) -> Dict[str, List[str]]:
     """Businesses added, removed, and changed between two exports (by id).
 
     A re-check that only moves ``checkedAt``/``updatedAt`` is not a change.
     """
+    return diff_digests(export_digests(old), export_digests(new))
+
+
+def _diff_exports_full(old: Optional[dict], new: Optional[dict]) -> Dict[str, List[str]]:
+    """The same comparison on full copies (kept for tests that check the two agree)."""
     before = {b["id"]: _comparable(b) for b in (old or {}).get("businesses") or []}
     after = {b["id"]: _comparable(b) for b in (new or {}).get("businesses") or []}
     return {
@@ -795,16 +822,18 @@ def run_publish(conn: sqlite3.Connection, settings, now: Any = None,
     run_id = db.start_run(conn, "publish", db.now_iso(now_dt))
     path = Path(out_path) if out_path else settings.publish_export_path
     try:
-        states = evaluate(conn, settings, now_dt)
-        data = build_export(conn, settings, now_dt)
-        old = None
+        # The previous export is read and reduced to fingerprints before the new one is
+        # built, so the two are never in memory at the same time.
+        old_digests = None
         if path.exists():
             try:
-                old = json.loads(path.read_text(encoding="utf-8"))
+                old_digests = export_digests(json.loads(path.read_text(encoding="utf-8")))
             except (OSError, ValueError):
-                old = None
+                old_digests = None
+        states = evaluate(conn, settings, now_dt)
+        data = build_export(conn, settings, now_dt)
         write_export(path, data)
-        diff = diff_exports(old, data)
+        diff = diff_digests(old_digests, export_digests(data))
         counts = dict(states)
         counts.update({"published": data["counts"]["published"], "added": len(diff["added"]),
                        "removed": len(diff["removed"]), "updated": len(diff["changed"])})
