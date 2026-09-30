@@ -35,7 +35,7 @@ import { breadcrumbJsonLd, graph, jsonLdText, localBusinessJsonLd } from "@/lib/
 export const metadata: Metadata = withPublicPageMetadata("/agency", {
   title: "Agency: Meta ads, Google Ads, websites, automation, video, content | The LeadFlow Pro",
   description:
-    "Full-service ads, websites, automation, video, and content for East Texas businesses, plus help desks for online communities and crypto tax intake for CPA firms, run in accounts you own. You pay the platforms directly and keep the pixel, audiences, leads, and reporting.",
+    "Full-service ads, websites, automation, video, and content for East Texas businesses, plus help desks for online communities, crypto tax intake for CPA firms, and treasury alerts for XRP Ledger projects, run in accounts you own. You pay the platforms directly and keep the pixel, audiences, leads, and reporting.",
 });
 
 const ALWAYS_TRUE = [
@@ -89,7 +89,7 @@ export default function AgencyHubPage() {
       name: `${BUSINESS.name} Agency`,
       catalogName: "Agency services",
       offerIds: AGENCY_SERVICES.map((s) => s.offerId),
-      knowsAbout: ["Meta ads management", "Google Ads management", "Business websites", "Marketing automation", "Video production", "Content marketing", "Community help desks", "Crypto tax client intake"],
+      knowsAbout: ["Meta ads management", "Google Ads management", "Business websites", "Marketing automation", "Video production", "Content marketing", "Community help desks", "Crypto tax client intake", "XRP Ledger treasury alerts"],
     }),
     breadcrumbJsonLd([
       { name: "Home", path: "/" },
@@ -150,7 +150,7 @@ export default function AgencyHubPage() {
               same rules as the rest of the lane: scoped and priced in writing, and built in accounts you own.
             </p>
           </div>
-          <div className="cb-servicegrid cb-servicegrid--two">
+          <div className={SPECIALTY_AGENCY_SERVICES.length % 3 === 0 ? "cb-servicegrid" : "cb-servicegrid cb-servicegrid--two"}>
             {SPECIALTY_AGENCY_SERVICES.map((service) => (
               <ServiceCard key={service.slug} service={service} />
             ))}

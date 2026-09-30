@@ -590,6 +590,19 @@ export const OFFERS: readonly Offer[] = [
     href: "/agency/crypto-tax-intake",
     source: "docs/decisions-needed.md",
   },
+  {
+    id: "agency_xrpl_treasury_alerts",
+    name: "XRPL treasury alerts",
+    category: "agency",
+    priceUsd: null,
+    priceLabel: TBD_PRICE_LABEL,
+    terms: TBD_PRICE_TERMS,
+    status: "tbd_ryan",
+    effectiveDate: "2026-09-29",
+    reviewDate: "2026-10-15",
+    href: "/agency/xrpl-treasury-alerts",
+    source: "docs/decisions-needed.md",
+  },
 
   // -------------------------------------------------- plugin vertical packs --
   // Industry editions of the plugin (lib/hq/verticals.ts). A pack is marketed

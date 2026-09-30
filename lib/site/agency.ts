@@ -1,6 +1,6 @@
 // The agency lane: Meta ads, Google Ads, websites, automation, video, and
-// content, plus specialty builds (community help desks, crypto tax intake),
-// run for the client in accounts the client owns.
+// content, plus specialty builds (community help desks, crypto tax intake,
+// XRPL treasury alerts), run for the client in accounts the client owns.
 //
 // Every page under /agency renders from this file. Prices come from
 // lib/site/offers.ts, where every agency offer is `tbd_ryan` until Ryan sets
@@ -390,6 +390,59 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
       { href: "/agency/websites", label: "Websites" },
     ],
   },
+  {
+    // Watch-only: it reads public ledger data for addresses the client owns
+    // or may watch, so nobody here holds keys or moves funds. It reports what
+    // moved, never prices or what to do about them: no price alerts, no buy
+    // or sell calls, no "signals".
+    slug: "xrpl-treasury-alerts",
+    offerId: "agency_xrpl_treasury_alerts",
+    name: "XRPL treasury alerts",
+    navLabel: "Treasury alerts",
+    specialty: "XRP Ledger projects and merchants",
+    seoTitle: "XRP Ledger Wallet and Treasury Alerts for Projects and Merchants | The LeadFlow Pro",
+    metaDescription:
+      "Watch-only alerts for your own XRP Ledger wallets: a message in Discord, Telegram, email, or text when a payment lands or treasury funds move, plus a public treasury page. No keys, no price alerts, no trading signals.",
+    eyebrow: "Watch-only, on the XRP Ledger",
+    audience: "Crypto projects, communities, and merchants on the XRP Ledger that need to know when their own wallets receive or send funds, without refreshing an explorer all day.",
+    problem: "Someone keeps checking an explorer to see whether a customer's payment landed or a treasury wallet moved, and holders keep asking the team to show where the funds are.",
+    promise: "Watch-only alerts on the wallets you name: a message to your team when a payment lands or funds move, and a public treasury page anyone can check. It never holds keys and never sends price alerts or trading signals.",
+    trustLine: "Watch-only public addresses. No keys, no price alerts, no trading signals.",
+    included: [
+      "A watch list of the public XRP Ledger addresses you name: treasury, operations, and payment wallets",
+      "Alerts to your team in Discord, Telegram, or email when funds arrive or leave, with the amount, the other account, and a link to the ledger record",
+      "Payment checks for merchants: an alert when a payment with the destination tag you expect lands",
+      "Alerts for tokens issued on the XRP Ledger that your wallets hold, as well as XRP",
+      "A public treasury page on your website that lists each wallet and its balance, read straight from the ledger",
+      "Thresholds and quiet hours so small transactions do not flood the channel",
+      "A monthly movement report your team can share with holders",
+    ],
+    clientOwns: [
+      "The wallets, the keys, and the accounts they sit in",
+      "The alert channels and the list of who gets alerts",
+      "The treasury page and every report",
+    ],
+    clientPaysDirectly: ["Any texting or email software the alerts send through"],
+    notIncluded: [
+      "Holding, moving, or signing for any wallet or funds",
+      "Price alerts, buy or sell calls, or trading of any kind",
+      "Tracking wallets that belong to other people",
+      "Texts to anyone who has not agreed to get them",
+    ],
+    faq: [
+      { q: "Do you need our keys?", a: "No. Alerts read public ledger data for the addresses you name. Nobody at The LeadFlow Pro holds, sees, or asks for a key or a recovery phrase." },
+      { q: "Will it tell us when to buy or sell?", a: "No. It reports what moved on the ledger. It never sends prices, predictions, or trading advice." },
+      { q: "Where do the alerts go?", a: "Discord, Telegram, email, or text. Texts go only to people who agreed to get them, and STOP is honored immediately." },
+      { q: "Can our holders see the treasury?", a: "Yes, if you want them to. A public treasury page on your website lists each wallet and its current balance, read from the ledger, so anyone can check it." },
+      { q: "Can we watch any wallet?", a: "Only wallets your project or business owns, or has written permission to watch. It is not a tool for tracking other people." },
+      { q: "What does it cost?", a: "Pricing is confirmed on the scoping call and put in writing before anything starts. Any texting or email software is billed to you by its maker." },
+    ],
+    intakeHref: intake("xrpl-treasury-alerts"),
+    related: [
+      { href: "/agency/community-help-desk", label: "Community help desk" },
+      { href: "/agency/websites", label: "Websites" },
+    ],
+  },
 ];
 
 /** The six services every local business buys, for pages about the local lead system. */
@@ -409,7 +462,7 @@ export function agencyOffer(service: AgencyService): Offer {
 export const AGENCY_HUB = {
   eyebrow: "Run it for me",
   title: "The agency lane.",
-  lead: `Meta ads, Google Ads, websites, automation, video, and content, run by ${BUSINESS.operator} in accounts you own, plus specialty builds for online communities and CPA firms. This is the lane for owners who want the whole loop handled.`,
+  lead: `Meta ads, Google Ads, websites, automation, video, and content, run by ${BUSINESS.operator} in accounts you own, plus specialty builds for online communities, CPA firms, and XRP Ledger projects. This is the lane for owners who want the whole loop handled.`,
   budgetNote: "The intake asks for the monthly ad budget you are genuinely prepared to spend. A $0 answer does not disqualify you; it routes you to the right lane.",
   contact: {
     phone: BUSINESS.phone.display,

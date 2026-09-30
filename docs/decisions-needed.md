@@ -870,3 +870,22 @@ Both pages sit in the hub's "Specialty builds" band and stay off `/longview`.
      report what a client sold for from 2025, and usually not what they
      paid for crypto bought before 2026. Default: recheck the IRS digital
      assets page every October and before any ad runs.
+
+106. **The XRPL treasury alerts price.** The page is
+     `/agency/xrpl-treasury-alerts`, offer `agency_xrpl_treasury_alerts`,
+     `tbd_ryan`. Suggested, not published, from the September 29 market scan:
+     $97 a month for a project's treasury and team alerts; $20 a month or
+     $97 once for a small merchant's payment checks. Both are under the
+     $250 floor on `/agency/pay` (item 100), so they can be paid there only
+     once the price is published as a live offer. Default: publish nothing
+     yet and scope each buyer in writing.
+
+107. **Where the alerts read the ledger from, and how they send.** The
+     service is watch-only: it reads public XRP Ledger data for addresses
+     the client owns or has written permission to watch, and never holds
+     keys or moves funds. Decisions before the first client: which ledger
+     servers it reads (public servers or a paid node), and which accounts
+     send the alerts (the client's own Discord or Telegram bot, email, or
+     texting account; texts only with recorded consent and STOP honored).
+     Nothing sends until a client's setup is approved. Default: the
+     client's own accounts, public servers until volume needs more.
