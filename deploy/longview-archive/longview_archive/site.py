@@ -74,7 +74,7 @@ CATEGORY_LEAD = "Every one we could verify, listed A to Z. Not ranked."
 # Bump whenever the pages' wording or markup changes: a site built with another
 # version is rebuilt at the next service start (``build_key``), so an upgrade
 # never leaves the old copy public until the next approval.
-COPY_VERSION = "6"
+COPY_VERSION = "7"
 
 SOURCE_LABELS = {
     "tx_sales_tax": "Texas Comptroller open data",
@@ -338,7 +338,7 @@ def render_page(d: Directory, *, title: str, description: str, site_path: str, h
                 eyebrow: str = "", lead: str = "", crumbs: Sequence[Tuple[str, Optional[str]]] = (),
                 art: str = "", hero_extra: str = "", body: str = "", index: bool = False,
                 paged: bool = False, script: bool = False, disclaimer_in_footer: bool = True,
-                hero_class: str = "") -> str:
+                hero_class: str = "", sprite: str = "") -> str:
     """The frame every page shares. ``lead``, ``art``, ``hero_extra``, and ``body`` are HTML already escaped."""
     crumb_html = ""
     if crumbs:
@@ -369,6 +369,7 @@ def render_page(d: Directory, *, title: str, description: str, site_path: str, h
         f'<link rel="stylesheet" href="{base()}{CSS_NAME}">\n'
         f"{script_tag}"
         "</head>\n<body>\n"
+        f"{sprite}"
         '<a class="skip" href="#main">Skip to the content</a>\n'
         f"{sample}"
         f'<header class="brand"><div class="shell"><a href="{base()}">{e(d.town)} businesses</a>'
@@ -414,15 +415,96 @@ def since_line(b: Mapping) -> Optional[str]:
     return None
 
 
-def cover(b: Mapping) -> str:
-    return ('<svg class="cover" viewBox="0 0 960 300" preserveAspectRatio="xMinYMid slice" aria-hidden="true"'
-            ' focusable="false"><defs><pattern id="cover-grid" width="40" height="40"'
-            ' patternUnits="userSpaceOnUse"><path class="cover-line" d="M40 0H0V40"/></pattern></defs>'
-            f'<rect class="{category_class(b["category"])}" width="960" height="300"/>'
-            '<rect width="960" height="300" fill="url(#cover-grid)"/>'
-            '<circle class="cover-dot" cx="840" cy="40" r="200"/><circle class="cover-dot" cx="840" cy="40" r="120"/>'
-            f'<text class="cover-text" x="60" y="154" dominant-baseline="central">{e(monogram_initials(b["name"]))}'
-            "</text></svg>")
+# Single-path 24x24 icons, drawn in currentColor by the CSS. A page carries only the ones it uses.
+ICONS = {
+    "phone": "M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0"
+             " 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z",
+    "globe": "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 2c.9 0 2.3 1.8 2.9 5H9.1C9.7 5.8 11.1 4 12 4zM4.3 11h2.8"
+             "a17 17 0 0 0 0 2H4.3a8 8 0 0 1 0-2zm4.8 2a15 15 0 0 1 0-2h5.8a15 15 0 0 1 0 2zm7.8 0a17 17 0 0 0"
+             " 0-2h2.8a8 8 0 0 1 0 2zM12 20c-.9 0-2.3-1.8-2.9-5h5.8c-.6 3.2-2 5-2.9 5z",
+    "pin": "M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z",
+}
+
+
+def sprite(names: Iterable[str]) -> str:
+    """One hidden SVG holding the icons a page uses (``<use href>`` draws them; no script, no request)."""
+    used = [n for n in ICONS if n in set(names)]
+    if not used:
+        return ""
+    symbols = "".join(f'<symbol id="i-{n}" viewBox="0 0 24 24"><path d="{ICONS[n]}"/></symbol>' for n in used)
+    return f'<svg class="sprite" aria-hidden="true" focusable="false" hidden>{symbols}</svg>\n'
+
+
+def icon(name: str) -> str:
+    return f'<svg class="ic" aria-hidden="true" focusable="false"><use href="#i-{name}"/></svg>'
+
+
+def identity(b: Mapping) -> str:
+    """The profile's large monogram (category colour and initials)."""
+    return (f'<span class="mono mono-lg {category_class(b["category"])}" aria-hidden="true">'
+            f"{e(monogram_initials(b['name']))}</span>")
+
+
+def whole_years(since: str, until: Optional[str]) -> int:
+    """Whole years from one YYYY-MM-DD date to another (0 when either is missing)."""
+    if not since or not until:
+        return 0
+    y = int(until[:4]) - int(since[:4])
+    if until[5:10] < since[5:10]:
+        y -= 1
+    return max(y, 0)
+
+
+def fact_chips(d: "Directory", b: Mapping) -> List[Tuple[str, str]]:
+    """(field, text) for the profile's 'On record' chips: true, sourced, at most four, fixed order."""
+    shown = set(shown_fields(b))
+    chips: List[Tuple[str, str]] = []
+    if "permitSince" in shown and b["permitSince"]:
+        years = whole_years(b["permitSince"], d.batch_date)
+        text = f"Sales-tax permit on file since {format_month_year(b['permitSince'])}"
+        chips.append(("permitSince", text + (f" ({plural(years, 'year', 'years')})" if years >= 1 else "")))
+    if "registeredSince" in shown and b.get("registeredSince"):
+        chips.append(("registeredSince", f"Franchise-tax registration since {b['registeredSince'][:4]}"))
+    if "hours" in shown and b["hours"]:
+        chips.append(("hours", "Hours on its own website"))
+    if "website" in shown and b["website"] and safe_url(b["website"]["url"]):
+        chips.append(("website", "Own website"))
+    if "careers" in shown and b["careersUrl"]:
+        chips.append(("careers", "Hiring: careers page"))
+    if "services" in shown and b["services"]:
+        chips.append(("services", f"{plural(len(b['services']), 'service', 'services')} listed on its website"))
+    return chips[:4]
+
+
+def fact_strip(d: "Directory", b: Mapping) -> str:
+    chips = fact_chips(d, b)
+    if not chips:
+        return ""
+    items = "".join(f'<li><a class="fact" href="#src-{field}">{e(text)}</a></li>' for field, text in chips)
+    return f'<ul class="facts grid-wide" aria-label="On record">{items}</ul>'
+
+
+def action_bar(b: Mapping) -> Tuple[str, List[str]]:
+    """Call, Visit website, Directions: each only when its value exists. Returns (html, icons used).
+
+    Directions is a button only for a listing with a shown street; a listing whose
+    street is hidden keeps the plain Directions link beside its town (no prominent
+    map button that could point at a home)."""
+    buttons, used = [], []
+    if b["phone"]:
+        buttons.append(f'<a class="btn btn-primary" href="tel:{e(b["phone"]["e164"])}">{icon("phone")}'
+                       f'Call {e(b["phone"]["display"])}</a>')
+        used.append("phone")
+    site_url = safe_url(b["website"]["url"]) if b["website"] else None
+    if site_url and b["website"]["status"] != "dead":
+        buttons.append(f'<a class="btn btn-ghost" href="{e(site_url)}" rel="{REL}">{icon("globe")}Visit website</a>')
+        used.append("globe")
+    if has_premises(b) and b["address"]["street"]:
+        buttons.append(f'<a class="btn btn-ghost" href="{e(maps_url(b))}" rel="{REL}">{icon("pin")}Directions</a>')
+        used.append("pin")
+    if not buttons:
+        return "", []
+    return f'<nav class="actions" aria-label="Contact {e(b["name"])}">{"".join(buttons)}</nav>', used
 
 
 def card(d: Directory, b: Mapping, extra: str = "", since: bool = True) -> str:
@@ -702,11 +784,11 @@ def profile_page(d: Directory, b: Mapping) -> str:
         rows.append(_dl_row("Website", ext_link(b["website"]["url"], website_host(b["website"]["url"]))
                             + (f"<small>{e(note)}</small>" if note else "")))
     else:
-        rows.append(_dl_row("Website", '<span class="fallback">No website found yet.</span>'))
+        rows.append(_dl_row("Website", '<span class="missing">No website found yet.</span>'))
     if b["phone"]:
         rows.append(_dl_row("Phone", f'<a href="tel:{e(b["phone"]["e164"])}">{e(b["phone"]["display"])}</a>'))
     else:
-        rows.append(_dl_row("Phone", '<span class="fallback">No phone number listed on a website we could'
+        rows.append(_dl_row("Phone", '<span class="missing">No phone number listed on a website we could'
                                      " verify.</span>"))
     if b["email"]:
         rows.append(_dl_row("Email", f'<a href="mailto:{e(b["email"])}">{e(b["email"])}</a>'))
@@ -722,10 +804,10 @@ def profile_page(d: Directory, b: Mapping) -> str:
                       "<tbody>" + "".join(f'<tr><th scope="row">{e(day)}</th><td>{e(text)}</td></tr>'
                                           for day, text in table_rows) + "</tbody></table>")
         if missing:
-            hours_html += '<p class="fallback">Hours not listed for other days.</p>'
+            hours_html += '<p class="fallback"><span class="missing">Hours not listed for other days.</span></p>'
         hours_html += '<p class="fallback">As listed on the business\'s own website. Times are Central.</p>'
     else:
-        hours_html = '<p class="fallback">Hours not listed.</p>'
+        hours_html = '<p class="fallback"><span class="missing">Hours not listed.</span></p>'
     panels.append(f'<div class="panel"><h2>Hours</h2>{hours_html}</div>')
 
     if b["careersUrl"] and safe_url(b["careersUrl"]):
@@ -750,39 +832,49 @@ def profile_page(d: Directory, b: Mapping) -> str:
 
     shown = set(shown_fields(b))
     source_items = []
+    anchored = set()
     for fact in b["facts"]:
         if fact["field"] not in shown:
             continue
         label = SOURCE_LABELS[fact["source"]]
         source = ext_link(fact["url"], label) if fact["url"] else e(label)
-        source_items.append(f"<li><strong>{e(FIELD_LABELS[fact['field']])}</strong><span>{source}</span>"
+        anchor = "" if fact["field"] in anchored else f' id="src-{fact["field"]}"'
+        anchored.add(fact["field"])
+        source_items.append(f"<li{anchor}><strong>{e(FIELD_LABELS[fact['field']])}</strong><span>{source}</span>"
                             f"<span>checked {e(format_day(fact['checkedAt']))}</span></li>")
     panels.append('<div class="panel grid-wide"><h2>Sources and checks</h2>'
                   f'<ul class="sources">{"".join(source_items)}</ul></div>')
 
-    body = (f'<section class="band" aria-label="Listing details"><div class="shell grid">{"".join(panels)}</div>'
-            "</section>"
-            '<section class="band band-tint" aria-labelledby="claim-title"><div class="shell claim">'
-            '<h2 id="claim-title">Something wrong or missing?</h2>'
+    body = (f'<section class="band" aria-label="Listing details"><div class="shell grid">{fact_strip(d, b)}'
+            f'{"".join(panels)}</div></section>'
+            '<section class="band band-tint" aria-labelledby="claim-title"><div class="shell claim-wrap">'
+            '<div class="claim"><h2 id="claim-title">Is this your business?</h2>'
             f'<p class="disclaimer">{e(DISCLAIMER)}</p>'
             '<p class="note">A business can ask us to correct a fact, add one from its own website, or remove the'
             " listing. The button opens an email to The LeadFlow Pro.</p>"
             f'<a class="btn btn-primary" href="{e(claim_mailto(d, b))}">Claim, correct, or remove this listing</a>'
+            "</div>"
+            '<aside class="pitch" aria-labelledby="pitch-title"><h2 id="pitch-title">From The LeadFlow Pro</h2>'
             f'<p class="own">Own this business? <a href="{e(LEADFLOW_LONGVIEW)}">See what The LeadFlow Pro does for'
-            f" {'Longview' if d.place is places.LONGVIEW else 'local'} businesses</a>.</p></div></section>")
+            f" {'Longview' if d.place is places.LONGVIEW else 'local'} businesses</a>.</p></aside>"
+            "</div></section>")
     # No Directions link without a place to visit: a listing with no street and no
     # record that places it anywhere (known only from the franchise-tax list, whose
     # address is a mailing address) could send a visitor to a home or an accountant.
-    directions = (f'<a href="{e(maps_url(b))}" rel="{REL}">Directions</a>' if has_premises(b) else "")
-    hero_extra = f'<p class="where"><span>{e(address_line(b))}</span>{directions}</p>'
+    # With a shown street it is a button in the action bar; with a hidden street it
+    # stays a plain link beside the town. Never both.
+    actions, used = action_bar(b)
+    directions = (f'<a href="{e(maps_url(b))}" rel="{REL}">Directions</a>'
+                  if has_premises(b) and not b["address"]["street"] else "")
+    hero_extra = f'<p class="where"><span>{e(address_line(b))}</span>{directions}</p>{actions}'
     return render_page(
         d, title=f"{b['name']} in {d.town}, TX | {d.town} businesses",
         description=_profile_description(b, category_name), site_path=path(b["slug"]), h1=b["name"],
         eyebrow=category_name,
         crumbs=((f"{d.town} businesses", base()), (category_name, path("category", b["category"])),
                 (b["name"], None)),
-        art=cover(b), hero_extra=hero_extra, body=body, index=d.profile_indexable(b),
-        disclaimer_in_footer=False, hero_class="hero-profile")
+        art=identity(b), hero_extra=hero_extra, body=body, index=d.profile_indexable(b),
+        disclaimer_in_footer=False, hero_class="hero-profile", sprite=sprite(used))
 
 
 def about_page(d: Directory) -> str:
@@ -1410,9 +1502,8 @@ svg.mono { display: block; width: 48px; height: 48px; background: none; }
   color: var(--ink); font-size: 14px; font-weight: 600;
 }
 .badge-open { background: var(--open-soft); color: var(--open); }
-.mono-text, .cover-text { fill: #FFFFFF; font-family: var(--font); font-weight: 800; letter-spacing: -0.02em; }
-.mono-text { font-size: 22px; }
-.cover-text { font-size: 150px; }
+.mono-text { fill: #FFFFFF; font-family: var(--font); font-weight: 800; font-size: 22px; }
+.mono-lg { width: 64px; height: 64px; margin-bottom: 14px; font-size: 24px; border-radius: var(--r-lg); }
 .card-name { font-size: 18px; font-weight: 650; line-height: 1.2; letter-spacing: -0.01em; }
 .card-name a { color: var(--ink); text-decoration: none; }
 .card-name a:hover { color: var(--cobalt); text-decoration: underline; }
@@ -1450,8 +1541,6 @@ svg.mono { display: block; width: 48px; height: 48px; background: none; }
 .cat-industrial { --c: #374151; }
 .cat-other { --c: #4E5866; }
 svg [class^="cat-"] { fill: var(--c); }
-.cover-line { fill: none; stroke: #FFFFFF; stroke-opacity: 0.14; stroke-width: 1; }
-.cover-dot { fill: #FFFFFF; fill-opacity: 0.07; }
 
 /* footer */
 .foot { padding: 28px 0 40px; border-top: 1px solid var(--line); font-size: 15px; color: var(--muted); }
@@ -1460,7 +1549,6 @@ svg [class^="cat-"] { fill: var(--c); }
 .disclaimer { font-weight: 800; color: var(--ink); }
 
 /* profile */
-.cover { display: block; width: 100%; height: 120px; margin-bottom: 18px; border-radius: 20px; }
 .where { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; margin-top: 12px; font-size: 17px; color: var(--body); }
 .where a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 800; }
 .grid { display: grid; gap: 16px; }
@@ -1488,8 +1576,21 @@ svg [class^="cat-"] { fill: var(--c); }
 }
 .sources li:last-child { border-bottom: 0; }
 .sources strong { color: var(--ink); font-size: 16px; }
+.claim-wrap { display: grid; gap: var(--s5); }
 .claim { display: grid; gap: 14px; justify-items: start; }
 .claim .btn { width: 100%; }
+.pitch { padding: var(--s5); border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--panel); }
+.pitch > * + * { margin-top: var(--s2); }
+.pitch h2 { font-size: 17px; color: var(--muted); }
+.actions { display: flex; flex-wrap: wrap; gap: var(--s2); margin-top: var(--s4); }
+.btn { gap: 8px; }
+.btn-ghost { background: var(--panel); color: var(--ink); border: 1.5px solid var(--line); text-decoration: none; }
+a.btn-ghost:hover { border-color: var(--cobalt); color: var(--cobalt); }
+.ic { width: 16px; height: 16px; flex: none; fill: currentColor; }
+.facts { display: flex; flex-wrap: wrap; gap: var(--s2); padding: 0; list-style: none; }
+a.fact { text-decoration: none; }
+a.fact:hover { border-color: var(--cobalt); color: var(--cobalt); }
+.sources li:target { background: var(--tint); }
 .own { color: var(--body); font-size: 15px; }
 
 /* about */
@@ -1515,7 +1616,7 @@ svg [class^="cat-"] { fill: var(--c); }
   .search { grid-template-columns: minmax(0, 1fr) auto auto; align-items: end; }
   .check { min-height: 48px; }
   .claim .btn { width: auto; }
-  .cover { height: 180px; }
+  .claim-wrap { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); align-items: start; }
   h2 { font-size: 24px; }
 }
 @media (min-width: 760px) {
@@ -1530,7 +1631,6 @@ svg [class^="cat-"] { fill: var(--c); }
   .cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .grid { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); align-items: start; }
   .grid-wide { grid-column: 1 / -1; }
-  .cover { height: 220px; }
 }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
 """

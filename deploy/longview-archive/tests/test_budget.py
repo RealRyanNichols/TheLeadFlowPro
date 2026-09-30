@@ -23,8 +23,11 @@ LIST_PAGE_MAX = 36_000
 LIST_PAGE_GZIP_MAX = 8_000
 CSS_MAX = 18_000
 CSS_GZIP_MAX = 5_000
-# The profile ceiling tightens to 7,000 B when the profile header is rebuilt without the SVG cover.
-PROFILE_MAX = 8_000
+# A profile with every field (action bar, fact chips, hours, services, sources) is under 9 KB;
+# the average across a town stays under 7 KB.
+PROFILE_MAX = 9_000
+PROFILE_AVERAGE_MAX = 7_000
+SPRITE_MAX = 900
 HUB_MAX = 20_000
 
 CARD_RE = re.compile(r'<li class="card">.*?</li>(?=<li class="card">|</ul>)', re.S)
@@ -81,6 +84,15 @@ class PageWeight(unittest.TestCase):
         self.assertGreater(len(profiles), 2000)
         for rel, text in profiles.items():
             self.assertLessEqual(len(text.encode()), PROFILE_MAX, rel)
+            sprite = re.search(r'<svg class="sprite".*?</svg>', text)
+            if sprite:
+                self.assertLessEqual(len(sprite.group(0).encode()), SPRITE_MAX, rel)
+
+    def test_real_profiles_are_small_on_average(self):
+        real = [b["slug"] for b in self.data["businesses"] if not b["slug"].startswith("fixture-shop-")]
+        sizes = [len(self.pages[f"{slug}/index.html"].encode()) for slug in real]
+        self.assertLessEqual(max(sizes), PROFILE_MAX)
+        self.assertLessEqual(sum(sizes) / len(sizes), PROFILE_AVERAGE_MAX)
 
     def test_every_page_has_a_viewport(self):
         for rel, text in self.pages.items():

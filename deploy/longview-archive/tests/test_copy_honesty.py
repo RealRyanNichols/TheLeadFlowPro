@@ -99,6 +99,16 @@ class CopyHonesty(unittest.TestCase):
             for line in re.findall(r'<p class="card-since">([^<]*)</p>', html):
                 self.assertRegex(line, r"^(Permit on file since|Registered since) \d{4}$", rel)
 
+    def test_chip_years_count_from_the_batch_date_not_today(self):
+        self.assertEqual(site.whole_years("2015-02-10", "2026-09-24"), 11)
+        self.assertEqual(site.whole_years("2015-10-01", "2026-09-24"), 10)
+        self.assertEqual(site.whole_years("2026-01-01", "2026-09-24"), 0)
+        self.assertEqual(site.whole_years("2015-02-10", None), 0)
+        profile = self.pages["example-tire-and-lube/index.html"]
+        self.assertIn("Sales-tax permit on file since February 2015 (11 years)", profile)
+        for rel, html in self.pages.items():
+            self.assertNotRegex(html, r"\(0 years\)", rel)
+
     def test_scan_catches_a_planted_word(self):
         self.assertTrue(BANNED.search(visible_text("<p>The best tacos in town</p>")))
         self.assertFalse(BANNED.search(visible_text('<h3 class="card-name"><a>Top Notch Tires</a></h3>')))

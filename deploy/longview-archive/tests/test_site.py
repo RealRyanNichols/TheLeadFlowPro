@@ -256,8 +256,23 @@ class SitePages(SiteTestBase):
         text = self.pages["example-tire-and-lube/index.html"]
         parsed = Page(text)
         b = by_slug(self.data, "example-tire-and-lube")
-        self.assertIn('<svg class="cover"', text)
-        self.assertRegex(text, r'<svg class="cover"[^>]*aria-hidden="true"')
+        self.assertNotIn('class="cover"', text)
+        self.assertIn('<span class="mono mono-lg cat-auto" aria-hidden="true">', text)
+        # Action bar: call, website, directions, each a button with an icon from the page's own sprite.
+        actions = re.search(r'<nav class="actions"[^>]*>(.*?)</nav>', text).group(1)
+        self.assertIn('href="tel:+19035550110"', actions)
+        self.assertIn(f'href="{b["website"]["url"]}" rel="nofollow noopener noreferrer"', actions)
+        self.assertIn(">Directions</a>", actions)
+        for name in re.findall(r'<use href="#i-([a-z]+)"/>', text):
+            self.assertIn(f'<symbol id="i-{name}"', text)
+        # Fact chips: each links to its own row in Sources and checks, and only for a shown field.
+        self.assertIn("Sales-tax permit on file since February 2015 (11 years)", parsed.text)
+        chips = re.findall(r'<a class="fact" href="#src-([A-Za-z]+)">', text)
+        self.assertTrue(chips)
+        self.assertLessEqual(len(chips), 4)
+        for field in chips:
+            self.assertIn(f'id="src-{field}"', text)
+            self.assertIn(field, validate.shown_fields(b))
         self.assertIn("Auto", parsed.text)
         self.assertIn("500 Example St, Longview, TX 75602", parsed.text)
         links = {a.get("href"): a for a in parsed.attrs("a")}
@@ -309,6 +324,15 @@ class SitePages(SiteTestBase):
             self.assertIn(line, parsed.text)
         self.assertNotIn("mailto:info@", self.pages["example-lawn-care/index.html"])
         self.assertIn("Directions", parsed.text)
+        text = self.pages["example-lawn-care/index.html"]
+        # A hidden street: Directions stays a plain link by the town, never a button.
+        self.assertIn('<p class="where"><span>Longview, TX</span><a href="https://www.google.com/maps/', text)
+        self.assertNotRegex(text, r'class="btn[^"]*" href="https://www.google.com/maps')
+        for line in ("No website found yet.", "No phone number listed on a website we could verify.",
+                     "Hours not listed."):
+            self.assertIn(f'<span class="missing">{line}</span>', text)
+        for field in ("website", "hours", "careers", "services"):
+            self.assertNotIn(f'href="#src-{field}"', text)
         self.assertIn(site.DISCLAIMER, parsed.text)
         for field in ("Business name", "Category", "Sales-tax permit date"):
             self.assertIn(field, parsed.text)
