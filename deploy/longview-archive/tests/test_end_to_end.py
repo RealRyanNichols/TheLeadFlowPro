@@ -370,7 +370,7 @@ class EndToEndTest(unittest.TestCase):
             approval.approve(self.conn, self.pipe.settings, actor="e2e", now=self.pipe.clock.now())
         folder = site.site_dir(self.pipe.settings)
         profiles = sorted(p.parent.name for p in folder.glob("*/index.html")
-                          if p.parent.name not in ("about", "new", "hiring"))
+                          if p.parent.name not in ("about", "new", "hiring", "search"))
         self.assertEqual(profiles, EXPECTED_SLUGS)
         text = " ".join(p.read_text(encoding="utf-8") for p in folder.rglob("*.html"))
         for private in pipeline.TAXPAYER_NAMES + pipeline.PERSON_NAMES + pipeline.PRIVATE_EMAILS:

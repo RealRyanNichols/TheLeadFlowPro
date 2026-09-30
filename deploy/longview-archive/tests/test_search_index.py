@@ -18,7 +18,8 @@ from tests import test_site as T
 
 FILE_MAX = 48_000
 MANIFEST_MAX = 8_000
-MANIFEST_KEYS = {"v", "h", "base", "town", "n", "cats", "keys", "kf", "chunk", "batchDate"}
+MANIFEST_KEYS = {"v", "h", "base", "town", "n", "cats", "keys", "kf", "chunk", "batchDate", "stride", "hours"}
+HUB_MANIFEST_KEYS = MANIFEST_KEYS | {"towns"}
 
 
 def build(data, **settings):
@@ -161,6 +162,75 @@ class TownsKeepTheirOwn(unittest.TestCase):
             self.assertEqual(len(rows_of(files)), n)
 
 
+class SearchPage(unittest.TestCase):
+    def test_search_page_is_never_indexed_and_has_a_fallback(self):
+        tmp, s = build(T.fixture_export(), indexable=True)
+        self.addCleanup(tmp.cleanup)
+        page = (site.site_dir(s) / "search" / "index.html").read_text(encoding="utf-8")
+        self.assertIn('<meta name="robots" content="noindex,nofollow">', page)
+        self.assertIn(f'<link rel="canonical" href="{T.CANON}search/">', page)
+        self.assertEqual(page.count("<h1>"), 1)
+        self.assertIn('id="search-fallback"', page)
+        self.assertIn("Search needs JavaScript. Browse A to Z or by category:", page)
+        index = (site.site_dir(s) / "index.html").read_text(encoding="utf-8")
+        self.assertIn(f'<a class="brand-search" href="{T.BASE}search/">Search</a>', index)
+
+    def test_an_empty_batch_has_no_search_page(self):
+        data = T.fixture_export()
+        data["businesses"] = []
+        tmp, s = build(data)
+        self.addCleanup(tmp.cleanup)
+        self.assertFalse((site.site_dir(s) / "search").exists())
+        self.assertFalse((site.site_dir(s) / "idx").exists())
+
+
+class HubIndex(unittest.TestCase):
+    def setUp(self):
+        from tests import test_places as TP
+        self.TP = TP
+        self.tmp = tempfile.TemporaryDirectory(prefix="lva-idx-hub-")
+        self.addCleanup(self.tmp.cleanup)
+
+    def build(self, data, towns):
+        s = config.Settings(data_dir=Path(self.tmp.name) / "data", places=towns)
+        site.build_site(s, data, T.NOW)
+        return s
+
+    def test_one_list_for_every_town_that_is_on(self):
+        data = self.TP.ring_export()
+        s = self.build(data, self.TP.RING)
+        hub = s.www_dir / "places"
+        files = idx_files(hub)
+        manifest = json.loads(files["manifest.json"])
+        self.assertEqual(set(manifest), HUB_MANIFEST_KEYS)
+        self.assertEqual([t[0] for t in manifest["towns"]], list(self.TP.RING))
+        self.assertFalse(manifest["hours"])
+        self.assertFalse(any(n.startswith("o.") for n in files))  # no hours file on the hub
+        rows = rows_of(files)
+        self.assertEqual(len(rows), len(data["businesses"]))
+        for r in rows:
+            self.assertEqual(r[6], 0)  # no ZIP on the hub
+            town = manifest["towns"][r[7]]
+            self.assertTrue((s.www_dir / town[0] / "businesses" / r[1] / "index.html").is_file())
+        page = (hub / "index.html").read_text(encoding="utf-8")
+        self.assertIn('<script src="/places/search.js" defer></script>', page)
+        self.assertIn('data-hub="1"', page)
+        self.assertIn('<select id="search-town" name="town">', page)
+        self.assertNotIn('id="search-open"', page)
+        self.assertTrue((hub / "search.js").is_file())
+
+    def test_a_removed_business_is_not_in_the_hub_index(self):
+        data = self.TP.ring_export()
+        gone = data["businesses"].pop()
+        s = self.build(data, self.TP.RING)
+        blob = "\n".join(idx_files(s.www_dir / "places").values())
+        self.assertNotIn(gone["slug"], blob)
+
+    def test_longview_alone_has_no_hub(self):
+        s = self.build(T.fixture_export(), ("longview",))
+        self.assertFalse((s.www_dir / "places").exists())
+
+
 class IndexSize(unittest.TestCase):
     def test_files_stay_small_on_a_big_town_with_a_common_word(self):
         data = T.fixture_export()
@@ -178,7 +248,7 @@ class IndexSize(unittest.TestCase):
         for name, text in files.items():
             self.assertLessEqual(len(text.encode()), FILE_MAX, name)
         self.assertLessEqual(len(files["manifest.json"].encode()), MANIFEST_MAX)
-        self.assertLessEqual(len(site.SEARCH_JS.encode()), 12_000)
+        self.assertLessEqual(len(site.SEARCH_JS.encode()), 15_000)  # about 4 KB gzipped
         self.assertGreaterEqual(len(word_lists(files)["repair"]), 2500)
 
 
