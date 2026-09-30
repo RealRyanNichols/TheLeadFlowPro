@@ -20,10 +20,10 @@ import { TBD_PRICE_LABEL, offer } from "../lib/site/offers.ts";
 
 const BANNED = ["guarantee", "guaranteed", "roas", "#1", "best in", "lowest", "only agency", "testimonial:", "% increase", "x return"];
 
-test("nine agency services, each with one audience, one problem, inclusions, ownership, vendor costs, process, FAQ, and one CTA", () => {
+test("ten agency services, each with one audience, one problem, inclusions, ownership, vendor costs, process, FAQ, and one CTA", () => {
   assert.deepEqual(
     AGENCY_SERVICES.map((s) => s.slug),
-    ["meta-ads", "google-ads", "websites", "automation", "video", "content", "community-help-desk", "crypto-tax-intake", "xrpl-treasury-alerts"],
+    ["meta-ads", "google-ads", "websites", "automation", "video", "content", "community-help-desk", "crypto-tax-intake", "xrpl-treasury-alerts", "crypto-checkout"],
   );
   for (const s of AGENCY_SERVICES) {
     assert.ok(s.audience.length > 30, s.slug);
@@ -174,8 +174,35 @@ test("XRPL treasury alerts are watch-only: no keys, no prices or trading calls, 
   }
 });
 
+test("crypto checkout keeps the money out of LeadFlow's hands: the shop's own processor, no investing or tax advice, no coin promotion", () => {
+  const checkout = agencyService("crypto-checkout")!;
+  assert.equal(checkout.specialty, "Shops that want to take crypto");
+  assert.equal(offer("agency_crypto_checkout").href, "/agency/crypto-checkout");
+  assert.match(checkout.seoTitle, /Longview, TX/);
+  assert.match(checkout.trustLine ?? "", /never passes through The LeadFlow Pro/);
+  assert.match(checkout.promise, /We never touch the money/);
+  assert.ok(checkout.included.some((i) => /open the account in your business's name/.test(i)));
+  assert.ok(checkout.included.some((i) => /test payment/i.test(i)));
+  assert.match(checkout.clientOwns.join(" "), /in your business's name/);
+  assert.match(checkout.clientPaysDirectly.join(" "), /charged by the processor/);
+  assert.ok(checkout.notIncluded.some((n) => /receiving, holding, or moving any payment/i.test(n)));
+  assert.ok(checkout.notIncluded.some((n) => /investing/i.test(n)));
+  assert.ok(checkout.notIncluded.some((n) => /^Tax advice/.test(n)));
+  assert.ok(checkout.notIncluded.some((n) => /promoting any coin/i.test(n)));
+  assert.ok(checkout.faq.some((f) => /who holds the money/i.test(f.q) && /never passes through/.test(f.a)));
+  // No processor is named or ranked on the page, and no fee is quoted: those are checked at scoping.
+  const text = JSON.stringify(checkout).toLowerCase();
+  for (const name of ["bitpay", "coinbase", "stripe", "strike", "opennode", "cash app", "paypal"]) {
+    assert.ok(!text.includes(name), `crypto checkout names a processor: "${name}"`);
+  }
+  assert.ok(!/\d+(\.\d+)?\s?%/.test(text), "crypto checkout quotes a percentage fee");
+  for (const phrase of ["moon", "profit", "passive income", "buy now", "presale", "airdrop", "financial advice", "invest in"]) {
+    assert.ok(!text.includes(phrase), `crypto checkout copy contains "${phrase}"`);
+  }
+});
+
 test("service counts in copy come from the list; specialty builds sit in their own band and off the Longview grid", () => {
-  assert.equal(countWord(AGENCY_SERVICES.length), "nine");
+  assert.equal(countWord(AGENCY_SERVICES.length), "ten");
   assert.equal(countWord(CORE_AGENCY_SERVICES.length, true), "Six");
   assert.equal(countWord(99), "99");
   assert.deepEqual(
@@ -184,10 +211,10 @@ test("service counts in copy come from the list; specialty builds sit in their o
   );
   assert.deepEqual(
     SPECIALTY_AGENCY_SERVICES.map((s) => s.slug),
-    ["community-help-desk", "crypto-tax-intake", "xrpl-treasury-alerts"],
+    ["community-help-desk", "crypto-tax-intake", "xrpl-treasury-alerts", "crypto-checkout"],
   );
   for (const s of SPECIALTY_AGENCY_SERVICES) assert.ok((s.specialty ?? "").length > 3, s.slug);
-  assert.match(AGENCY_HUB.lead, /online communities, CPA firms, and XRP Ledger projects/);
+  assert.match(AGENCY_HUB.lead, /online communities, CPA firms, XRP Ledger projects, and shops that take crypto/);
 });
 
 test("case studies render only approved entries with approved, dated metrics and the Premier disclosure", () => {

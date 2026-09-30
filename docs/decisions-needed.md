@@ -889,3 +889,18 @@ Both pages sit in the hub's "Specialty builds" band and stay off `/longview`.
      texting account; texts only with recorded consent and STOP honored).
      Nothing sends until a client's setup is approved. Default: the
      client's own accounts, public servers until volume needs more.
+
+108. **The crypto checkout price.** The page is `/agency/crypto-checkout`,
+     offer `agency_crypto_checkout`, `tbd_ryan`. Suggested, not published,
+     from the September 29 market scan: $297 to $497 one time, or an add-on
+     to the Website Launch. Default: publish nothing yet and scope each shop
+     in writing.
+
+109. **Processors, fees, and who signs.** The page names no processor and
+     quotes no fee. At scoping, check each processor's current fees, payout
+     options and terms, lay them out side by side, and let the shop choose
+     and sign up in its own name. The money goes customer, processor, shop;
+     The LeadFlow Pro never receives, holds, or moves it, and never holds
+     wallet keys. If a referral or partner fee is ever offered by a
+     processor, disclose it to the shop in writing before they choose.
+     Default: as described.

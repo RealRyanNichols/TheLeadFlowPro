@@ -1,6 +1,7 @@
 // The agency lane: Meta ads, Google Ads, websites, automation, video, and
 // content, plus specialty builds (community help desks, crypto tax intake,
-// XRPL treasury alerts), run for the client in accounts the client owns.
+// XRPL treasury alerts, crypto checkout), run for the client in accounts the
+// client owns.
 //
 // Every page under /agency renders from this file. Prices come from
 // lib/site/offers.ts, where every agency offer is `tbd_ryan` until Ryan sets
@@ -443,6 +444,60 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
       { href: "/agency/websites", label: "Websites" },
     ],
   },
+  {
+    // For local shops that want to take crypto. The shop opens the processor
+    // account in its own name and the money goes customer, processor, shop:
+    // it never passes through The LeadFlow Pro. No investing or tax advice,
+    // and no promoting any coin. Processor fees and terms are checked at
+    // scoping, never quoted here.
+    slug: "crypto-checkout",
+    offerId: "agency_crypto_checkout",
+    name: "Crypto-ready checkout",
+    navLabel: "Crypto checkout",
+    specialty: "Shops that want to take crypto",
+    seoTitle: "Accept Crypto Payments at Your Longview, TX Business | The LeadFlow Pro",
+    metaDescription:
+      "Crypto payments for East Texas shops, set up the careful way: a processor you sign up with directly, conversion to dollars if you want it, a checkout on your site or at the counter, a staff guide, and bookkeeping that matches. We never touch the money.",
+    eyebrow: "For shops whose customers ask to pay in crypto",
+    audience: "Longview and East Texas shops, restaurants, and service businesses whose customers have asked to pay in crypto, and owners who want to try it without the price swings.",
+    problem: "A customer asks to pay in crypto and nobody knows what to say. Owners worry about the price changing overnight, getting the bookkeeping wrong, and staff accepting a payment that never arrives.",
+    promise: "Crypto payments set up the careful way: a processor you sign up with directly, conversion to dollars if you want it, a checkout on your site or at the counter, a one-page staff guide, and bookkeeping that matches. We never touch the money.",
+    trustLine: "The money goes from your customer to your processor to you. It never passes through The LeadFlow Pro.",
+    included: [
+      "A plain side-by-side of the payment processors that fit your business: fees, payout options, and what each one asks of you",
+      "Setup help once you open the account in your business's name, including conversion to dollars if you want it",
+      "A crypto option in your website checkout, or a payment link and QR code for the counter",
+      "A one-page staff guide: how to take a payment, how to see that it arrived, and what never to do",
+      "How refunds work with your processor, written down so staff are not guessing",
+      "A bookkeeping map so crypto sales land in QuickBooks the same way card sales do, ready for your accountant",
+      "A test payment from start to finish before anything goes live",
+    ],
+    clientOwns: [
+      "The processor account, in your business's name",
+      "Every payment, payout, and record",
+      "The checkout, the QR code, and the staff guide",
+    ],
+    clientPaysDirectly: ["Processor fees, charged by the processor", "The bookkeeping software you already use"],
+    notIncluded: [
+      "Receiving, holding, or moving any payment or crypto for you",
+      "Advice about buying, holding, or investing in crypto",
+      "Tax advice: your accountant decides how crypto sales are reported",
+      "Promoting any coin or token",
+    ],
+    faq: [
+      { q: "Do we have to keep the crypto?", a: "No. Many processors can convert each payment to dollars and pay out to your bank, so the price does not move on you. Keeping any crypto is your choice." },
+      { q: "Who holds the money?", a: "Your processor, then your bank. It never passes through The LeadFlow Pro, and we never hold wallet keys." },
+      { q: "Which processor should we use?", a: "The one that fits your business. We lay out the options, fees, and requirements side by side, and you choose and sign up directly." },
+      { q: "What about taxes?", a: "The bookkeeping map records each crypto sale in dollars, the way your processor reports it, so your accountant has what they need. We don't give tax advice." },
+      { q: "Can it go on our website?", a: "Yes. It can sit beside card payments in your checkout, or work as a payment link and QR code at the counter." },
+      { q: "What does it cost?", a: "Pricing is confirmed on the scoping call and put in writing before anything starts. Processor fees are charged by the processor, separately." },
+    ],
+    intakeHref: intake("crypto-checkout"),
+    related: [
+      { href: "/agency/websites", label: "Websites" },
+      { href: "/packages/launch", label: `Website Launch, ${usd(PRICES.websiteLaunchTotal)}` },
+    ],
+  },
 ];
 
 /** The six services every local business buys, for pages about the local lead system. */
@@ -462,7 +517,7 @@ export function agencyOffer(service: AgencyService): Offer {
 export const AGENCY_HUB = {
   eyebrow: "Run it for me",
   title: "The agency lane.",
-  lead: `Meta ads, Google Ads, websites, automation, video, and content, run by ${BUSINESS.operator} in accounts you own, plus specialty builds for online communities, CPA firms, and XRP Ledger projects. This is the lane for owners who want the whole loop handled.`,
+  lead: `Meta ads, Google Ads, websites, automation, video, and content, run by ${BUSINESS.operator} in accounts you own, plus specialty builds for online communities, CPA firms, XRP Ledger projects, and shops that take crypto. This is the lane for owners who want the whole loop handled.`,
   budgetNote: "The intake asks for the monthly ad budget you are genuinely prepared to spend. A $0 answer does not disqualify you; it routes you to the right lane.",
   contact: {
     phone: BUSINESS.phone.display,
