@@ -84,10 +84,14 @@ bash -c 'd=$(mktemp -d); trap "rm -rf $d" EXIT; git clone -q --depth 1 --branch 
 
 **2. Install and go live**, once the check is clean. This installs the
 engine, turns on the towns, turns on auto-approve, and adds the directory to
-the website:
+the website. It turns on all 72 towns in `places.py` (Longview and three rings
+around it). A real-data run on Sept 30, 2026 found 43,741 profiles ready, a
+peak of 548 MB of memory (the engine's cap is 700 MB) and about 550 MB of disk.
+The first two rings alone (33 towns, list them instead) found 26,125 profiles
+at a peak of 371 MB.
 
 ```bash
-bash -c 'set -e; install -d -m 755 /etc/longview-archive; touch /etc/longview-archive/env; sed -i "/^LVA_PLACES=/d" /etc/longview-archive/env; echo "LVA_PLACES=longview,marshall,kilgore,white-oak,hallsville,diana,harleton,gladewater,clarksville-city,easton,scottsville,elysian-fields,waskom,ore-city,gilmer,karnack,jefferson,tatum,henderson,carthage,tyler,big-sandy,hawkins,winona,arp,overton,new-london,beckville,pittsburg,daingerfield,lone-star,hughes-springs,linden" >> /etc/longview-archive/env; d=$(mktemp -d); trap "rm -rf $d" EXIT; git clone -q --depth 1 --branch main https://github.com/RealRyanNichols/TheLeadFlowPro.git "$d/src"; bash "$d/src/deploy/longview-archive/install.sh"; runuser -u lvarchive -- env -C /opt/longview-archive/app PYTHONPATH=/opt/longview-archive/app PYTHONDONTWRITEBYTECODE=1 /opt/longview-archive/venv/bin/python -m longview_archive approve --auto on; bash "$d/src/deploy/longview-archive/website-on.sh"'
+bash -c 'set -e; install -d -m 755 /etc/longview-archive; touch /etc/longview-archive/env; sed -i "/^LVA_PLACES=/d" /etc/longview-archive/env; echo "LVA_PLACES=longview,marshall,kilgore,white-oak,hallsville,diana,harleton,gladewater,clarksville-city,easton,scottsville,elysian-fields,waskom,ore-city,gilmer,karnack,jefferson,tatum,henderson,carthage,tyler,big-sandy,hawkins,winona,arp,overton,new-london,beckville,pittsburg,daingerfield,lone-star,hughes-springs,linden,mount-pleasant,nacogdoches,palestine,jacksonville,athens,mineola,quitman,winnsboro,mount-vernon,atlanta,queen-city,naples,omaha,avinger,lindale,whitehouse,bullard,troup,rusk,mount-enterprise,center,timpson,tenaha,chandler,brownsboro,van,edgewood,grand-saline,canton,wills-point,frankston,alba,yantis,leesburg,laneville,cushing,garrison,chireno,joaquin" >> /etc/longview-archive/env; d=$(mktemp -d); trap "rm -rf $d" EXIT; git clone -q --depth 1 --branch main https://github.com/RealRyanNichols/TheLeadFlowPro.git "$d/src"; bash "$d/src/deploy/longview-archive/install.sh"; runuser -u lvarchive -- env -C /opt/longview-archive/app PYTHONPATH=/opt/longview-archive/app PYTHONDONTWRITEBYTECODE=1 /opt/longview-archive/venv/bin/python -m longview_archive approve --auto on; bash "$d/src/deploy/longview-archive/website-on.sh"'
 ```
 
 The site block belongs to the release pipeline another session set up. If a

@@ -206,7 +206,7 @@ PLACES: Tuple[Place, ...] = (
           **_box(33.1582, -94.9745, 0.068, 0.081)),
     Place("nacogdoches", "Nacogdoches", ("NACOGDOCHES",), ("75961", "75964", "75965"), ("75963",), county="Nacogdoches",
           **_box(31.6124, -94.6520, 0.077, 0.091)),
-    Place("palestine", "Palestine", ("PALESTINE",), ("75801", "75803"), county="Anderson",
+    Place("palestine", "Palestine", ("PALESTINE",), ("75801", "75803"), ("75802",), county="Anderson",
           **_box(31.7545, -95.6470, 0.066, 0.078)),
     Place("jacksonville", "Jacksonville", ("JACKSONVILLE",), ("75766",), county="Cherokee",
           **_box(31.9595, -95.2657, 0.06, 0.07)),
