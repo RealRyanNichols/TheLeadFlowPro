@@ -279,7 +279,7 @@ class SitePages(SiteTestBase):
         section = re.search(r'<section class="band" id="search" hidden[^>]*>', text)
         self.assertIsNotNone(section)
         labels = {a.get("for") for a in parsed.attrs("label")}
-        self.assertEqual(labels, {"search-q", "search-open"})
+        self.assertEqual(labels, {"search-q", "search-open", "search-web", "search-hrs", "search-hire", "search-new", "search-cat"})
         data = json.loads(self.read("search.json"))
         self.assertEqual(len(data["businesses"]), n)
         row = next(r for r in data["businesses"] if r["slug"] == "example-taqueria")

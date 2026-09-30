@@ -30,6 +30,7 @@ it in one rename. A build that fails leaves the previous site exactly as it was.
 
 from __future__ import annotations
 
+import hashlib
 import html
 import json
 import logging
@@ -74,7 +75,7 @@ CATEGORY_LEAD = "Every one we could verify, listed A to Z. Not ranked."
 # Bump whenever the pages' wording or markup changes: a site built with another
 # version is rebuilt at the next service start (``build_key``), so an upgrade
 # never leaves the old copy public until the next approval.
-COPY_VERSION = "8"
+COPY_VERSION = "9"
 
 SOURCE_LABELS = {
     "tx_sales_tax": "Texas Comptroller open data",
@@ -708,13 +709,27 @@ def index_pages(d: Directory) -> Dict[str, str]:
                 '<div class="field field-q"><label for="search-q">Search businesses</label>'
                 '<input id="search-q" name="q" type="search" maxlength="100" autocomplete="off"'
                 ' placeholder="Name, service, or kind of business"></div>'
+                '<button type="submit" class="btn btn-primary">Search</button>'
+                '<fieldset class="filters"><legend>Only show</legend>'
                 '<div class="check"><input id="search-open" name="open" type="checkbox" value="1">'
                 '<label for="search-open">Open now</label></div>'
-                '<button type="submit" class="btn btn-primary">Search</button></form>'
+                '<div class="check"><input id="search-web" name="web" type="checkbox" value="1">'
+                '<label for="search-web">Has a website</label></div>'
+                '<div class="check"><input id="search-hrs" name="hrs" type="checkbox" value="1">'
+                '<label for="search-hrs">Hours listed</label></div>'
+                '<div class="check"><input id="search-hire" name="hire" type="checkbox" value="1">'
+                '<label for="search-hire">Hiring</label></div>'
+                '<div class="check"><input id="search-new" name="new" type="checkbox" value="1">'
+                '<label for="search-new">New permit</label></div>'
+                '<div class="field field-cat"><label for="search-cat">Category</label>'
+                '<select id="search-cat" name="cat"><option value="">Any category</option></select></div>'
+                "</fieldset></form>"
                 '<p class="note">Open now reads the hours each business lists on its own website, in Central'
                 " time. Businesses without listed hours are left out of it.</p>"
                 '<div id="search-results" hidden><p class="count" id="search-count" role="status"'
-                ' aria-live="polite"></p><ul class="cards" id="search-list"></ul></div></div></section>')
+                ' aria-live="polite"></p><ul class="cards" id="search-list"></ul>'
+                '<button type="button" class="btn btn-ghost more" id="search-more" hidden>Show more</button>'
+                "</div></div></section>")
             parts.append('<section class="band" aria-labelledby="browse-title"><div class="shell">'
                          f'<h2 id="browse-title">Browse by category</h2>{category_chips(d)}</div></section>')
         showing = f'<p class="count">Showing {start:,} to {start + len(items) - 1:,} of {count:,}.</p>'
@@ -1081,6 +1096,132 @@ def search_json(d: Directory) -> str:
                       ensure_ascii=False, separators=(",", ":")) + "\n"
 
 
+# ---------------------------------------------------------------- the search index (idx/)
+#
+# Small same-origin files, fetched only as a visitor searches (search.js):
+#   idx/manifest.json        the town, the categories, the word keys, the file names
+#   idx/t-<n>.<h>.json       {word: [business numbers, delta-coded]}, for a run of word keys
+#                            (a key is a word's first two letters; the manifest says which file)
+#   idx/r-<n>.<h>.json       rows ROW_CHUNK at a time: [name, slug, cat, label, flags, since, zip]
+#   idx/f.<h>.json           [cat, flags] per business, for the filters
+#   idx/o.<h>.json           weekly hours patterns, for Open now
+# A business number is its place in the A to Z list, never its id. A row holds only
+# what the business's card already shows; the ZIP only when the street is shown.
+
+ROW_CHUNK = 400
+WORD_FILE_TARGET = 24_000  # word keys are packed into files of about this size
+INDEX_STOPWORDS = frozenset({"the", "and", "of", "a", "an", "at", "in", "on", "for", "llc", "inc", "co"})
+FLAG_WEBSITE, FLAG_HOURS, FLAG_HIRING, FLAG_NEW = 1, 2, 4, 8
+DAY_KEYS = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
+
+
+def norm_py(text: Any) -> str:
+    """The same folding as norm() in search.js: accents off, lower case, '&' as 'and', words only."""
+    t = unicodedata.normalize("NFKD", str(text or ""))
+    t = "".join(ch for ch in t if not unicodedata.combining(ch)).lower()
+    t = t.replace("&", " and ")
+    t = re.sub(r"['\u2019]", "", t)
+    return re.sub(r"[^a-z0-9]+", " ", t).strip()
+
+
+def index_tokens(d: "Directory", b: Mapping) -> List[str]:
+    """The words a business can be found by: its name, kind, category and service tags."""
+    words = norm_py(b["name"]).split()
+    words = [w for w in words if w not in INDEX_STOPWORDS]
+    extra = " ".join([b["categoryLabel"] or "", d.category_name(b["category"])] + list(b["services"] or []))
+    out: List[str] = []
+    for w in words + norm_py(extra).split():
+        if len(w) >= 2 and w not in out:
+            out.append(w)
+    return out
+
+
+def _flags(d: "Directory", b: Mapping, new_ids: set) -> int:
+    f = 0
+    if b["website"] and b["website"]["status"] != "dead":
+        f |= FLAG_WEBSITE
+    if b["hours"]:
+        f |= FLAG_HOURS
+    if b["careersUrl"]:
+        f |= FLAG_HIRING
+    if b["id"] in new_ids:
+        f |= FLAG_NEW
+    return f
+
+
+def hours_code(hours: Mapping) -> str:
+    """'mon0730-1800;sun-': stated days only ('-' is a day stated closed); an unstated day is left out."""
+    parts = []
+    for day in DAY_KEYS:
+        if day not in hours:
+            continue
+        ranges = hours[day]
+        parts.append(day + (",".join(o.replace(":", "") + "-" + c.replace(":", "") for o, c in ranges) or "-"))
+    return ";".join(parts)
+
+
+def _delta(numbers: Sequence[int]) -> List[int]:
+    out, last = [], 0
+    for n in numbers:
+        out.append(n - last)
+        last = n
+    return out
+
+
+def _dump(value: Any) -> str:
+    return json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+
+
+def search_index(d: "Directory") -> Dict[str, str]:
+    """The idx/ files for one town (paths relative to the town's folder)."""
+    cat_slugs = [c["slug"] for c in d.categories]
+    cat_pos = {slug: i for i, slug in enumerate(cat_slugs)}
+    new_ids = {b["id"] for b in d.new_in_longview()}
+    words: Dict[str, Dict[str, List[int]]] = {}
+    rows, facets, patterns, hour_rows = [], [], {}, {}
+    for i, b in enumerate(d.businesses):
+        for w in index_tokens(d, b):
+            words.setdefault(w[:2], {}).setdefault(w, []).append(i)
+        zip_code = b["address"]["zip"] if b["address"]["street"] and b["address"]["zip"] else 0
+        since = (f"P{b['permitSince'][:4]}" if b.get("permitSince")
+                 else f"R{b['registeredSince'][:4]}" if b.get("registeredSince") else 0)
+        flags = _flags(d, b, new_ids)
+        cat = cat_pos.get(b["category"], -1)
+        rows.append([b["name"], b["slug"], cat, b["categoryLabel"] or "", flags, since, zip_code])
+        facets.extend([cat, flags])
+        if b["hours"]:
+            code = hours_code(b["hours"])
+            hour_rows[i] = patterns.setdefault(code, len(patterns))
+    body: Dict[str, str] = {}
+    keys = sorted(words)
+    key_file: List[int] = []
+    pack: Dict[str, List[int]] = {}
+    size = 0
+    for key in keys:
+        part = {w: _delta(nums) for w, nums in sorted(words[key].items())}
+        part_size = len(_dump(part))
+        if pack and size + part_size > WORD_FILE_TARGET:
+            body[f"t-{len(body)}"] = _dump(pack)
+            pack, size = {}, 0
+        pack.update(part)
+        size += part_size
+        key_file.append(len(body))
+    if pack:
+        body[f"t-{len(body)}"] = _dump(pack)
+    for n in range(0, len(rows), ROW_CHUNK):
+        body[f"r-{n // ROW_CHUNK}"] = _dump(rows[n:n + ROW_CHUNK])
+    body["f"] = _dump(facets)
+    body["o"] = _dump({"pats": list(patterns), "rows": hour_rows})
+    # One build hash in every file name: a new build never mixes with a cached old file.
+    digest = hashlib.sha256("\n".join(f"{k}={v}" for k, v in sorted(body.items())).encode("utf-8")).hexdigest()[:8]
+    files = {f"idx/{name}.{digest}.json": text + "\n" for name, text in body.items()}
+    manifest = {"v": 2, "h": digest, "base": base(), "town": d.town, "n": len(rows),
+                "cats": [[slug, d.category_name(slug)] for slug in cat_slugs],
+                "keys": keys, "kf": key_file, "chunk": ROW_CHUNK, "batchDate": d.batch_date}
+    files["idx/manifest.json"] = _dump(manifest) + "\n"
+    return files
+
+
 def sitemap_xml(d: Directory) -> str:
     urls: List[Tuple[str, Optional[str]]] = [(base(), None)]
     urls += [(path("category", c["slug"]), None) for c in d.categories]
@@ -1132,7 +1273,8 @@ def render_site(data: dict, settings, place: places.Place = places.LONGVIEW, hub
         files["about/index.html"] = about_page(d)
         if d.businesses:
             files[JS_NAME] = SEARCH_JS
-            files[JSON_NAME] = search_json(d)
+            files[JSON_NAME] = search_json(d)  # kept for one release after idx/, so it can be rolled back
+            files.update(search_index(d))
             files.update(category_pages(d))
             files.update(new_pages(d))
             files.update(hiring_pages(d))
@@ -1511,6 +1653,16 @@ h3 { font-size: 18px; font-weight: 800; line-height: 1.25; }
 }
 .check { display: flex; align-items: center; gap: 10px; min-height: 44px; }
 .check input { width: 22px; height: 22px; margin: 0; accent-color: var(--cobalt); }
+.filters {
+  display: flex; flex-wrap: wrap; align-items: end; gap: 4px 18px; grid-column: 1 / -1;
+  margin: 0; padding: 0; border: 0; min-width: 0;
+}
+.filters legend { padding: 0; margin-bottom: 4px; font-size: 13px; font-weight: 700; color: var(--muted); }
+.field select {
+  min-height: 44px; padding: 0 12px; border: 1.5px solid var(--muted); border-radius: 12px;
+  background: var(--panel); color: var(--ink); font: inherit; font-size: 16px;
+}
+.more { margin-top: var(--s4); }
 
 /* buttons */
 .btn {
@@ -1703,7 +1855,7 @@ a.fact:hover { border-color: var(--cobalt); color: var(--cobalt); }
 
 @media (min-width: 640px) {
   .shell { padding: 0 24px; }
-  .search { grid-template-columns: minmax(0, 1fr) auto auto; align-items: end; }
+  .search { grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
   .check { min-height: 48px; }
   .claim .btn { width: auto; }
   .claim-wrap { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); align-items: start; }
@@ -1726,44 +1878,80 @@ a.fact:hover { border-color: var(--cobalt); color: var(--cobalt); }
 """
 
 SEARCH_JS = """\
-/* Business directory (one town's section): search and "Open now" over search.json.
-   Optional: without this script the A to Z pages and the category pages are
-   plain links. Builds every node with createElement and textContent (never
-   parsed markup) and asks only this site for search.json. */
+/* Business directory search (one town): word-start search and filters over the small
+   files in idx/. Optional: without it the A to Z and category pages are plain links.
+   Builds every node with createElement and textContent (never parsed markup) and
+   asks only this site for base + "idx/" files. */
 (function () {
   "use strict";
   var root = document.getElementById("search");
-  if (!root || !window.fetch || !window.Intl || !("hidden" in root)) { return; }
-  var form = document.getElementById("search-form");
-  var input = document.getElementById("search-q");
-  var openBox = document.getElementById("search-open");
-  var results = document.getElementById("search-results");
-  var countLine = document.getElementById("search-count");
-  var list = document.getElementById("search-list");
-  var az = document.getElementById("az");
+  if (!root || !window.fetch || !window.Intl || !window.Set || !("hidden" in root)) { return; }
+  function $(id) { return document.getElementById(id); }
+  var form = $("search-form"), input = $("search-q"), results = $("search-results");
+  var countLine = $("search-count"), list = $("search-list"), more = $("search-more"), az = $("az");
+  var boxes = { open: $("search-open"), web: $("search-web"), hrs: $("search-hrs"), hire: $("search-hire"),
+                fresh: $("search-new") };
+  var catSel = $("search-cat");
   var base = root.getAttribute("data-base") || "/longview/businesses/";
-  var town = root.getAttribute("data-town") || "Longview";
-  var MAX = 50;
+  var PAGE = 50, CAP = 500, FLAG = { web: 1, hrs: 2, hire: 4, fresh: 8 };
+  var STOP = ["the", "and", "of", "a", "an", "at", "in", "on", "for", "llc", "inc", "co"];
   var DAYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
-  var SVG = "http://www.w3.org/2000/svg";
-  var data = null;
-  var loading = null;
+  var man = null, manP = null, cache = {}, found = [], shown = 0, seq = 0;
 
   function norm(text) {
     return String(text || "").normalize("NFKD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase()
       .replace(/&/g, " and ").replace(/['\\u2019]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
   }
-  function minutes(t) { var p = t.split(":"); return parseInt(p[0], 10) * 60 + parseInt(p[1], 10); }
+  function get(name) {
+    if (!cache[name]) {
+      cache[name] = fetch(base + "idx/" + name, { credentials: "same-origin" })
+        .then(function (r) { if (!r.ok) { throw new Error("status " + r.status); } return r.json(); });
+      cache[name].catch(function () { delete cache[name]; });
+    }
+    return cache[name];
+  }
+  function file(stem) { return stem + "." + man.h + ".json"; }
+  function manifest() {
+    if (!manP) {
+      manP = get("manifest.json").then(function (m) {
+        man = m;
+        if (catSel && catSel.options.length < 2) {
+          m.cats.forEach(function (c) { var o = el("option", null, c[1]); o.value = c[0]; catSel.appendChild(o); });
+        }
+        return m;
+      });
+      manP.catch(function () { manP = null; });
+    }
+    return manP;
+  }
+  function undelta(a) { var out = [], n = 0; for (var i = 0; i < a.length; i++) { n += a[i]; out.push(n); } return out; }
+  function matches(token) {
+    var k = man.keys.indexOf(token.slice(0, 2));
+    if (k < 0) { return Promise.resolve(new Set()); }
+    return get(file("t-" + man.kf[k])).then(function (words) {
+      var got = new Set();
+      Object.keys(words).forEach(function (w) {
+        if (w.indexOf(token) === 0) { undelta(words[w]).forEach(function (n) { got.add(n); }); }
+      });
+      return got;
+    });
+  }
+  function minutes(t) { return parseInt(t.slice(0, 2), 10) * 60 + parseInt(t.slice(2), 10); }
   function clock() {
     var parts = new Intl.DateTimeFormat("en-US", {
       timeZone: "America/Chicago", weekday: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23"
     }).formatToParts(new Date());
     var got = {};
     parts.forEach(function (p) { got[p.type] = p.value; });
-    return {
-      day: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(got.weekday),
-      at: (parseInt(got.hour, 10) % 24) * 60 + parseInt(got.minute, 10)
-    };
+    return { day: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(got.weekday),
+             at: (parseInt(got.hour, 10) % 24) * 60 + parseInt(got.minute, 10) };
+  }
+  function week(code) {
+    var h = {};
+    code.split(";").forEach(function (d) {
+      h[d.slice(0, 3)] = d.length > 4 ? d.slice(3).split(",").map(function (r) { return r.split("-"); }) : [];
+    });
+    return h;
   }
   /* true: a stated range covers now; false: today is stated and none does; null: cannot tell. */
   function openNow(hours, c) {
@@ -1787,100 +1975,149 @@ SEARCH_JS = """\
     return node;
   }
   function initials(name) {
-    var skip = ["the", "and", "of", "a", "an", "at", "in", "on", "for", "llc", "inc", "co"];
     var words = String(name).normalize("NFKD").replace(/[\\u0300-\\u036f]/g, "").split(/[^A-Za-z0-9]+/)
-      .filter(function (w) { return w && skip.indexOf(w.toLowerCase()) < 0; });
+      .filter(function (w) { return w && STOP.indexOf(w.toLowerCase()) < 0; });
     return words.slice(0, 2).map(function (w) { return w.charAt(0).toUpperCase(); }).join("") || "#";
   }
-  function monogram(b) {
-    var svg = document.createElementNS(SVG, "svg");
-    svg.setAttribute("class", "mono");
-    svg.setAttribute("viewBox", "0 0 56 56");
-    svg.setAttribute("aria-hidden", "true");
-    svg.setAttribute("focusable", "false");
-    var rect = document.createElementNS(SVG, "rect");
-    rect.setAttribute("class", "cat-" + (/^[a-z-]+$/.test(b.category) ? b.category : "other"));
-    rect.setAttribute("width", "56"); rect.setAttribute("height", "56"); rect.setAttribute("rx", "14");
-    var text = document.createElementNS(SVG, "text");
-    text.setAttribute("class", "mono-text");
-    text.setAttribute("x", "28"); text.setAttribute("y", "29");
-    text.setAttribute("text-anchor", "middle"); text.setAttribute("dominant-baseline", "central");
-    text.textContent = initials(b.name);
-    svg.appendChild(rect); svg.appendChild(text);
-    return svg;
-  }
-  function card(b, open) {
-    var li = el("li", "card");
-    var box = el("div");
-    var h = el("h3", "card-name");
-    var a = el("a", null, b.name);
-    a.setAttribute("href", base + (/^[a-z0-9-]+$/.test(b.slug) ? b.slug : "") + "/");
-    h.appendChild(a);
-    box.appendChild(h);
-    box.appendChild(el("p", "card-meta", b.categoryLabel || (data.categories[b.category] || "")));
-    box.appendChild(el("p", "card-addr", b.zip ? town + ", TX " + b.zip : town + ", TX"));
-    if (open) {
-      var badges = el("ul", "badges");
-      badges.appendChild(el("li", "badge badge-hiring", "Open now"));
-      box.appendChild(badges);
+  function card(row, open) {
+    var slug = man.cats[row[2]] ? man.cats[row[2]][0] : "other";
+    var li = el("li", "card"), box = el("div"), h = el("h3", "card-name");
+    var a = el("a", null, row[0]);
+    a.setAttribute("href", base + (/^[a-z0-9-]+$/.test(row[1]) ? row[1] + "/" : ""));
+    h.appendChild(a); box.appendChild(h);
+    box.appendChild(el("p", "card-meta", row[3] || (man.cats[row[2]] ? man.cats[row[2]][1] : "")));
+    box.appendChild(el("p", "card-addr", man.town + ", TX" + (/^[0-9]{5}$/.test(row[6]) ? " " + row[6] : "")));
+    if (row[5]) {
+      box.appendChild(el("p", "card-since", (row[5].charAt(0) === "P" ? "Permit on file since " :
+        "Registered since ") + row[5].slice(1)));
     }
-    li.appendChild(monogram(b));
-    li.appendChild(box);
+    var badges = el("ul", "badges");
+    [[1, "badge", "Website"], [2, "badge", "Hours listed"], [4, "badge badge-hiring", "Hiring"]].forEach(function (b) {
+      if (row[4] & b[0]) { badges.appendChild(el("li", b[1], b[2])); }
+    });
+    if (open) { badges.appendChild(el("li", "badge badge-open", "Open now")); }
+    if (badges.firstChild) { badges.setAttribute("aria-label", "Listed on this profile"); box.appendChild(badges); }
+    var mono = el("span", "mono cat-" + (/^[a-z-]+$/.test(slug) ? slug : "other"), initials(row[0]));
+    mono.setAttribute("aria-hidden", "true");
+    li.appendChild(mono); li.appendChild(box);
     return li;
   }
-  function load() {
-    if (!loading) {
-      loading = fetch(base + "search.json", { credentials: "same-origin" })
-        .then(function (r) { if (!r.ok) { throw new Error("status " + r.status); } return r.json(); })
-        .then(function (json) {
-          data = json;
-          data.businesses.forEach(function (b) {
-            b._text = " " + norm([b.name, b.categoryLabel || "", data.categories[b.category] || ""]
-              .concat(b.services || []).join(" ")) + " ";
-          });
-          return data;
-        });
+  function row(n) {
+    return get(file("r-" + Math.floor(n / man.chunk))).then(function (rows) { return rows[n % man.chunk]; });
+  }
+  function say(text, link, href) {
+    countLine.textContent = text;
+    if (link) {
+      var a = el("a", null, link);
+      a.setAttribute("href", href);
+      countLine.appendChild(document.createTextNode(" "));
+      countLine.appendChild(a);
     }
-    return loading;
+  }
+  function showMore(first) {
+    var batch = found.slice(shown, shown + PAGE), c = boxes.open.checked, mine = seq;
+    shown += batch.length;
+    return Promise.all(batch.map(row)).then(function (rows) {
+      if (mine !== seq) { return; }  /* a newer search started: its list, not this one */
+      var firstNew = null;
+      rows.forEach(function (r) { var li = card(r, c); list.appendChild(li); firstNew = firstNew || li; });
+      var left = Math.min(found.length, CAP) - shown;
+      more.hidden = left <= 0;
+      more.textContent = "Show " + Math.min(PAGE, left) + " more (" + left.toLocaleString("en-US") + " left)";
+      if (!first && firstNew) { var a = firstNew.querySelector("a"); if (a) { a.focus(); } }
+    });
+  }
+  function reset() {
+    results.hidden = true; more.hidden = true;
+    if (az) { az.hidden = false; }
   }
   function run() {
-    var tokens = norm(input.value.slice(0, 100)).split(" ").filter(Boolean).slice(0, 8);
-    var onlyOpen = openBox.checked;
-    if (!tokens.length && !onlyOpen) {
-      results.hidden = true;
-      if (az) { az.hidden = false; }
-      return;
-    }
+    var mine = ++seq;
+    var raw = norm(input.value.slice(0, 100)).split(" ").filter(Boolean);
+    var words = raw.filter(function (t) { return STOP.indexOf(t) < 0; });
+    if (!words.length) { words = raw; }
+    words = words.slice(0, 6);
+    var flags = Object.keys(FLAG).filter(function (k) { return boxes[k] && boxes[k].checked; });
+    var cat = catSel ? catSel.value : "";
+    var filtering = flags.length || cat || boxes.open.checked;
+    if (!words.length && !filtering) { reset(); return; }
     results.hidden = false;
     if (az) { az.hidden = true; }
-    if (!data) { countLine.textContent = "Loading the list\\u2026"; }
-    load().then(function () {
-      var c = onlyOpen ? clock() : null;
-      var found = data.businesses.filter(function (b) {
-        if (c && openNow(b.hours, c) !== true) { return false; }
-        return tokens.every(function (t) { return b._text.indexOf(t) >= 0; });
-      });
-      while (list.firstChild) { list.removeChild(list.firstChild); }
-      found.slice(0, MAX).forEach(function (b) { list.appendChild(card(b, Boolean(c))); });
-      if (!found.length) {
-        countLine.textContent = "No businesses match that search. Try fewer words, or leave Open now unchecked.";
-      } else if (found.length > MAX) {
-        countLine.textContent = "Showing the first " + MAX + " of " + found.length.toLocaleString("en-US") +
-          " matching businesses, A to Z. Add a word to narrow it.";
+    while (list.firstChild) { list.removeChild(list.firstChild); }
+    more.hidden = true;
+    if (words.length === 1 && words[0].length < 2 && !filtering) {
+      var letter = /^[a-z]$/.test(words[0]) ? words[0] : "0";
+      say("Type one more letter, or", "jump to names starting with " + words[0].toUpperCase(), "#l-" + letter);
+      return;
+    }
+    say("Searching\\u2026");
+    manifest().then(function () {
+      var terms = words.filter(function (t) { return t.length >= 2; });
+      return Promise.all([
+        Promise.all(terms.map(matches)),
+        filtering && (flags.length || cat) ? get(file("f")) : null,
+        boxes.open.checked ? get(file("o")) : null
+      ]);
+    }).then(function (got) {
+      if (mine !== seq) { return; }
+      var sets = got[0], facets = got[1], hours = got[2];
+      var c = hours ? clock() : null, weeks = {}, noHours = 0, catIx = -1;
+      man.cats.forEach(function (x, i) { if (x[0] === cat) { catIx = i; } });
+      var pool = [];
+      if (sets.length) {
+        sets.sort(function (x, y) { return x.size - y.size; });
+        sets[0].forEach(function (n) { if (sets.every(function (s) { return s.has(n); })) { pool.push(n); } });
       } else {
-        countLine.textContent = found.length.toLocaleString("en-US") +
-          (found.length === 1 ? " matching business, A to Z." : " matching businesses, A to Z.");
+        for (var n = 0; n < man.n; n++) { pool.push(n); }
       }
+      found = pool.sort(function (x, y) { return x - y; }).filter(function (n) {
+        if (facets) {
+          if (cat && facets[2 * n] !== catIx) { return false; }
+          for (var i = 0; i < flags.length; i++) { if (!(facets[2 * n + 1] & FLAG[flags[i]])) { return false; } }
+        }
+        if (c) {
+          var p = hours.rows[n];
+          if (p === undefined) { noHours++; return false; }
+          weeks[p] = weeks[p] || week(hours.pats[p]);
+          var o = openNow(weeks[p], c);
+          if (o !== true) { if (o === null) { noHours++; } return false; }
+        }
+        return true;
+      });
+      shown = 0;
+      if (!found.length) {
+        say(words.length ? "No business name, kind or service in " + man.town + " starts with \\u201c" +
+          words.join(" ") + "\\u201d" + (filtering ? " with these filters." : ".") :
+          "No business matches these filters.",
+          "Browse A to Z", base);
+        return;
+      }
+      var total = found.length.toLocaleString("en-US");
+      say((found.length === 1 ? "1 business" : total + " businesses") + ", sorted A to Z. Nothing is ranked." +
+        (c && noHours ? " " + noHours.toLocaleString("en-US") + " did not list hours for today." : "") +
+        (found.length > CAP ? " Showing the first " + CAP + "; add a word to narrow it." : ""));
+      return showMore(true);
     }).catch(function () {
-      countLine.textContent = "Search is not available right now. Browse the A to Z list or a category instead.";
+      if (mine !== seq) { return; }
+      say("Search is not available right now. Browse the A to Z list or a category instead.");
       if (az) { az.hidden = false; }
     });
   }
   var timer = null;
   form.addEventListener("submit", function (event) { event.preventDefault(); run(); });
   input.addEventListener("input", function () { clearTimeout(timer); timer = setTimeout(run, 150); });
-  input.addEventListener("focus", function () { load().catch(function () {}); }, { once: true });
-  openBox.addEventListener("change", run);
+  input.addEventListener("focus", function () { manifest().catch(function () {}); });
+  Object.keys(boxes).forEach(function (k) { if (boxes[k]) { boxes[k].addEventListener("change", run); } });
+  if (catSel) { catSel.addEventListener("change", run); catSel.addEventListener("focus", function () { manifest().catch(function () {}); }); }
+  more.addEventListener("click", function () { showMore(false); });
+  document.addEventListener("keydown", function (event) {
+    var t = event.target, typing = t && /^(INPUT|SELECT|TEXTAREA)$/.test(t.tagName);
+    if (event.key === "/" && !typing && !event.ctrlKey && !event.metaKey && !event.altKey) {
+      event.preventDefault(); input.focus();
+    } else if (event.key === "Escape" && t === input) {
+      input.value = ""; run();
+    }
+  });
   root.hidden = false;
 }());
 """
