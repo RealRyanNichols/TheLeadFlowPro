@@ -12,7 +12,7 @@ Time and cost start unrecorded. A missing process note, source reference, or com
 
 The example uses invented numbers and cannot be saved as a customer test. It visibly identifies itself as an illustrative example and retains invented-source labels in its downloadable report. A zero-result QA draft is saved only in the local browser for save/reload acceptance; it is named "QA draft — no results recorded."
 
-Private admin saves use the existing account-owned Idea Lab document and revision checks. Older documents remain compatible. Up to 20 bounded tests can be saved within the existing document limit. Markdown reports use the existing authenticated, same-origin export route. No new schema, service, secret, paid provider, messaging action, or environment variable is needed.
+Private admin saves use the existing account-owned Idea Lab document and revision checks. Older documents remain compatible. When an older client omits tests while saving a brief, the server preserves that account's stored tests; failed reads stop the save, and stale revisions still conflict. Up to 20 bounded tests can be saved within the existing document limit. Markdown reports use the existing authenticated, same-origin export route. No new schema, service, secret, paid provider, messaging action, or environment variable is needed.
 
 ## Platform hypothesis
 
@@ -43,7 +43,7 @@ Evidence references are recorded, not independently authenticated. Period matchi
 
 ## Design and artwork
 
-The mobile preview uses a single-column three-step flow, 48px minimum controls, 16px form text, readable result definitions, and a measured 0–100% booking-rate bar scale. Existing Idea Lab typography, purple/cream palette, and owned logo are retained. The custom dark artwork is a symbolic illustration; it conveys no claimed customer result.
+The mobile preview uses a single-column three-step flow, 48px minimum controls, 16px form text, readable result definitions, and a measured 0–100% booking-rate bar scale. Validation errors receive focus, and unfinished tests can be resumed without being replaced by the example or saved-test selector. Existing Idea Lab typography, purple/cream palette, and owned logo are retained. The custom dark artwork is a symbolic illustration; it conveys no claimed customer result.
 
 The image was generated with the built-in ImageGen tool. The full generated original remains at the tool-provided path, and the project consumes `public/images/idea-lab/outcome-core.webp` (1024 × 1536, 90,720 bytes). Compression changes encoding/size only. Reduced-motion preferences are respected and no animation is needed to complete the flow.
 

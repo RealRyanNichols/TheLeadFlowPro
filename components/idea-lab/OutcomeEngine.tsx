@@ -50,6 +50,7 @@ export default function OutcomeEngine({
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const heading = useRef<HTMLHeadingElement>(null);
+  const problem = useRef<HTMLParagraphElement>(null);
   const result = (() => {
     try {
       return evaluateIdeaOutcomeExperiment(draft);
@@ -65,6 +66,10 @@ export default function OutcomeEngine({
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
   }, [dirty]);
+
+  useEffect(() => {
+    if (error) problem.current?.focus();
+  }, [error]);
 
   function start() {
     setDraft(defaultIdeaOutcomeExperiment(crypto.randomUUID()));
@@ -196,7 +201,9 @@ export default function OutcomeEngine({
                 Open a saved test
                 <select
                   value=""
+                  disabled={dirty || saving}
                   onChange={(event) => {
+                    if (dirty || saving) return;
                     const saved = experiments.find(
                       (item) => item.id === event.target.value,
                     );
@@ -262,7 +269,12 @@ export default function OutcomeEngine({
             ))}
           </ol>
           {error && (
-            <p className={styles.error} role="alert">
+            <p
+              className={styles.error}
+              role="alert"
+              ref={problem}
+              tabIndex={-1}
+            >
               {error}
             </p>
           )}

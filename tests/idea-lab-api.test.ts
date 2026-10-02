@@ -6,6 +6,8 @@ import ts from "typescript";
 import * as workspace from "../lib/ideaLabWorkspace.ts";
 import * as origin from "../lib/ideaLabHttp.ts";
 import * as exporter from "../lib/ideaLabExport.ts";
+import { IDEA_WORKSTREAMS } from "../lib/ideaLab.ts";
+import { defaultIdeaOutcomeExperiment } from "../lib/ideaLabOutcome.ts";
 
 const requireReal = createRequire(import.meta.url);
 class AuthError extends Error {
@@ -108,6 +110,7 @@ test("workspace and export handlers preserve anonymous and ordinary-user denial"
     const api = handlers({ denied });
     assert.equal((await api.GET()).status, denied);
     assert.equal((await api.PUT(put({}))).status, denied);
+    assert.equal(api.calls.owner, undefined);
     assert.equal(api.calls.save, undefined);
     const exportApi = handlers({ denied }, true);
     assert.equal((await exportApi.POST(put({}))).status, denied);
@@ -139,6 +142,85 @@ test("cross-site and malformed writes never reach the database", async () => {
     ).status,
     400,
   );
+  assert.equal((await api.PUT(put({ text: "x".repeat(200_001) }))).status, 413);
+  assert.equal(api.calls.owner, undefined);
+  assert.equal(api.calls.save, undefined);
+});
+test("legacy brief writes preserve saved pilots from the authenticated owner's row", async () => {
+  const pilot = defaultIdeaOutcomeExperiment("saved-pilot");
+  pilot.evidence.pilot = "Saved pilot cohort reference";
+  const stored = { ...workspace.emptyIdeaWorkspace(), experiments: [pilot] };
+  const incoming = workspace.emptyIdeaWorkspace();
+  incoming.briefs = [workspace.defaultIdeaBrief(IDEA_WORKSTREAMS[0].id)];
+  incoming.briefs[0].outcome = "Updated brief from an older client";
+  const api = handlers({ stored: { document: stored, revision: 1 } });
+  const response = await api.PUT(
+    put({ workspace: incoming, revision: 1, owner: "other-owner" }),
+  );
+  assert.equal(response.status, 200);
+  assert.equal(api.calls.owner, "authenticated-owner");
+  assert.deepEqual(api.calls.save, {
+    p_owner: "authenticated-owner",
+    p_document: { ...incoming, experiments: [pilot] },
+    p_revision: 1,
+  });
+});
+test("explicit empty pilots remain an intentional deletion without a compatibility read", async () => {
+  const api = handlers({
+    stored: {
+      document: {
+        ...workspace.emptyIdeaWorkspace(),
+        experiments: [defaultIdeaOutcomeExperiment("saved-pilot")],
+      },
+      revision: 1,
+    },
+    readError: { code: "offline" },
+  });
+  const document = { ...workspace.emptyIdeaWorkspace(), experiments: [] };
+  assert.equal(
+    (await api.PUT(put({ workspace: document, revision: 1 }))).status,
+    200,
+  );
+  assert.equal(api.calls.owner, undefined);
+  assert.deepEqual(api.calls.save?.p_document, document);
+});
+test("legacy writes fail closed when stored pilots cannot be read", async () => {
+  const api = handlers({ readError: { code: "offline" } });
+  const response = await api.PUT(
+    put({ workspace: workspace.emptyIdeaWorkspace(), revision: 1 }),
+  );
+  assert.equal(response.status, 503);
+  assert.equal(response.headers.get("cache-control"), "private, no-store");
+  assert.match((await response.json()).error, /not been saved/);
+  assert.equal(api.calls.owner, "authenticated-owner");
+  assert.equal(api.calls.save, undefined);
+});
+test("preserved pilots cannot push a legacy write past the workspace storage cap", async () => {
+  const incoming = workspace.emptyIdeaWorkspace();
+  incoming.briefs = IDEA_WORKSTREAMS.slice(0, 7).map(({ id }) => ({
+    ...workspace.defaultIdeaBrief(id),
+    buyer: "x".repeat(6000),
+    outcome: "x".repeat(6000),
+    scope: "x".repeat(6000),
+    acceptance: "x".repeat(6000),
+  }));
+  const experiments = ["saved-pilot-one", "saved-pilot-two"].map((id) => ({
+    ...defaultIdeaOutcomeExperiment(id),
+    workflowNote: "x".repeat(6000),
+    sourceReference: "x".repeat(2000),
+    evidence: { baseline: "x".repeat(2000), pilot: "x".repeat(2000) },
+  }));
+  assert.doesNotThrow(() => workspace.validateIdeaWorkspace(incoming));
+  const api = handlers({
+    stored: {
+      document: { ...workspace.emptyIdeaWorkspace(), experiments },
+      revision: 1,
+    },
+  });
+  const response = await api.PUT(put({ workspace: incoming, revision: 1 }));
+  assert.equal(response.status, 400);
+  assert.match((await response.json()).error, /storage limit.*Download/);
+  assert.equal(api.calls.owner, "authenticated-owner");
   assert.equal(api.calls.save, undefined);
 });
 test("valid writes derive the owner from auth and preserve compare-and-swap conflicts", async () => {

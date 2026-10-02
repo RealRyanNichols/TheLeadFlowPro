@@ -11,6 +11,12 @@ const headers = {
   "Cache-Control": "private, no-store",
   "X-Robots-Tag": "noindex, nofollow",
 };
+function invalidWorkspace(error: unknown) {
+  return NextResponse.json(
+    { error: error instanceof Error ? error.message : "Invalid workspace." },
+    { status: 400, headers },
+  );
+}
 function failure(error: unknown) {
   if (error instanceof OperatorAuthError)
     return NextResponse.json(
@@ -72,12 +78,30 @@ export async function PUT(request: Request) {
       if (!Number.isSafeInteger(revision) || revision < 0)
         throw new Error("Invalid workspace revision.");
     } catch (error) {
-      return NextResponse.json(
-        {
-          error: error instanceof Error ? error.message : "Invalid workspace.",
-        },
-        { status: 400, headers },
-      );
+      return invalidWorkspace(error);
+    }
+    // Older clients do not know about pilots and omit them when saving a brief.
+    // Read only this owner's row; the RPC still enforces the supplied revision.
+    if (workspace.experiments === undefined) {
+      const { data: current, error: readError } = await supabase
+        .from("idea_lab_states")
+        .select("document,revision")
+        .eq("owner_id", user.id)
+        .maybeSingle();
+      if (readError) return failure(readError);
+      if (current) {
+        const stored = validateIdeaWorkspace(current.document);
+        if (stored.experiments !== undefined) {
+          try {
+            workspace = validateIdeaWorkspace({
+              ...workspace,
+              experiments: stored.experiments,
+            });
+          } catch (error) {
+            return invalidWorkspace(error);
+          }
+        }
+      }
     }
     const { data, error } = await supabase.rpc("save_idea_lab_state", {
       p_owner: user.id,

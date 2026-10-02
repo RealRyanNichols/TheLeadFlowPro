@@ -80,6 +80,7 @@ export default function IdeaLab({ preview = false }: { preview?: boolean }) {
   const [links, setLinks] = useState("");
   const [importNotice, setImportNotice] = useState("");
   const dialog = useRef<HTMLDialogElement>(null);
+  const saveStatus = useRef<HTMLDivElement>(null);
   const sources = workspaceSources(workspace);
   const selectedSource =
     sources.find((source) => source.id === sourceId) ?? sources[0];
@@ -149,6 +150,10 @@ export default function IdeaLab({ preview = false }: { preview?: boolean }) {
     if (importing) dialog.current?.showModal();
     else if (dialog.current?.open) dialog.current.close();
   }, [importing]);
+
+  useEffect(() => {
+    if (error && !saving) saveStatus.current?.focus();
+  }, [error, saving]);
 
   useEffect(() => {
     function warn(event: BeforeUnloadEvent) {
@@ -353,6 +358,8 @@ export default function IdeaLab({ preview = false }: { preview?: boolean }) {
             <div
               className={`${styles.status} ${error ? styles.statusError : ""}`}
               role={error ? "alert" : "status"}
+              ref={saveStatus}
+              tabIndex={-1}
             >
               {error ||
                 notice ||
