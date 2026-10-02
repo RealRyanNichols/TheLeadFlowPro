@@ -90,6 +90,8 @@ test("urgency survives the free-text timeline answer that exists in production",
     isUrgentTimeline("Proposal sent August 31, 2026 Central Time; requested a 20-minute review this week."),
     true,
   );
+  assert.equal(isUrgentTimeline("now_30_days"), true); // contractor form v2, "Now / within 30 days"
+  assert.equal(isUrgentTimeline("exploring_later"), false);
   assert.equal(isUrgentTimeline("next_90_days"), false);
   assert.equal(isUrgentTimeline(null), false);
 });

@@ -5,6 +5,7 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
 import { sendInternalLeadAlert } from "@/lib/leadNotify";
 import { deliverLeadEmailNotificationsForLead } from "@/lib/leadEmailNotifications";
 import { dispatchSpeedToLeadWithBudget } from "@/lib/speedToLeadAlertsServer";
+import { metaAnswerLines } from "@/lib/metaLeadAnswers";
 import {
   syncResendContacts,
   type ResendContactSyncResult,
@@ -206,9 +207,8 @@ function mapLead(raw: MetaLead) {
 
   // Everything the lead actually told us, kept verbatim so the admin view and
   // the alert email show real answers instead of an empty row.
-  const answers = [...fields.entries()]
-    .filter(([k]) => !/^(email|phone_number|full_name|first_name|last_name)$/.test(k))
-    .map(([k, v]) => `${k.replace(/_/g, " ").replace(/\?$/, "")}: ${v}`);
+  // Registered forms with answerLabels read in the words on the form.
+  const answers = metaAnswerLines(fields.entries(), registration);
 
   return {
     external_id: `meta:${raw.id}`,

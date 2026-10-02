@@ -6,6 +6,7 @@ import {
   CONTRACTOR_LAST_STEP,
   CONTRACTOR_LIVE_DAYS,
   CONTRACTOR_META_FORM_ID,
+  CONTRACTOR_META_FORM_ID_V2,
   CONTRACTOR_STEPS,
   CONTRACTOR_WELCOME,
   CONTRACTOR_WRITTEN,
@@ -21,6 +22,7 @@ import {
 import { renderContractorHtml } from "../lib/contractorEmailHtml.ts";
 import { isAllowedLeadFlowAdId, registeredMetaForm } from "../lib/metaCampaignGuard.ts";
 import { leadWelcomePayload } from "../lib/leadNotify.ts";
+import { metaAnswerLines } from "../lib/metaLeadAnswers.ts";
 
 // The Scott video contractor series. Ryan's cadence, Ryan's copy rules, and
 // the one gate that matters: only the days he cleared can ever send.
@@ -114,6 +116,62 @@ test("the form and both ads are registered: email follow up yes, automatic text 
   assert.equal(form.funnel, "contractor_owner");
   assert.equal(isAllowedLeadFlowAdId("120253999623340154"), true);
   assert.equal(isAllowedLeadFlowAdId("120254001470770154"), true);
+});
+
+test("Pat's v2 form feeds the same welcome and the same 180 day series", () => {
+  assert.equal(CONTRACTOR_META_FORM_ID_V2, "1149268527613297");
+  const lead = {
+    marketing_email_consent: true,
+    source: "meta_lead_ad",
+    diagnostic: { form_id: CONTRACTOR_META_FORM_ID_V2 },
+  };
+  assert.equal(isContractorSeriesLead(lead), true);
+  assert.equal(isContractorSeriesLead({ ...lead, marketing_email_consent: false }), false);
+  // v1 leads already in the series keep going.
+  assert.equal(isContractorSeriesLead({ ...lead, diagnostic: { form_id: CONTRACTOR_META_FORM_ID } }), true);
+
+  const form = registeredMetaForm(CONTRACTOR_META_FORM_ID_V2);
+  assert.ok(form);
+  assert.equal(form.campaign, "scott_contractor_tx_2026_10");
+  assert.equal(form.inquiryOptIn, true);
+  assert.equal(form.textOnSubmit, false);
+  assert.equal(form.funnel, "contractor_owner");
+});
+
+test("Pat's answers read in the words on the form, raw keys never shown", () => {
+  const form = registeredMetaForm(CONTRACTOR_META_FORM_ID_V2);
+  const lines = metaAnswerLines(
+    [
+      ["role_in_business", "owner_partner"],
+      ["primary_service", "pond_building_cleanouts_expansion"],
+      ["prepared_to_invest_7000", "yes_7000"],
+      ["how_soon_more_jobs", "now_30_days"],
+      ["full_name", "Mike Smith"],
+      ["email", "mike@example.com"],
+      ["phone_number", "+19035550100"],
+    ],
+    form,
+  );
+  assert.deepEqual(lines, [
+    "Role in the business: Owner / partner",
+    "Primary service: Pond building / cleanouts / expansion",
+    "Prepared to invest at least $7,000: Yes, I'm prepared to invest at least $7,000.",
+    "How soon they want more jobs: Now / within 30 days",
+  ]);
+  // Every question and option has a label, and none carries a dash.
+  for (const [key, label] of Object.entries(form?.answerLabels ?? {})) {
+    assert.ok(!/[-\u2013\u2014]/.test(label.question), key);
+    for (const text of Object.values(label.options)) assert.ok(!/[-\u2013\u2014]/.test(text), text);
+  }
+  assert.equal(Object.keys(form?.answerLabels ?? {}).length, 4);
+  // An answer Meta adds later still shows up, as the raw value.
+  assert.deepEqual(metaAnswerLines([["how_soon_more_jobs", "next_year"]], form), [
+    "How soon they want more jobs: next_year",
+  ]);
+  // Forms without labels keep the old line.
+  assert.deepEqual(metaAnswerLines([["what_kind_of_business?", "roofing"]], null), [
+    "what kind of business: roofing",
+  ]);
 });
 
 test("names: a real first name is used, a made up one is not", () => {

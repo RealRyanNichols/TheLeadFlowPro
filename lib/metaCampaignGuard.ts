@@ -81,6 +81,19 @@ export type MetaFormRegistration = {
    * can speak to what the person actually asked for.
    */
   funnel?: string;
+  /**
+   * Plain English for a form built through the Graph API with short keys.
+   * Meta hands back the question key and the option key, so without this the
+   * alert reads "prepared to invest 7000: yes_7000". With it, Ryan and Pat
+   * read the question and the answer the person actually saw. The raw keys
+   * stay in diagnostic.fields either way (lib/metaLeadAnswers.ts).
+   */
+  answerLabels?: Readonly<Record<string, MetaAnswerLabel>>;
+};
+
+export type MetaAnswerLabel = {
+  question: string;
+  options: Readonly<Record<string, string>>;
 };
 
 /**
@@ -164,6 +177,55 @@ export const META_FORM_REGISTRY: Readonly<Record<string, MetaFormRegistration>> 
     inquiryOptIn: true,
     textOnSubmit: false,
     funnel: "contractor_owner",
+  },
+  "1149268527613297": {
+    // LFP | Contractor Owner | Scott Video | v2 Pat questions (Oct 2 2026).
+    // Pat's four questions: role in the business, primary service, ready to
+    // invest at least $7,000, how soon. Same offer, same promise of a call,
+    // same contractor welcome and 180 day series as v1. Created through the
+    // Graph API and read back before it went on the ads. The labels below are
+    // the exact words on the form.
+    campaign: "scott_contractor_tx_2026_10",
+    inquiryOptIn: true,
+    textOnSubmit: false,
+    funnel: "contractor_owner",
+    answerLabels: {
+      role_in_business: {
+        question: "Role in the business:",
+        options: {
+          owner_partner: "Owner / partner",
+          authorized_manager: "Manager authorized to make growth decisions",
+          employee_sales_rep: "Employee / sales representative",
+          hiring_a_contractor: "I'm looking to hire a contractor",
+        },
+      },
+      primary_service: {
+        question: "Primary service:",
+        options: {
+          dirt_work_excavation_grading: "Dirt work / excavation / grading",
+          land_clearing_brush_mulching: "Land clearing / brush removal / forestry mulching",
+          pond_building_cleanouts_expansion: "Pond building / cleanouts / expansion",
+          farm_ranch_custom_ag: "Farm / ranch services and custom agricultural work",
+          other_land_improvement: "Other land improvement services",
+        },
+      },
+      prepared_to_invest_7000: {
+        question: "Prepared to invest at least $7,000:",
+        options: {
+          yes_7000: "Yes, I'm prepared to invest at least $7,000.",
+          need_funding: "I'd need funding and would be willing to explore options.",
+          not_ready: "I'm not ready to invest at that level right now.",
+        },
+      },
+      how_soon_more_jobs: {
+        question: "How soon they want more jobs:",
+        options: {
+          now_30_days: "Now / within 30 days",
+          one_to_three_months: "In 1 to 3 months",
+          exploring_later: "I'm exploring for later",
+        },
+      },
+    },
   },
   "2349934135833664": {
     // LFP Enrollment Gap Timeline v1. Built Sep 15 for the schools and

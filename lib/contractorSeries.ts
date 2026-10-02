@@ -1,5 +1,6 @@
 // The contractor owner series: everyone who applies through the Scott video
-// ad (Meta form 1410074817946865) for dirt work, land clearing and pond
+// ad (Meta forms 1410074817946865, and 1149268527613297 with Pat's questions)
+// for dirt work, land clearing and pond
 // businesses.
 //
 // CADENCE (Ryan, 2026-10-02). Day 0 goes out the second the form is
@@ -37,6 +38,13 @@ import { bookingPage } from "@/lib/site/external-links";
 export const CONTRACTOR_CAMPAIGN = "contractor_owner";
 export const CONTRACTOR_FUNNEL = "contractor_owner";
 export const CONTRACTOR_META_FORM_ID = "1410074817946865";
+/** v2, Pat's four questions (role, primary service, $7,000, how soon). Oct 2 2026. */
+export const CONTRACTOR_META_FORM_ID_V2 = "1149268527613297";
+/** Every form that feeds this series. Old leads keep their v1 form id. */
+export const CONTRACTOR_META_FORM_IDS: ReadonlySet<string> = new Set([
+  CONTRACTOR_META_FORM_ID,
+  CONTRACTOR_META_FORM_ID_V2,
+]);
 export const CONTRACTOR_FIRST_STEP = 601;
 /** The last send day is 180. A little room so a late cron still finishes. */
 export const CONTRACTOR_LOOKBACK_DAYS = 185;
@@ -73,7 +81,8 @@ export function isContractorSeriesLead(lead: ContractorLeadCandidate): boolean {
   if (lead.source !== "meta_lead_ad") return false;
   const diagnostic = lead.diagnostic;
   if (!diagnostic || typeof diagnostic !== "object" || Array.isArray(diagnostic)) return false;
-  return (diagnostic as Record<string, unknown>).form_id === CONTRACTOR_META_FORM_ID;
+  const formId = (diagnostic as Record<string, unknown>).form_id;
+  return typeof formId === "string" && CONTRACTOR_META_FORM_IDS.has(formId);
 }
 
 // ---------------------------------------------------------------------------
