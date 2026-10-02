@@ -1,5 +1,5 @@
 const BASE = "https://www.theleadflowpro.com";
-const PRIVATE_PATH = /^\/(?:admin|dashboard|login|logout|auth|training|api|sales|account|settings|workspace|portal)(?:\/|$)/i;
+const PRIVATE_PATH = /^\/(?:admin|design-preview|dashboard|login|logout|auth|training|api|sales|account|settings|workspace|portal)(?:\/|$)/i;
 const PRIVATE_EVENT = /^\/events\/[^/]+\/confirmed(?:\/|$)/i;
 const PRIVATE_SELLERPROOF = /^\/sellerproof\/build(?:\/|$)/i;
 const PRIVATE_CHASE_SHEET = /^\/chase-sheet\/app(?:\/|$)/i;

@@ -37,6 +37,7 @@ const BACK_OFFICE_LINKS: readonly BackOfficeLink[] = [
   { href: "/admin/purchases", label: "Purchases" },
   { href: "/admin/tlfp", label: "Credits" },
   { href: "/admin/operator", label: "OperatorOS", strong: true },
+  { href: "/admin/idea-lab", label: "Idea Lab", strong: true },
   { href: "/admin/content-engine", label: "Content" },
   { href: "/admin/content-command", label: "Content Command", strong: true },
   { href: "/admin/sales", label: "Sales desk" },
@@ -102,9 +103,9 @@ export default async function AdminLayout({
   return (
     <section className="min-h-screen bg-[var(--page)] text-[var(--text)]">
       <InternalTrafficMarker />
-      <div className="mx-auto max-w-6xl px-4 pb-20 pt-[22px] sm:pt-8">
+      <div data-admin-frame className="mx-auto max-w-6xl px-4 pb-20 pt-[22px] sm:pt-8">
         {/* From sm up the brand sits above the title. On a phone it gives its row to the page, so the first call card's Call button stays on the first screen. */}
-        <div className="mb-6 hidden sm:block">
+        <div data-admin-nav className="mb-6 hidden sm:block">
           <BrandLockup href="/" />
         </div>
         {/*
@@ -113,7 +114,7 @@ export default async function AdminLayout({
           disclosure holding every other link and Sign out. The menu is a plain
           <details>, so it opens and closes without JavaScript.
         */}
-        <div className="relative mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-line pb-2 sm:mb-8 sm:gap-6 sm:pb-4">
+        <div data-admin-nav className="relative mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-line pb-2 sm:mb-8 sm:gap-6 sm:pb-4">
           <h1 className="text-xl font-black text-[var(--heading)] sm:text-2xl">
             Back Office
           </h1>

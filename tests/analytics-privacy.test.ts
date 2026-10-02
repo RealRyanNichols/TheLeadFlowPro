@@ -44,6 +44,8 @@ describe("analytics URL privacy", () => {
       "/events/workshop/confirmed?t=private-seat-token",
       "/events/workshop/%63onfirmed",
       "/admin",
+      "/admin/idea-lab",
+      "/design-preview/idea-lab",
       "/dashboard/project",
       "/login",
       "/training/chatgpt-operator",

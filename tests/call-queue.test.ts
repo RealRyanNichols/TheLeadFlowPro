@@ -697,6 +697,7 @@ test("the back office nav on a phone: one row with Today's calls and a 44px Menu
   assert.ok(rowStart > nav.indexOf("Today&#x27;s calls") && menuStart > rowStart, "Today's calls, then the row, then Menu");
   const row = anchors(nav.slice(rowStart, menuStart));
   assert.ok(row.length >= 19, String(row.length));
+  assert.ok(row.some((a) => a.href === "/admin/idea-lab" && a.text === "Idea Lab"));
   assert.match(nav.slice(rowStart, menuStart), /<button type="submit"[^>]*>Sign out<\/button>/);
 
   // Below sm: Menu, a <details> that works without JavaScript, 44px, labelled, with a focus ring.
@@ -722,7 +723,7 @@ test("the back office nav on a phone: one row with Today's calls and a 44px Menu
   assert.ok(row.some((a) => a.href === "/admin/sales" && a.text === "Sales desk"));
   assert.ok(!header.includes("Today queue"));
   // The brand gives its row to the page on a phone and is back from sm up.
-  assert.match(header, /<div class="mb-6 hidden sm:block"><a href="\/" data-brand="">/);
+  assert.match(header, /<div[^>]* class="mb-6 hidden sm:block"><a href="\/" data-brand="">/);
   assert.match(header, /<h1 class="[^"]*sm:text-2xl[^"]*">Back Office<\/h1>/);
   assert.deepEqual(copyProblems(textOf(header)), []);
 
