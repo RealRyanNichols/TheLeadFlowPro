@@ -16,6 +16,7 @@ import {
   Layers,
   Lightbulb,
   Search,
+  Sparkles,
   UserRound,
   X,
 } from "lucide-react";
@@ -36,8 +37,13 @@ import {
   type IdeaWorkspace,
 } from "@/lib/ideaLabWorkspace";
 import styles from "./idea-lab.module.css";
+import OutcomeEngine from "./OutcomeEngine";
+import {
+  evaluateIdeaOutcomeExperiment,
+  type IdeaOutcomeExperiment,
+} from "@/lib/ideaLabOutcome";
 
-type View = "sources" | "queue" | "brief" | "results";
+type View = "engine" | "sources" | "queue" | "brief" | "results";
 const PREVIEW_KEY = "leadflow-idea-lab-preview-v1";
 const usd = (value: number) =>
   new Intl.NumberFormat("en-US", {
@@ -57,7 +63,7 @@ const date = (value: string) =>
 const firstSources = ["coreyganim", "nutlope", "TristenPalori"];
 
 export default function IdeaLab({ preview = false }: { preview?: boolean }) {
-  const [view, setView] = useState<View>("sources");
+  const [view, setView] = useState<View>("engine");
   const [workspace, setWorkspace] = useState<IdeaWorkspace>(emptyIdeaWorkspace);
   const [revision, setRevision] = useState(0);
   const [ready, setReady] = useState(false);
@@ -300,15 +306,17 @@ export default function IdeaLab({ preview = false }: { preview?: boolean }) {
           <nav aria-label="Idea Lab views">
             {(
               [
+                { id: "engine", name: "Start", Icon: Sparkles },
                 { id: "sources", name: "Sources", Icon: Files },
-                { id: "queue", name: "Build Queue", Icon: Layers },
-                { id: "brief", name: "Build Brief", Icon: FilePenLine },
+                { id: "queue", name: "Queue", Icon: Layers },
+                { id: "brief", name: "Brief", Icon: FilePenLine },
                 { id: "results", name: "Results", Icon: BarChart3 },
               ] as const
             ).map(({ id, name, Icon }) => (
               <button
                 key={id}
                 type="button"
+                disabled={saving}
                 aria-current={view === id ? "page" : undefined}
                 className={view === id ? styles.navActive : ""}
                 onClick={() => setView(id)}
@@ -335,7 +343,12 @@ export default function IdeaLab({ preview = false }: { preview?: boolean }) {
             </Link>
           </div>
         </aside>
-        <main className={styles.main} aria-label="Idea Lab workspace">
+        <main
+          className={styles.main}
+          aria-label="Idea Lab workspace"
+          inert={saving}
+          aria-busy={saving}
+        >
           {(notice || error || dirty || !ready) && (
             <div
               className={`${styles.status} ${error ? styles.statusError : ""}`}
@@ -344,7 +357,7 @@ export default function IdeaLab({ preview = false }: { preview?: boolean }) {
               {error ||
                 notice ||
                 (dirty
-                  ? "Unsaved changes. Save your brief before leaving."
+                  ? "Unsaved changes. Save your work before leaving."
                   : "Loading saved workspace…")}
               {dirty && !saving && ready && (
                 <button
@@ -356,6 +369,28 @@ export default function IdeaLab({ preview = false }: { preview?: boolean }) {
               )}
             </div>
           )}
+          <div hidden={view !== "engine"}>
+            <OutcomeEngine
+              experiments={workspace.experiments ?? []}
+              ready={ready}
+              saving={saving}
+              onSave={(experiment: IdeaOutcomeExperiment) => {
+                const next = {
+                  ...workspace,
+                  experiments: [
+                    ...(workspace.experiments ?? []).filter(
+                      (item) => item.id !== experiment.id,
+                    ),
+                    experiment,
+                  ],
+                };
+                return save(
+                  next,
+                  "Test saved. Your comparison is ready to review.",
+                );
+              }}
+            />
+          </div>
           {view === "sources" && (
             <div className={styles.sourceGrid}>
               <section className={styles.sourcePane} aria-label="Saved ideas">
@@ -803,10 +838,39 @@ export default function IdeaLab({ preview = false }: { preview?: boolean }) {
                 </span>
                 <h1>Useful work. Real outcomes.</h1>
                 <p>
-                  Track accepted deliveries and collected payments when records
-                  are connected.
+                  Review your saved tests. Delivery and payment metrics need
+                  verified provider records.
                 </p>
               </div>
+              {(workspace.experiments ?? []).length > 0 && (
+                <div
+                  className={styles.kpiGrid}
+                  aria-label="Saved test comparisons"
+                >
+                  {(workspace.experiments ?? []).map((experiment) => {
+                    const assessment =
+                      evaluateIdeaOutcomeExperiment(experiment);
+                    const lift = assessment.metrics.bookingLiftPoints;
+                    return (
+                      <article key={experiment.id}>
+                        <h2>{experiment.name}</h2>
+                        <strong>
+                          {lift === null
+                            ? "Not measured"
+                            : `${lift > 0 ? "+" : ""}${Number(lift.toFixed(1))} pp`}
+                        </strong>
+                        <p>
+                          {assessment.label}. {assessment.summary}
+                        </p>
+                        <small>
+                          Manually recorded comparison. Review the evidence in
+                          Start → Open a saved test.
+                        </small>
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
               <div className={styles.kpiGrid}>
                 {IDEA_KPIS.map((kpi) => (
                   <article key={kpi.id}>
@@ -822,8 +886,8 @@ export default function IdeaLab({ preview = false }: { preview?: boolean }) {
           )}
           <footer className={styles.workspaceFooter}>
             {preview
-              ? "Local preview · saves in this browser · admin publication pending"
-              : "Private account workspace · source imports and drafts only"}
+              ? "Local preview · saves in this browser · this update is not live yet"
+              : "Private account workspace · ideas, drafts, and recorded comparisons"}
             <span>External execution disabled</span>
           </footer>
         </main>

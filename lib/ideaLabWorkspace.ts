@@ -5,6 +5,10 @@ import {
   type IdeaLane,
   type IdeaSource,
 } from "./ideaLab.ts";
+import {
+  validateIdeaOutcomeExperiment,
+  type IdeaOutcomeExperiment,
+} from "./ideaLabOutcome.ts";
 
 export type IdeaBrief = {
   lane: IdeaLane;
@@ -18,6 +22,7 @@ export type IdeaWorkspace = {
   version: 1;
   importedUrls: string[];
   briefs: IdeaBrief[];
+  experiments?: IdeaOutcomeExperiment[];
 };
 export const emptyIdeaWorkspace = (): IdeaWorkspace => ({
   version: 1,
@@ -84,6 +89,20 @@ export function validateIdeaWorkspace(value: unknown): IdeaWorkspace {
     };
   });
   const result: IdeaWorkspace = { version: 1, importedUrls, briefs };
+  if (document.experiments !== undefined) {
+    if (
+      !Array.isArray(document.experiments) ||
+      document.experiments.length > 20
+    )
+      throw new Error("A workspace can contain up to 20 pilots.");
+    const ids = new Set<string>();
+    result.experiments = document.experiments.map((value) => {
+      const experiment = validateIdeaOutcomeExperiment(value);
+      if (ids.has(experiment.id)) throw new Error("Pilot IDs must be unique.");
+      ids.add(experiment.id);
+      return experiment;
+    });
+  }
   if (new TextEncoder().encode(JSON.stringify(result)).length > 190_000)
     throw new Error(
       "Workspace storage limit reached. Download completed briefs before adding more text.",

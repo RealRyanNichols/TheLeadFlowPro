@@ -7,6 +7,7 @@ import {
   validateIdeaWorkspace,
   workspaceSources,
 } from "../lib/ideaLabWorkspace.ts";
+import { defaultIdeaOutcomeExperiment } from "../lib/ideaLabOutcome.ts";
 
 test("imported links remain unreviewed after a workspace reload", () => {
   const workspace = validateIdeaWorkspace({
@@ -94,4 +95,78 @@ test("downloaded briefs retain source caveats and pending implementation status"
   assert.match(markdown, /https:\/\/x.com\/ErnestoSOFTWARE\/status\//);
   assert.match(markdown, /unverified/);
   assert.match(markdown, /External execution: disabled/);
+});
+
+test("older saved workspaces remain unchanged when pilots are absent", () => {
+  const original = emptyIdeaWorkspace();
+  assert.deepEqual(validateIdeaWorkspace(original), original);
+  assert.equal("experiments" in validateIdeaWorkspace(original), false);
+});
+
+test("pilots use the existing private document and survive a validated reload", () => {
+  const experiment = defaultIdeaOutcomeExperiment("owner-pilot");
+  experiment.evidence.baseline = "Private baseline CRM report";
+  const workspace = validateIdeaWorkspace({
+    ...emptyIdeaWorkspace(),
+    experiments: [experiment],
+  });
+  assert.deepEqual(workspace.experiments, [experiment]);
+  assert.deepEqual(
+    validateIdeaWorkspace(JSON.parse(JSON.stringify(workspace))),
+    workspace,
+  );
+  assert.deepEqual(
+    validateIdeaWorkspace({ ...emptyIdeaWorkspace(), experiments: [] })
+      .experiments,
+    [],
+  );
+});
+
+test("pilot documents reject duplicates, invalid values and excessive counts", () => {
+  const experiment = defaultIdeaOutcomeExperiment("duplicate");
+  assert.throws(
+    () =>
+      validateIdeaWorkspace({
+        ...emptyIdeaWorkspace(),
+        experiments: [experiment, experiment],
+      }),
+    /unique/,
+  );
+  assert.throws(
+    () =>
+      validateIdeaWorkspace({
+        ...emptyIdeaWorkspace(),
+        experiments: Array.from({ length: 21 }, (_, index) =>
+          defaultIdeaOutcomeExperiment(`pilot-${index}`),
+        ),
+      }),
+    /20 pilots/,
+  );
+  for (const experiments of [
+    null,
+    {},
+    [null],
+    [
+      {
+        ...experiment,
+        pilot: { leads: 10, bookings: 11, minutes: 0, cost: 0 },
+      },
+    ],
+  ])
+    assert.throws(() =>
+      validateIdeaWorkspace({ ...emptyIdeaWorkspace(), experiments }),
+    );
+});
+
+test("the existing byte limit covers pilot notes and evidence references", () => {
+  const experiments = Array.from({ length: 20 }, (_, index) => ({
+    ...defaultIdeaOutcomeExperiment(`pilot-${index}`),
+    workflowNote: "x".repeat(6000),
+    sourceReference: "x".repeat(2000),
+    evidence: { baseline: "x".repeat(2000), pilot: "x".repeat(2000) },
+  }));
+  assert.throws(
+    () => validateIdeaWorkspace({ ...emptyIdeaWorkspace(), experiments }),
+    /storage limit/,
+  );
 });

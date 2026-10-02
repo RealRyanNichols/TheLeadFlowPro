@@ -3,6 +3,10 @@ import {
   validateIdeaWorkspace,
 } from "./ideaLabWorkspace.ts";
 import { ideaLabSameOrigin } from "./ideaLabHttp.ts";
+import {
+  ideaOutcomeMarkdown,
+  validateIdeaOutcomeExperiment,
+} from "./ideaLabOutcome.ts";
 
 export async function exportIdeaBrief(request: Request): Promise<Response> {
   const headers = {
@@ -22,6 +26,24 @@ export async function exportIdeaBrief(request: Request): Promise<Response> {
     );
   try {
     const form = await request.formData();
+    if (form.has("experiment")) {
+      const value = form.get("experiment");
+      if (
+        form.has("brief") ||
+        typeof value !== "string" ||
+        value.length > 30_000
+      )
+        throw new Error("Invalid pilot report.");
+      const experiment = validateIdeaOutcomeExperiment(JSON.parse(value));
+      return new Response(ideaOutcomeMarkdown(experiment), {
+        headers: {
+          ...headers,
+          "Content-Type": "text/markdown; charset=utf-8",
+          "Content-Disposition":
+            'attachment; filename="leadflow-outcome-report.md"',
+        },
+      });
+    }
     const value = form.get("brief");
     if (typeof value !== "string" || value.length > 30_000)
       throw new Error("Invalid brief.");
@@ -40,7 +62,7 @@ export async function exportIdeaBrief(request: Request): Promise<Response> {
     });
   } catch {
     return Response.json(
-      { error: "Complete the brief before exporting." },
+      { error: "Complete the draft before exporting." },
       { status: 400, headers },
     );
   }
