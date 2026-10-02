@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight, ArrowLeft, Check, Download, Sparkles } from "lucide-react";
+import { ArrowRight, ArrowLeft, Check, Download, FileText } from "lucide-react";
 import {
   defaultIdeaOutcomeExperiment,
   evaluateIdeaOutcomeExperiment,
@@ -20,6 +20,8 @@ const number = (value: number | null, digits = 1) =>
   value === null
     ? "Not recorded"
     : value.toLocaleString("en-US", { maximumFractionDigits: digits });
+const plainAssessment = (text: string) =>
+  text.replace(/\bpilot\b/g, "test").replace(/\bbaseline\b/g, "before-change");
 
 // Invented data is isolated from saved records and is always visibly labeled.
 function example(): IdeaOutcomeExperiment {
@@ -51,6 +53,7 @@ export default function OutcomeEngine({
   const [message, setMessage] = useState("");
   const heading = useRef<HTMLHeadingElement>(null);
   const problem = useRef<HTMLParagraphElement>(null);
+  const exampleResult = evaluateIdeaOutcomeExperiment(example());
   const result = (() => {
     try {
       return evaluateIdeaOutcomeExperiment(draft);
@@ -79,6 +82,7 @@ export default function OutcomeEngine({
     setStep(1);
     setError("");
     setMessage("");
+    requestAnimationFrame(() => heading.current?.focus());
   }
   function change(patch: Partial<IdeaOutcomeExperiment>) {
     setDraft((current) => ({ ...current, ...patch }));
@@ -90,6 +94,15 @@ export default function OutcomeEngine({
     setStep(next);
     setError("");
     requestAnimationFrame(() => heading.current?.focus());
+  }
+  function openExample() {
+    if (dirty || saving) return;
+    setDraft(example());
+    setDemo(true);
+    setStarted(true);
+    setDirty(false);
+    setMessage("");
+    advance(3);
   }
   function download() {
     const form = document.createElement("form");
@@ -105,7 +118,9 @@ export default function OutcomeEngine({
     document.body.appendChild(form);
     form.submit();
     form.remove();
-    setMessage("Report prepared. Check your downloads.");
+    setMessage(
+      "Download requested. Check your browser’s Downloads for leadflow-outcome-report.md.",
+    );
   }
 
   return (
@@ -113,89 +128,157 @@ export default function OutcomeEngine({
       {!started ? (
         <>
           <div className={styles.hero}>
-            <Image
-              src="/images/idea-lab/outcome-core.webp"
-              alt=""
-              fill
-              priority
-              sizes="(max-width: 640px) 100vw, 75vw"
-              className={styles.art}
-            />
             <div className={styles.heroCopy}>
               <span className={styles.kicker}>
-                <Sparkles size={15} aria-hidden /> THE LEADFLOW OUTCOME ENGINE
+                <FileText size={15} aria-hidden /> LEAD FOLLOW-UP REPORT
               </span>
-              <h1>
-                Make the next
-                <br />
-                result real.
+              <h1 ref={heading} tabIndex={-1}>
+                See if your follow-up is working.
               </h1>
               <p>
-                One workflow. One test.
-                <br />
-                See what actually improves.
+                Enter your before-and-after numbers. Get a report showing
+                booking changes, time, cost, and what to check next.
               </p>
-              <button
-                className={styles.primary}
-                disabled={saving}
-                onClick={() => (dirty ? setStarted(true) : start())}
-              >
-                {dirty ? "Continue your test" : "Start a test"}{" "}
-                <ArrowRight size={20} aria-hidden />
-              </button>
-              <button
-                className={styles.textButton}
-                disabled={dirty || saving}
-                onClick={() => {
-                  setDraft(example());
-                  setDemo(true);
-                  setStarted(true);
-                  setStep(3);
-                  setDirty(false);
-                }}
-              >
-                See how it works <ArrowRight size={16} aria-hidden />
-              </button>
+              <div className={styles.heroActions}>
+                <button
+                  className={styles.primary}
+                  disabled={saving}
+                  onClick={() => {
+                    if (dirty) {
+                      setStarted(true);
+                      requestAnimationFrame(() => heading.current?.focus());
+                    } else start();
+                  }}
+                >
+                  {dirty ? "Continue my report" : "Start my report"}
+                  <ArrowRight size={20} aria-hidden />
+                </button>
+                <button
+                  className={styles.textButton}
+                  disabled={dirty || saving}
+                  onClick={openExample}
+                >
+                  Open the example report <ArrowRight size={16} aria-hidden />
+                </button>
+              </div>
+              <p className={styles.heroNote}>
+                You enter the records. We calculate the comparison and prepare a
+                follow-up checklist for you to review.
+              </p>
               {dirty && (
                 <p className={styles.heroNote}>
-                  Your unfinished test is kept here. Continue to save or
-                  download it.
+                  Your unfinished report is kept here. Press Continue my report
+                  to finish, save, or download it.
                 </p>
               )}
+            </div>
+            <div
+              className={styles.reportPreview}
+              aria-label="Example finished report"
+            >
+              <div className={styles.previewTop}>
+                <div>
+                  <span className={styles.kicker}>WHAT YOU’LL GET</span>
+                  <h2>Your follow-up report</h2>
+                  <p>Example · invented numbers</p>
+                </div>
+                <Image
+                  src="/images/idea-lab/outcome-core.webp"
+                  alt=""
+                  width={64}
+                  height={80}
+                  priority
+                  className={styles.art}
+                />
+              </div>
+              <div className={styles.previewBooking}>
+                <span>Leads that booked work</span>
+                <div>
+                  <strong>6 of 60</strong>
+                  <ArrowRight size={24} aria-hidden />
+                  <strong>12 of 60</strong>
+                </div>
+                <p>Before the change → during the test</p>
+              </div>
+              <div className={styles.previewRates}>
+                <span>Booking rate</span>
+                <strong>
+                  {number(exampleResult.metrics.baselineBookingRate)}% →{" "}
+                  {number(exampleResult.metrics.pilotBookingRate)}%
+                </strong>
+              </div>
+              <dl className={styles.previewMeasures}>
+                <div>
+                  <dt>Time per lead</dt>
+                  <dd>5 → 3 minutes</dd>
+                </div>
+                <div>
+                  <dt>Cost per lead</dt>
+                  <dd>$0.50 → $0.40</dd>
+                </div>
+              </dl>
+              <div className={styles.previewNext}>
+                <Check size={18} aria-hidden />
+                <p>
+                  <strong>Next step:</strong> Check the records and repeat with
+                  similar leads before expanding.
+                </p>
+              </div>
             </div>
           </div>
           <div className={styles.intro}>
             <span className={styles.kicker}>
-              A CLEAR PATH TO A BETTER RESULT
+              FROM YOUR NUMBERS TO YOUR NEXT STEP
             </span>
-            <h2>
-              Less guesswork.
-              <br />
-              More proof.
-            </h2>
+            <h2>Here’s exactly what to do.</h2>
             <ol className={styles.simpleSteps}>
               <li>
                 <span>01</span>
                 <div>
-                  <h3>Pick the result.</h3>
-                  <p>Start with one job: turn more leads into booked work.</p>
+                  <h3>Describe your follow-up.</h3>
+                  <p>
+                    Press <strong>Start my report</strong>. Name your test,
+                    describe the change, and add a process reference. Then press{" "}
+                    <strong>Continue to numbers</strong>.
+                  </p>
                 </div>
               </li>
               <li>
                 <span>02</span>
                 <div>
-                  <h3>Test one improvement.</h3>
-                  <p>Prepare a workflow, then compare before and after.</p>
+                  <h3>Enter your before-and-after numbers.</h3>
+                  <p>
+                    Add leads received, leads that booked work, time, cost, and
+                    record references for both groups. Press{" "}
+                    <strong>Show my report</strong>.
+                  </p>
                 </div>
               </li>
               <li>
                 <span>03</span>
                 <div>
-                  <h3>Keep what works.</h3>
-                  <p>See the change, check the costs, and keep the evidence.</p>
+                  <h3>Read, save, and download your report.</h3>
+                  <p>
+                    See what changed and what to check next. Press{" "}
+                    <strong>Save in this workspace</strong> to reopen it later,
+                    or <strong>Download report</strong> to keep a text copy.
+                  </p>
                 </div>
               </li>
             </ol>
+            <div className={styles.preparation}>
+              <h3>Have these ready</h3>
+              <p>
+                Two comparable groups of leads, their date ranges, and the
+                records behind the counts. If you haven’t measured time or cost,
+                leave those fields blank; the report will say they need
+                checking.
+              </p>
+              <p>
+                A lead is a person who asked about your service. Count that
+                person once, even if they booked more than one job.
+              </p>
+            </div>
             {experiments.length > 0 && (
               <label className={styles.field}>
                 Open a saved test
@@ -211,8 +294,9 @@ export default function OutcomeEngine({
                       setDraft(saved);
                       setDemo(false);
                       setStarted(true);
-                      setStep(3);
                       setDirty(false);
+                      setMessage("");
+                      advance(3);
                     }
                   }}
                 >
@@ -226,9 +310,31 @@ export default function OutcomeEngine({
               </label>
             )}
             <p className={styles.note}>
-              Your workspace starts with no measured results. The example uses
-              invented numbers.
+              This tool compares records you enter and prepares a manual
+              checklist. It does not send follow-ups or create bookings. The
+              example is invented; your report uses your numbers.
             </p>
+            <details className={styles.details}>
+              <summary>What do the other tabs do?</summary>
+              <ul className={styles.limitations}>
+                <li>
+                  <strong>Sources:</strong> Find your saved ideas and open the
+                  original posts.
+                </li>
+                <li>
+                  <strong>Queue:</strong> See the build plans you’ve chosen to
+                  work on.
+                </li>
+                <li>
+                  <strong>Brief:</strong> Write what to build, what you’ll get,
+                  and how you’ll check it.
+                </li>
+                <li>
+                  <strong>Results:</strong> Reopen saved comparisons and see
+                  which business measures still need records.
+                </li>
+              </ul>
+            </details>
           </div>
         </>
       ) : (
@@ -239,9 +345,10 @@ export default function OutcomeEngine({
               onClick={() => {
                 setStarted(false);
                 setStep(1);
+                requestAnimationFrame(() => heading.current?.focus());
               }}
             >
-              <ArrowLeft size={17} aria-hidden /> Overview
+              <ArrowLeft size={17} aria-hidden /> Back to instructions
             </button>
             <span>{demo ? "ILLUSTRATIVE EXAMPLE" : "LEAD FOLLOW-UP TEST"}</span>
           </div>
@@ -252,7 +359,7 @@ export default function OutcomeEngine({
             </p>
           )}
           <ol className={styles.progress} aria-label="Test progress">
-            {["Choose", "Compare", "Result"].map((label, index) => (
+            {["Describe", "Add numbers", "Get report"].map((label, index) => (
               <li
                 key={label}
                 aria-current={step === index + 1 ? "step" : undefined}
@@ -291,35 +398,46 @@ export default function OutcomeEngine({
               }}
             >
               <h1 ref={heading} tabIndex={-1}>
-                What should improve?
+                1. Describe your follow-up.
               </h1>
               <p className={styles.lead}>
-                Start with more booked jobs from the leads you already get.
+                Fill in these four fields, then press Continue to numbers. Your
+                finished report will compare bookings, time, and cost.
               </p>
               <label className={styles.field}>
-                Name this test
+                1. Name this test
                 <input
                   required
                   maxLength={160}
                   value={draft.name}
                   onChange={(event) => change({ name: event.target.value })}
                   placeholder="Faster lead follow-up"
+                  aria-describedby="outcome-name-help"
                 />
+                <small id="outcome-name-help">
+                  Choose a name you’ll recognize when you reopen the report.
+                </small>
               </label>
               <label className={styles.field}>
-                How does follow-up work today?
+                2. What follow-up are you testing?
                 <textarea
                   required
                   rows={4}
+                  aria-describedby="outcome-workflow-help"
                   maxLength={6000}
                   value={draft.workflowNote}
                   onChange={(event) =>
                     change({ workflowNote: event.target.value })
                   }
                 />
+                <small id="outcome-workflow-help">
+                  Describe the current steps and the change you want to test.
+                  For example: review the inquiry, prepare a reply, approve it,
+                  then record whether the lead booked work.
+                </small>
               </label>
               <label className={styles.field}>
-                Where did this process come from?
+                3. Where is this process recorded?
                 <input
                   required
                   maxLength={2000}
@@ -328,20 +446,22 @@ export default function OutcomeEngine({
                     change({ sourceReference: event.target.value })
                   }
                   placeholder="Process note, call date, or record ID"
+                  aria-describedby="outcome-source-help"
                 />
-                <small>
-                  Use a record reference. Keep private customer details out of
-                  this field.
+                <small id="outcome-source-help">
+                  Enter a process-note ID, call date, or record link. Use a
+                  reference instead of customer names or contact details.
                 </small>
               </label>
               <label className={styles.field}>
-                Your target: increase bookings by how many percentage points?
+                4. What booking-rate increase is your target?
                 <input
                   type="number"
                   min={0}
                   max={100}
                   step="any"
                   required
+                  aria-describedby="outcome-target-help"
                   value={draft.minimumBookingLiftPoints}
                   onChange={(event) =>
                     change({
@@ -349,10 +469,14 @@ export default function OutcomeEngine({
                     })
                   }
                 />
-                <small>This is your test target, not a promised result.</small>
+                <small id="outcome-target-help">
+                  10% before and 15% during the test is an increase of 5
+                  percentage points. Enter your target increase. It is not a
+                  promised result.
+                </small>
               </label>
               <button type="submit" className={styles.primary}>
-                Set up the comparison <ArrowRight size={18} aria-hidden />
+                Continue to numbers <ArrowRight size={18} aria-hidden />
               </button>
             </form>
           )}
@@ -373,11 +497,11 @@ export default function OutcomeEngine({
               }}
             >
               <h1 ref={heading} tabIndex={-1}>
-                What actually happened?
+                2. Enter your before-and-after numbers.
               </h1>
               <p className={styles.lead}>
-                Use comparable groups and time periods. Enter totals from your
-                records.
+                Complete both groups using similar leads and comparable date
+                ranges. Add the record references, then press Show my report.
               </p>
               <div className={styles.cohorts}>
                 {(["baseline", "pilot"] as const).map((cohort) => (
@@ -402,7 +526,7 @@ export default function OutcomeEngine({
                         },
                         {
                           key: "cost",
-                          label: "Total workflow cost ($)",
+                          label: "Total follow-up cost ($)",
                           whole: false,
                         },
                       ] as const
@@ -410,8 +534,9 @@ export default function OutcomeEngine({
                       <label key={key} className={styles.field}>
                         {label}
                         <input
-                          required
+                          required={whole}
                           type="number"
+                          aria-describedby={`outcome-${cohort}-${key}-help`}
                           inputMode={whole ? "numeric" : "decimal"}
                           min={0}
                           max={1000000}
@@ -429,6 +554,16 @@ export default function OutcomeEngine({
                             })
                           }
                         />
+                        <small id={`outcome-${cohort}-${key}-help`}>
+                          {key === "leads" &&
+                            "Enter the total number of unique people who asked about your service in this group."}
+                          {key === "bookings" &&
+                            "How many of those leads booked work? Count each person once. This cannot exceed leads received."}
+                          {key === "minutes" &&
+                            "Add the minutes spent on follow-up, including drafting and review. Leave blank if unmeasured; enter 0 only if no time was spent."}
+                          {key === "cost" &&
+                            "Add the cost of running this follow-up for the same group. Leave blank if unmeasured; enter 0 only if there was no cost."}
+                        </small>
                       </label>
                     ))}
                     <p className={styles.note}>
@@ -436,7 +571,7 @@ export default function OutcomeEngine({
                       job.
                     </p>
                     <label className={styles.field}>
-                      Evidence reference
+                      Record reference and date range
                       <input
                         maxLength={2000}
                         value={draft.evidence[cohort]}
@@ -449,10 +584,12 @@ export default function OutcomeEngine({
                           })
                         }
                         placeholder="Report ID and date range"
+                        aria-describedby={`outcome-${cohort}-evidence-help`}
                       />
-                      <small>
-                        A reference is recorded here. Its contents still need
-                        human verification.
+                      <small id={`outcome-${cohort}-evidence-help`}>
+                        Identify the report or record and its dates. Keep
+                        customer details out. Missing references will be
+                        flagged; check the underlying records before deciding.
                       </small>
                     </label>
                   </fieldset>
@@ -482,7 +619,7 @@ export default function OutcomeEngine({
               </details>
               <div className={styles.actions}>
                 <button className={styles.primary} type="submit">
-                  See my result <ArrowRight size={18} aria-hidden />
+                  Show my report <ArrowRight size={18} aria-hidden />
                 </button>
                 <button
                   className={styles.back}
@@ -502,18 +639,26 @@ export default function OutcomeEngine({
                   : "YOUR RECORDED COMPARISON"}
               </span>
               <h1 ref={heading} tabIndex={-1}>
-                {result.label}
+                3. Read your follow-up report.
               </h1>
-              <p className={styles.lead}>{result.summary}</p>
+              <p className={styles.lead}>
+                Check the booking change, time, and cost below. Read Your next
+                step, then save your comparison or download the report.
+              </p>
+              <div className={styles.assessment}>
+                <strong>{plainAssessment(result.label)}</strong>
+                <p>{plainAssessment(result.summary)}</p>
+              </div>
               <div className={styles.resultHero}>
                 <span>Change in booking rate</span>
                 <strong>
                   {result.metrics.bookingLiftPoints === null
                     ? "Not measured"
-                    : `${result.metrics.bookingLiftPoints > 0 ? "+" : ""}${number(result.metrics.bookingLiftPoints)} pp`}
+                    : `${result.metrics.bookingLiftPoints > 0 ? "+" : ""}${number(result.metrics.bookingLiftPoints)}`}
                 </strong>
                 <p>
-                  Percentage points · leads that booked work ÷ leads received
+                  Percentage points: a change from 10% to 20% means 10 more
+                  bookings per 100 leads.
                 </p>
                 {result.metrics.baselineBookingRate !== null &&
                   result.metrics.pilotBookingRate !== null && (
@@ -543,10 +688,11 @@ export default function OutcomeEngine({
               </div>
               <dl className={styles.measures}>
                 <div>
-                  <dt>Time saved per 100 leads</dt>
+                  <dt>Time change per 100 leads</dt>
                   <dd>
-                    {number(result.metrics.minutesSavedPer100Leads)}
-                    {result.metrics.minutesSavedPer100Leads !== null && " min"}
+                    {result.metrics.minutesSavedPer100Leads === null
+                      ? "Not recorded"
+                      : `${number(Math.abs(result.metrics.minutesSavedPer100Leads))} min ${result.metrics.minutesSavedPer100Leads < 0 ? "extra" : result.metrics.minutesSavedPer100Leads > 0 ? "saved" : "change"}`}
                   </dd>
                 </div>
                 <div>
@@ -558,15 +704,23 @@ export default function OutcomeEngine({
                           style: "currency",
                           currency: "USD",
                           maximumFractionDigits: 2,
-                        }).format(result.metrics.costDifferencePer100Leads)}
+                        }).format(
+                          Math.abs(result.metrics.costDifferencePer100Leads),
+                        )}
+                    {result.metrics.costDifferencePer100Leads !== null &&
+                      (result.metrics.costDifferencePer100Leads < 0
+                        ? " less"
+                        : result.metrics.costDifferencePer100Leads > 0
+                          ? " more"
+                          : " change")}
                   </dd>
                 </div>
               </dl>
               <div className={styles.nextMove}>
-                <h2>Your next move</h2>
+                <h2>Your next step</h2>
                 <ul>
                   {result.reasons.map((reason) => (
-                    <li key={reason}>{reason}</li>
+                    <li key={reason}>{plainAssessment(reason)}</li>
                   ))}
                 </ul>
                 <p>
@@ -576,7 +730,7 @@ export default function OutcomeEngine({
                 </p>
               </div>
               <details className={styles.details}>
-                <summary>See the prepared workflow</summary>
+                <summary>Read your follow-up checklist</summary>
                 <ol className={styles.workflow}>
                   {result.workflow.map((stage) => (
                     <li key={stage.id}>
@@ -599,8 +753,10 @@ export default function OutcomeEngine({
                 </summary>
                 {draft.contributionPerBooking > 0 && (
                   <p className={styles.note}>
-                    Estimated additional contribution per 100 leads: $
-                    {number(result.metrics.netContributionProxyPer100Leads, 2)}.
+                    Estimated additional contribution per 100 leads:{" "}
+                    {result.metrics.netContributionProxyPer100Leads === null
+                      ? "Not recorded."
+                      : `$${number(result.metrics.netContributionProxyPer100Leads, 2)}.`}{" "}
                     This is a normalized scenario using your contribution
                     estimate, not actual revenue.
                   </p>
@@ -614,7 +770,7 @@ export default function OutcomeEngine({
               <div className={styles.actions}>
                 {demo ? (
                   <button className={styles.primary} onClick={start}>
-                    Start my own test <ArrowRight size={18} aria-hidden />
+                    Start my own report <ArrowRight size={18} aria-hidden />
                   </button>
                 ) : (
                   <button
@@ -625,7 +781,9 @@ export default function OutcomeEngine({
                         const saved = await onSave(draft);
                         if (saved) {
                           setDirty(false);
-                          setMessage("Test saved.");
+                          setMessage(
+                            "Saved in this workspace. Use Back to instructions, then Open a saved test to find it again.",
+                          );
                         }
                       } catch {
                         setError(
@@ -634,7 +792,7 @@ export default function OutcomeEngine({
                       }
                     }}
                   >
-                    {saving ? "Saving…" : "Save this test"}
+                    {saving ? "Saving…" : "Save in this workspace"}
                     <Check size={18} aria-hidden />
                   </button>
                 )}
@@ -642,9 +800,16 @@ export default function OutcomeEngine({
                   <Download size={17} aria-hidden /> Download report
                 </button>
               </div>
+              <p className={styles.note}>
+                {demo
+                  ? "This is an invented example. Start my own report opens a blank comparison."
+                  : "Save in this workspace keeps this report here so you can reopen it."}{" "}
+                Download report gives you a text file you can open or share,
+                with the comparison, checklist, and record references.
+              </p>
               {!demo && (
                 <button className={styles.back} onClick={() => advance(2)}>
-                  Edit the comparison
+                  Edit my numbers
                 </button>
               )}
               {dirty && !demo && (

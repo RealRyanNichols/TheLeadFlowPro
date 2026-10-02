@@ -893,7 +893,7 @@ export default function IdeaLab({ preview = false }: { preview?: boolean }) {
           )}
           <footer className={styles.workspaceFooter}>
             {preview
-              ? "Local preview · saves in this browser · this update is not live yet"
+              ? "Local preview · saves in this browser · separate from your live workspace"
               : "Private account workspace · ideas, drafts, and recorded comparisons"}
             <span>External execution disabled</span>
           </footer>

@@ -176,7 +176,9 @@ test("a zero target cannot classify an unchanged booking rate as promising", () 
   const result = evaluateIdeaOutcomeExperiment(experiment);
   close(result.metrics.bookingLiftPoints, 0);
   assert.equal(result.status, "iterate");
-  assert.deepEqual(result.reasons, ["No recorded improvement in booking rate."]);
+  assert.deepEqual(result.reasons, [
+    "No recorded improvement in booking rate.",
+  ]);
   experiment.pilot.bookings = 21;
   assert.equal(evaluateIdeaOutcomeExperiment(experiment).status, "promising");
 });
@@ -284,7 +286,7 @@ test("reports preserve references, guardrails and limits on results claims", () 
   const markdown = ideaOutcomeMarkdown(experiment);
   assert.match(markdown, /Assessment: Add evidence first/);
   assert.match(markdown, /Baseline CRM cohort/);
-  assert.match(markdown, /Pilot: Not supplied/);
+  assert.match(markdown, /Test record: Not supplied/);
   assert.match(markdown, /10 percentage points/);
   assert.match(markdown, /not actual attributable revenue or profit/);
   assert.match(markdown, /do not establish.*caused/);
