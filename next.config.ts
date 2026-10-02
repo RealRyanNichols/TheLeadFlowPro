@@ -5,6 +5,13 @@ import type { NextConfig } from "next";
 const standalone = process.env.NEXT_OUTPUT === "standalone";
 
 const nextConfig: NextConfig = {
+  // Every validated release is a fresh checkout. Its webpack cache would never
+  // be reused, and can occupy hundreds of MB on the shared production host.
+  // Runtime/ISR caches and the development cache remain enabled.
+  webpack(config, { dev }) {
+    if (!dev) config.cache = false;
+    return config;
+  },
   ...(standalone ? { output: "standalone" as const } : {}),
   // Dynamic local-image reads otherwise trace the whole public directory,
   // including large video/download libraries this function never reads.
@@ -47,9 +54,17 @@ const nextConfig: NextConfig = {
     return [
       // An old paid free-build session's success_url: keep the buyer on a
       // confirmation page (it verifies session_id), not a sales page.
-      { source: "/free-build/welcome", destination: "/thank-you", statusCode: 301 },
+      {
+        source: "/free-build/welcome",
+        destination: "/thank-you",
+        statusCode: 301,
+      },
       { source: "/free-build", destination: "/services", statusCode: 301 },
-      { source: "/free-build/:path*", destination: "/services", statusCode: 301 },
+      {
+        source: "/free-build/:path*",
+        destination: "/services",
+        statusCode: 301,
+      },
     ];
   },
 };

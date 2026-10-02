@@ -181,3 +181,43 @@ and its logs remain retained. The replacement source commit is made reachable
 through a dedicated validation branch reference without checking out or changing
 the source working tree. Validation starts in a fresh SHA directory; no failed
 receipt or acceptance check is bypassed.
+
+## Deterministic font repair after destination build failure
+
+The 16401e3 destination passed installation, blocking audit and all 2,131
+tests, then stopped before activation in next/font's Google loader. Its
+extension matcher received a font URL without the expected filename suffix.
+The current site remains on ddeb372 and the additive Idea Lab migration is
+already applied, with actual hosted isolation/revision checks passed and all
+test writes rolled back.
+
+The replacement preserves all ten exact deployed Archivo/Inter WOFF2 files,
+all 46 generated font faces, original weights/unicode ranges, fallback metrics,
+and the two Latin preloads. `app/fonts.css` and `public/fonts/leadflow/` replace
+the build-time Google download in `app/layout.tsx`. Public copy, typography,
+font binaries and global font variables are preserved. Both upstream OFL
+licenses and per-file source hashes are included. The public font source
+provenance is the known live ddeb372 build, not a third-party redesign.
+
+The full encrypted off-host archive transfer was stopped before completion;
+no verified archive or recovery claim is made for that partial file. A separately
+reviewed cleanup removes only node_modules, npm cache, and webpack cache from
+this task's failed 16401e3 staging tree. Its exact committed source, Git objects,
+remaining failed build artifacts, and private failure logs are retained. No
+live or earlier rollback release is cleaned.
+
+Fresh validated release checkouts never reuse webpack's production compiler
+cache. `next.config.ts` now disables that disposable build cache in production;
+development caching and runtime/ISR caches remain enabled. This prevents
+hundreds of MB of unused compiler cache on the shared host without changing
+runtime behavior. Every validation gate still runs in a fresh SHA directory.
+
+Final deterministic-font candidate validation: 2,133 tests pass with zero
+failures or skips. The full 488-page production build, standalone typecheck,
+scoped ESLint, and diff whitespace checks pass. The ten bundled font files total
+299,716 bytes and their hashes match the known live release. A conflicting
+local preview process was stopped before clean generated files were rebuilt;
+these results come from the clean sequential run. The production destination
+still runs all mandatory checks again against a new exact commit before any
+activation. Authenticated browser acceptance requires the owner's normal
+sign-in; no account, token, or browser session is fabricated.
