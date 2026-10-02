@@ -40,10 +40,13 @@ export const CONTRACTOR_FUNNEL = "contractor_owner";
 export const CONTRACTOR_META_FORM_ID = "1410074817946865";
 /** v2, Pat's four questions (role, primary service, $7,000, how soon). Oct 2 2026. */
 export const CONTRACTOR_META_FORM_ID_V2 = "1149268527613297";
+/** v3, v2 plus the contact line on the question page. Oct 2 2026. */
+export const CONTRACTOR_META_FORM_ID_V3 = "2084381329108926";
 /** Every form that feeds this series. Old leads keep their v1 form id. */
 export const CONTRACTOR_META_FORM_IDS: ReadonlySet<string> = new Set([
   CONTRACTOR_META_FORM_ID,
   CONTRACTOR_META_FORM_ID_V2,
+  CONTRACTOR_META_FORM_ID_V3,
 ]);
 export const CONTRACTOR_FIRST_STEP = 601;
 /** The last send day is 180. A little room so a late cron still finishes. */
