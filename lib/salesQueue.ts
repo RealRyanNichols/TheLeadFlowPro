@@ -70,7 +70,8 @@ export const OPEN_STATUSES = ["new", "contacted", "call_booked", "proposal"];
 const DAY = 24 * 60 * 60 * 1000;
 
 /** Timeline answers that mean a deadline rather than browsing. */
-const URGENT_TIMELINES = new Set(["this_week", "this_month", "asap", "immediately"]);
+// now_30_days is "Now / within 30 days" on the contractor form (Pat's v2).
+const URGENT_TIMELINES = new Set(["this_week", "this_month", "asap", "immediately", "now_30_days"]);
 
 export function isUrgentTimeline(timeline: string | null): boolean {
   if (!timeline) return false;

@@ -314,6 +314,27 @@ const contractorForm = () => ({
   fields: {},
 });
 
+test("a lead from Pat's v2 form gets the same contractor day 1", async () => {
+  const now = START + 40 * DAY;
+  const leads: Row[] = [
+    {
+      ...base,
+      id: "dirt-v2",
+      full_name: "mike smith",
+      email: "mike@example.com",
+      created_at: new Date(now - DAY - HOUR).toISOString(),
+      diagnostic: { ...contractorForm(), form_id: contractorSeries.CONTRACTOR_META_FORM_ID_V2 },
+    },
+  ];
+  const result = await runRoute(leads, [], now);
+  assert.equal(result.status, 200);
+  assert.equal(result.sends.length, 1);
+  assert.equal(
+    result.sends[0].key,
+    `nurture-contractor_owner-${nurtureDelivery.NURTURE_SEQUENCE_VERSION}-dirt-v2-601`,
+  );
+});
+
 test("a Scott video lead gets contractor day 1, designed and tagged, never Rent Receipt", async () => {
   const now = START + 40 * DAY;
   const leads: Row[] = [
