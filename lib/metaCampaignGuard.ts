@@ -101,6 +101,48 @@ export type MetaAnswerLabel = {
  * admission. Adding a form in one place prevents the old failure mode where a
  * form was live in Meta but absent from one of several independent maps.
  */
+/**
+ * Pat's four questions, in the exact words on the form (his Oct 2 2026 email),
+ * shared by every form that asks them (v2 and v3).
+ */
+const PAT_CONTRACTOR_ANSWER_LABELS: Readonly<Record<string, MetaAnswerLabel>> = {
+  role_in_business: {
+    question: "Role in the business:",
+    options: {
+      owner_partner: "Owner / partner",
+      authorized_manager: "Manager authorized to make growth decisions",
+      employee_sales_rep: "Employee / sales representative",
+      hiring_a_contractor: "I'm looking to hire a contractor",
+    },
+  },
+  primary_service: {
+    question: "Primary service:",
+    options: {
+      dirt_work_excavation_grading: "Dirt work / excavation / grading",
+      land_clearing_brush_mulching: "Land clearing / brush removal / forestry mulching",
+      pond_building_cleanouts_expansion: "Pond building / cleanouts / expansion",
+      farm_ranch_custom_ag: "Farm / ranch services and custom agricultural work",
+      other_land_improvement: "Other land improvement services",
+    },
+  },
+  prepared_to_invest_7000: {
+    question: "Prepared to invest at least $7,000:",
+    options: {
+      yes_7000: "Yes, I'm prepared to invest at least $7,000.",
+      need_funding: "I'd need funding and would be willing to explore options.",
+      not_ready: "I'm not ready to invest at that level right now.",
+    },
+  },
+  how_soon_more_jobs: {
+    question: "How soon they want more jobs:",
+    options: {
+      now_30_days: "Now / within 30 days",
+      one_to_three_months: "In 1 to 3 months",
+      exploring_later: "I'm exploring for later",
+    },
+  },
+};
+
 export const META_FORM_REGISTRY: Readonly<Record<string, MetaFormRegistration>> = {
   "1319841020086334": {
     // PDA video: schools, coaching and events; personal callback request.
@@ -189,43 +231,19 @@ export const META_FORM_REGISTRY: Readonly<Record<string, MetaFormRegistration>> 
     inquiryOptIn: true,
     textOnSubmit: false,
     funnel: "contractor_owner",
-    answerLabels: {
-      role_in_business: {
-        question: "Role in the business:",
-        options: {
-          owner_partner: "Owner / partner",
-          authorized_manager: "Manager authorized to make growth decisions",
-          employee_sales_rep: "Employee / sales representative",
-          hiring_a_contractor: "I'm looking to hire a contractor",
-        },
-      },
-      primary_service: {
-        question: "Primary service:",
-        options: {
-          dirt_work_excavation_grading: "Dirt work / excavation / grading",
-          land_clearing_brush_mulching: "Land clearing / brush removal / forestry mulching",
-          pond_building_cleanouts_expansion: "Pond building / cleanouts / expansion",
-          farm_ranch_custom_ag: "Farm / ranch services and custom agricultural work",
-          other_land_improvement: "Other land improvement services",
-        },
-      },
-      prepared_to_invest_7000: {
-        question: "Prepared to invest at least $7,000:",
-        options: {
-          yes_7000: "Yes, I'm prepared to invest at least $7,000.",
-          need_funding: "I'd need funding and would be willing to explore options.",
-          not_ready: "I'm not ready to invest at that level right now.",
-        },
-      },
-      how_soon_more_jobs: {
-        question: "How soon they want more jobs:",
-        options: {
-          now_30_days: "Now / within 30 days",
-          one_to_three_months: "In 1 to 3 months",
-          exploring_later: "I'm exploring for later",
-        },
-      },
-    },
+    answerLabels: PAT_CONTRACTOR_ANSWER_LABELS,
+  },
+  "2084381329108926": {
+    // LFP | Contractor Owner | Scott Video | v3 (Oct 2 2026). v2 plus the
+    // contact line on the question page ("We use this only to follow up on
+    // your request. Our team will call or email you."), per Pat's email: use
+    // the approved contact and consent wording. Same campaign, same welcome,
+    // same 180 day series, same follow up groups.
+    campaign: "scott_contractor_tx_2026_10",
+    inquiryOptIn: true,
+    textOnSubmit: false,
+    funnel: "contractor_owner",
+    answerLabels: PAT_CONTRACTOR_ANSWER_LABELS,
   },
   "2349934135833664": {
     // LFP Enrollment Gap Timeline v1. Built Sep 15 for the schools and

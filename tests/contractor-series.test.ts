@@ -7,6 +7,7 @@ import {
   CONTRACTOR_LIVE_DAYS,
   CONTRACTOR_META_FORM_ID,
   CONTRACTOR_META_FORM_ID_V2,
+  CONTRACTOR_META_FORM_ID_V3,
   CONTRACTOR_STEPS,
   CONTRACTOR_WELCOME,
   CONTRACTOR_WRITTEN,
@@ -197,6 +198,29 @@ test("Pat's follow up groups: priority, funding review, fit check", () => {
     const label = lead("owner_partner", "yes_7000", g)?.label ?? "";
     assert.ok(!/[-\u2013\u2014]/.test(label), label);
   }
+});
+
+test("v3 (v2 plus the contact line) feeds the same welcome, series, labels and follow up", () => {
+  assert.equal(CONTRACTOR_META_FORM_ID_V3, "2084381329108926");
+  assert.equal(
+    isContractorSeriesLead({
+      marketing_email_consent: true,
+      source: "meta_lead_ad",
+      diagnostic: { form_id: CONTRACTOR_META_FORM_ID_V3 },
+    }),
+    true,
+  );
+  const v2 = registeredMetaForm(CONTRACTOR_META_FORM_ID_V2);
+  const v3 = registeredMetaForm(CONTRACTOR_META_FORM_ID_V3);
+  assert.ok(v3);
+  assert.equal(v3.campaign, "scott_contractor_tx_2026_10");
+  assert.equal(v3.inquiryOptIn, true);
+  assert.equal(v3.textOnSubmit, false);
+  assert.equal(v3.funnel, "contractor_owner");
+  assert.deepEqual(v3.answerLabels, v2?.answerLabels);
+  assert.deepEqual(metaAnswerLines([["prepared_to_invest_7000", "yes_7000"]], v3), [
+    "Prepared to invest at least $7,000: Yes, I'm prepared to invest at least $7,000.",
+  ]);
 });
 
 test("names: a real first name is used, a made up one is not", () => {
