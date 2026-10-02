@@ -21,7 +21,8 @@ import { bookingPage } from "@/lib/site/external-links";
 import { PRICES, usd } from "@/lib/site/prices";
 
 const SITE = BUSINESS.siteUrl;
-const BRAND_MARK = `${SITE}/images/leadflow-pro-app-icon-192.png`;
+/** The official LF mark (public/images/brand/leadflow-logo.png) on a white tile. Never the old app icon. */
+const BRAND_MARK = `${SITE}/images/email/leadflow-logo-tile.png`;
 
 /** A free calculator or generator on /tools, offered inside an email. */
 export type NurtureTool = {
@@ -386,7 +387,7 @@ ${button(toolHref, media.tool.label ?? "Open the tool", "ghost")}
 <tr><td style="padding:20px 28px 14px;">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
 <td style="vertical-align:middle;">
-<img src="${esc(BRAND_MARK)}" alt="" width="36" height="36" style="display:inline-block;vertical-align:middle;border-radius:9px;border:0;">
+<img src="${esc(BRAND_MARK)}" alt="The LeadFlow Pro" width="40" height="40" style="display:inline-block;vertical-align:middle;width:40px;height:40px;border-radius:10px;border:0;">
 <span style="display:inline-block;vertical-align:middle;margin-left:10px;font-family:Inter,Helvetica,Arial,sans-serif;font-size:13px;font-weight:800;letter-spacing:0.14em;text-transform:uppercase;color:#5135e5;">The LeadFlow Pro</span>
 </td>
 <td align="right" style="vertical-align:middle;font-family:Inter,Helvetica,Arial,sans-serif;font-size:12px;font-weight:700;color:#625f6d;white-space:nowrap;">Day ${step.day} of 30</td>
