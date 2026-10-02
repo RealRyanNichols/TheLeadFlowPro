@@ -42,7 +42,12 @@ test("the schedule is daily to 30, then every 2, 3 and 4 days to 180", () => {
 
 test("only the days Ryan cleared can send", () => {
   const live = [...CONTRACTOR_LIVE_DAYS].sort((a, b) => a - b);
-  assert.deepEqual(live, [1, 2, 3, 4, 5, 6, 7]);
+  // Every live day is written, on the schedule, and has its picture.
+  const written = new Set(CONTRACTOR_WRITTEN.map((e) => e.day));
+  for (const day of live) {
+    assert.ok(written.has(day), `day ${day} is live but not written`);
+    assert.ok(contractorSendDays().includes(day), `day ${day} is not a send day`);
+  }
   assert.deepEqual(
     CONTRACTOR_STEPS.map((s) => [s.day, s.step]),
     live.map((day) => [day, contractorStepForDay(day)]),
@@ -158,4 +163,14 @@ test("the send window is 7 AM to 8 PM Central unless turned off", async () => {
   assert.equal(nurtureSendWindowOpen(Date.parse("2026-10-03T00:59:00Z")), true); // 7:59 PM CDT
   assert.equal(nurtureSendWindowOpen(Date.parse("2026-10-03T01:00:00Z")), false); // 8 PM CDT
   assert.equal(nurtureSendWindowOpen(Date.parse("2026-10-02T08:00:00Z"), "off"), true);
+});
+
+test("every email picture exists in public/ and every day is written once", async () => {
+  const { existsSync } = await import("node:fs");
+  const seen = new Set<number>();
+  for (const email of [CONTRACTOR_WELCOME, ...CONTRACTOR_WRITTEN]) {
+    assert.ok(!seen.has(email.day), `day ${email.day} written twice`);
+    seen.add(email.day);
+    assert.ok(existsSync(new URL(`../public${email.hero.src}`, import.meta.url)), `missing ${email.hero.src}`);
+  }
 });
