@@ -5,6 +5,13 @@ import type { NextConfig } from "next";
 const standalone = process.env.NEXT_OUTPUT === "standalone";
 
 const nextConfig: NextConfig = {
+  // Bound build concurrency on the shared droplet. A custom webpack callback
+  // disables Next's default build-worker choice, so preserve it explicitly.
+  experimental: {
+    cpus: 1,
+    webpackBuildWorker: true,
+    webpackMemoryOptimizations: true,
+  },
   // Every validated release is a fresh checkout. Its webpack cache would never
   // be reused, and can occupy hundreds of MB on the shared production host.
   // Runtime/ISR caches and the development cache remain enabled.

@@ -221,3 +221,26 @@ these results come from the clean sequential run. The production destination
 still runs all mandatory checks again against a new exact commit before any
 activation. Authenticated browser acceptance requires the owner's normal
 sign-in; no account, token, or browser session is fabricated.
+
+## Bounded build-worker heap repair
+
+The 27cd5af destination again passed the full audit and all 2,133 tests.
+Webpack compiled successfully, then the TypeScript worker exhausted Node's
+automatically selected 1 GB heap under the build cgroup and aborted. No
+passed receipt or activation was produced. Its source and diagnostics remain.
+
+The replacement explicitly preserves Next 15's separate Webpack build worker,
+enables its memory optimizations, and uses one page-generation worker. The
+reviewed destination validator gives only the build process a 2,048 MB Node
+heap ceiling; its cgroup memory/CPU limits and all acceptance checks remain
+unchanged. Production runtime limits and its secret environment are untouched.
+Both the installed Next 15.5.26 implementation and the official memory guide
+support the worker options: https://nextjs.org/docs/app/guides/memory-usage .
+
+Cleanup remains confined to this task's failed generated dependency/npm/webpack
+caches. Exact source, Git objects, other build artifacts, and logs are retained.
+
+The bounded-worker configuration passes a fresh local 488-page production
+build, typecheck, ESLint and whitespace check. The destination performs a new
+clean install, blocking audit, complete test suite, production build, and
+client-secret scan for the replacement exact SHA.
