@@ -22,7 +22,7 @@ import {
 import { renderContractorHtml } from "../lib/contractorEmailHtml.ts";
 import { isAllowedLeadFlowAdId, registeredMetaForm } from "../lib/metaCampaignGuard.ts";
 import { leadWelcomePayload } from "../lib/leadNotify.ts";
-import { metaAnswerLines } from "../lib/metaLeadAnswers.ts";
+import { contractorFollowUp, metaAnswerLines } from "../lib/metaLeadAnswers.ts";
 
 // The Scott video contractor series. Ryan's cadence, Ryan's copy rules, and
 // the one gate that matters: only the days he cleared can ever send.
@@ -172,6 +172,31 @@ test("Pat's answers read in the words on the form, raw keys never shown", () => 
   assert.deepEqual(metaAnswerLines([["what_kind_of_business?", "roofing"]], null), [
     "what kind of business: roofing",
   ]);
+});
+
+test("Pat's follow up groups: priority, funding review, fit check", () => {
+  const lead = (role: string, invest: string, soon: string) =>
+    contractorFollowUp([
+      ["role_in_business", role],
+      ["primary_service", "pond_building_cleanouts_expansion"],
+      ["prepared_to_invest_7000", invest],
+      ["how_soon_more_jobs", soon],
+    ]);
+  assert.equal(lead("owner_partner", "yes_7000", "now_30_days")?.group, "priority");
+  assert.equal(lead("owner_partner", "yes_7000", "now_30_days")?.priority, "high");
+  assert.equal(lead("authorized_manager", "yes_7000", "one_to_three_months")?.group, "priority");
+  assert.equal(lead("owner_partner", "yes_7000", "exploring_later")?.group, "standard");
+  assert.equal(lead("owner_partner", "need_funding", "now_30_days")?.group, "funding_review");
+  assert.equal(lead("owner_partner", "not_ready", "now_30_days")?.group, "standard");
+  assert.equal(lead("employee_sales_rep", "yes_7000", "now_30_days")?.group, "fit_check");
+  assert.equal(lead("hiring_a_contractor", "need_funding", "now_30_days")?.group, "fit_check");
+  assert.equal(lead("hiring_a_contractor", "yes_7000", "now_30_days")?.priority, "low");
+  // v1 form answers and every other form: no grouping, nothing changes.
+  assert.equal(contractorFollowUp([["do_you_own_or_run_a_dirt_work,_land_clearing_or_pond_company?", "yes,_i_own_it"]]), null);
+  for (const g of ["now_30_days", "exploring_later"]) {
+    const label = lead("owner_partner", "yes_7000", g)?.label ?? "";
+    assert.ok(!/[-\u2013\u2014]/.test(label), label);
+  }
 });
 
 test("names: a real first name is used, a made up one is not", () => {
