@@ -186,6 +186,36 @@ const TOOLS = {
     blurb: "How many estimates you give a month, what they are worth and how many you close now. It shows what steady follow up could add in a year.",
     label: "Run my quote math",
   },
+  websiteGrader: {
+    slug: "website-grader",
+    title: "Website grader",
+    blurb: "Twenty checks a landowner runs on your site without knowing it: phone, photos, services, area, the way to ask for an estimate. You get a fix list.",
+    label: "Grade my website",
+  },
+  googleListing: {
+    slug: "google-business-profile-scorecard",
+    title: "Google Business Profile scorecard",
+    blurb: "Your listing's details, photos, reviews and contact options, scored, with the next fixes in order. No Google login needed.",
+    label: "Score my Google listing",
+  },
+  discountDamage: {
+    slug: "discount-damage-calculator",
+    title: "Discount damage calculator",
+    blurb: "Put in the price, your cost and the discount. It shows what leaves your profit and how many extra jobs it takes just to get back to even.",
+    label: "Run the discount math",
+  },
+  reviewGoal: {
+    slug: "review-goal-calculator",
+    title: "Review goal calculator",
+    blurb: "Your rating, your review count and the rating you want. It shows how many new five star reviews that takes, and how long at your pace.",
+    label: "Run my review goal",
+  },
+  driveTime: {
+    slug: "drive-time-cost",
+    title: "Windshield time calculator",
+    blurb: "Hours behind the wheel a day, how many people are driving, and your hourly rate. It shows what the truck time costs you in a year.",
+    label: "Run my drive time cost",
+  },
 } satisfies Record<string, ContractorTool>;
 
 /** Day 0. Sent by lib/leadNotify.ts the moment the form lands, not by the cron. */
@@ -417,14 +447,204 @@ export const CONTRACTOR_WRITTEN: ContractorEmail[] = [
     next: "Next: what a landowner looks for before they pick an outfit.",
     ps: "Not ready yet? Stay on the list. The next emails are field notes you can use whether we ever work together or not.",
   },
+  {
+    day: 8,
+    subject: "🔍 What a landowner checks before they call you",
+    preheader: "Five things they look for before your phone ever rings.",
+    kicker: "Through their eyes",
+    headline: "Before they call, they check you out",
+    hero: { src: IMG("day8-checks.jpg"), alt: "Five checks a landowner runs before calling: your work, your answers, your questions, your reviews, your next step" },
+    blocks: (first) => [
+      { kind: "p", text: hi(first) },
+      { kind: "p", text: "Before a landowner calls about a pond or forty acres of brush, a lot of them look you up first. On their phone, in a couple of minutes." },
+      {
+        kind: "steps",
+        title: "What they are checking",
+        items: [
+          { title: "Can I see your work?", text: "Real photos and video of jobs like theirs. Not stock pictures." },
+          { title: "Will you answer?", text: "A number that gets picked up, or called back the same day." },
+          { title: "Do you know land like mine?", text: "Your services in plain words, with your area named." },
+          { title: "Do other people vouch for you?", text: "Reviews with names and details, not just stars." },
+          { title: "What happens next?", text: "A clear way to ask for an estimate without chasing you." },
+        ],
+      },
+      { kind: "callout", text: "If one of those is missing, they keep scrolling to the next outfit." },
+      { kind: "p", text: "That is why Scott's page leads with his own video, his services and his number. The landowner gets the answers before they ever pick up the phone." },
+      { kind: "p", text: "Want to know how your business looks through those five checks? Twenty minutes on the phone and I will tell you straight." },
+    ],
+    cta: { label: "Pick a time, I call you", href: contractorBookingLink(8), lead: "Run the five checks" },
+    tool: TOOLS.websiteGrader,
+    next: "Tomorrow: what to say when they ask if you can do it any cheaper.",
+  },
+  {
+    day: 9,
+    subject: "💬 \"Can you do it any cheaper?\"",
+    preheader: "What to say instead of dropping your number.",
+    kicker: "Hold your margin",
+    headline: "When they ask if you can do it cheaper",
+    hero: { src: IMG("day9-cheaper.jpg"), alt: "Two answers side by side: drop the price, or change the scope" },
+    blocks: (first) => [
+      { kind: "p", text: hi(first) },
+      { kind: "p", text: "You know the question. Sometimes it comes before you even finish walking the property." },
+      { kind: "p", text: "Dropping the number is the easy answer. It is also the expensive one. Same diesel, same hours, same wear on the machine. Less money for all of it." },
+      {
+        kind: "steps",
+        title: "Three better answers",
+        items: [
+          { title: "Trade scope, not price.", text: "\"I can get to that number if we leave the fence row for later.\" They pick what matters to them." },
+          { title: "Give them options.", text: "A basic, a standard and a full scope, each with its own price. Let them choose." },
+          { title: "Show what is in the number.", text: "Mobilization, hauling, machine hours, cleanup. A number they can see inside of is easier to say yes to." },
+        ],
+      },
+      { kind: "callout", text: "Do not compete on price. Compete on being the outfit they trust with their land." },
+      { kind: "p", text: "Before you ever drop a number again, run what a discount really costs you. It takes a minute." },
+    ],
+    cta: { label: "Run the discount math", href: contractorToolLink(9, TOOLS.discountDamage.slug), lead: "What a discount really costs" },
+    next: "Tomorrow: the listing that shows up before your website does.",
+  },
+  {
+    day: 10,
+    subject: "📍 The listing that shows up before your website",
+    preheader: "Your Google Business Profile, fixed in an afternoon.",
+    kicker: "Get found",
+    headline: "Your Google listing is your second yard sign",
+    hero: { src: IMG("day10-listing.jpg"), alt: "A business listing card with photos, services, reviews and a call button" },
+    blocks: (first) => [
+      { kind: "p", text: hi(first) },
+      { kind: "p", text: "When someone searches your business name, or \"pond builder near me\", Google often shows your Business Profile before your website. Photos, reviews, a call button." },
+      { kind: "p", text: "If yours is half empty, it is one of the cheapest fixes you will ever make." },
+      {
+        kind: "steps",
+        title: "Fix these five this week",
+        items: [
+          { title: "Photos.", text: "Ten real job photos. Machines working, ponds holding water, ground you cleared." },
+          { title: "Services.", text: "Every service by name: pond construction, land clearing, dirt work, grading." },
+          { title: "Service area.", text: "The towns and counties you actually work in." },
+          { title: "Phone and hours.", text: "A number that gets answered, and hours that are true." },
+          { title: "Reviews.", text: "Ask your last three customers this week. Tomorrow I will show you how." },
+        ],
+      },
+      { kind: "p", text: "Score your listing first, so you know which of the five to fix first." },
+    ],
+    cta: { label: "Score my Google listing", href: contractorToolLink(10, TOOLS.googleListing.slug), lead: "Free, about three minutes" },
+    next: "Tomorrow: how to ask for a review without it feeling like begging.",
+  },
+  {
+    day: 11,
+    subject: "⭐ Ask for the review before you load up",
+    preheader: "One sentence, on site, while the dirt is still fresh.",
+    kicker: "Proof that piles up",
+    headline: "Ask for the review before you load up",
+    hero: { src: IMG("day11-review.jpg"), alt: "A text message asking a happy landowner for a Google review, with the link" },
+    blocks: (first) => [
+      { kind: "p", text: hi(first) },
+      { kind: "p", text: "The best time to ask for a review is the moment the landowner is standing there looking at the finished work." },
+      { kind: "p", text: "Not a week later, when the job is old news and the dirt has settled." },
+      {
+        kind: "steps",
+        title: "The last day script",
+        items: [
+          { title: "Walk it with them.", text: "Let them see the finished job with you standing next to it." },
+          { title: "Ask in person.", text: "\"If you are happy with it, would you leave us a Google review? It helps a small outfit more than you would think.\"" },
+          { title: "Text the link before you pull out.", text: "Same day, one tap for them. The longer you wait, the less likely it happens." },
+        ],
+      },
+      { kind: "callout", text: "Every customer, every job. Make it part of finishing, like loading the machine." },
+      { kind: "p", text: "Run how many five star reviews it takes to reach the rating you want, and how long at your pace." },
+    ],
+    cta: { label: "Run my review goal", href: contractorToolLink(11, TOOLS.reviewGoal.slug), lead: "Free, one minute" },
+    next: "Tomorrow: the cost hiding inside every bid.",
+  },
+  {
+    day: 12,
+    subject: "🚛 The cost hiding inside every bid",
+    preheader: "Drive time, trucking and the smallest job that still pays.",
+    kicker: "Know your numbers",
+    headline: "Price the trip before you price the job",
+    hero: { src: IMG("day12-radius.jpg"), alt: "Service radius rings around the yard: every mile out has a price" },
+    blocks: (first) => [
+      { kind: "p", text: hi(first) },
+      { kind: "p", text: "Scott told me he works within about 35 miles of his base, unless the job is big enough to justify moving the equipment farther." },
+      { kind: "p", text: "Every bid carries a trip. Fuel, the trailer, the hours behind the wheel instead of on the machine." },
+      {
+        kind: "steps",
+        title: "Put the trip in writing",
+        items: [
+          { title: "Set your radius.", text: "The distance you work without a travel charge." },
+          { title: "Set a mobilization fee.", text: "Past the radius, moving the equipment is its own line on the bid." },
+          { title: "Set a minimum job.", text: "Below it, the trip does not pay. Say so on the first call." },
+        ],
+      },
+      { kind: "callout", text: "Ask how far the property is on the very first call. It is the second question on Scott's form for a reason." },
+      { kind: "p", text: "See what time in the truck costs you over a year." },
+    ],
+    cta: { label: "Run my drive time cost", href: contractorToolLink(12, TOOLS.driveTime.slug), lead: "Free, two minutes" },
+    next: "Tomorrow: what to tell a landowner when it rains for a week.",
+  },
+  {
+    day: 13,
+    subject: "🌧️ What to tell them when it rains for a week",
+    preheader: "The thirty second update that keeps the job.",
+    kicker: "Keep their trust",
+    headline: "The text that saves a job in a wet week",
+    hero: { src: IMG("day13-rain.jpg"), alt: "A rainy work week and a short text to the landowner with the new plan" },
+    blocks: (first) => [
+      { kind: "p", text: hi(first) },
+      { kind: "p", text: "Dirt work runs on the weather. Every landowner knows that. What they do not know is whether you forgot about them." },
+      { kind: "p", text: "Silence is what loses the job. Not the rain." },
+      {
+        kind: "steps",
+        title: "Send three things",
+        items: [
+          { title: "The reason.", text: "\"Ground is too wet to work without tearing it up.\"" },
+          { title: "The new plan.", text: "\"Back Thursday if it dries out.\"" },
+          { title: "The next update.", text: "\"I will text you Wednesday night either way.\"" },
+        ],
+      },
+      { kind: "callout", text: "Thirty seconds of texting can keep a customer from calling another outfit." },
+      { kind: "p", text: "Keeping every landowner posted, every inquiry answered and every estimate followed up is the part most owners do not have time for. It is the part we set up." },
+    ],
+    cta: { label: "Pick a time, I call you", href: contractorBookingLink(13), lead: "Map your follow up" },
+    next: "Tomorrow: two weeks in. Here is what I would build for you.",
+  },
+  {
+    day: 14,
+    subject: "🗺️ Two weeks in. Here is what I would build.",
+    preheader: "Everything so far, short, and the next step.",
+    kicker: "Your map",
+    headline: "Two weeks of field notes, on one page",
+    hero: { src: IMG("day14-map.jpg"), alt: "Six tiles: screen the job, call back first, show real work, trade scope not price, ask for reviews, keep them posted" },
+    blocks: (first) => [
+      { kind: "p", text: hi(first) },
+      { kind: "p", text: "Two weeks ago you raised your hand. Here is everything so far, short." },
+      {
+        kind: "steps",
+        items: [
+          { title: "Screen the job before you drive.", text: "Project, place, timing and budget on the phone first." },
+          { title: "Call back first.", text: "Whoever calls back first usually walks the land." },
+          { title: "Show real work.", text: "Before, during and after, from your own phone." },
+          { title: "Trade scope, not price.", text: "Options instead of discounts." },
+          { title: "Ask for the review on site.", text: "Text the link before you pull out." },
+          { title: "Keep them posted.", text: "Especially in a wet week." },
+        ],
+      },
+      { kind: "p", text: "You can do every one of these yourself. Most owners do not, because they are running the machine." },
+      { kind: "p", text: "That is the part we build. The website, the video, the ads, the inquiry form and the follow up, set up around the jobs you want." },
+      { kind: "callout", text: "Twenty minutes. I map it for your business, and you leave with the next practical step whether you hire me or not." },
+    ],
+    cta: { label: "Pick a time, I call you", href: contractorBookingLink(14), lead: "Map yours" },
+    next: "Next: the best customer list you have is the one you already have.",
+  },
 ];
 
 /**
- * The days Ryan cleared to send. Launch (Oct 2, 2026): the instant welcome
- * plus days 1 to 3; days 4 to 7 cleared the same day ("yes to all"). Add a
- * day here only after he approves it.
+ * The days cleared to send. Launch (Oct 2, 2026): the instant welcome plus
+ * days 1 to 3; Ryan cleared the rest of the series the same day ("yes to
+ * all, finish all tasks"), so each batch goes live as it is written.
  */
-export const CONTRACTOR_LIVE_DAYS: ReadonlySet<number> = new Set([1, 2, 3, 4, 5, 6, 7]);
+export const CONTRACTOR_LIVE_DAYS: ReadonlySet<number> = new Set(
+  [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14],
+);
 
 /** The emails that can send, in day order. */
 export const CONTRACTOR_EMAILS: ContractorEmail[] = CONTRACTOR_WRITTEN.filter((email) =>
