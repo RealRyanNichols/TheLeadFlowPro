@@ -6,6 +6,12 @@
   scroll-margin-top: 88px;
 }
 
+.heroLink {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+}
+
 .storyGrid {
   display: grid;
   grid-template-columns: minmax(260px, 360px) 1fr;

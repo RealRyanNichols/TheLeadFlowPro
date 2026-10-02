@@ -31,6 +31,7 @@ import {
 import {
   nurtureEmailIdempotencyKey,
   nurtureRetryWindowExpired,
+  nurtureSendWindowOpen,
   sendNurtureEmail,
 } from "@/lib/nurtureDelivery";
 import { leadFlowSupabaseRuntimeIssues } from "@/lib/metaCampaignGuard";
@@ -339,6 +340,9 @@ export async function GET(request: Request) {
     }
   }
 
+  // New sends only inside the morning to evening window (lib/nurtureDelivery.ts).
+  const windowOpen = nurtureSendWindowOpen(Date.now(), process.env.NURTURE_SEND_WINDOW);
+  let heldForWindow = 0;
   let sent = 0;
   let failed = 0;
   let throttled = 0;
@@ -434,6 +438,10 @@ export async function GET(request: Request) {
       const done = alreadySent.get(lead.id) ?? new Set<number>();
       next = due.find((step) => !done.has(step.step));
       if (!next) continue;
+      if (!windowOpen) {
+        heldForWindow++;
+        continue;
+      }
 
       // One successful email per lead per 24 hours. The hourly cron is for
       // retrying the SAME pending step, never for advancing the sequence.
@@ -515,6 +523,9 @@ export async function GET(request: Request) {
           { name: "campaign", value: sequence.campaign },
           { name: "day", value: String(next.day).padStart(2, "0") },
           { name: "track", value: track },
+          // Lets the Resend webhook (app/api/webhooks/resend) put opens and
+          // clicks on this lead's timeline.
+          { name: "lead_id", value: lead.id },
         ],
       },
     );
@@ -581,6 +592,7 @@ export async function GET(request: Request) {
     sent,
     failed,
     throttled,
+    held_for_window: heldForWindow,
     retried,
     retry_deferred: retryDeferred,
     blocked,

@@ -114,3 +114,25 @@ export async function sendNurtureEmail(
     };
   }
 }
+
+/**
+ * New follow-up emails go out between 7 AM and 8 PM Central, so they land when
+ * an owner checks his phone, not at 3 AM. Only NEW sends wait for the window:
+ * a retry of a send already claimed keeps going, because Resend's idempotency
+ * key lasts 24 hours. NURTURE_SEND_WINDOW="off" turns the window off; a value
+ * like "7-20" changes the hours (start inclusive, end exclusive, Central).
+ */
+export function nurtureSendWindowOpen(nowMs: number, setting?: string): boolean {
+  const value = (setting ?? "7-20").trim();
+  if (value === "off") return true;
+  const match = value.match(/^(\d{1,2})-(\d{1,2})$/);
+  if (!match) return true;
+  const start = Number(match[1]);
+  const end = Number(match[2]);
+  const hour = Number(
+    new Intl.DateTimeFormat("en-US", { hour: "numeric", hourCycle: "h23", timeZone: "America/Chicago" }).format(
+      new Date(nowMs),
+    ),
+  );
+  return hour >= start && hour < end;
+}
