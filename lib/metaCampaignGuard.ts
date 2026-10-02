@@ -44,6 +44,8 @@ export const LEADFLOW_META = {
     "120253913145080154", // PDA video callback ad; LeadFlow account only.
     "120253128015470154", // Existing LeadFlow mall-video ad.
     "120253551492760154", // Sep 1 Free Website v2 draft; keep off until creative QA.
+    "120253999623340154", // Oct 2026 Scott contractor video, long text (Ad 1).
+    "120254001470770154", // Oct 2026 Scott contractor video, short text (Ad 2).
   ],
 } as const;
 
@@ -151,6 +153,17 @@ export const META_FORM_REGISTRY: Readonly<Record<string, MetaFormRegistration>> 
     campaign: "mall_video_rent_receipt_2026_09",
     inquiryOptIn: true,
     textOnSubmit: true,
+  },
+  "1410074817946865": {
+    // LFP | Contractor Owner, Scott video (Oct 2026, Texas). Dirt work, land
+    // clearing and pond owners apply for a strategy session. No checkboxes:
+    // submitting is the request to hear about this offer. The form promises a
+    // call, not a text, so no textOnSubmit. The funnel sends the contractor
+    // welcome and the contractor series (lib/contractorSeries.ts).
+    campaign: "scott_contractor_tx_2026_10",
+    inquiryOptIn: true,
+    textOnSubmit: false,
+    funnel: "contractor_owner",
   },
   "2349934135833664": {
     // LFP Enrollment Gap Timeline v1. Built Sep 15 for the schools and
