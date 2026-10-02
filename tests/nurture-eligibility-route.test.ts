@@ -123,6 +123,7 @@ async function recipients(rows: Lead[], now = "2026-09-07T00:00:00Z") {
           CRON_SECRET: "fixture-cron",
           SUPABASE_SERVICE_ROLE_KEY: "fixture-db",
           RESEND_API_KEY: "fixture-email",
+          NURTURE_SEND_WINDOW: "off",
         },
       },
     },

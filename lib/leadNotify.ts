@@ -587,6 +587,16 @@ export function leadWelcomePayload(lead: NotifiableLead, context: OwnerAlertCont
   };
 }
 
+/**
+ * Tag a lead-facing send with its lead id, so the Resend webhook
+ * (app/api/webhooks/resend) can put opens and clicks on that lead's timeline.
+ */
+export function withLeadTag<T extends object>(payload: T, leadId?: string | null): T {
+  if (!leadId || !/^[0-9a-f-]{36}$/i.test(leadId)) return payload;
+  const existing = (payload as { tags?: { name: string; value: string }[] }).tags ?? [];
+  return { ...payload, tags: [...existing.filter((t) => t.name !== "lead_id"), { name: "lead_id", value: leadId }] };
+}
+
 export async function sendLeadEmailNotification(
   lead: NotifiableLead,
   notificationType: LeadEmailNotificationType,
@@ -597,7 +607,9 @@ export async function sendLeadEmailNotification(
     return { ok: true, providerMessageId: null };
   }
   return sendDetailed(
-    notificationType === "owner_alert" ? ownerAlertPayload(lead, context) : leadWelcomePayload(lead, context),
+    notificationType === "owner_alert"
+      ? ownerAlertPayload(lead, context)
+      : withLeadTag(leadWelcomePayload(lead, context), context.leadId),
     idempotencyKey,
   );
 }

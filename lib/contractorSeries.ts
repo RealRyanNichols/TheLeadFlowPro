@@ -421,10 +421,10 @@ export const CONTRACTOR_WRITTEN: ContractorEmail[] = [
 
 /**
  * The days Ryan cleared to send. Launch (Oct 2, 2026): the instant welcome
- * plus days 1 to 3. Days 4 to 7 are written and wait for his read. Add a day
- * here only after he approves it.
+ * plus days 1 to 3; days 4 to 7 cleared the same day ("yes to all"). Add a
+ * day here only after he approves it.
  */
-export const CONTRACTOR_LIVE_DAYS: ReadonlySet<number> = new Set([1, 2, 3]);
+export const CONTRACTOR_LIVE_DAYS: ReadonlySet<number> = new Set([1, 2, 3, 4, 5, 6, 7]);
 
 /** The emails that can send, in day order. */
 export const CONTRACTOR_EMAILS: ContractorEmail[] = CONTRACTOR_WRITTEN.filter((email) =>

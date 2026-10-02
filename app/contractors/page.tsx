@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { ArrowRight, CalendarCheck2, MessageSquareText, PhoneCall, PlayCircle } from "lucide-react";
 import { BUSINESS } from "@/lib/site/business";
 import { bookingPage } from "@/lib/site/external-links";
@@ -68,6 +69,23 @@ export default function ContractorsPage() {
               {BUSINESS.phone.display}. I answer my own phone.
             </p>
           </div>
+
+          <a href="#scott" className={styles.heroLink} aria-label="Watch Scott's video">
+            <figure className="cb-hero-visual">
+              <Image
+                src="/images/contractors/scott-cab-hero.jpg"
+                alt="Scott of O-L Guy Farms and Ryan Nichols in the cab of Scott's tractor, a pond behind them"
+                width={1200}
+                height={1000}
+                priority
+                sizes="(max-width: 900px) 100vw, 46vw"
+              />
+              <figcaption>
+                <span>Case file · O-L Guy Farms</span>
+                <strong>Watch Scott tell it. Under two minutes.</strong>
+              </figcaption>
+            </figure>
+          </a>
         </div>
       </section>
 

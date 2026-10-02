@@ -83,7 +83,7 @@ function makeDb(leads: Row[], emails: Row[]) {
   return { db: { from: builder }, activity };
 }
 
-async function runRoute(leads: Row[], emails: Row[], nowMs: number) {
+async function runRoute(leads: Row[], emails: Row[], nowMs: number, sendWindow = "off") {
   const { db, activity } = makeDb(leads, emails);
   const sends: { key: string; payload: Record<string, unknown> }[] = [];
   const code = ts.transpileModule(
@@ -100,7 +100,7 @@ async function runRoute(leads: Row[], emails: Row[], nowMs: number) {
     Date: Clock,
     console: { error() {} },
     process: {
-      env: { CRON_SECRET: "fixture-cron", SUPABASE_SERVICE_ROLE_KEY: "fixture-db", RESEND_API_KEY: "fixture-email" },
+      env: { CRON_SECRET: "fixture-cron", SUPABASE_SERVICE_ROLE_KEY: "fixture-db", RESEND_API_KEY: "fixture-email", NURTURE_SEND_WINDOW: sendWindow },
     },
   });
   run(
@@ -197,6 +197,7 @@ test("a new Rent Receipt lead gets step 501 on its pain track with the HTML part
       { name: "campaign", value: "rent_receipt" },
       { name: "day", value: "01" },
       { name: "track", value: "missed_calls_hot" },
+      { name: "lead_id", value: "rent-new" },
     ]),
   );
   const claim = result.emails.find((r) => r.lead_id === "rent-new");
@@ -339,6 +340,7 @@ test("a Scott video lead gets contractor day 1, designed and tagged, never Rent 
       { name: "campaign", value: "contractor_owner" },
       { name: "day", value: "01" },
       { name: "track", value: "contractor" },
+      { name: "lead_id", value: "dirt-new" },
     ]),
   );
   assert.equal(result.emails.find((r) => r.lead_id === "dirt-new")?.step, 601);
@@ -362,7 +364,7 @@ test("contractor leads stop at the last cleared day and are read back past 45 da
       id: "dirt-done",
       full_name: "Done",
       email: "done@example.com",
-      created_at: new Date(now - 9 * DAY).toISOString(),
+      created_at: new Date(now - 30 * DAY).toISOString(),
       diagnostic: contractorForm(),
     },
     {
@@ -382,7 +384,10 @@ test("contractor leads stop at the last cleared day and are read back past 45 da
       diagnostic: rentForm({}),
     },
   ];
-  const emails: Row[] = [sentRow("dirt-done", 601, 8), sentRow("dirt-done", 602, 7), sentRow("dirt-done", 603, 6)];
+  // dirt-done already has every cleared day.
+  const emails: Row[] = contractorSeries.CONTRACTOR_STEPS.map((step, i) =>
+    sentRow("dirt-done", step.step, 8 - i * 0.5),
+  );
   const result = await runRoute(leads, emails, now);
   // dirt-done has every cleared day; dirt-old (100 days) is caught up one at a
   // time; the 50 day old Rent Receipt lead stays outside its 45 day window.
@@ -391,4 +396,24 @@ test("contractor leads stop at the last cleared day and are read back past 45 da
     ["601"],
   );
   assert.ok(result.sends[0].key.includes("-dirt-old-"));
+});
+
+test("new follow ups wait for 7 AM to 8 PM Central", async () => {
+  // 2026-10-02 08:00 UTC is 3 AM Central; 14:00 UTC is 9 AM Central.
+  const night = Date.parse("2026-10-02T08:00:00Z");
+  const morning = Date.parse("2026-10-02T14:00:00Z");
+  const lead = (): Row => ({
+    ...base,
+    id: "dirt-window",
+    full_name: "Window Test",
+    email: "window@example.com",
+    created_at: new Date(night - 2 * DAY).toISOString(),
+    diagnostic: contractorForm(),
+  });
+  const held = await runRoute([lead()], [], night, "7-20");
+  assert.equal(held.sends.length, 0);
+  assert.equal(held.body.held_for_window, 1);
+  const open = await runRoute([lead()], [], morning, "7-20");
+  assert.equal(open.sends.length, 1);
+  assert.equal(open.body.held_for_window, 0);
 });

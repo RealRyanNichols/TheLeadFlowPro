@@ -41,19 +41,19 @@ test("the schedule is daily to 30, then every 2, 3 and 4 days to 180", () => {
 });
 
 test("only the days Ryan cleared can send", () => {
-  assert.deepEqual([...CONTRACTOR_LIVE_DAYS].sort((a, b) => a - b), [1, 2, 3]);
+  const live = [...CONTRACTOR_LIVE_DAYS].sort((a, b) => a - b);
+  assert.deepEqual(live, [1, 2, 3, 4, 5, 6, 7]);
   assert.deepEqual(
     CONTRACTOR_STEPS.map((s) => [s.day, s.step]),
-    [
-      [1, 601],
-      [2, 602],
-      [3, 603],
-    ],
+    live.map((day) => [day, contractorStepForDay(day)]),
   );
   assert.deepEqual(contractorStepsDueBy(0).map((s) => s.step), []);
   assert.deepEqual(contractorStepsDueBy(2).map((s) => s.step), [601, 602]);
-  // Written but not cleared: never due, however old the lead is.
-  assert.deepEqual(contractorStepsDueBy(180).map((s) => s.step), [601, 602, 603]);
+  // Only cleared days are ever due, however old the lead is.
+  assert.deepEqual(
+    contractorStepsDueBy(180).map((s) => s.day),
+    CONTRACTOR_WRITTEN.filter((e) => CONTRACTOR_LIVE_DAYS.has(e.day)).map((e) => e.day),
+  );
   assert.ok(CONTRACTOR_WRITTEN.length >= CONTRACTOR_EMAILS.length);
 });
 
@@ -149,4 +149,13 @@ test("the contractor welcome is the designed email, tagged, with its unsubscribe
     { name: "campaign", value: "contractor_owner" },
     { name: "day", value: "00" },
   ]);
+});
+
+test("the send window is 7 AM to 8 PM Central unless turned off", async () => {
+  const { nurtureSendWindowOpen } = await import("../lib/nurtureDelivery.ts");
+  assert.equal(nurtureSendWindowOpen(Date.parse("2026-10-02T08:00:00Z")), false); // 3 AM CDT
+  assert.equal(nurtureSendWindowOpen(Date.parse("2026-10-02T12:00:00Z")), true); // 7 AM CDT
+  assert.equal(nurtureSendWindowOpen(Date.parse("2026-10-03T00:59:00Z")), true); // 7:59 PM CDT
+  assert.equal(nurtureSendWindowOpen(Date.parse("2026-10-03T01:00:00Z")), false); // 8 PM CDT
+  assert.equal(nurtureSendWindowOpen(Date.parse("2026-10-02T08:00:00Z"), "off"), true);
 });
