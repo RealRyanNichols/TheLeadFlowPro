@@ -34,6 +34,20 @@ import {
   sendNurtureEmail,
 } from "@/lib/nurtureDelivery";
 import { leadFlowSupabaseRuntimeIssues } from "@/lib/metaCampaignGuard";
+import {
+  CONTRACTOR_CAMPAIGN,
+  CONTRACTOR_FIRST_STEP,
+  CONTRACTOR_LAST_STEP,
+  CONTRACTOR_LOOKBACK_DAYS,
+  CONTRACTOR_STEPS,
+  contractorFirstName,
+  contractorPlainText,
+  contractorStepsDueBy,
+  contractorSubject,
+  isContractorSeriesLead,
+  type ContractorStep,
+} from "@/lib/contractorSeries";
+import { renderContractorHtml } from "@/lib/contractorEmailHtml";
 import { BUSINESS } from "@/lib/site/business";
 import { unsubscribeSecret, unsubscribeUrl } from "@/lib/unsubscribe";
 
@@ -42,7 +56,10 @@ import { unsubscribeSecret, unsubscribeUrl } from "@/lib/unsubscribe";
 // build its first series sold was retired on 2026-09-22; see below for who
 // still finishes that series and who gets Rent Receipt instead.
 //
-// THREE SEQUENCES share this sender and a lead belongs to exactly one:
+// FOUR SEQUENCES share this sender and a lead belongs to exactly one:
+//   - the contractor owner series (steps 601 and up, lib/contractorSeries.ts)
+//     for leads from the Scott video form. Up to day 180, so its leads are
+//     read back CONTRACTOR_LOOKBACK_DAYS; every other lead keeps 45 days.
 //   - the Rent Receipt series (steps 501-530) for every admitted lead created
 //     at or after RENT_RECEIPT_SERIES_START
 //   - the Free Build series (steps 101-130) for admitted leads created before
@@ -81,6 +98,8 @@ export const maxDuration = 60;
 
 const MAX_SENDS_PER_RUN = 200;
 const LOOKBACK_DAYS = 45;
+/** The query reaches back far enough for the longest series; each lead is then held to its own window. */
+const QUERY_LOOKBACK_DAYS = Math.max(LOOKBACK_DAYS, CONTRACTOR_LOOKBACK_DAYS);
 const MIN_HOURS_BETWEEN_SENDS = 24;
 const MIN_RETRY_INTERVAL_MS = 30 * 60 * 1000;
 
@@ -97,12 +116,14 @@ type EligibleLead = {
   goals: string | null;
 };
 
+type SequenceStep = NurtureStep | ContractorStep;
+
 type Sequence = {
   campaign: string;
-  steps: NurtureStep[];
+  steps: SequenceStep[];
   firstStep: number;
   lastStep: number;
-  dueBy: (ageInDays: number) => NurtureStep[];
+  dueBy: (ageInDays: number) => SequenceStep[];
 };
 
 const FREE_BUILD_SEQUENCE: Sequence = {
@@ -129,11 +150,20 @@ const RENT_RECEIPT_SEQUENCE: Sequence = {
   dueBy: rentReceiptStepsDueBy,
 };
 
+const CONTRACTOR_SEQUENCE: Sequence = {
+  campaign: CONTRACTOR_CAMPAIGN,
+  steps: CONTRACTOR_STEPS,
+  firstStep: CONTRACTOR_FIRST_STEP,
+  lastStep: CONTRACTOR_LAST_STEP,
+  dueBy: contractorStepsDueBy,
+};
+
 /** The highest step any sequence here writes; the send-history read stops there. */
 const HISTORY_LAST_STEP = Math.max(
   FREE_BUILD_SEQUENCE.lastStep,
   WORKSHOP_SEQUENCE.lastStep,
   RENT_RECEIPT_SEQUENCE.lastStep,
+  CONTRACTOR_SEQUENCE.lastStep,
 );
 
 /**
@@ -142,6 +172,7 @@ const HISTORY_LAST_STEP = Math.max(
  * lands after RENT_RECEIPT_SERIES_START can never hand anyone two series.
  */
 function sequenceFor(lead: EligibleLead, history: NurtureDeliveryRow[]): Sequence {
+  if (isContractorSeriesLead(lead)) return CONTRACTOR_SEQUENCE;
   if (isWorkshopNurtureLead(lead)) return WORKSHOP_SEQUENCE;
   const startedFreeBuild = history.some(
     (row) =>
@@ -221,7 +252,7 @@ export async function GET(request: Request) {
   }
 
   const supabase = createSupabaseClient(SUPABASE_URL, serviceKey);
-  const since = new Date(Date.now() - LOOKBACK_DAYS * 86400e3).toISOString();
+  const since = new Date(Date.now() - QUERY_LOOKBACK_DAYS * 86400e3).toISOString();
 
   const { data: leads, error: leadsError } = await supabase
     .from("leads")
@@ -252,10 +283,14 @@ export async function GET(request: Request) {
   // started it) and the short workshop countdown share this sender; see
   // sequenceFor(). Workshop leads drop out entirely once the event has
   // started; nobody gets sold a chair in a room that already met.
-  const eligibleLeads = nonDiagnosticLeads.filter(
-    (lead) =>
-      isFreeWebsiteProgramNurtureLead(lead) ||
-      (isWorkshopNurtureLead(lead) && !workshopSequenceClosed()),
+  // Contractor leads stay in for their whole 180 day series. Everyone else is
+  // held to the same 45 days the query alone used to enforce.
+  const eligibleLeads = nonDiagnosticLeads.filter((lead) =>
+    isContractorSeriesLead(lead)
+      ? ageInDays(lead.created_at) <= CONTRACTOR_LOOKBACK_DAYS
+      : ageInDays(lead.created_at) <= LOOKBACK_DAYS &&
+        (isFreeWebsiteProgramNurtureLead(lead) ||
+          (isWorkshopNurtureLead(lead) && !workshopSequenceClosed())),
   );
   const excludedDiagnostic = (leads ?? []).length - nonDiagnosticLeads.length;
   const excludedWrongProgram = nonDiagnosticLeads.length - eligibleLeads.length;
@@ -341,7 +376,7 @@ export async function GET(request: Request) {
     const pendingRow = deliveryRows
       .filter((row) => row.delivery_status === "pending")
       .sort((a, b) => a.step - b.step)[0];
-    let next: NurtureStep | undefined;
+    let next: SequenceStep | undefined;
     let deliveryRow: NurtureDeliveryRow | null = null;
 
     if (pendingRow) {
@@ -436,10 +471,32 @@ export async function GET(request: Request) {
     }
 
     const unsubUrl = unsubscribeUrl(lead.id, secret);
-    const context = nurtureContextFor(lead);
-    const subject = nurtureSubjectFor(next, context);
-    const text = renderBody(next, context, unsubUrl);
-    const track = `${context.pain}_${context.hot ? "hot" : "cool"}`;
+    let subject: string;
+    let text: string;
+    let html: string | undefined;
+    let track: string;
+    if (sequence === CONTRACTOR_SEQUENCE) {
+      // The contractor series renders its own words and design; the pain and
+      // hot or cool context of the other series does not apply to it.
+      const email = next as ContractorStep;
+      const first = contractorFirstName(lead.full_name);
+      subject = contractorSubject(email, first);
+      text = contractorPlainText(email, first, unsubUrl);
+      html = renderContractorHtml({ email, firstName: first, unsubUrl });
+      track = "contractor";
+    } else {
+      const step = next as NurtureStep;
+      const context = nurtureContextFor(lead);
+      subject = nurtureSubjectFor(step, context);
+      text = renderBody(step, context, unsubUrl);
+      // The designed email. Workshop steps keep the plain look: they are a
+      // four day countdown, not a thirty day series.
+      html =
+        sequence === WORKSHOP_SEQUENCE
+          ? undefined
+          : renderNurtureHtml({ step, firstName: context.first, unsubUrl, context });
+      track = `${context.pain}_${context.hot ? "hot" : "cool"}`;
+    }
     const delivery = await sendNurtureEmail(
       resendKey,
       nurtureEmailIdempotencyKey(lead.id, next.step, sequence.campaign),
@@ -449,11 +506,7 @@ export async function GET(request: Request) {
         to: [lead.email],
         subject,
         text,
-        // The designed email. Workshop steps keep the plain look: they are a
-        // four day countdown, not a thirty day series.
-        ...(sequence === WORKSHOP_SEQUENCE
-          ? {}
-          : { html: renderNurtureHtml({ step: next, firstName: context.first, unsubUrl, context }) }),
+        ...(html ? { html } : {}),
         headers: {
           "List-Unsubscribe": `<${unsubUrl}>`,
           "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",

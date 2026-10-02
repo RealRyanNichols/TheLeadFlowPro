@@ -11,6 +11,8 @@ import * as nurtureHtml from "../lib/nurtureHtml";
 import * as nurtureRentReceipt from "../lib/nurtureRentReceipt";
 import * as nurtureDelivery from "../lib/nurtureDelivery";
 import * as guard from "../lib/metaCampaignGuard";
+import * as contractorSeries from "../lib/contractorSeries";
+import * as contractorEmailHtml from "../lib/contractorEmailHtml";
 import { bookingPage } from "../lib/site/external-links";
 
 // Runs the actual cron route against an in-memory leads and lead_emails
@@ -112,6 +114,8 @@ async function runRoute(leads: Row[], emails: Row[], nowMs: number) {
       if (name === "@/lib/nurtureHtml") return nurtureHtml;
       if (name === "@/lib/nurtureRentReceipt") return nurtureRentReceipt;
       if (name === "@/lib/metaCampaignGuard") return guard;
+      if (name === "@/lib/contractorSeries") return contractorSeries;
+      if (name === "@/lib/contractorEmailHtml") return contractorEmailHtml;
       if (name === "@/lib/site/business") return business;
       if (name === "@/lib/unsubscribe")
         return {
@@ -301,4 +305,90 @@ test("one email per lead per day holds across sequences", async () => {
   const result = await runRoute(leads, emails, now);
   assert.equal(result.sends.length, 0);
   assert.equal(result.body.throttled, 1);
+});
+
+const contractorForm = () => ({
+  form_id: contractorSeries.CONTRACTOR_META_FORM_ID,
+  source: "contractor_owner",
+  fields: {},
+});
+
+test("a Scott video lead gets contractor day 1, designed and tagged, never Rent Receipt", async () => {
+  const now = START + 40 * DAY;
+  const leads: Row[] = [
+    {
+      ...base,
+      id: "dirt-new",
+      full_name: "mike smith",
+      email: "mike@example.com",
+      created_at: new Date(now - DAY - HOUR).toISOString(),
+      diagnostic: contractorForm(),
+    },
+  ];
+  const result = await runRoute(leads, [], now);
+  assert.equal(result.status, 200);
+  assert.equal(result.sends.length, 1);
+  const [send] = result.sends;
+  assert.equal(send.key, `nurture-contractor_owner-${nurtureDelivery.NURTURE_SEQUENCE_VERSION}-dirt-new-601`);
+  assert.equal(send.payload.subject, "🚜 Scott spent $800. Here is what came back.");
+  assert.ok(String(send.payload.text).startsWith("Mike,"));
+  assert.ok(String(send.payload.html).includes("Not a promise of what yours will do."));
+  assert.equal(
+    JSON.stringify(send.payload.tags),
+    JSON.stringify([
+      { name: "campaign", value: "contractor_owner" },
+      { name: "day", value: "01" },
+      { name: "track", value: "contractor" },
+    ]),
+  );
+  assert.equal(result.emails.find((r) => r.lead_id === "dirt-new")?.step, 601);
+});
+
+test("contractor leads stop at the last cleared day and are read back past 45 days", async () => {
+  const now = START + 120 * DAY;
+  const sentRow = (lead: string, step: number, daysAgo: number): Row => ({
+    id: `${lead}-${step}`,
+    lead_id: lead,
+    step,
+    delivery_status: "sent",
+    sent_at: new Date(now - daysAgo * DAY).toISOString(),
+    first_attempt_at: new Date(now - daysAgo * DAY).toISOString(),
+    last_attempt_at: new Date(now - daysAgo * DAY).toISOString(),
+    attempt_count: 1,
+  });
+  const leads: Row[] = [
+    {
+      ...base,
+      id: "dirt-done",
+      full_name: "Done",
+      email: "done@example.com",
+      created_at: new Date(now - 9 * DAY).toISOString(),
+      diagnostic: contractorForm(),
+    },
+    {
+      ...base,
+      id: "dirt-old",
+      full_name: "Old",
+      email: "old@example.com",
+      created_at: new Date(now - 100 * DAY).toISOString(),
+      diagnostic: contractorForm(),
+    },
+    {
+      ...base,
+      id: "rent-old",
+      full_name: "Rent Old",
+      email: "rentold@example.com",
+      created_at: new Date(now - 50 * DAY).toISOString(),
+      diagnostic: rentForm({}),
+    },
+  ];
+  const emails: Row[] = [sentRow("dirt-done", 601, 8), sentRow("dirt-done", 602, 7), sentRow("dirt-done", 603, 6)];
+  const result = await runRoute(leads, emails, now);
+  // dirt-done has every cleared day; dirt-old (100 days) is caught up one at a
+  // time; the 50 day old Rent Receipt lead stays outside its 45 day window.
+  assert.deepEqual(
+    result.sends.map((s) => s.key.split("-").slice(-1)[0]),
+    ["601"],
+  );
+  assert.ok(result.sends[0].key.includes("-dirt-old-"));
 });
