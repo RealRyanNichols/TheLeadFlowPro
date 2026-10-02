@@ -173,3 +173,11 @@ TypeScript check, and the complete 488-page production build pass. Existing
 unrelated image warnings remain. No new typecheck error or skipped test is
 accepted in this candidate. The older local-preview typecheck limitation
 above refers only to that old checkout, not this isolated release.
+
+The first destination attempt for 59d4d4c stopped at checkout, before installing
+or building. The source repository is shallow, so Git ignored its local clone
+mode and did not carry the custom refs/idea-lab reference. That failed directory
+and its logs remain retained. The replacement source commit is made reachable
+through a dedicated validation branch reference without checking out or changing
+the source working tree. Validation starts in a fresh SHA directory; no failed
+receipt or acceptance check is bypassed.
