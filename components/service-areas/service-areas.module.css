@@ -346,7 +346,7 @@
   flex-shrink: 0;
 }
 .panelNotice p {
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.6;
   margin: 0;
 }
@@ -365,16 +365,19 @@
   max-height: 660px;
   flex: 1;
 }
+.mapCanvas {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
 .mapTop {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 20px 0;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1;
+  padding: 14px 20px;
+  border-bottom: 1px solid #dcd3e8;
+  background: #f8f5fc;
   gap: 8px;
 }
 .mapSwitch {
@@ -417,6 +420,11 @@
   stroke: #fbf8fe;
   stroke-width: 3px;
 }
+.cityChip {
+  fill: #fff;
+  stroke: #dcd3e8;
+  stroke-width: 0.8px;
+}
 .stateLabel {
   fill: #968aa3;
   font-size: 12px;
@@ -443,7 +451,7 @@
 .mapControls {
   position: absolute;
   right: 20px;
-  bottom: 54px;
+  bottom: 16px;
   display: grid;
   background: #fff;
   border: 1px solid #d8cee4;
@@ -466,6 +474,33 @@
 }
 .mapControls button:hover {
   background: #eee7fa;
+}
+.mapSummary {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  padding: 15px 18px;
+  border-top: 1px solid #dcd3e8;
+  background: #fff;
+}
+.summaryPin {
+  width: 12px;
+  height: 12px;
+  border: 3px solid #078fcd;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+.mapSummary strong {
+  color: #087caa;
+  font-size: 13px;
+  line-height: 1.5;
+}
+.mapSummary p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
 }
 .mapBottom {
   display: flex;
@@ -779,6 +814,17 @@
 .serviceChecks .check {
   margin: 4px 0 !important;
 }
+.fieldHelp,
+.fieldRequired {
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 12px 0 0;
+  color: var(--muted);
+}
+.fieldRequired {
+  color: #8d361e;
+  font-weight: 600;
+}
 .form .primary {
   width: 100%;
   margin-top: 10px;
@@ -817,6 +863,12 @@
   padding: 11px;
   font-size: 12px;
   line-height: 1.6;
+  scroll-margin-top: 110px;
+}
+.error:focus-visible,
+.success:focus-visible {
+  outline: 3px solid #7950ca;
+  outline-offset: 5px;
 }
 .success {
   display: flex;
@@ -1158,6 +1210,15 @@
     font-size: 34px;
     font-weight: 650;
   }
+  .map[data-view="local"] .cityChip {
+    width: var(--city-chip-width);
+    height: 46px;
+    y: -32px;
+    rx: 8px;
+  }
+  .map[data-view="local"] .cityPin {
+    r: 4px;
+  }
   .map[data-view="local"] .secondaryCity {
     display: none;
   }
@@ -1173,7 +1234,7 @@
   }
   .mapControls {
     right: 12px;
-    bottom: 60px;
+    bottom: 12px;
   }
   .mapBottom {
     font-size: 7px;

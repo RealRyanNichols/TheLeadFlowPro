@@ -1,50 +1,77 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { MessageSquare, Phone } from "lucide-react";
 import { BUSINESS } from "@/lib/site/business";
+import { CALL_LABEL, TEXT_LABEL, smsHref } from "@/lib/site/textLinks";
+import {
+  inquiryText,
+  validateConversationForm,
+  type InquiryErrors,
+} from "@/lib/site/inquiryValidation";
+import styles from "./contact-form.module.css";
+import { useFormReady } from "@/components/site/useFormReady";
 
-// The qualifying questions are optional here on purpose: the message is the
-// required part, the answers just ride along. They are folded into the message
-// body so the existing /api/contact contract and messages table stay unchanged.
+// Optional answers travel in the existing message body; the API stays unchanged.
 const QUESTIONS = [
   { key: "leads", label: "Are you getting enough leads?" },
   { key: "money", label: "Are you making enough money?" },
   { key: "social", label: "Is your social media doing what you wanted?" },
   { key: "website", label: "Is your website doing what you wanted?" },
 ] as const;
+const IDS: Record<string, string> = {
+  visitor_name: "contact-name",
+  visitor_email: "contact-email",
+  body: "contact-message",
+};
 
 export default function ContactForm() {
+  const ready = useFormReady();
   const [done, setDone] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [issues, setIssues] = useState<InquiryErrors>({});
+  const [attempts, setAttempts] = useState(0);
   const [answers, setAnswers] = useState<Record<string, "Yes" | "No">>({});
+  const feedbackRef = useRef<HTMLDivElement>(null);
+  const doneRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    feedbackRef.current?.focus();
+  }, [error, attempts]);
+  useEffect(() => {
+    if (done) doneRef.current?.focus();
+  }, [done]);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setBusy(true);
-    setError(null);
+    if (!ready || busy) return;
     const fd = new FormData(e.currentTarget);
-
-    const phone = String(fd.get("visitor_phone") ?? "").trim();
+    const problems = validateConversationForm(fd, "contact");
+    setAttempts((current) => current + 1);
+    setIssues(problems);
+    setError(null);
+    if (Object.keys(problems).length) return;
+    setBusy(true);
+    const phone = inquiryText(fd, "visitor_phone");
     const extras: string[] = [];
     if (phone) extras.push(`Phone: ${phone}`);
     const answered = QUESTIONS.filter((q) => answers[q.key]);
-    if (answered.length) {
+    if (answered.length)
       extras.push(
         "Qualifying answers:",
         ...answered.map((q) => `- ${q.label} ${answers[q.key]}`),
       );
-    }
-    const message = String(fd.get("body") ?? "");
-    const body = extras.length ? `${message}\n\n---\n${extras.join("\n")}` : message;
-
+    const message = inquiryText(fd, "body");
+    const body = extras.length
+      ? `${message}\n\n---\n${extras.join("\n")}`
+      : message;
     try {
       const res = await fetch("/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          visitor_name: fd.get("visitor_name"),
-          visitor_email: fd.get("visitor_email"),
+          visitor_name: inquiryText(fd, "visitor_name"),
+          visitor_email: inquiryText(fd, "visitor_email"),
           body,
         }),
       });
@@ -61,7 +88,7 @@ export default function ContactForm() {
       try {
         window.fbq?.("track", "Contact");
       } catch {
-        // Optional analytics must not change the saved-message result.
+        /* Optional analytics never change the saved result. */
       }
     } catch {
       setError(
@@ -72,82 +99,226 @@ export default function ContactForm() {
     }
   }
 
-  if (done) {
-    return (
-      <p className="text-center font-semibold text-[var(--green)]" role="status" aria-live="polite">
-        Message received. I will get back to you within one business day.
+  function clearIssue(name: string) {
+    if (issues[name])
+      setIssues((current) => {
+        const next = { ...current };
+        delete next[name];
+        return next;
+      });
+  }
+  function issueProps(name: string) {
+    return {
+      "aria-invalid": issues[name] ? true : undefined,
+      "aria-describedby": issues[name] ? `${IDS[name]}-error` : undefined,
+      onInput: () => clearIssue(name),
+    };
+  }
+  function fieldIssue(name: string) {
+    return issues[name] ? (
+      <p className={styles.issue} id={`${IDS[name]}-error`}>
+        {issues[name]}
       </p>
-    );
+    ) : null;
   }
 
+  if (done)
+    return (
+      <div
+        ref={doneRef}
+        className={styles.done}
+        role="status"
+        aria-live="polite"
+        tabIndex={-1}
+      >
+        <h3>Message received.</h3>
+        <p>Ryan will get back to you within one business day.</p>
+        <div className={styles.actions}>
+          <a href={BUSINESS.phone.tel}>
+            <Phone size={18} aria-hidden="true" />
+            {CALL_LABEL}
+          </a>
+          <a href={smsHref("contact_sent")}>
+            <MessageSquare size={18} aria-hidden="true" />
+            {TEXT_LABEL}
+          </a>
+        </div>
+      </div>
+    );
+
   return (
-    <form onSubmit={onSubmit} className="space-y-4" aria-busy={busy}>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label className="label" htmlFor="contact-name">Your name *</label>
-          <input className="input" id="contact-name" name="visitor_name" required maxLength={200} />
-        </div>
-        <div>
-          <label className="label" htmlFor="contact-email">Email *</label>
-          <input className="input" id="contact-email" name="visitor_email" type="email" required maxLength={200} />
-        </div>
-      </div>
-      <div>
-        <label className="label" htmlFor="contact-phone">Cell phone (so Ryan can call or text you back)</label>
-        <input className="input" id="contact-phone" name="visitor_phone" type="tel" maxLength={50} />
-      </div>
-      <div>
-        <label className="label" htmlFor="contact-message">Your message *</label>
-        <textarea className="input" id="contact-message" name="body" rows={5} required maxLength={2500} />
-      </div>
-
-      <fieldset className="space-y-3 rounded-xl border border-[var(--line-strong)] p-4">
-        <legend className="px-1 text-base font-semibold text-[var(--heading)]">
-          Four quick questions. Optional, but they speed up the answer.
-        </legend>
-        {QUESTIONS.map((q) => (
-          <div key={q.key} className="flex flex-wrap items-center justify-between gap-2">
-            <span className="text-base text-[var(--text)]">{q.label}</span>
-            <div className="flex gap-2" role="group" aria-label={q.label}>
-              {(["Yes", "No"] as const).map((value) => {
-                const active = answers[q.key] === value;
-                return (
-                  <button
-                    key={value}
-                    type="button"
-                    aria-pressed={active}
-                    onClick={() =>
-                      setAnswers((current) =>
-                        current[q.key] === value
-                          ? Object.fromEntries(Object.entries(current).filter(([k]) => k !== q.key))
-                          : { ...current, [q.key]: value },
-                      )
-                    }
-                    className={`min-h-11 min-w-16 rounded-lg border px-4 text-base font-semibold transition ${
-                      active
-                        ? "border-sky-400 bg-sky-500/20 text-[var(--heading)]"
-                        : "border-[var(--line-strong)] bg-[var(--fill-2)] text-[var(--text)] hover:text-[var(--heading)]"
-                    }`}
+    <form
+      onSubmit={onSubmit}
+      method="post"
+      action="/api/contact"
+      id="message-form"
+      aria-label="Send Ryan a message"
+      data-analytics="contact_message"
+      className={styles.form}
+      aria-busy={!ready || busy}
+      noValidate
+    >
+      {(error || Object.keys(issues).length > 0) && (
+        <div
+          ref={feedbackRef}
+          className={styles.error}
+          role="alert"
+          tabIndex={-1}
+        >
+          <strong>{error || "Check these details before sending."}</strong>
+          {Object.keys(issues).length > 0 && (
+            <ul>
+              {Object.entries(issues).map(([name, message]) => (
+                <li key={name}>
+                  <a
+                    href={`#${IDS[name]}`}
+                    onClick={() => document.getElementById(IDS[name])?.focus()}
                   >
-                    {value}
-                  </button>
-                );
-              })}
-            </div>
+                    {message}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+      <fieldset disabled={!ready || busy} className={styles.fields}>
+        <legend className="sr-only">Your contact details and message</legend>
+        <div className={styles.row}>
+          <div className={styles.field}>
+            <label className="label" htmlFor="contact-name">
+              Your name *
+            </label>
+            <input
+              className="input"
+              id="contact-name"
+              name="visitor_name"
+              autoComplete="name"
+              required
+              maxLength={200}
+              {...issueProps("visitor_name")}
+            />
+            {fieldIssue("visitor_name")}
           </div>
-        ))}
+          <div className={styles.field}>
+            <label className="label" htmlFor="contact-email">
+              Email *
+            </label>
+            <input
+              className="input"
+              id="contact-email"
+              name="visitor_email"
+              type="email"
+              autoComplete="email"
+              inputMode="email"
+              required
+              maxLength={200}
+              {...issueProps("visitor_email")}
+            />
+            {fieldIssue("visitor_email")}
+          </div>
+        </div>
+        <div className={styles.field}>
+          <label className="label" htmlFor="contact-phone">
+            Phone (optional)
+          </label>
+          <input
+            className="input"
+            id="contact-phone"
+            name="visitor_phone"
+            type="tel"
+            autoComplete="tel"
+            inputMode="tel"
+            maxLength={50}
+            aria-describedby="contact-phone-help"
+          />
+          <p className={styles.helper} id="contact-phone-help">
+            Add your number if you would like a call back.
+          </p>
+        </div>
+        <div className={styles.field}>
+          <label className="label" htmlFor="contact-message">
+            What do you need help with? *
+          </label>
+          <textarea
+            className="input"
+            id="contact-message"
+            name="body"
+            rows={5}
+            required
+            maxLength={2500}
+            placeholder="Tell us about the business, what is getting in the way, and what you want to improve."
+            {...issueProps("body")}
+          />
+          {fieldIssue("body")}
+        </div>
+        <details className={styles.optional}>
+          <summary>Optional: a quick look at the business</summary>
+          <fieldset className={styles.questions}>
+            <legend className="sr-only">Four optional questions</legend>
+            {QUESTIONS.map((q) => (
+              <div key={q.key} className={styles.question}>
+                <span>{q.label}</span>
+                <div
+                  className={styles.answers}
+                  role="group"
+                  aria-label={q.label}
+                >
+                  {(["Yes", "No"] as const).map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      aria-pressed={answers[q.key] === value}
+                      onClick={() =>
+                        setAnswers((current) =>
+                          current[q.key] === value
+                            ? Object.fromEntries(
+                                Object.entries(current).filter(
+                                  ([k]) => k !== q.key,
+                                ),
+                              )
+                            : { ...current, [q.key]: value },
+                        )
+                      }
+                    >
+                      {value}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </fieldset>
+        </details>
+        <button
+          type="submit"
+          disabled={!ready || busy}
+          className="btn-primary w-full disabled:opacity-50"
+        >
+          {busy ? "Sending..." : "Send my message"}
+        </button>
       </fieldset>
-
-      {error && <p className="text-base text-[var(--danger)]" role="alert">{error}</p>}
-      <button type="submit" disabled={busy} className="btn-primary w-full disabled:opacity-50">
-        {busy ? "Sending..." : "Send Message"}
-      </button>
-      <p className="text-center text-base text-[var(--text)]">
-        Fastest answer: call or text{" "}
-        <a className="font-bold text-[var(--heading)] underline underline-offset-4" href={BUSINESS.phone.tel}>
-          {BUSINESS.phone.display}
+      <noscript>
+        Enable JavaScript to send this form, or use the call and text links
+        below.
+      </noscript>
+      <div className={styles.actions}>
+        <a
+          href={BUSINESS.phone.tel}
+          data-cta="call"
+          data-cta-placement="contact_form"
+        >
+          <Phone size={18} aria-hidden="true" />
+          {CALL_LABEL}
         </a>
-      </p>
+        <a
+          href={smsHref("contact")}
+          data-cta="text"
+          data-cta-placement="contact_form"
+        >
+          <MessageSquare size={18} aria-hidden="true" />
+          {TEXT_LABEL}
+        </a>
+      </div>
     </form>
   );
 }

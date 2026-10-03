@@ -100,7 +100,6 @@ test("the managed pricing page leads with the commitment and routes to scoping w
   const source = readFileSync("app/pricing/page.tsx", "utf8");
   assert.match(source, /MANAGED_COMMERCIAL_TERMS/);
   assert.match(source, /\{upfront\} upfront\./);
-  assert.match(source, /href="\/agency\/start"/);
   assert.match(source, /href="\/service-areas"/);
   assert.doesNotMatch(
     source,

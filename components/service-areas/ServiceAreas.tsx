@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   ShieldCheck,
@@ -39,6 +39,8 @@ import {
 } from "@/lib/site/managedPlans";
 import TerritoryMap, { type MapView } from "./TerritoryMap";
 import styles from "./service-areas.module.css";
+import { useFormReady } from "@/components/site/useFormReady";
+import { BUSINESS } from "@/lib/site/business";
 
 const ICONS = {
   tractor: Tractor,
@@ -61,6 +63,7 @@ export default function ServiceAreas({
   updatedAt?: string | null;
   preview?: boolean;
 }) {
+  const formReady = useFormReady();
   const [now, setNow] = useState<number | null>(null);
   useEffect(() => {
     setNow(Date.now());
@@ -71,15 +74,24 @@ export default function ServiceAreas({
     [view, setView] = useState<MapView>("local"),
     [placeId, setPlaceId] = useState("tyler"),
     [miles, setMiles] = useState(35),
+    [milesDraft, setMilesDraft] = useState("35"),
     [illustration, setIllustration] = useState(true),
     [compare, setCompare] = useState(false);
   const [scope, setScope] = useState<"local" | "states" | "national">("local"),
     [states, setStates] = useState("TX"),
     [services, setServices] = useState<string[]>([...INDUSTRIES[0].services]);
+  const [market, setMarket] = useState<string>(PLACES[0].name),
+    [marketEdited, setMarketEdited] = useState(false);
   const [busy, setBusy] = useState(false),
     [done, setDone] = useState(false),
     [error, setError] = useState<string | null>(null),
     [attempt, setAttempt] = useState<InquiryAttempt | null>(null);
+  const errorRef = useRef<HTMLParagraphElement>(null),
+    successRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (error) errorRef.current?.focus();
+    else if (done) successRef.current?.focus();
+  }, [error, done]);
   const selected = INDUSTRIES.find((i) => i.id === industry)!,
     place = PLACES.find((p) => p.id === placeId)!;
   const visible = territories.filter(
@@ -107,6 +119,7 @@ export default function ServiceAreas({
   }
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!formReady || busy) return;
     setError(null);
     setBusy(true);
     const form = new FormData(event.currentTarget);
@@ -125,7 +138,7 @@ export default function ServiceAreas({
               .map((s) => s.trim().toUpperCase())
               .filter(Boolean)
           : [],
-      miles,
+      miles: Number(form.get("miles") ?? miles),
       publicConsent: form.get("publicConsent") === "on",
       contactConsent: form.get("contactConsent") === "on",
     };
@@ -229,6 +242,7 @@ export default function ServiceAreas({
                 <button
                   type="button"
                   key={i.id}
+                  disabled={busy}
                   aria-pressed={industry === i.id}
                   onClick={() => choose(i.id)}
                 >
@@ -247,10 +261,15 @@ export default function ServiceAreas({
               <label htmlFor="territory-place">Explore a market</label>
               <select
                 id="territory-place"
+                disabled={busy}
                 value={placeId}
                 onChange={(e) => {
                   setCompare(false);
                   setPlaceId(e.target.value);
+                  if (!marketEdited)
+                    setMarket(
+                      PLACES.find((p) => p.id === e.target.value)!.name,
+                    );
                   setScope("local");
                   setView("local");
                   setIllustration(true);
@@ -271,26 +290,29 @@ export default function ServiceAreas({
               </div>
               <input
                 id="territory-radius"
+                disabled={busy}
                 aria-valuetext={`${miles} miles`}
                 type="range"
-                min="10"
-                max="100"
-                step="5"
+                min="1"
+                max="500"
+                step="1"
                 value={miles}
                 onChange={(e) => {
                   setCompare(false);
                   setMiles(Number(e.target.value));
+                  setMilesDraft(e.target.value);
                   setScope("local");
                   setIllustration(true);
                 }}
               />
               <div className={styles.rangeLabels}>
-                <span>10 mi</span>
-                <span>100 mi</span>
+                <span>1 mi</span>
+                <span>500 mi</span>
               </div>
               <label className={styles.check}>
                 <input
                   type="checkbox"
+                  disabled={busy}
                   checked={illustration}
                   onChange={(e) => setIllustration(e.target.checked)}
                 />
@@ -313,8 +335,8 @@ export default function ServiceAreas({
               <div className={styles.panelNotice}>
                 <ShieldCheck size={19} />
                 <p>
-                  A signup shows interest. A reviewed agreement secures the
-                  area.
+                  Interest does not reserve an area. Reviewed holds have an
+                  expiration. An approved agreement protects the agreed scope.
                 </p>
               </div>
             </aside>
@@ -461,11 +483,14 @@ export default function ServiceAreas({
             </div>
             <button
               type="button"
+              disabled={busy}
               className={styles.textButton}
               onClick={() => {
                 setPlaceId("tyler");
+                if (!marketEdited) setMarket(PLACES[0].name);
                 setScope("local");
                 setMiles(35);
+                setMilesDraft("35");
                 setView("local");
                 setIllustration(true);
                 setCompare((v) => !v);
@@ -521,7 +546,12 @@ export default function ServiceAreas({
             </p>
           </div>
           {done ? (
-            <div className={styles.success} role="status">
+            <div
+              className={styles.success}
+              role="status"
+              tabIndex={-1}
+              ref={successRef}
+            >
               <ShieldCheck size={36} />
               <h3>Your area request is saved.</h3>
               <p>
@@ -534,7 +564,13 @@ export default function ServiceAreas({
               </p>
             </div>
           ) : (
-            <form className={styles.form} onSubmit={submit}>
+            <form
+              className={styles.form}
+              method="post"
+              action="/api/service-areas/inquiries"
+              onSubmit={submit}
+              aria-busy={busy}
+            >
               <div className={styles.formHeading}>
                 <LockKeyhole size={18} />
                 <span>CHECK MY AREA</span>
@@ -546,6 +582,7 @@ export default function ServiceAreas({
                     id="area-name"
                     name="name"
                     autoComplete="name"
+                    disabled={busy}
                     required
                     maxLength={200}
                   />
@@ -556,6 +593,7 @@ export default function ServiceAreas({
                     id="area-business"
                     name="business"
                     autoComplete="organization"
+                    disabled={busy}
                     required
                     maxLength={200}
                   />
@@ -567,12 +605,14 @@ export default function ServiceAreas({
                 name="email"
                 type="email"
                 autoComplete="email"
+                disabled={busy}
                 required
                 maxLength={200}
               />
               <label htmlFor="area-industry">Industry</label>
               <select
                 id="area-industry"
+                disabled={busy}
                 value={industry}
                 onChange={(e) => choose(e.target.value as IndustryId)}
               >
@@ -582,7 +622,7 @@ export default function ServiceAreas({
                   </option>
                 ))}
               </select>
-              <fieldset>
+              <fieldset disabled={busy} aria-describedby="area-services-help">
                 <legend>Services you want to advertise</legend>
                 <div className={styles.serviceChecks}>
                   {selected.services.map((s) => (
@@ -602,10 +642,22 @@ export default function ServiceAreas({
                     </label>
                   ))}
                 </div>
+                <p
+                  id="area-services-help"
+                  className={
+                    services.length ? styles.fieldHelp : styles.fieldRequired
+                  }
+                  aria-live="polite"
+                >
+                  {services.length
+                    ? "Select the work you want more requests for."
+                    : "Select at least one service to check your area."}
+                </p>
               </fieldset>
               <label htmlFor="area-scope">Coverage type</label>
               <select
                 id="area-scope"
+                disabled={busy}
                 value={scope}
                 onChange={(e) => {
                   setCompare(false);
@@ -628,10 +680,14 @@ export default function ServiceAreas({
                 <div>
                   <label htmlFor="area-market">Main city / market</label>
                   <input
-                    key={placeId}
                     id="area-market"
+                    disabled={busy}
                     name="market"
-                    defaultValue={place.name}
+                    value={market}
+                    onChange={(e) => {
+                      setMarketEdited(true);
+                      setMarket(e.target.value);
+                    }}
                     required
                     maxLength={150}
                   />
@@ -641,13 +697,23 @@ export default function ServiceAreas({
                     <label htmlFor="area-miles">Desired radius (miles)</label>
                     <input
                       id="area-miles"
+                      name="miles"
+                      disabled={busy}
                       type="number"
                       min="1"
                       max="500"
-                      value={miles}
+                      value={milesDraft}
                       onChange={(e) => {
                         setCompare(false);
-                        setMiles(Number(e.target.value));
+                        setMilesDraft(e.target.value);
+                        const nextMiles = Number(e.target.value);
+                        if (
+                          e.target.value !== "" &&
+                          Number.isFinite(nextMiles) &&
+                          nextMiles >= 1 &&
+                          nextMiles <= 500
+                        )
+                          setMiles(nextMiles);
                       }}
                       required
                     />
@@ -657,6 +723,7 @@ export default function ServiceAreas({
                     <label htmlFor="area-states">State codes</label>
                     <input
                       id="area-states"
+                      disabled={busy}
                       placeholder="TX, LA, OK"
                       value={states}
                       onChange={(e) => setStates(e.target.value)}
@@ -678,11 +745,16 @@ export default function ServiceAreas({
                 privately.
               </p>
               <label className={styles.check}>
-                <input name="contactConsent" type="checkbox" required />I agree
-                to email follow-up about this request.
+                <input
+                  name="contactConsent"
+                  type="checkbox"
+                  required
+                  disabled={busy}
+                />
+                I agree to email follow-up about this request.
               </label>
               <label className={styles.check}>
-                <input name="publicConsent" type="checkbox" />
+                <input name="publicConsent" type="checkbox" disabled={busy} />
                 After verification, show anonymous interest in my industry and
                 broad market. Keep my name, contact details, and business
                 private.
@@ -694,14 +766,19 @@ export default function ServiceAreas({
                 </label>
               </div>
               {error && (
-                <p className={styles.error} role="alert">
+                <p
+                  className={styles.error}
+                  role="alert"
+                  tabIndex={-1}
+                  ref={errorRef}
+                >
                   {error}
                 </p>
               )}
               <button
                 className={styles.primary}
                 type="submit"
-                disabled={busy || services.length === 0}
+                disabled={!formReady || busy || services.length === 0}
               >
                 {busy ? "Saving your request…" : "Check my area"}
                 <ArrowRight size={18} />
@@ -711,6 +788,14 @@ export default function ServiceAreas({
                 <a href="/privacy">Privacy Policy</a>. No payment. No
                 reservation.
               </small>
+              <noscript>
+                <p className={styles.fieldHelp}>
+                  This form needs JavaScript. Call{" "}
+                  <a href={BUSINESS.phone.tel}>{BUSINESS.phone.display}</a> or{" "}
+                  <a href={`mailto:${BUSINESS.email.hello}`}>email our team</a>{" "}
+                  to check your area.
+                </p>
+              </noscript>
             </form>
           )}
         </section>

@@ -27,6 +27,7 @@ import {
   managedUpfrontSummary,
 } from "@/lib/site/managedPlans";
 import styles from "./managed-pricing.module.css";
+import { agencyIntakeHref } from "@/lib/site/agencyIntake";
 
 export const metadata: Metadata = withPublicPageMetadata("/pricing", {
   title: "Managed Plans & Pricing | The LeadFlow Pro",
@@ -85,7 +86,12 @@ const QUESTIONS = [
   },
 ];
 
-export default function PricingPage() {
+export default async function PricingPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const query = await searchParams;
   const upfront = usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd);
   const monthly = usd(MANAGED_COMMERCIAL_TERMS.minimumMonthlyUsd);
   return (
@@ -104,7 +110,7 @@ export default function PricingPage() {
             </p>
             <div className={styles.actions}>
               <CtaLink
-                href="/agency/start"
+                href={agencyIntakeHref(null, query)}
                 event="managed_plan_intake"
                 placement="pricing_hero"
                 className={styles.primary}
@@ -186,7 +192,7 @@ export default function PricingPage() {
                     <span>{plan.billingNote}</span>
                   </div>
                   <CtaLink
-                    href="/agency/start"
+                    href={agencyIntakeHref(plan.id, query)}
                     event="managed_plan_intake"
                     placement={`pricing_${plan.id}`}
                     className={
@@ -213,7 +219,7 @@ export default function PricingPage() {
               </p>
             </div>
             <CtaLink
-              href="/agency/start"
+              href={agencyIntakeHref("custom", query)}
               event="managed_plan_intake"
               placement="pricing_custom"
               className={styles.secondary}

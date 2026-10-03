@@ -1,5 +1,5 @@
 "use client";
-import { useId, useState } from "react";
+import { useEffect, useId, useState, type CSSProperties } from "react";
 import { Plus, Minus, LocateFixed } from "lucide-react";
 import geography from "@/lib/service-areas/geography.json";
 import { PLACES, STAGE_LABELS } from "@/lib/service-areas/catalog";
@@ -36,20 +36,44 @@ export default function TerritoryMap({
     [zoom, setZoom] = useState(1),
     [pan, setPan] = useState<Point>({ lat: 0, lng: 0 });
   const base = VIEWS[view];
-  const selectedPlace =
+  const referencePlace =
     candidate?.kind === "radius"
       ? PLACES.find(
           (p) =>
             candidate.center.lat === p.lat && candidate.center.lng === p.lng,
-        )?.id
+        )
       : undefined;
+  const selectedPlace = referencePlace?.id;
   const center =
     candidate?.kind === "radius" && view === "local"
       ? candidate.center
       : base.center;
-  const span = base.span / zoom,
-    width = 1000,
-    height = 610,
+  const width = 1000,
+    height = 610;
+  const framingKey = JSON.stringify([view, candidate, compare]);
+  useEffect(() => {
+    setZoom(1);
+    setPan({ lat: 0, lng: 0 });
+  }, [framingKey]);
+  const framingRing =
+    candidate?.kind === "radius" && view === "local"
+      ? radiusRing({
+          ...candidate,
+          miles: compare ? Math.max(50, candidate.miles) : candidate.miles,
+        })
+      : [];
+  const fittedSpan = framingRing.length
+    ? Math.max(
+        base.span,
+        (2 * Math.max(...framingRing.map((p) => Math.abs(p[0] - center.lng)))) /
+          0.82,
+        (2 *
+          Math.max(...framingRing.map((p) => Math.abs(p[1] - center.lat))) *
+          width) /
+          (Math.cos((center.lat * Math.PI) / 180) * height * 0.82),
+      )
+    : base.span;
+  const span = fittedSpan / zoom,
     scale = width / span;
   const project = (lng: number, lat: number): [number, number] => [
     (lng - center.lng - pan.lng) * scale + width / 2,
@@ -193,291 +217,331 @@ export default function TerritoryMap({
           {illustration ? "Territory illustration" : "Reviewed coverage"}
         </span>
       </div>
-      <svg
-        className={styles.map}
-        data-view={view}
-        viewBox={`0 0 ${width} ${height}`}
-        role="img"
-        aria-labelledby={`${uid}-title ${uid}-desc`}
-      >
-        <title id={`${uid}-title`}>
-          {view === "local"
-            ? "Local service territories"
-            : view === "texas"
-              ? "Texas service territories"
-              : "United States service territories"}
-        </title>
-        <desc id={`${uid}-desc`}>
-          Generalized geographic display.{" "}
-          {illustration
-            ? "The blue shape is an illustrative requested area, not a reserved territory."
-            : "Orange shows verified interest, violet a temporary hold, and blue a protected client territory."}{" "}
-          Exact availability requires a review of the services and written
-          agreement. The United States view includes Alaska and Hawaii insets at
-          different scales.
-        </desc>
-        <defs>
-          <pattern
-            id={`${uid}-grid`}
-            width="40"
-            height="40"
-            patternUnits="userSpaceOnUse"
-          >
-            <path
-              d="M 40 0 L 0 0 0 40"
-              fill="none"
-              stroke="#d8cce8"
-              strokeWidth=".5"
-              opacity=".5"
-            />
-          </pattern>
-          <pattern
-            id={`${uid}-hold`}
-            width="8"
-            height="8"
-            patternUnits="userSpaceOnUse"
-          >
-            <path
-              d="M0 8L8 0"
-              stroke="#7862b2"
-              strokeWidth="1.2"
-              opacity=".35"
-            />
-          </pattern>
-          <radialGradient id={`${uid}-glow`}>
-            <stop stopColor="#26a9e0" stopOpacity=".25" />
-            <stop offset="1" stopColor="#26a9e0" stopOpacity=".06" />
-          </radialGradient>
-        </defs>
-        <rect width={width} height={height} fill="#efebf7" />
-        <rect width={width} height={height} fill={`url(#${uid}-grid)`} />
-        {geography.states
-          .filter((s) => !["AK", "HI"].includes(s.code))
-          .map((s) => (
-            <path
-              key={s.code}
-              d={path(s.rings)}
-              fill={s.code === "TX" ? "#fcf9ff" : "#f5f1fa"}
-              stroke="#d1c5e0"
-              strokeWidth={1.1}
-              vectorEffect="non-scaling-stroke"
-            />
-          ))}
-        {view !== "national" &&
-          geography.texasCounties.map((c) => (
-            <path
-              key={c.code}
-              d={path(c.rings)}
-              fill="none"
-              stroke="#ded5e9"
-              strokeWidth=".7"
-            />
-          ))}
-        {view === "national" &&
-          geography.states
-            .filter(
-              (s) =>
-                ![
-                  "AK",
-                  "HI",
-                  "DC",
-                  "RI",
-                  "DE",
-                  "NJ",
-                  "MA",
-                  "CT",
-                  "VT",
-                  "NH",
-                ].includes(s.code),
-            )
-            .map((s) => {
-              const points = s.rings.flat(),
-                x =
-                  (Math.min(...points.map((p) => p[0])) +
-                    Math.max(...points.map((p) => p[0]))) /
-                  2,
-                y =
-                  (Math.min(...points.map((p) => p[1])) +
-                    Math.max(...points.map((p) => p[1]))) /
-                  2;
-              const [px, py] = project(x, y);
-              return (
-                <text key={s.code} x={px} y={py} className={styles.stateLabel}>
-                  {s.code}
-                </text>
-              );
-            })}
-        {view === "texas" && (
-          <text
-            x={project(-100, 31.6)[0]}
-            y={project(-100, 31.6)[1]}
-            className={styles.texasLabel}
-          >
-            TEXAS
-          </text>
-        )}
-        {territories.map((t) => (
-          <g key={t.id}>
-            <path
-              d={shape(t.geometry)}
-              fill={
-                t.stage === "held"
-                  ? `url(#${uid}-hold)`
-                  : t.stage === "interest"
-                    ? "#e7a94a22"
-                    : `url(#${uid}-glow)`
-              }
-              stroke={
-                t.stage === "held"
-                  ? "#7862b2"
-                  : t.stage === "interest"
-                    ? "#a76a13"
-                    : "#088dcc"
-              }
-              strokeWidth="2.5"
-              strokeDasharray={t.stage === "interest" ? "6 6" : undefined}
+      <div className={styles.mapCanvas}>
+        <svg
+          className={styles.map}
+          data-view={view}
+          viewBox={`0 0 ${width} ${height}`}
+          role="img"
+          aria-labelledby={`${uid}-title ${uid}-desc`}
+        >
+          <title id={`${uid}-title`}>
+            {view === "local"
+              ? "Local service territories"
+              : view === "texas"
+                ? "Texas service territories"
+                : "United States service territories"}
+          </title>
+          <desc id={`${uid}-desc`}>
+            Generalized geographic display.{" "}
+            {illustration
+              ? "The blue shape is an illustrative requested area, not a reserved territory."
+              : "Orange shows verified interest, violet a temporary hold, and blue a protected client territory."}{" "}
+            Exact availability requires a review of the services and written
+            agreement. The United States view includes Alaska and Hawaii insets
+            at different scales.
+          </desc>
+          <defs>
+            <pattern
+              id={`${uid}-grid`}
+              width="40"
+              height="40"
+              patternUnits="userSpaceOnUse"
             >
-              <title>{`${STAGE_LABELS[t.stage]}: ${t.publicRegion}`}</title>
-            </path>
-          </g>
-        ))}
-        {compare && candidate?.kind === "radius" && (
-          <path
-            d={shape({ ...candidate, miles: 50 })}
-            fill="none"
-            stroke="#8a9897"
-            strokeWidth="1.8"
-            strokeDasharray="6 7"
-          />
-        )}
-        {candidate && candidate.kind !== "unknown" && (
-          <path
-            d={shape(candidate)}
-            fill={`url(#${uid}-glow)`}
-            stroke="#008fcf"
-            strokeWidth="2.5"
-            strokeDasharray={illustration ? "8 5" : undefined}
-          />
-        )}
-        {PLACES.filter(
-          (p) =>
-            view !== "national" ||
-            ["dallas", "houston", "midland"].includes(p.id),
-        ).map((p) => {
-          const [x, y] = project(p.lng, p.lat);
-          const isCenter = selectedPlace === p.id;
-          if (x < 20 || x > width - 100 || y < 35 || y > height - 20)
-            return null;
-          return (
-            <g
-              key={p.id}
-              className={
-                (p.id === "kilgore" && !isCenter) ||
-                (p.id === "longview" && selectedPlace === "kilgore")
-                  ? styles.secondaryCity
-                  : undefined
-              }
-            >
-              <circle
-                cx={x}
-                cy={y}
-                r={p.id === "tyler" ? 4 : 2.7}
-                fill="#65556f"
+              <path
+                d="M 40 0 L 0 0 0 40"
+                fill="none"
+                stroke="#d8cce8"
+                strokeWidth=".5"
+                opacity=".5"
               />
-              <text
-                x={x + (isCenter ? 28 : 9)}
-                y={y + 4}
-                className={`${styles.cityLabel} ${p.id === "marshall" ? styles.easternCity : ""}`}
+            </pattern>
+            <pattern
+              id={`${uid}-hold`}
+              width="8"
+              height="8"
+              patternUnits="userSpaceOnUse"
+            >
+              <path
+                d="M0 8L8 0"
+                stroke="#7862b2"
+                strokeWidth="1.2"
+                opacity=".35"
+              />
+            </pattern>
+            <radialGradient id={`${uid}-glow`}>
+              <stop stopColor="#26a9e0" stopOpacity=".25" />
+              <stop offset="1" stopColor="#26a9e0" stopOpacity=".06" />
+            </radialGradient>
+          </defs>
+          <rect width={width} height={height} fill="#efebf7" />
+          <rect width={width} height={height} fill={`url(#${uid}-grid)`} />
+          {geography.states
+            .filter((s) => !["AK", "HI"].includes(s.code))
+            .map((s) => (
+              <path
+                key={s.code}
+                d={path(s.rings)}
+                fill={s.code === "TX" ? "#fcf9ff" : "#f5f1fa"}
+                stroke="#d1c5e0"
+                strokeWidth={1.1}
+                vectorEffect="non-scaling-stroke"
+              />
+            ))}
+          {view !== "national" &&
+            geography.texasCounties.map((c) => (
+              <path
+                key={c.code}
+                d={path(c.rings)}
+                fill="none"
+                stroke="#ded5e9"
+                strokeWidth=".7"
+              />
+            ))}
+          {view === "national" &&
+            geography.states
+              .filter(
+                (s) =>
+                  ![
+                    "AK",
+                    "HI",
+                    "DC",
+                    "RI",
+                    "DE",
+                    "NJ",
+                    "MA",
+                    "CT",
+                    "VT",
+                    "NH",
+                  ].includes(s.code),
+              )
+              .map((s) => {
+                const points = s.rings.flat(),
+                  x =
+                    (Math.min(...points.map((p) => p[0])) +
+                      Math.max(...points.map((p) => p[0]))) /
+                    2,
+                  y =
+                    (Math.min(...points.map((p) => p[1])) +
+                      Math.max(...points.map((p) => p[1]))) /
+                    2;
+                const [px, py] = project(x, y);
+                return (
+                  <text
+                    key={s.code}
+                    x={px}
+                    y={py}
+                    className={styles.stateLabel}
+                  >
+                    {s.code}
+                  </text>
+                );
+              })}
+          {view === "texas" && (
+            <text
+              x={project(-100, 31.6)[0]}
+              y={project(-100, 31.6)[1]}
+              className={styles.texasLabel}
+            >
+              TEXAS
+            </text>
+          )}
+          {territories.map((t) => (
+            <g key={t.id}>
+              <path
+                d={shape(t.geometry)}
+                fill={
+                  t.stage === "held"
+                    ? `url(#${uid}-hold)`
+                    : t.stage === "interest"
+                      ? "#e7a94a22"
+                      : `url(#${uid}-glow)`
+                }
+                stroke={
+                  t.stage === "held"
+                    ? "#7862b2"
+                    : t.stage === "interest"
+                      ? "#a76a13"
+                      : "#088dcc"
+                }
+                strokeWidth="2.5"
+                strokeDasharray={t.stage === "interest" ? "6 6" : undefined}
               >
-                {p.name.replace(", TX", "")}
-              </text>
+                <title>{`${STAGE_LABELS[t.stage]}: ${t.publicRegion}`}</title>
+              </path>
             </g>
-          );
-        })}
-        {candidate?.kind === "radius" &&
-          (() => {
-            const [x, y] = project(candidate.center.lng, candidate.center.lat);
+          ))}
+          {compare && candidate?.kind === "radius" && (
+            <path
+              d={shape({ ...candidate, miles: 50 })}
+              fill="none"
+              stroke="#8a9897"
+              strokeWidth="1.8"
+              strokeDasharray="6 7"
+            />
+          )}
+          {candidate && candidate.kind !== "unknown" && (
+            <path
+              d={shape(candidate)}
+              fill={`url(#${uid}-glow)`}
+              stroke="#008fcf"
+              strokeWidth="2.5"
+              strokeDasharray={illustration ? "8 5" : undefined}
+            />
+          )}
+          {PLACES.filter(
+            (p) =>
+              view !== "national" ||
+              ["dallas", "houston", "midland"].includes(p.id),
+          ).map((p) => {
+            const [x, y] = project(p.lng, p.lat);
+            const isCenter = selectedPlace === p.id;
+            const name = p.name.replace(", TX", ""),
+              offset = isCenter ? 28 : 9,
+              labelWidth = name.length * (view === "local" ? 22 : 9) + 16;
+            if (
+              x < 20 ||
+              x + offset + labelWidth > width - 16 ||
+              y < 82 ||
+              y > height - 20 ||
+              (view === "local" &&
+                candidate?.kind === "radius" &&
+                fittedSpan > base.span * 1.2 &&
+                !isCenter)
+            )
+              return null;
             return (
-              <g>
+              <g
+                key={p.id}
+                className={
+                  (p.id === "kilgore" && !isCenter) ||
+                  (p.id === "longview" && selectedPlace === "kilgore")
+                    ? styles.secondaryCity
+                    : undefined
+                }
+              >
                 <circle
+                  className={styles.cityPin}
                   cx={x}
                   cy={y}
-                  r="13"
-                  fill="#fff"
-                  stroke="#078fcd"
-                  strokeWidth="2"
+                  r={p.id === "tyler" ? 4 : 2.7}
+                  fill="#65556f"
                 />
-                <circle cx={x} cy={y} r="5" fill="#078fcd" />
-                <g transform={`translate(${x - 63},${y + 32})`}>
-                  <rect
-                    width="126"
-                    height="54"
-                    rx="13"
-                    fill="#fff"
-                    stroke="#c1d9e0"
-                  />
-                  <text
-                    x="63"
-                    y="24"
-                    textAnchor="middle"
-                    className={styles.radiusLabel}
+                <g
+                  transform={`translate(${x + offset} ${y})`}
+                  style={
+                    {
+                      "--city-chip-width": `${name.length * 22 + 16}px`,
+                    } as CSSProperties
+                  }
+                >
+                  <g
+                    className={
+                      p.id === "marshall" ? styles.easternCity : undefined
+                    }
                   >
-                    {candidate.miles} MILES
-                  </text>
-                  <text
-                    x="63"
-                    y="41"
-                    textAnchor="middle"
-                    className={styles.radiusSmall}
-                  >
-                    {illustration ? "ILLUSTRATION" : "REQUESTED AREA"}
-                  </text>
+                    <rect
+                      className={styles.cityChip}
+                      x="0"
+                      y="-15"
+                      width={name.length * 9 + 16}
+                      height="22"
+                      rx="5"
+                    />
+                    <text x="8" y="4" className={styles.cityLabel}>
+                      {name}
+                    </text>
+                  </g>
                 </g>
               </g>
             );
-          })()}
-        <g transform="translate(950 86)">
-          <path d="M0-14L-6 4L0 0L6 4Z" fill="#65556f" />
-          <text x="0" y="-22" textAnchor="middle" className={styles.cityLabel}>
-            N
-          </text>
-        </g>
-        {view === "national" && (
-          <>
-            {inset("AK")}
-            {inset("HI")}
-            <text x="28" y="580" className={styles.radiusSmall}>
-              U.S. COVERAGE · AK + HI INSETS AT DIFFERENT SCALES
+          })}
+          {candidate?.kind === "radius" &&
+            (() => {
+              const [x, y] = project(
+                candidate.center.lng,
+                candidate.center.lat,
+              );
+              return (
+                <g>
+                  <circle
+                    cx={x}
+                    cy={y}
+                    r="13"
+                    fill="#fff"
+                    stroke="#078fcd"
+                    strokeWidth="2"
+                  />
+                  <circle cx={x} cy={y} r="5" fill="#078fcd" />
+                </g>
+              );
+            })()}
+          <g transform="translate(950 86)">
+            <path d="M0-14L-6 4L0 0L6 4Z" fill="#65556f" />
+            <text
+              x="0"
+              y="-22"
+              textAnchor="middle"
+              className={styles.cityLabel}
+            >
+              N
             </text>
-          </>
-        )}
-      </svg>
-      <div className={styles.mapControls}>
-        <button
-          type="button"
-          onClick={() => setZoom((z) => Math.min(4, z * 1.4))}
-          aria-label="Zoom in"
-        >
-          <Plus size={18} />
-        </button>
-        <button
-          type="button"
-          onClick={() => setZoom((z) => Math.max(0.65, z / 1.4))}
-          aria-label="Zoom out"
-        >
-          <Minus size={18} />
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setZoom(1);
-            setPan({ lat: 0, lng: 0 });
-          }}
-          aria-label="Reset map"
-        >
-          <LocateFixed size={18} />
-        </button>
+          </g>
+          {view === "national" && (
+            <>
+              {inset("AK")}
+              {inset("HI")}
+              <text x="28" y="580" className={styles.radiusSmall}>
+                U.S. COVERAGE · AK + HI INSETS AT DIFFERENT SCALES
+              </text>
+            </>
+          )}
+        </svg>
+        <div className={styles.mapControls}>
+          <button
+            type="button"
+            onClick={() => setZoom((z) => Math.min(4, z * 1.4))}
+            aria-label="Zoom in"
+          >
+            <Plus size={18} />
+          </button>
+          <button
+            type="button"
+            onClick={() => setZoom((z) => Math.max(0.65, z / 1.4))}
+            aria-label="Zoom out"
+          >
+            <Minus size={18} />
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setZoom(1);
+              setPan({ lat: 0, lng: 0 });
+            }}
+            aria-label="Reset map"
+          >
+            <LocateFixed size={18} />
+          </button>
+        </div>
       </div>
+      {candidate?.kind === "radius" && (
+        <div className={styles.mapSummary}>
+          <span className={styles.summaryPin} aria-hidden="true" />
+          <div>
+            <strong>
+              {candidate.miles}-mile{" "}
+              {illustration ? "illustration" : "requested area"}
+            </strong>
+            <p>
+              {referencePlace
+                ? `City-center example for ${referencePlace.name}. `
+                : "Illustrative center. "}
+              We confirm your operating base privately.
+            </p>
+            {compare && <p>Dashed outer ring: 50 miles.</p>}
+          </div>
+        </div>
+      )}
       <div className={styles.mapBottom}>
         <span>
           Illustrative boundaries · exact terms confirmed with our team

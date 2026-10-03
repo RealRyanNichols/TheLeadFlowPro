@@ -8,9 +8,16 @@ import {
   type ConsultationContact,
   type ConsultationMeeting,
 } from "@/lib/site/consultation";
-import { bookingPage } from "@/lib/site/external-links";
-import { TEXT_LABEL, smsHref } from "@/lib/site/textLinks";
+import { CALL_LABEL, TEXT_LABEL, smsHref } from "@/lib/site/textLinks";
 import { SmsConsentText } from "@/components/site/SmsConsentText";
+import {
+  consultationReplyMethod,
+  validateConversationForm,
+  type InquiryErrors,
+} from "@/lib/site/inquiryValidation";
+import styles from "./consultation-form.module.css";
+import { campaignTags, storedCampaignTags } from "@/lib/site/campaignTags";
+import { useFormReady } from "./useFormReady";
 
 // The homepage's one ask. Posts to the same /api/leads route as the book and
 // agency forms, so a consultation request lands in the leads pipeline with
@@ -50,32 +57,63 @@ export default function ConsultationForm({
   placement?: string;
   labelledBy?: string;
 }) {
+  const ready = useFormReady();
   const [busy, setBusy] = useState(false);
-  const [done, setDone] = useState<{ first: string; contact: ConsultationContact } | null>(null);
+  const [done, setDone] = useState<{
+    first: string;
+    contact: ConsultationContact;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const doneRef = useRef<HTMLDivElement>(null);
-  // Null until Ryan sets a booking page in lib/site/external-links.ts; the
-  // line below the confirmation simply does not exist until then.
-  const booking = bookingPage();
+  const errorRef = useRef<HTMLDivElement>(null);
+  const [issues, setIssues] = useState<InquiryErrors>({});
+  const [attempts, setAttempts] = useState(0);
 
   useEffect(() => {
     if (done) doneRef.current?.focus();
   }, [done]);
 
+  useEffect(() => {
+    errorRef.current?.focus();
+  }, [error, attempts]);
+
+  function fieldProps(name: string) {
+    return {
+      id: `consultation-${name}`,
+      "aria-invalid": issues[name] ? true : undefined,
+      "aria-describedby": issues[name]
+        ? `consultation-${name}-error`
+        : undefined,
+    };
+  }
+  function fieldIssue(name: string) {
+    return issues[name] ? (
+      <small className={styles.issue} id={`consultation-${name}-error`}>
+        {issues[name]}
+      </small>
+    ) : null;
+  }
+
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setBusy(true);
-    setError(null);
+    if (!ready || busy) return;
     const form = new FormData(event.currentTarget);
+    const problems = validateConversationForm(form, "consultation");
+    setAttempts((current) => current + 1);
+    setIssues(problems);
+    setError(null);
+    if (Object.keys(problems).length) return;
+    setBusy(true);
     const fullName = String(form.get("full_name") ?? "").trim();
     const phone = String(form.get("phone") ?? "").trim();
     const smsConsent = form.get("sms_consent") === "on";
-    const meeting = String(form.get("meeting") ?? CONSULTATION.meetings[0].id) as ConsultationMeeting;
-    const contact = String(
-      form.get("best_contact_method") ?? CONSULTATION.contactMethods[0].id,
-    ) as ConsultationContact;
+    const meeting = String(
+      form.get("meeting") ?? CONSULTATION.meetings[0].id,
+    ) as ConsultationMeeting;
+    const contact = consultationReplyMethod(form);
     const goals = String(form.get("goals") ?? "").trim();
     const params = new URLSearchParams(window.location.search);
+    const tags = campaignTags(params, storedCampaignTags(), placement);
 
     try {
       const response = await fetch("/api/leads", {
@@ -95,9 +133,9 @@ export default function ConsultationForm({
           interest: CONSULTATION.interest,
           best_contact_method: contact,
           sms_consent: smsConsent && Boolean(phone),
-          utm_source: params.get("utm_source"),
-          utm_medium: params.get("utm_medium") ?? placement,
-          utm_campaign: params.get("utm_campaign") ?? CONSULTATION.funnel,
+          utm_source: tags.utm_source,
+          utm_medium: tags.utm_medium,
+          utm_campaign: tags.utm_campaign ?? CONSULTATION.funnel,
           diagnostic: {
             source: CONSULTATION.funnel,
             placement,
@@ -123,7 +161,9 @@ export default function ConsultationForm({
       }
       setDone({ first: fullName.split(" ")[0] || "there", contact });
     } catch {
-      setError("Could not reach the form. Your answers are still here. Check your connection and try again.");
+      setError(
+        "Could not reach the form. Your answers are still here. Check your connection and try again.",
+      );
     } finally {
       setBusy(false);
     }
@@ -145,24 +185,28 @@ export default function ConsultationForm({
             <CircleCheckBig aria-hidden="true" />
             <strong>Got it, {done.first}.</strong>
             <p>
-              Ryan will {REACH[done.contact]} within one business day to set the time and the
-              place.
-              {done.contact === "email" ? "" : " Save this number, it is his direct line."}
+              Ryan will {REACH[done.contact]} within one business day to set the
+              time and the place.
+              {done.contact === "email"
+                ? ""
+                : " Save this number, it is his direct line."}
             </p>
-            <a className="lf-consult-done-link" href={BUSINESS.phone.tel} data-cta="call" data-cta-placement="consultation_sent">
+            <a
+              className="lf-consult-done-link"
+              href={BUSINESS.phone.tel}
+              data-cta="call"
+              data-cta-placement="consultation_sent"
+            >
               Call {BUSINESS.phone.display} now
             </a>
-            <a className="lf-consult-done-link" href={smsHref("consultation_sent")} data-cta="text" data-cta-placement="consultation_sent">
+            <a
+              className="lf-consult-done-link"
+              href={smsHref("consultation_sent")}
+              data-cta="text"
+              data-cta-placement="consultation_sent"
+            >
               {TEXT_LABEL} instead
             </a>
-            {booking ? (
-              <p>
-                Want to pick the time yourself?{" "}
-                <a className="lf-consult-done-link" href={booking} target="_blank" rel="noreferrer">
-                  Book it on Ryan&apos;s calendar
-                </a>
-              </p>
-            ) : null}
           </>
         ) : null}
       </div>
@@ -170,107 +214,196 @@ export default function ConsultationForm({
         <form
           className="lf-consult-form"
           onSubmit={onSubmit}
-          aria-busy={busy}
+          method="post"
+          action="/api/leads"
+          noValidate
+          onInput={(event) => {
+            const name = (event.target as HTMLInputElement).name;
+            if (issues[name])
+              setIssues((current) => {
+                const next = { ...current };
+                delete next[name];
+                return next;
+              });
+          }}
+          aria-busy={!ready || busy}
           aria-labelledby={labelledBy}
           data-analytics={CONSULTATION.funnel}
         >
-          <div className="lf-consult-row">
-            <label className="lf-field">
-              <span>Your name *</span>
-              <input name="full_name" autoComplete="name" required maxLength={200} />
-            </label>
-            <label className="lf-field">
-              <span>Business name *</span>
-              <input name="business_name" autoComplete="organization" required maxLength={200} />
-            </label>
-          </div>
-          <div className="lf-consult-row">
-            <label className="lf-field">
-              <span>Cell phone *</span>
-              <input name="phone" type="tel" autoComplete="tel" inputMode="tel" required maxLength={50} />
-            </label>
-            <label className="lf-field">
-              <span>Email *</span>
-              <input name="email" type="email" autoComplete="email" inputMode="email" required maxLength={200} />
-            </label>
-          </div>
-          <label className="lf-field">
-            <span>Website or Facebook page (if you have one)</span>
-            <input
-              name="website_url"
-              type="text"
-              inputMode="url"
-              autoComplete="url"
-              maxLength={300}
-              placeholder="yourbusiness.com or facebook.com/yourbusiness"
-            />
-          </label>
-          <label className="lf-field">
-            <span>What is getting in the way? *</span>
-            <textarea
-              name="goals"
-              rows={3}
-              required
-              maxLength={1800}
-              placeholder="Not enough calls. Leads nobody follows up on. A website that does nothing. Say it plain."
-            />
-          </label>
-
-          <fieldset className="lf-consult-fieldset">
-            <legend>Where do you want the thirty minutes?</legend>
-            <div className="lf-consult-options">
-              {CONSULTATION.meetings.map((option, index) => (
-                <label className="lf-consult-option" key={option.id}>
-                  <input type="radio" name="meeting" value={option.id} defaultChecked={index === 0} />
-                  <span>
-                    <strong>{option.label}</strong>
-                    <small>{option.detail}</small>
-                  </span>
-                </label>
-              ))}
+          {(error || Object.keys(issues).length > 0) && (
+            <div
+              ref={errorRef}
+              className={styles.error}
+              role="alert"
+              tabIndex={-1}
+            >
+              <strong>{error || "Check these details before sending."}</strong>
+              {Object.keys(issues).length > 0 && (
+                <ul>
+                  {Object.entries(issues).map(([name, message]) => (
+                    <li key={name}>
+                      <a
+                        href={`#consultation-${name}`}
+                        onClick={() =>
+                          document
+                            .getElementById(`consultation-${name}`)
+                            ?.focus()
+                        }
+                      >
+                        {message}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-          </fieldset>
-
-          <fieldset className="lf-consult-fieldset">
-            <legend>Best way to reach you</legend>
-            <div className="lf-consult-segment">
-              {CONSULTATION.contactMethods.map((method, index) => (
-                <label key={method.id}>
-                  <input
-                    type="radio"
-                    name="best_contact_method"
-                    value={method.id}
-                    defaultChecked={index === 0}
-                  />
-                  <span>{method.label}</span>
-                </label>
-              ))}
+          )}
+          <fieldset className={styles.controls} disabled={!ready || busy}>
+            <legend className="sr-only">
+              Your business and consultation preferences
+            </legend>
+            <div className="lf-consult-row">
+              <label className="lf-field">
+                <span>Your name *</span>
+                <input
+                  name="full_name"
+                  autoComplete="name"
+                  required
+                  maxLength={200}
+                  {...fieldProps("full_name")}
+                />
+                {fieldIssue("full_name")}
+              </label>
+              <label className="lf-field">
+                <span>Business name *</span>
+                <input
+                  name="business_name"
+                  autoComplete="organization"
+                  required
+                  maxLength={200}
+                  {...fieldProps("business_name")}
+                />
+                {fieldIssue("business_name")}
+              </label>
             </div>
-          </fieldset>
+            <div className="lf-consult-row">
+              <label className="lf-field">
+                <span>Mobile (optional)</span>
+                <input
+                  name="phone"
+                  type="tel"
+                  autoComplete="tel"
+                  inputMode="tel"
+                  maxLength={50}
+                  {...fieldProps("phone")}
+                />
+                {fieldIssue("phone")}
+              </label>
+              <label className="lf-field">
+                <span>Email *</span>
+                <input
+                  name="email"
+                  type="email"
+                  autoComplete="email"
+                  inputMode="email"
+                  required
+                  maxLength={200}
+                  {...fieldProps("email")}
+                />
+                {fieldIssue("email")}
+              </label>
+            </div>
+            <label className="lf-field">
+              <span>Website or Facebook page (if you have one)</span>
+              <input
+                name="website_url"
+                type="text"
+                inputMode="url"
+                autoComplete="url"
+                maxLength={300}
+                placeholder="yourbusiness.com or facebook.com/yourbusiness"
+              />
+            </label>
+            <label className="lf-field">
+              <span>What is getting in the way? *</span>
+              <textarea
+                name="goals"
+                {...fieldProps("goals")}
+                rows={3}
+                required
+                maxLength={1800}
+                placeholder="Not enough calls. Leads nobody follows up on. A website that does nothing. Say it plain."
+              />
+              {fieldIssue("goals")}
+            </label>
 
-          <label className="lf-consult-consent">
-            <input type="checkbox" name="sms_consent" />
-            <span>
-              <SmsConsentText topic="this consultation" />
-            </span>
-          </label>
+            <fieldset className="lf-consult-fieldset">
+              <legend>Where do you want the thirty minutes?</legend>
+              <div className="lf-consult-options">
+                {CONSULTATION.meetings.map((option, index) => (
+                  <label className="lf-consult-option" key={option.id}>
+                    <input
+                      type="radio"
+                      name="meeting"
+                      value={option.id}
+                      defaultChecked={index === 0}
+                    />
+                    <span>
+                      <strong>{option.label}</strong>
+                      <small>{option.detail}</small>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
 
-          {error ? (
-            <p className="lf-consult-error" role="alert">
-              {error}
+            <fieldset className="lf-consult-fieldset">
+              <legend>Best way to reach you</legend>
+              <div className="lf-consult-segment">
+                {CONSULTATION.contactMethods.map((method, index) => (
+                  <label key={method.id}>
+                    <input
+                      type="radio"
+                      name="best_contact_method"
+                      value={method.id}
+                      defaultChecked={index === 0}
+                    />
+                    <span>{method.label}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+
+            <p className={styles.permissionNote}>
+              For a call or text, add your mobile number and choose permission
+              below. Otherwise, Ryan will reply by email.
             </p>
-          ) : null}
+            <label className="lf-consult-consent">
+              <input type="checkbox" name="sms_consent" />
+              <span>
+                <SmsConsentText topic="this consultation" />
+              </span>
+            </label>
 
-          <button
-            className="lf-consult-submit"
-            type="submit"
-            disabled={busy}
-            data-cta="consultation_request"
-            data-cta-placement={placement}
-          >
-            {busy ? "Sending..." : "Book my free consultation"} <ArrowRight size={21} aria-hidden="true" />
-          </button>
-          <p className="lf-consult-note">No spam. No list-selling. Ryan reads every one of these himself.</p>
+            <button
+              className="lf-consult-submit"
+              type="submit"
+              disabled={!ready || busy}
+              data-cta="consultation_request"
+              data-cta-placement={placement}
+            >
+              {busy ? "Sending..." : "Book my free consultation"}{" "}
+              <ArrowRight size={21} aria-hidden="true" />
+            </button>
+          </fieldset>
+          <noscript>
+            Enable JavaScript to request a consultation, or{" "}
+            <a href={BUSINESS.phone.tel}>{CALL_LABEL}</a> or{" "}
+            <a href={smsHref("home_final")}>{TEXT_LABEL}</a>.
+          </noscript>
+          <p className="lf-consult-note">
+            No spam. No list-selling. Ryan reads every one of these himself.
+          </p>
         </form>
       )}
     </>

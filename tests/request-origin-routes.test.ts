@@ -32,8 +32,8 @@ function harness() {
   function load(file: string): any {
     const full = path.resolve(file);
     if (modules.has(full)) return modules.get(full)!.exports;
-    const module = { exports: {} };
-    modules.set(full, module);
+    const compiledModule = { exports: {} };
+    modules.set(full, compiledModule);
     const code = ts.transpileModule(readFileSync(full, "utf8"), {
       compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 },
     }).outputText;
@@ -60,8 +60,8 @@ function harness() {
     vm.runInNewContext(`(function(require,module,exports){${code}\n})`, {
       URL, URLSearchParams, Request, Response, Buffer, console,
       process: { env: { NODE_ENV: "production" } },
-    })(require, module, module.exports);
-    return module.exports;
+    })(require, compiledModule, compiledModule.exports);
+    return compiledModule.exports;
   }
   function request(route: string, body: unknown, requestOrigin = origin) {
     return new Request(`http://127.0.0.1:3109/api/${route}`, {

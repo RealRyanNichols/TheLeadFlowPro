@@ -25,6 +25,7 @@ test("a consultation request lands in the done-for-you lane with a welcome that 
   assert.ok(mail.text.includes(BUSINESS.city));
   for (const item of CONSULTATION.bring) assert.ok(mail.text.includes(item), item);
   assert.ok(!/workshop|seat|lesson|course/i.test(mail.text), "no event or course pitch in the consultation welcome");
+  assert.ok(!/calendly\.com|pick the time yourself/i.test(mail.text), "the 30-minute request does not redirect to a separate 20-minute calendar");
 });
 
 test("the homepage sells the consultation and the done-for-you services, never events or courses", () => {
@@ -80,4 +81,21 @@ test("meeting options cover the owner's shop, the Longview office, and a call, i
     assert.ok(!/guarantee|roas|#1/i.test(line), `banned claim in "${line}"`);
   }
   assert.ok(CONSULTATION.bring.length >= 4);
+});
+
+test("consultation follow-up copy promises email without phone permission", () => {
+  const lead = { full_name: "Fixture Owner", email: "fixture@example.com", interest: CONSULTATION.interest, funnel: CONSULTATION.funnel, phone: "+19035550100" };
+  const without = leadWelcomePayload({ ...lead, sms_consent: false });
+  assert.match(without.text, /within one business day by email from this address/);
+  assert.doesNotMatch(without.text, /by a call or text from/);
+  const withPermission = leadWelcomePayload({ ...lead, sms_consent: true });
+  assert.match(withPermission.text, /with your permission/);
+});
+
+test("managed inquiry welcome agrees with included advertising and written billing scope", () => {
+  const mail = leadWelcomePayload({ full_name: "Fixture Owner", email: "fixture@example.com", interest: "done_for_you", funnel: "agency_intake" });
+  assert.match(mail.text, /included advertising allocation/);
+  assert.match(mail.text, /upfront and ongoing monthly prices/);
+  assert.doesNotMatch(mail.text, /pay the platforms directly|first ninety days/);
+  assert.match(mail.text, /permission/);
 });
