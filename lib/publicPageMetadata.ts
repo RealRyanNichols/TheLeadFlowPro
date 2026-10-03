@@ -6,7 +6,12 @@ export const PUBLIC_SITE_URL = "https://www.theleadflowpro.com";
 export const PUBLIC_OG_SIZE = { width: 1200, height: 630 } as const;
 // A finite version segment refreshes crawler caches without putting query text,
 // tokens, or user-provided values into a public share URL.
-export const PUBLIC_OG_REVISION = "campaign90-20261003";
+export const PUBLIC_OG_REVISION = "scope90-20261003";
+// Keep the previous published URL valid; only these reviewed versions resolve.
+export const PUBLIC_OG_REVISIONS = [
+  PUBLIC_OG_REVISION,
+  "campaign90-20261003",
+] as const;
 
 // Finished, page-specific creatives for the destinations receiving paid traffic.
 // Dated URLs prompt social crawlers to fetch the new artwork instead of old cards.

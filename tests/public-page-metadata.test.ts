@@ -12,6 +12,7 @@ import { PUBLIC_PAGE_CATALOG } from "../lib/publicPageCatalog.ts";
 import {
   AD_PAGE_SOCIAL_IMAGES,
   PUBLIC_OG_REVISION,
+  PUBLIC_OG_REVISIONS,
   PUBLIC_OG_SIZE,
   PUBLIC_SITE_URL,
   publicPageImagePath,
@@ -72,7 +73,12 @@ test("legacy ad preview URLs return the full finished image bytes and reject que
   const localRequire = (name: string) => {
     if (name === "@/lib/publicOgCatalog") return { getPublicOgPage };
     if (name === "@/lib/publicPageMetadata")
-      return { AD_PAGE_SOCIAL_IMAGES, PUBLIC_OG_SIZE, PUBLIC_OG_REVISION };
+      return {
+        AD_PAGE_SOCIAL_IMAGES,
+        PUBLIC_OG_SIZE,
+        PUBLIC_OG_REVISION,
+        PUBLIC_OG_REVISIONS,
+      };
     if (name === "@/lib/publicOgCard")
       return {
         publicOgCard: () =>
@@ -146,6 +152,40 @@ test("every catalogued public URL has one distinct social image URL", () => {
   }
 });
 
+test("website project scope reaches generated share cards without imposing acquisition pricing", async () => {
+  const source = await readFile("lib/publicOgCard.tsx", "utf8");
+  const compiled = ts.transpileModule(source, {
+    compilerOptions: {
+      module: ts.ModuleKind.CommonJS,
+      jsx: ts.JsxEmit.ReactJSX,
+    },
+  }).outputText;
+  const cardExports: { publicOgCard?: (input: unknown) => ReactElement } = {};
+  new Function("require", "exports", compiled)(require, cardExports);
+  assert.ok(cardExports.publicOgCard);
+  const { renderToStaticMarkup } = require("react-dom/server");
+  for (const route of ["/services", "/agency/websites"]) {
+    const page = getPublicOgPage(route, observedAt);
+    assert.ok(page, route);
+    const markup = renderToStaticMarkup(
+      cardExports.publicOgCard({
+        page,
+        logoData: "/images/brand/leadflow-logo.png",
+      }),
+    );
+    assert.match(markup, /separate written quote/, route);
+    assert.match(markup, /[Mm]anaged acquisition is optional/, route);
+    assert.doesNotMatch(
+      markup,
+      /\$7,500|90-day acquisition|within the written acquisition campaign/,
+      route,
+    );
+    const metadata = withPublicPageMetadata(route, { title: page.title });
+    assert.equal(metadata.openGraph?.description, page.description, route);
+    assert.equal(metadata.twitter?.description, page.description, route);
+  }
+});
+
 test("versioned generated routes retain legacy aliases and reject query text or unknown revisions", async () => {
   const source = await readFile("app/og/pages/[...path]/route.tsx", "utf8");
   const compiled = ts.transpileModule(source, {
@@ -165,7 +205,12 @@ test("versioned generated routes retain legacy aliases and reject query text or 
   const localRequire = (name: string) => {
     if (name === "@/lib/publicOgCatalog") return { getPublicOgPage };
     if (name === "@/lib/publicPageMetadata")
-      return { AD_PAGE_SOCIAL_IMAGES, PUBLIC_OG_SIZE, PUBLIC_OG_REVISION };
+      return {
+        AD_PAGE_SOCIAL_IMAGES,
+        PUBLIC_OG_SIZE,
+        PUBLIC_OG_REVISION,
+        PUBLIC_OG_REVISIONS,
+      };
     if (name === "@/lib/publicOgCard")
       return {
         publicOgCard: ({ page }: { page: { title: string } }) =>
@@ -185,7 +230,10 @@ test("versioned generated routes retain legacy aliases and reject query text or 
   };
   new Function("require", "exports", compiled)(localRequire, routeExports);
   const images: Buffer[] = [];
-  for (const suffix of ["", `/${PUBLIC_OG_REVISION}`]) {
+  for (const suffix of [
+    "",
+    ...PUBLIC_OG_REVISIONS.map((revision) => `/${revision}`),
+  ]) {
     const response = await routeExports.GET(
       new Request(`${PUBLIC_SITE_URL}/og/pages/agency${suffix}`),
       {
@@ -199,8 +247,11 @@ test("versioned generated routes retain legacy aliases and reject query text or 
     assert.equal(response.headers.get("X-Content-Type-Options"), "nosniff");
     images.push(Buffer.from(await response.arrayBuffer()));
   }
-  assert.deepEqual(images[0], images[1]);
-  for (const suffix of ["", `/${PUBLIC_OG_REVISION}`]) {
+  for (const image of images.slice(1)) assert.deepEqual(images[0], image);
+  for (const suffix of [
+    "",
+    ...PUBLIC_OG_REVISIONS.map((revision) => `/${revision}`),
+  ]) {
     const response = await routeExports.GET(
       new Request(`${PUBLIC_SITE_URL}/og/pages/services${suffix}`),
       {
@@ -331,9 +382,18 @@ test("reviewed page descriptions fill missing metadata without replacing explici
       description: "A page-specific description remains authoritative.",
       openGraph: { description: "A separately reviewed share description." },
     });
-    assert.equal(custom.description, "A page-specific description remains authoritative.");
-    assert.equal(custom.openGraph?.description, "A separately reviewed share description.");
-    assert.equal(custom.twitter?.description, "A separately reviewed share description.");
+    assert.equal(
+      custom.description,
+      "A page-specific description remains authoritative.",
+    );
+    assert.equal(
+      custom.openGraph?.description,
+      "A separately reviewed share description.",
+    );
+    assert.equal(
+      custom.twitter?.description,
+      "A separately reviewed share description.",
+    );
   }
 });
 

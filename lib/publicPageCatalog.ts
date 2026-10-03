@@ -155,7 +155,7 @@ export const PUBLIC_PAGE_CATALOG = [
     path: "/services",
     title: "Build the part your business needs",
     description:
-      `Scope the ads, website, lead capture, and follow-up your 90-day acquisition campaign needs. Starts at ${CAMPAIGN_MINIMUM} upfront with an agreed advertising allocation.`,
+      "Website, storefront, and product projects receive a separate written quote for build, launch, and support. Managed acquisition is optional, under its own written scope.",
     eyebrow: "Services",
   },
   {
@@ -279,7 +279,7 @@ export const PUBLIC_PAGE_CATALOG = [
     path: "/agency/websites",
     title: "Websites that give people a next step",
     description:
-      "Mobile-first websites with lead capture, search foundation, and analytics in your account. Website work is agreed within the written acquisition campaign scope.",
+      "Website, storefront, and product builds receive a separate written quote. Scope launch, support, and ownership; managed acquisition is optional.",
     eyebrow: "Agency · Websites",
   },
   {

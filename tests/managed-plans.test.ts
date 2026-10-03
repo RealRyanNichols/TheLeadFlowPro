@@ -4,6 +4,7 @@ import test from "node:test";
 import { PRICES } from "../lib/site/prices.ts";
 import { liveOffers } from "../lib/site/offers.ts";
 import { getPublicOgPage } from "../lib/publicOgCatalog.ts";
+import { PUBLIC_OG_REVISION } from "../lib/publicPageMetadata.ts";
 import {
   ACQUISITION_PLANNING_TARGETS,
   MANAGED_COMMERCIAL_TERMS,
@@ -111,7 +112,7 @@ test("pricing routes the single campaign to scoping and keeps old checkout offer
     /WEBSITE_LAUNCH|OFFER_LADDER|SYSTEM_MAP|api\/checkout|stripe|firstMonthUsd|minimumMonthlyUsd|pricing_custom/,
   );
   const preview = getPublicOgPage("/pricing")!;
-  assert.match(preview.imagePath, /\/og\/pages\/pricing\/campaign90-20261003$/);
+  assert.equal(preview.imagePath, `/og/pages/pricing/${PUBLIC_OG_REVISION}`);
   assert.ok(preview.description.includes(managedCampaignSummary()));
   assert.doesNotMatch(
     preview.description,

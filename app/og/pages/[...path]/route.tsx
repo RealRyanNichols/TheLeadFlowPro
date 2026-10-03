@@ -6,6 +6,7 @@ import { publicOgCard } from "@/lib/publicOgCard";
 import {
   AD_PAGE_SOCIAL_IMAGES,
   PUBLIC_OG_REVISION,
+  PUBLIC_OG_REVISIONS,
   PUBLIC_OG_SIZE,
 } from "@/lib/publicPageMetadata";
 
@@ -30,7 +31,7 @@ export async function GET(
 ) {
   const { path: requestedSegments } = await params;
   const segments =
-    requestedSegments.at(-1) === PUBLIC_OG_REVISION
+    PUBLIC_OG_REVISIONS.some((revision) => requestedSegments.at(-1) === revision)
       ? requestedSegments.slice(0, -1)
       : requestedSegments;
   const canonicalPath =
