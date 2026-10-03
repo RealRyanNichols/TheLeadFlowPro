@@ -80,7 +80,7 @@ test("deploy.sh never starts the database, and starts the worker only when worke
     ["worker,db", true],
   ];
   for (const [profiles, starts] of cases) {
-    const run = spawnSync("bash", ["-c", `COMPOSE=(echo compose); COMPOSE_PROFILES=${JSON.stringify(profiles)}\n${block}`], {
+    const run: import("node:child_process").SpawnSyncReturns<string> = spawnSync("bash", ["-c", `COMPOSE=(echo compose); COMPOSE_PROFILES=${JSON.stringify(profiles)}\n${block}`], {
       encoding: "utf8",
     });
     assert.equal(run.status, 0, run.stderr);

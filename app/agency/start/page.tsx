@@ -2,11 +2,12 @@ import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { AGENCY_HUB, AGENCY_SERVICES, agencyService } from "@/lib/site/agency";
+import { AGENCY_HUB, CORE_AGENCY_SERVICES, agencyService } from "@/lib/site/agency";
 import { BUSINESS } from "@/lib/site/business";
 import AgencyIntake from "./AgencyIntake";
+import { MANAGED_PLANS } from "@/lib/site/managedPlans";
 
-// The agency intake. One page, ten questions, no header or footer (the same
+// The agency intake. One page, eight question groups, no header or footer (the same
 // treatment /start gets), and a clear way back. The form posts to /api/leads
 // so the lead lands in the CRM with an owner alert, a welcome email, and a
 // timestamp like every other door.
@@ -20,10 +21,15 @@ export const metadata: Metadata = withPublicPageMetadata("/agency/start", {
 export default async function AgencyStartPage({
   searchParams,
 }: {
-  searchParams: Promise<{ service?: string }>;
+  searchParams: Promise<{ service?: string; plan?: string; lead?: string }>;
 }) {
-  const { service } = await searchParams;
-  const preselected = service && agencyService(service) ? service : null;
+  const { service, plan, lead } = await searchParams;
+  const requestedService = service && agencyService(service) ? service : null;
+  const preselected = requestedService
+    ? CORE_AGENCY_SERVICES.some((entry) => entry.slug === requestedService) ? requestedService : "custom"
+    : null;
+  const initialPlan = MANAGED_PLANS.some((entry) => entry.id === plan) ? plan! : null;
+  const originatingLead = typeof lead === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(lead) ? lead.toLowerCase() : null;
   return (
     <div className="cb-page">
       <main className="mx-auto max-w-3xl px-4 py-8 sm:py-12">
@@ -34,14 +40,17 @@ export default async function AgencyStartPage({
         </p>
         <p className="cb-eyebrow mt-6">Agency intake</p>
         <h1 className="cb-h1">
-          <em>Tell Ryan what is leaking.</em>
-          Ten questions. One business day to a reply.
+          <em>Tell Ryan what is leaking.</em>{" "}
+          A clear scope. One business day to a reply.
         </h1>
         <p className="cb-lead">{AGENCY_HUB.budgetNote}</p>
         <div className="mt-8">
           <AgencyIntake
-            services={AGENCY_SERVICES.map((s) => ({ slug: s.slug, label: s.navLabel }))}
+            services={[...CORE_AGENCY_SERVICES.map((s) => ({ slug: s.slug, label: s.navLabel })), { slug: "custom", label: "A custom build or another priority" }]}
             preselected={preselected}
+            initialPlan={initialPlan}
+            requestedService={requestedService}
+            originatingLead={originatingLead}
           />
         </div>
       </main>

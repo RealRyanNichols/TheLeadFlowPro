@@ -2,7 +2,7 @@ import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BUSINESS } from "@/lib/site/business";
-import { PRICES, usd } from "@/lib/site/prices";
+import { managedAdvertisingExplanation, managedBillingExplanation, managedMonthlySummary, managedUpfrontSummary } from "@/lib/site/managedPlans";
 
 export const metadata: Metadata = withPublicPageMetadata("/terms", {
   title: "Terms of Use | The LeadFlow Pro",
@@ -12,7 +12,7 @@ export const metadata: Metadata = withPublicPageMetadata("/terms", {
 export default function TermsPage() {
   return (
     <main className="legal-page">
-      <span className="eyebrow">Last updated September 24, 2026</span>
+      <span className="eyebrow">Last updated October 3, 2026</span>
       <h1>Terms of Use</h1>
       <p>
         These terms apply to this website operated by {BUSINESS.dbaLine}. By using the
@@ -30,16 +30,21 @@ export default function TermsPage() {
       </p>
       <h2>Prices, scope, and results</h2>
       <p>
-        Website Launch is offered at a fixed {usd(PRICES.websiteLaunchTotal)} for its published
-        five-page scope: {usd(PRICES.websiteLaunchDeposit)} to begin and {usd(PRICES.websiteLaunchFinal)} after
-        approval, before launch. Once intake begins, the initial {usd(PRICES.websiteLaunchDeposit)} deposit
-        is non-refundable, except where the written agreement or
-        applicable law requires otherwise. Work outside that scope, larger modules, and
-        custom-platform starting prices are not final quotes. Final scope, price, timing,
-        deliverables, responsibilities, ownership, support, and payment terms are
-        established in the applicable written agreement. We do not guarantee traffic,
-        leads, approvals, rankings, revenue, platform access, marketplace performance,
-        advertising results, or any particular business outcome.
+        {managedUpfrontSummary()} {managedMonthlySummary()} {managedBillingExplanation()}
+        Higher-capacity plans and custom builds receive their own written scope. Final
+        price, timing, deliverables, responsibilities, ownership, support, advertising
+        allocation, and billing dates are established in the signed agreement.
+      </p>
+      <p>{managedAdvertisingExplanation()}</p>
+      <p>
+        Earlier approved agreements keep their own prices, scope, payment schedules,
+        advertising treatment, and cancellation or refund terms. Current website pricing
+        does not amend those agreements. Cancellation, refunds, and any work outside the
+        agreed scope follow the applicable written agreement and applicable law.
+      </p>
+      <p>
+        We do not guarantee traffic, leads, approvals, rankings, revenue, platform access,
+        marketplace performance, advertising results, or any particular business outcome.
       </p>
       <h2>Marketplace and third-party platforms</h2>
       <p>
@@ -98,8 +103,8 @@ export default function TermsPage() {
         Questions can be sent to{" "}
         <a href={`mailto:${BUSINESS.email.hello}`}>{BUSINESS.email.hello}</a>.
       </p>
-      <Link className="button-secondary" href="/packages">
-        Return to Product Studio
+      <Link className="button-secondary" href="/pricing">
+        Compare managed plans
       </Link>
     </main>
   );

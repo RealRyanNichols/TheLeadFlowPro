@@ -45,6 +45,7 @@ const BACK_OFFICE_LINKS: readonly BackOfficeLink[] = [
   { href: "/admin/time-back", label: "Time Back" },
   { href: "/admin/projects", label: "Projects" },
   { href: "/admin/clients", label: "Clients" },
+  { href: "/admin/service-areas", label: "Territories" },
   { href: "/admin/messages", label: "Messages" },
   { href: "/admin/events", label: "Events" },
   { href: "/admin/analytics", label: "Analytics" },

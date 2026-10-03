@@ -2,27 +2,42 @@ import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Check, ShieldCheck } from "lucide-react";
+import { ArrowRight, ShieldCheck } from "lucide-react";
 import ServicesPreview from "@/components/site/ServicesPreview";
 import CtaLink from "@/components/site/CtaLink";
-import { LADDER, PHONE_DISPLAY, PHONE_TEL } from "@/lib/siteContent";
+import { PHONE_DISPLAY, PHONE_TEL } from "@/lib/siteContent";
 import { CONSULTATION } from "@/lib/site/consultation";
-import { PRICES, usd, usdFrom } from "@/lib/site/prices";
-import { areaServedJsonLd, breadcrumbJsonLd, graph, jsonLdText, organizationJsonLd, webPageJsonLd, websiteJsonLd } from "@/lib/site/structuredData";
+import {
+  MANAGED_PLANS,
+  managedPlanPrice,
+  managedUpfrontSummary,
+  managedMonthlySummary,
+  managedAdvertisingExplanation,
+} from "@/lib/site/managedPlans";
+import {
+  areaServedJsonLd,
+  breadcrumbJsonLd,
+  graph,
+  jsonLdText,
+  organizationJsonLd,
+  webPageJsonLd,
+  websiteJsonLd,
+} from "@/lib/site/structuredData";
 import { TEXT_LABEL, smsHref } from "@/lib/site/textLinks";
 import styles from "./services.module.css";
 
 const SITE = "https://www.theleadflowpro.com";
 
-const SERVICES_TITLE = "Website Design and Lead Systems for Longview, TX Businesses | The LeadFlow Pro";
-const SERVICES_DESCRIPTION =
-  "Websites, lead capture, CRM, follow-up, payments, portals, and reporting built for Longview and East Texas businesses in accounts you control. Start with a free 30-minute consultation or buy the five-page Website Launch.";
+const SERVICES_TITLE =
+  "Website Design and Lead Systems for Longview, TX Businesses | The LeadFlow Pro";
+const SERVICES_DESCRIPTION = `Websites, lead capture, CRM, follow-up, payments, portals, and reporting built in accounts you control. Monthly service includes advertising. ${managedUpfrontSummary()}`;
 
 export const metadata: Metadata = withPublicPageMetadata("/services", {
   title: SERVICES_TITLE,
   description: SERVICES_DESCRIPTION,
   openGraph: {
-    description: "The website, the system behind it, and the back office that runs it, built in accounts you control.",
+    description:
+      "The website, the system behind it, and the back office that runs it, built in accounts you control.",
   },
 });
 
@@ -73,7 +88,10 @@ const GUIDE_LINKS = [
 export default function ServicesPage() {
   return (
     <main className={styles.page}>
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdText(SERVICES_JSONLD) }} />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: jsonLdText(SERVICES_JSONLD) }}
+      />
       <section className={styles.hero}>
         <div className={styles.shell + " " + styles.heroGrid}>
           <div className={styles.heroCopy}>
@@ -85,7 +103,8 @@ export default function ServicesPage() {
             </h1>
             <p className={styles.lead}>
               Help customers find you, ask for a quote, and get an answer. We
-              build the website and connect the next steps.
+              build the website and connect the next steps, then show your team
+              how to run it.
             </p>
             <div className={styles.actions}>
               <CtaLink
@@ -97,19 +116,25 @@ export default function ServicesPage() {
                 Book the free consultation{" "}
                 <ArrowRight size={19} aria-hidden="true" />
               </CtaLink>
-              <a className={styles.textLink} href={PHONE_TEL} data-cta="call" data-cta-placement="services_hero">
+              <a
+                className={styles.textLink}
+                href={PHONE_TEL}
+                data-cta="call"
+                data-cta-placement="services_hero"
+              >
                 Call {PHONE_DISPLAY} <ArrowRight size={18} aria-hidden="true" />
               </a>
             </div>
             <p className={styles.small}>
-              {CONSULTATION.minutes} minutes with Ryan. No pitch deck. You get the
-              pages, features, and cost in writing before any build starts.
+              {CONSULTATION.minutes} minutes with Ryan. No pitch deck. You get
+              the pages, features, and cost in writing before any build starts.
               <br />
-              Ready for the website now?{" "}
-              <Link href="/packages/launch">
-                Website Launch is {usd(PRICES.websiteLaunchTotal)}, with {usd(PRICES.websiteLaunchDeposit)} to start.
-              </Link>{" "}
-              <Link href="#what-we-build">Show me how it works.</Link>
+              <Link href="/pricing">
+                {managedUpfrontSummary()} {managedMonthlySummary()}
+              </Link>
+              <br />
+              Want the marketing run for you?{" "}
+              <Link href="/agency">Explore managed ads and follow-up.</Link>
             </p>
             <p className={styles.ownership}>
               <ShieldCheck size={18} aria-hidden="true" /> Your website. Your
@@ -285,36 +310,42 @@ export default function ServicesPage() {
         <div className={styles.shell}>
           <div className={styles.heading}>
             <p className={styles.eyebrow}>YOUR STARTING POINT</p>
-            <h2>A website first. More when you need it.</h2>
+            <h2>One monthly plan. A clear scope.</h2>
             <p>
-              Choose a foundation or explore a larger build. Every project
-              starts with a written scope.
+              The first month includes onboarding, the agreed build, and the
+              advertising allocation.{" "}
+              <Link href="/pricing" className={styles.textLink}>
+                Compare monthly plans.
+              </Link>
             </p>
           </div>
           <div className={styles.packages}>
-            {LADDER.map((offer) => (
+            {MANAGED_PLANS.map((offer) => (
               <article
                 key={offer.name}
                 className={
                   styles.package +
-                  (offer.lead ? " " + styles.featuredPackage : "")
+                  (offer.id === "recommended"
+                    ? " " + styles.featuredPackage
+                    : "")
                 }
               >
-                <span className={styles.packageKind}>{offer.kind}</span>
+                <span className={styles.packageKind}>
+                  {offer.badge ?? "Monthly service"}
+                </span>
                 <h3>{offer.name}</h3>
-                <p className={styles.price}>{offer.price}</p>
-                <p>{offer.body}</p>
-                <ul>
-                  {offer.items.map((item) => (
-                    <li key={item}>
-                      <Check size={18} aria-hidden="true" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
+                <p className={styles.price}>
+                  {managedPlanPrice(offer).amount}{" "}
+                  {managedPlanPrice(offer).unit}
+                </p>
+                <p>{offer.description}</p>
                 <Link
-                  className={offer.lead ? styles.button : styles.outlineButton}
-                  href={offer.href}
+                  className={
+                    offer.id === "recommended"
+                      ? styles.button
+                      : styles.outlineButton
+                  }
+                  href={`/agency/start?plan=${offer.id}`}
                 >
                   {offer.cta}
                   <ArrowRight size={18} aria-hidden="true" />
@@ -324,27 +355,29 @@ export default function ServicesPage() {
           </div>
           <div className={styles.custom}>
             <div>
-              <h3>Have something to sell?</h3>
-              <p>
-                Products, services, or downloads. Plan the path from the offer
-                to payment and delivery, and try the tools that support it.
-              </p>
-            </div>
-            <Link className={styles.textLink} href="/commerce">
-              Explore commerce <ArrowRight size={18} aria-hidden="true" />
-            </Link>
-          </div>
-          <div className={styles.custom}>
-            <div>
               <h3>Need a custom platform?</h3>
               <p>
                 Multi-location systems, complex migrations, deeper permissions,
-                and software products are scoped from {usdFrom(PRICES.customPlatformFrom)}. A System Map
-                comes first when the dependencies are complex.
+                and software products receive a custom quote based on your
+                business, staff, capacity, assets, and budget. We confirm the
+                dependencies first.
               </p>
             </div>
             <Link className={styles.textLink} href="/start?goal=custom">
               Talk through the idea <ArrowRight size={18} aria-hidden="true" />
+            </Link>
+          </div>
+          <div className={styles.custom}>
+            <div>
+              <h3>Need us to run the marketing?</h3>
+              <p>
+                Managed ads, follow-up, video, and content have their own
+                written scope. Check your service area before discussing a
+                competing campaign.
+              </p>
+            </div>
+            <Link className={styles.textLink} href="/service-areas">
+              Check my service area <ArrowRight size={18} aria-hidden="true" />
             </Link>
           </div>
         </div>
@@ -356,7 +389,9 @@ export default function ServicesPage() {
       >
         <div className={styles.shell + " " + styles.programGrid}>
           <div>
-            <p className={styles.eyebrow}>FREE {CONSULTATION.minutes}-MINUTE CONSULTATION</p>
+            <p className={styles.eyebrow}>
+              FREE {CONSULTATION.minutes}-MINUTE CONSULTATION
+            </p>
             <h2 id="consultation-title">{CONSULTATION.headline}</h2>
             <p>{CONSULTATION.body}</p>
             <CtaLink
@@ -371,8 +406,8 @@ export default function ServicesPage() {
             <p className={styles.small}>
               Longview and East Texas businesses can meet at their shop or at
               the Longview office. Anywhere else, it is a phone or video call.
-              Domain, hosting, ad spend, subscriptions, and extra pages are
-              quoted in writing before you approve anything.
+              {managedAdvertisingExplanation()} Domain, hosting, and other
+              provider subscriptions are identified in the written scope.
             </p>
           </div>
           <aside className={styles.helpCard}>
@@ -384,7 +419,11 @@ export default function ServicesPage() {
             <a href={PHONE_TEL} data-cta="call" data-cta-placement="services">
               Call {PHONE_DISPLAY}
             </a>
-            <a href={smsHref("services")} data-cta="text" data-cta-placement="services">
+            <a
+              href={smsHref("services")}
+              data-cta="text"
+              data-cta-placement="services"
+            >
               {TEXT_LABEL}
             </a>
             <Link href="/tools">

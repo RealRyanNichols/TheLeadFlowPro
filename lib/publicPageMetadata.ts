@@ -3,6 +3,9 @@ import { uniqueOgImagePath } from "./uniqueOgImages";
 
 export const PUBLIC_SITE_URL = "https://www.theleadflowpro.com";
 export const PUBLIC_OG_SIZE = { width: 1200, height: 630 } as const;
+// A finite version segment refreshes crawler caches without putting query text,
+// tokens, or user-provided values into a public share URL.
+export const PUBLIC_OG_REVISION = "violet-20261003";
 
 // Finished, page-specific creatives for the destinations receiving paid traffic.
 // Dated URLs prompt social crawlers to fetch the new artwork instead of old cards.
@@ -11,7 +14,6 @@ export const AD_PAGE_SOCIAL_IMAGES: Readonly<Record<string, string>> = {
   "/portfolio": "/images/social/portfolio-20260907.jpg",
   "/results": "/images/social/results-20260907.jpg",
   "/commerce": "/images/social/commerce-20260907.jpg",
-  "/services": "/images/social/services-20260907.jpg",
   "/scoreboard": "/images/social/scoreboard-20260907.jpg",
 };
 
@@ -28,10 +30,12 @@ export function isCanonicalPublicPath(path: string): boolean {
 export function publicPageImagePath(path: string): string {
   if (!isCanonicalPublicPath(path))
     throw new Error("A canonical page path is required");
+  // The revised managed offer must not inherit the retired build-ladder card.
+  if (path === "/pricing") return `/og/pages/pricing/${PUBLIC_OG_REVISION}`;
   return (
     uniqueOgImagePath(path) ??
     AD_PAGE_SOCIAL_IMAGES[path] ??
-    `/og/pages${path === "/" ? "/home" : path}`
+    `/og/pages${path === "/" ? "/home" : path}/${PUBLIC_OG_REVISION}`
   );
 }
 

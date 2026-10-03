@@ -7,10 +7,12 @@
 // tool across ten composition families. This script renders the identical spec
 // headlessly — same geometry, same six-gradient family, same Inter type — so
 // the committed JPEGs can be regenerated deterministically without a Figma
-// export step. Every card carries the four required words per the brand SOP:
+// export step. The October refresh keeps the varied layouts on a light
+// lavender ground and retains finished unique scene artwork. Every card carries:
 // one headline, one support line, the brand lockup, and the domain.
 //
-// Output: public/og/tools/<slug>.jpg, 1200x630 JPEG.
+// Output: public/og/tools/violet-20261003/<slug>.jpg, 1200x630 JPEG.
+// Only tools without newer finished scene art need these fallback cards.
 
 import { mkdirSync, writeFileSync, readdirSync, unlinkSync, statSync, existsSync } from "node:fs";
 import { join } from "node:path";
@@ -20,7 +22,7 @@ import { ALL_PRO_TOOLS, PRO_TOOL_VISUALS } from "../lib/tools/pro/index.ts";
 import { TOOL_VISUALS } from "../lib/tools/visuals.ts";
 
 const ROOT = process.cwd();
-const OUT_DIR = join(ROOT, "public", "og", "tools");
+const OUT_DIR = join(ROOT, "public", "og", "tools", "violet-20261003");
 const FONT_DIR = join(ROOT, "node_modules", "@fontsource", "inter", "files");
 mkdirSync(OUT_DIR, { recursive: true });
 
@@ -34,14 +36,14 @@ const GRADS = [
   ["#22d3ee", "#3b82f6"],
 ];
 
-const NAVY = "#0e1a2e";
+const NAVY = "#f8f4fc";
 const DEEP = "#0a1220";
-const WHITE = "#f4f8ff";
-const SUB = "#c3d0e4";
-const DIM = "#8299b8";
-const LINE = "#b9c6da";
-const SHEET = "#eef3fa";
-const GRAY = "#41536e";
+const WHITE = "#251b35";
+const SUB = "#655473";
+const DIM = "#79658b";
+const LINE = "#d0c1e2";
+const SHEET = "#ffffff";
+const GRAY = "#a79abb";
 
 const grad = (a: number) => `linear-gradient(120deg, ${GRADS[a - 1][0]}, ${GRADS[a - 1][1]})`;
 
@@ -93,7 +95,7 @@ function scene(d: { name: string; hook: string; accent: number; layout: string }
         col(d.name, d.hook, a, 560, 560);
     case "panel-over-scene":
       return ci(220, 130, 260, a, 0.35) + ci(1010, 530, 300, a, 0.25) + rcG(850, 70, 230, 18, a, 0.5, 9, 14) +
-        `<div style="position:absolute;left:64px;top:112px;width:752px;height:406px;border-radius:24px;background:rgba(10,18,32,0.87)"></div>` +
+        `<div style="position:absolute;left:64px;top:112px;width:752px;height:406px;border-radius:24px;background:rgba(255,255,255,0.92)"></div>` +
         rcG(64, 112, 8, 406, a, 1, 4) + lockup(a, 112, 152) +
         `<div style="position:absolute;left:112px;top:206px;width:640px">` +
         `<div style="font-size:46px;font-weight:800;line-height:1.06;color:${WHITE}">${esc(d.name)}</div>` +
@@ -154,7 +156,7 @@ function pageHtml(body: string): string {
   return `<!doctype html><html><head><meta charset="utf-8"><style>
 ${face(500)}${face(600)}${face(700)}${face(800)}
 *{margin:0;padding:0;box-sizing:border-box}
-body{width:1200px;height:630px;overflow:hidden;position:relative;background:${NAVY};font-family:Inter,sans-serif}
+body{width:1200px;height:630px;overflow:hidden;position:relative;background:radial-gradient(ellipse at 92% 6%,#e5d6f5 0%,transparent 58%),${NAVY};font-family:Inter,sans-serif}
 </style></head><body>${body}</body></html>`;
 }
 
@@ -172,6 +174,7 @@ let biggest = 0;
 for (const tool of [...ALL_TOOLS, ...ALL_PRO_TOOLS]) {
   const v = TOOL_VISUALS[tool.slug] ?? PRO_TOOL_VISUALS[tool.slug];
   if (!v) throw new Error(`no visual entry for ${tool.slug}`);
+  if (!v.ogImage.startsWith("/og/tools/violet-20261003/")) continue;
   const html = pageHtml(scene({ name: tool.name, hook: v.ogHook, accent: v.colorAccent, layout: v.ogLayout }));
   await page.setContent(html, { waitUntil: "load" });
   await page.evaluate(() => (document as any).fonts.ready);

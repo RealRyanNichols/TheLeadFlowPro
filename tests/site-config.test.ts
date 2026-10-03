@@ -188,7 +188,7 @@ test("header and footer are defined once and only link to site paths or known of
   const plugin = FOOTER_COLUMNS[0].links.find((l) => l.href === "/plugin");
   assert.equal(plugin?.label, `Plugin for ChatGPT and Claude | ${usdPerMonth(PRICES.pluginMonthly)}`);
   const followUp = FOOTER_COLUMNS[2].links.find((l) => l.href === "/go/lead-follow-up");
-  assert.equal(followUp?.label, `Follow-Up Campaign | ${usd(PRICES.leadFollowUpCampaign)}`);
+  assert.equal(followUp, undefined, "Legacy service promotion is removed from the footer");
   for (const href of chromeInternalHrefs()) assert.match(href, /^\/[a-z0-9\-/#?=&_]*$/i, href);
   assert.equal(hidesSiteChrome("/start"), true);
   assert.equal(hidesSiteChrome("/agency/start"), true);

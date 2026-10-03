@@ -4,7 +4,6 @@ import Link from "next/link";
 import { ArrowLeft, Check } from "lucide-react";
 import AgencyPayForm, { type PayableService } from "./AgencyPayForm";
 import { agencyFixedBilling, agencyFixedPriceUsd, payableAgencyServices } from "@/lib/agencyPayment";
-import { AGENCY_PROCESS, OWNERSHIP_PROMISE } from "@/lib/site/agency";
 import { BUSINESS } from "@/lib/site/business";
 import { usd } from "@/lib/site/prices";
 
@@ -14,9 +13,9 @@ import { usd } from "@/lib/site/prices";
 // verifies the session with Stripe before it says anything.
 
 export const metadata: Metadata = withPublicPageMetadata("/agency/pay", {
-  title: "Pay an agency scope | The LeadFlow Pro",
+  title: "Existing client scope payment | The LeadFlow Pro",
   description:
-    "Pay the number in your written scope by card: the service, one-time or monthly, and your receipt. Ad spend stays on your own card.",
+    "Existing clients: pay only the amount and billing cadence already agreed in your signed written scope. New buyers start with a scoped managed plan.",
   robots: { index: false, follow: true },
 });
 
@@ -52,22 +51,20 @@ export default async function AgencyPayPage({
         </p>
         <div className="cb-deposit-grid mt-6">
           <div>
-            <p className="cb-eyebrow">Agency payment</p>
+            <p className="cb-eyebrow">Existing client payment only</p>
             <h1 className="cb-h1">
               <em>Use the number in writing.</em>
-              Keep the payment tied to the work.
+              Your signed scope controls this payment.
             </h1>
             <p className="cb-lead">
-              Ryan puts every agency scope in writing before anything starts: what gets built, what you
-              own, what you pay the platforms directly, and the price. This is where that price gets
-              paid. Nothing here changes the scope, and nothing runs without your written approval.
+              Use this page only for work and an amount already approved in writing. It does not buy a new managed plan or change your agreement. Existing clients retain the price, billing cadence, advertising treatment, and deliverables in their signed scope.
             </p>
             <ul className="sv-form-points">
               {[
-                OWNERSHIP_PROMISE.points[1],
+                "Your existing signed agreement controls advertising allocation and any outside vendor costs.",
                 "One-time for a setup, build, shoot, or fixed project. Monthly for a management fee. Both are on the scope.",
                 `Paid by card through Stripe. The receipt is your record. Questions first? Call or text ${BUSINESS.phone.display}.`,
-                `After payment: ${AGENCY_PROCESS.map((p) => p.name.toLowerCase()).join(", ")}, in your accounts.`,
+                "After payment, work follows your existing scope. No new service or allocation is added here.",
               ].map((line) => (
                 <li key={line}>
                   <Check aria-hidden="true" className="h-5 w-5" />
@@ -80,11 +77,7 @@ export default async function AgencyPayPage({
               <Link href="/agency/start" className="cb-textlink">
                 Start the intake
               </Link>{" "}
-              and Ryan sends one within one business day. Buying the website outright? That is the{" "}
-              <Link href="/packages/launch" className="cb-textlink">
-                Website Launch
-              </Link>
-              , paid on its own page.
+              to discuss the current managed plans and receive a proposal before purchase.
             </p>
           </div>
           <AgencyPayForm services={services} preselected={preselected} cancelled={cancelled === "1"} leadId={leadId} />

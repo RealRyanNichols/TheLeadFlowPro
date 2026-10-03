@@ -13,39 +13,65 @@ import { PRICES, usd, usdPerMonth, usdRange } from "./prices";
 export type NavLink = { href: string; label: string };
 
 export const NAV_LINKS: readonly NavLink[] = [
-  { href: "/", label: "Home" },
   { href: "/services", label: "Build my business" },
   { href: "/agency", label: "Run it for me" },
-  { href: "/scoreboard", label: "Scoreboard" },
+  { href: "/service-areas", label: "Service areas" },
+  { href: "/pricing", label: "Pricing" },
   { href: "/tools", label: "Tools" },
   { href: "/articles", label: "Articles" },
 ];
 
 export const HEADER_PORTAL: NavLink = { href: "/login", label: "Portal" };
-export const HEADER_CTA: NavLink = { href: CONSULTATION.href, label: "Free consultation" };
+export const HEADER_CTA: NavLink = {
+  href: CONSULTATION.href,
+  label: "Free consultation",
+};
 
-export type FooterColumn = { heading: string; links: readonly NavLink[] };
+export type FooterColumn = {
+  heading: string;
+  links: readonly NavLink[];
+  /** Keep the first decision visible; optional products remain one click away. */
+  featuredHrefs?: readonly string[];
+  moreLabel?: string;
+};
 
 export const FOOTER_COLUMNS: readonly FooterColumn[] = [
   {
-    heading: "What we build",
+    heading: "Services",
+    featuredHrefs: ["/services", "/agency", "/pricing"],
+    moreLabel: "Tools, products & custom options",
     links: [
-      { href: "/services", label: "Services" },
-      { href: "/agency", label: "Agency: ads, websites, automation, media" },
+      { href: "/services", label: "Build my business" },
+      { href: "/agency", label: "Run my marketing" },
+      { href: "/pricing", label: "Compare prices & scope" },
       { href: "/commerce", label: "Commerce & online selling" },
       { href: "/operator-academy", label: "Courses & learning" },
-      { href: "/add-ons", label: "Add-On Menu" },
+      { href: "/add-ons", label: "Custom build options" },
       { href: "/tools", label: "Free Tools" },
-      { href: "/tools/pro", label: `Pro Kits | ${usdRange(PRICES.proKitMin, PRICES.proKitMax)}` },
-      { href: "/chase-sheet", label: `Chase Sheet | ${usdPerMonth(PRICES.chaseSheetMonthly)} or ${usd(PRICES.chaseSheetLifetime)} once` },
-      { href: "/post-creator", label: `Post Creator | Free ideas, AI ${usdPerMonth(PRICES.postCreatorMonthly)} or ${usd(PRICES.postCreatorLifetime)} once` },
-      { href: "/plugin", label: `Plugin for ChatGPT and Claude | ${usdPerMonth(PRICES.pluginMonthly)}` },
+      {
+        href: "/tools/pro",
+        label: `Pro Kits | ${usdRange(PRICES.proKitMin, PRICES.proKitMax)}`,
+      },
+      {
+        href: "/chase-sheet",
+        label: `Chase Sheet | ${usdPerMonth(PRICES.chaseSheetMonthly)} or ${usd(PRICES.chaseSheetLifetime)} once`,
+      },
+      {
+        href: "/post-creator",
+        label: `Post Creator | Free ideas, AI ${usdPerMonth(PRICES.postCreatorMonthly)} or ${usd(PRICES.postCreatorLifetime)} once`,
+      },
+      {
+        href: "/plugin",
+        label: `Plugin for ChatGPT and Claude | ${usdPerMonth(PRICES.pluginMonthly)}`,
+      },
       { href: "/sellerproof", label: "SellerProof | Chargeback packets" },
       { href: "/chatgpt/free", label: "Free starter lesson" },
     ],
   },
   {
     heading: "Proof",
+    featuredHrefs: ["/results", "/scoreboard", "/portfolio", "/about"],
+    moreLabel: "More examples & guides",
     links: [
       { href: "/results", label: "Results" },
       { href: "/premier-system", label: "Premier System" },
@@ -59,12 +85,15 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
   },
   {
     heading: "Work together",
+    featuredHrefs: [CONSULTATION.href, "/service-areas", "/contact", "/login"],
+    moreLabel: "More ways to get started",
     links: [
-      { href: CONSULTATION.href, label: `Free ${CONSULTATION.minutes}-minute consultation` },
+      {
+        href: CONSULTATION.href,
+        label: `Free ${CONSULTATION.minutes}-minute consultation`,
+      },
+      { href: "/service-areas", label: "Check my service area" },
       { href: "/longview", label: "Longview and East Texas" },
-      { href: "/packages", label: "Packages" },
-      { href: "/go/lead-follow-up", label: `Follow-Up Campaign | ${usd(PRICES.leadFollowUpCampaign)}` },
-      { href: "/packages/launch", label: `Website Launch | ${usd(PRICES.websiteLaunchTotal)}` },
       { href: "/tlfp", label: "TLFP Credits | Earn, buy, spend" },
       { href: "/agency/start", label: "Agency intake" },
       { href: "/start", label: "Map My Company" },
@@ -87,12 +116,23 @@ export const LEGAL_LINKS: readonly NavLink[] = [
 ];
 
 /** Public paths that never show the marketing header or footer. */
-export const CHROME_FREE_PATHS = ["/start", "/agency/start", "/agency/pay"] as const;
-export const WORKSPACE_PREFIXES = ["/admin", "/sales", "/dashboard", "/factory/preview"] as const;
+export const CHROME_FREE_PATHS = [
+  "/start",
+  "/agency/start",
+  "/agency/pay",
+] as const;
+export const WORKSPACE_PREFIXES = [
+  "/admin",
+  "/sales",
+  "/dashboard",
+  "/factory/preview",
+] as const;
 
 export function hidesSiteChrome(pathname: string): boolean {
   if ((CHROME_FREE_PATHS as readonly string[]).includes(pathname)) return true;
-  return WORKSPACE_PREFIXES.some((base) => pathname === base || pathname.startsWith(`${base}/`));
+  return WORKSPACE_PREFIXES.some(
+    (base) => pathname === base || pathname.startsWith(`${base}/`),
+  );
 }
 
 /** Every internal href the header and footer render, for the link check. */

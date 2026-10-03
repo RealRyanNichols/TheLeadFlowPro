@@ -1,9 +1,15 @@
+import {
+  managedUpfrontSummary,
+  managedMonthlySummary,
+} from "./site/managedPlans";
+
 // Reviewed canonical public pages. Redirects and private completion URLs are excluded.
 export const PUBLIC_PAGE_CATALOG = [
   {
     path: "/events",
     title: "Events and business workshops",
-    description: "Bring one real business task to a practical workshop. Review the current events page for dates, registration, and workshop details.",
+    description:
+      "Bring one real business task to a practical workshop. Review the current events page for dates, registration, and workshop details.",
     eyebrow: "Business workshops",
     index: false,
   },
@@ -26,7 +32,8 @@ export const PUBLIC_PAGE_CATALOG = [
   {
     path: "/events/chatgpt-for-business-owners-longview/worksheet",
     title: "Workshop worksheet",
-    description: "The worksheet the room works from: one task, one brief, two runs. For attendees.",
+    description:
+      "The worksheet the room works from: one task, one brief, two runs. For attendees.",
     eyebrow: "Live learning in Longview",
     index: false,
   },
@@ -55,7 +62,8 @@ export const PUBLIC_PAGE_CATALOG = [
   {
     path: "/chase-sheet/app",
     title: "Your Chase Sheet",
-    description: "The sheet itself: today's chase list, your quotes, and the ledger. For buyers.",
+    description:
+      "The sheet itself: today's chase list, your quotes, and the ledger. For buyers.",
     eyebrow: "Chase Sheet",
     index: false,
   },
@@ -76,7 +84,8 @@ export const PUBLIC_PAGE_CATALOG = [
   {
     path: "/post-creator/app",
     title: "Your Post Creator",
-    description: "Post ideas, AI drafts in your voice, and your business profile. For buyers.",
+    description:
+      "Post ideas, AI drafts in your voice, and your business profile. For buyers.",
     eyebrow: "Post Creator",
     index: false,
   },
@@ -146,6 +155,13 @@ export const PUBLIC_PAGE_CATALOG = [
     eyebrow: "Services",
   },
   {
+    path: "/service-areas",
+    title: "Your industry. Your territory.",
+    description:
+      "Check local, statewide, or national service areas. See verified interest, temporary holds, and protected territories by the work you do.",
+    eyebrow: "Service areas",
+  },
+  {
     path: "/start",
     title: "Find your next business step",
     description:
@@ -161,13 +177,13 @@ export const PUBLIC_PAGE_CATALOG = [
   },
   {
     path: "/pricing",
-    title: "Choose the right starting point",
-    description:
-      "Compare the Website Launch, System Map, and larger systems around the work you need done.",
+    title: managedUpfrontSummary(),
+    description: `${managedMonthlySummary()} Your first month includes onboarding, the agreed build, and advertising. Scope and billing dates are agreed in writing.`,
     eyebrow: "Pricing",
   },
   {
     path: "/packages",
+    index: false,
     title: "Build a website. Connect the work.",
     description:
       "Explore the Website Launch and the separately scoped tools, portals, and systems that can follow.",
@@ -175,6 +191,7 @@ export const PUBLIC_PAGE_CATALOG = [
   },
   {
     path: "/packages/system-map",
+    index: false,
     title: "Know what to build first",
     description:
       "Map your website, customer path, ownership, and next build phases before a larger project.",
@@ -182,6 +199,7 @@ export const PUBLIC_PAGE_CATALOG = [
   },
   {
     path: "/packages/launch",
+    index: false,
     title: "A five-page website with a clear plan",
     description:
       "Review the Website Launch scope, approval process, and payment stages.",
@@ -189,6 +207,7 @@ export const PUBLIC_PAGE_CATALOG = [
   },
   {
     path: "/packages/industry-os",
+    index: false,
     title: "Build around the way you work",
     description:
       "Scope the website, lead flow, delivery, and reporting your business actually needs.",
@@ -233,9 +252,9 @@ export const PUBLIC_PAGE_CATALOG = [
   },
   {
     path: "/agency",
-    title: "Ads, websites, automation, video, and content, run for you",
+    title: "Your marketing. Handled for you.",
     description:
-      "The agency lane: Meta ads, Google Ads, websites, automation, video, and content in accounts you own, plus specialty builds for crypto communities, CPA firms, and shops. You pay the platforms directly and keep the leads.",
+      "Ads, websites, follow-up, video, and content managed in accounts you own. Keep your leads and accounts. Monthly plans include an agreed advertising allocation.",
     eyebrow: "Run it for me",
   },
   {
@@ -256,7 +275,7 @@ export const PUBLIC_PAGE_CATALOG = [
     path: "/agency/websites",
     title: "Five pages that give people a next step",
     description:
-      "A mobile-first five-page site with lead capture, search foundation, and analytics in your account. Buy the Website Launch outright, in accounts you own.",
+      "A mobile-first five-page site with lead capture, search foundation, and analytics in your account. Included work is agreed within your monthly plan, in accounts you own.",
     eyebrow: "Agency · Websites",
   },
   {

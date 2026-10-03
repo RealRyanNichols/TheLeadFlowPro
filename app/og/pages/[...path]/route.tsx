@@ -5,6 +5,7 @@ import { getPublicOgPage } from "@/lib/publicOgCatalog";
 import { publicOgCard } from "@/lib/publicOgCard";
 import {
   AD_PAGE_SOCIAL_IMAGES,
+  PUBLIC_OG_REVISION,
   PUBLIC_OG_SIZE,
 } from "@/lib/publicPageMetadata";
 
@@ -27,7 +28,11 @@ export async function GET(
   request: Request,
   { params }: { params: Promise<{ path: string[] }> },
 ) {
-  const { path: segments } = await params;
+  const { path: requestedSegments } = await params;
+  const segments =
+    requestedSegments.at(-1) === PUBLIC_OG_REVISION
+      ? requestedSegments.slice(0, -1)
+      : requestedSegments;
   const canonicalPath =
     segments.length === 1 && segments[0] === "home"
       ? "/"
@@ -53,7 +58,13 @@ export async function GET(
       },
     });
   }
-  if (!page || page.imagePath !== `/og/pages/${segments.join("/")}`) {
+  const generatedPath = `/og/pages/${segments.join("/")}`;
+  if (
+    !page ||
+    ![generatedPath, `${generatedPath}/${PUBLIC_OG_REVISION}`].includes(
+      page.imagePath,
+    )
+  ) {
     return new Response("Share image not found", {
       status: 404,
       headers: {
@@ -62,14 +73,30 @@ export async function GET(
       },
     });
   }
-  const [logoData, artData] = await Promise.all([
+  const [logoData, artData, regularFont, heavyFont] = await Promise.all([
     localImage("/images/brand/leadflow-logo.png"),
     page.art ? localImage(page.art) : Promise.resolve(undefined),
+    readFile(
+      path.join(process.cwd(), "public/fonts/og/inter-latin-400-normal.woff"),
+    ),
+    readFile(
+      path.join(process.cwd(), "public/fonts/og/inter-latin-900-normal.woff"),
+    ),
   ]);
   return new ImageResponse(publicOgCard({ page, logoData, artData }), {
     ...PUBLIC_OG_SIZE,
+    fonts: [
+      {
+        name: "LeadFlow Inter",
+        data: regularFont,
+        weight: 400,
+        style: "normal",
+      },
+      { name: "LeadFlow Inter", data: heavyFont, weight: 900, style: "normal" },
+    ],
     headers: {
       "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=3600",
+      "X-Content-Type-Options": "nosniff",
     },
   });
 }

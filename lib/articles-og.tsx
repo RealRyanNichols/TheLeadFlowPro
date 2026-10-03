@@ -3,9 +3,9 @@ import type { Article } from "./articles";
 
 export const ARTICLE_OG_SIZE = { width: 1200, height: 630 } as const;
 
-const NAVY = "#050D1B";
-const WHITE = "#F8FBFF";
-const MUTED = "#C3D0E0";
+const NAVY = "#F7F2FC";
+const WHITE = "#241A36";
+const MUTED = "#675774";
 
 const V4_ARTICLE_SLUGS = [
   "data-centers-are-coming-to-texas",
@@ -713,7 +713,7 @@ export function articleOgCard({
           flexDirection: "column",
           justifyContent: horizontal ? "space-between" : "flex-start",
           padding: horizontal ? "48px 50px 44px" : "30px 54px 34px",
-          background: "rgba(5, 13, 27, 0.94)",
+          background: "rgba(248, 244, 253, 0.97)",
         }}
       >
         <div
@@ -725,7 +725,7 @@ export function articleOgCard({
             letterSpacing: "-0.02em",
           }}
         >
-          The LeadFlow <span style={{ color: "#3264FF" }}>Pro</span>
+          The LeadFlow <span style={{ color: "#6943BD" }}>Pro</span>
         </div>
 
         <div

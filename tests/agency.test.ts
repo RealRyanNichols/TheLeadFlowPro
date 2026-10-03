@@ -17,6 +17,7 @@ import {
 } from "../lib/site/agency.ts";
 import { CASE_STUDIES, renderableCaseStudies } from "../lib/site/caseStudies.ts";
 import { TBD_PRICE_LABEL, offer } from "../lib/site/offers.ts";
+import { MANAGED_COMMERCIAL_TERMS } from "../lib/site/managedPlans.ts";
 
 const BANNED = ["guarantee", "guaranteed", "roas", "#1", "best in", "lowest", "only agency", "testimonial:", "% increase", "x return"];
 
@@ -48,7 +49,7 @@ test("ten agency services, each with one audience, one problem, inclusions, owne
   assert.equal(agencyService("nope"), null);
 });
 
-test("ads pages keep the ownership promise: client pays the platform, owns account, pixel, audiences, leads", () => {
+test("ads pages keep client ownership while advertising is included in the written plan allocation", () => {
   for (const slug of ["meta-ads", "google-ads"]) {
     const s = agencyService(slug)!;
     const owns = s.clientOwns.join(" ").toLowerCase();
@@ -57,14 +58,14 @@ test("ads pages keep the ownership promise: client pays the platform, owns accou
     assert.match(owns, /pixel|tag/, slug);
     assert.match(owns, /audience/, slug);
     assert.match(owns, /lead/, slug);
-    assert.match(pays, /ad spend/, slug);
-    assert.ok(s.notIncluded.some((n) => /passing through/i.test(n)), slug);
+    assert.match(pays, /outside the included plan allocation/, slug);
+    assert.ok(s.notIncluded.some((n) => /advertising allocation/i.test(n)), slug);
   }
-  assert.ok(OWNERSHIP_PROMISE.points.some((p) => /never passes through/i.test(p)));
+  assert.ok(OWNERSHIP_PROMISE.points.some((p) => /Advertising spend is included/i.test(p)));
   assert.ok(OWNERSHIP_PROMISE.points.some((p) => /cross-client/i.test(p)));
 });
 
-test("agency prices are TBD until Ryan sets them; the websites page reuses the live Website Launch offer", () => {
+test("legacy signed-scope offer mappings remain compatible while public plan terms come from the current registry", () => {
   for (const s of AGENCY_SERVICES) {
     const o = agencyOffer(s);
     if (s.slug === "websites") {
@@ -77,6 +78,19 @@ test("agency prices are TBD until Ryan sets them; the websites page reuses the l
     }
   }
   assert.equal(offer("agency_meta_ads").href, "/agency/meta-ads");
+});
+
+test("agency public copy uses managed plan prices and no longer promotes the old website checkout", () => {
+  assert.equal(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd, 7500);
+  assert.equal(MANAGED_COMMERCIAL_TERMS.minimumMonthlyUsd, 5000);
+  assert.equal(MANAGED_COMMERCIAL_TERMS.adSpendTreatment, "included");
+  assert.match(AGENCY_HUB.budgetNote, /first month/);
+  assert.match(AGENCY_HUB.budgetNote, /\$7,500/);
+  for (const service of AGENCY_SERVICES) {
+    assert.ok(!JSON.stringify(service).includes("Website Launch"), service.slug);
+    assert.ok(!service.related.some((link) => link.href === "/packages/launch"), service.slug);
+    assert.ok(!JSON.stringify(service).includes("Ad spend is separate"), service.slug);
+  }
 });
 
 test("the video page requires a signed release before anyone appears on camera", () => {

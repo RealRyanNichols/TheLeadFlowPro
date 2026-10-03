@@ -1,6 +1,172 @@
 import type { PublicOgPage } from "./publicOgCatalog";
 
-const TONES = ["#ede6f3", "#f6e9dc", "#e5eee3"];
+const INK = "#211831";
+const VIOLET = "#6540bc";
+
+/** Original, editable brand geometry. It illustrates a service, never results or availability. */
+function ServiceMotif({ page }: { page: PublicOgPage }) {
+  const territory = page.path === "/service-areas";
+  const marketing =
+    page.path.startsWith("/agency") || page.path === "/longview";
+  return (
+    <svg width="356" height="310" viewBox="0 0 356 310">
+      <defs>
+        <linearGradient id="brand-flow" x1="0" y1="0" x2="1" y2="1">
+          <stop stopColor="#bda6ed" />
+          <stop offset="1" stopColor="#523894" />
+        </linearGradient>
+        <linearGradient id="brand-glass" x1="0" y1="0" x2="1" y2="1">
+          <stop stopColor="#ffffff" />
+          <stop offset="1" stopColor="#e8def7" />
+        </linearGradient>
+      </defs>
+      {territory ? (
+        <g>
+          <path
+            d="M35 65L107 37L179 62L253 32L318 79L306 244L230 272L157 248L78 277L31 223Z"
+            fill="url(#brand-glass)"
+            stroke="#cabbe4"
+            strokeWidth="2"
+          />
+          <path
+            d="M107 37L110 238M179 62L177 255M253 32L250 251M36 137L314 143M33 213L308 209"
+            fill="none"
+            stroke="#d9cdeb"
+            strokeWidth="1.5"
+          />
+          <circle
+            cx="171"
+            cy="157"
+            r="96"
+            fill="#9777d530"
+            stroke="#8662c7"
+            strokeWidth="2"
+            strokeDasharray="6 5"
+          />
+          <circle
+            cx="171"
+            cy="157"
+            r="65"
+            fill="url(#brand-flow)"
+            fillOpacity=".2"
+            stroke="#5e399f"
+            strokeWidth="3"
+          />
+          <circle
+            cx="171"
+            cy="157"
+            r="11"
+            fill={INK}
+            stroke="#fff"
+            strokeWidth="5"
+          />
+          <path
+            d="M258 88L274 105L301 72"
+            fill="none"
+            stroke="#6540bc"
+            strokeWidth="8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </g>
+      ) : marketing ? (
+        <g>
+          <path
+            d="M35 237C104 237 96 69 165 69S208 205 312 124"
+            fill="none"
+            stroke="#c9b7e7"
+            strokeWidth="26"
+            strokeLinecap="round"
+          />
+          <path
+            d="M35 237C104 237 96 69 165 69S208 205 312 124"
+            fill="none"
+            stroke="url(#brand-flow)"
+            strokeWidth="5"
+            strokeLinecap="round"
+          />
+          <rect
+            x="13"
+            y="194"
+            width="80"
+            height="82"
+            rx="16"
+            fill="url(#brand-glass)"
+            stroke="#c7b5e3"
+            strokeWidth="2"
+          />
+          <path
+            d="M34 237L49 251L74 220"
+            fill="none"
+            stroke={VIOLET}
+            strokeWidth="5"
+            strokeLinecap="round"
+          />
+          <rect x="124" y="24" width="88" height="88" rx="16" fill={INK} />
+          <path
+            d="M144 83V68M165 83V53M186 83V42"
+            fill="none"
+            stroke="#d4bffe"
+            strokeWidth="9"
+            strokeLinecap="round"
+          />
+          <rect
+            x="255"
+            y="90"
+            width="84"
+            height="84"
+            rx="16"
+            fill="url(#brand-glass)"
+            stroke="#c7b5e3"
+            strokeWidth="2"
+          />
+          <path
+            d="M277 132H318M305 119L318 132L305 145"
+            fill="none"
+            stroke={VIOLET}
+            strokeWidth="5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          <ellipse cx="177" cy="294" rx="143" ry="9" fill="#2118310d" />
+        </g>
+      ) : (
+        <g>
+          <ellipse cx="179" cy="283" rx="140" ry="14" fill="#21183110" />
+          <path
+            d="M31 183L178 111L325 182L179 256Z"
+            fill="#372451"
+            stroke="#372451"
+            strokeWidth="3"
+          />
+          <path d="M31 183V207L179 281L325 207V182L179 256Z" fill={INK} />
+          <path
+            d="M46 142L178 78L310 142L179 209Z"
+            fill="url(#brand-flow)"
+            stroke="#7f5bbb"
+            strokeWidth="2"
+          />
+          <path d="M46 142V158L179 225L310 158V142L179 209Z" fill="#7151a8" />
+          <path
+            d="M63 98L178 42L294 98L179 156Z"
+            fill="url(#brand-glass)"
+            stroke="#c8b6e5"
+            strokeWidth="2"
+          />
+          <path d="M63 98V112L179 171L294 112V98L179 156Z" fill="#d4c3ed" />
+          <path
+            d="M146 98L169 110L213 87"
+            fill="none"
+            stroke={VIOLET}
+            strokeWidth="6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </g>
+      )}
+    </svg>
+  );
+}
 
 export function publicOgCard({
   page,
@@ -11,18 +177,17 @@ export function publicOgCard({
   logoData: string;
   artData?: string;
 }) {
-  const tone =
-    TONES[
-      Array.from(page.path).reduce(
-        (total, character) => total + character.charCodeAt(0),
-        0,
-      ) % TONES.length
-    ];
   const titleSize =
-    page.title.length > 65 ? 46 : page.title.length > 42 ? 54 : 64;
+    page.title.length > 75
+      ? 43
+      : page.title.length > 54
+        ? 49
+        : page.title.length > 37
+          ? 58
+          : 66;
   const description =
-    page.description.length > 185
-      ? `${page.description.slice(0, 182).replace(/\s+\S*$/, "")}…`
+    page.description.length > 175
+      ? `${page.description.slice(0, 172).replace(/\s+\S*$/, "")}…`
       : page.description;
   return (
     <div
@@ -31,55 +196,63 @@ export function publicOgCard({
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        padding: 48,
-        background: "#f3efe8",
-        color: "#20212b",
-        fontFamily: "sans-serif",
+        padding: "46px 54px 38px",
+        background: "#f8f5fc",
+        backgroundImage:
+          "linear-gradient(125deg, #fbf8ff 0%, #ebe4f8 65%, #eeebfc 100%)",
+        color: INK,
+        fontFamily: "LeadFlow Inter, sans-serif",
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 15 }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={logoData}
           alt=""
-          width={68}
-          height={68}
-          style={{ borderRadius: 14 }}
+          width={54}
+          height={54}
+          style={{ borderRadius: 12 }}
         />
-        <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-          <span style={{ fontSize: 23, fontWeight: 700, letterSpacing: 2 }}>
-            THE LEAD FLOW PRO
-          </span>
-          <span
-            style={{
-              fontSize: 15,
-              fontWeight: 700,
-              color: "#5135e5",
-              letterSpacing: 3,
-            }}
-          >
-            YOUR NEXT MOVE
-          </span>
-        </div>
+        <span style={{ fontSize: 20, fontWeight: 900, letterSpacing: 1.7 }}>
+          THE LEADFLOW PRO
+        </span>
+        <span
+          style={{
+            marginLeft: "auto",
+            fontSize: 12,
+            color: VIOLET,
+            fontWeight: 900,
+            letterSpacing: 2.2,
+          }}
+        >
+          BUILD. RUN. GROW.
+        </span>
       </div>
-      <div style={{ display: "flex", flex: 1, gap: 34, marginTop: 32 }}>
+      <div
+        style={{
+          display: "flex",
+          flex: 1,
+          gap: 34,
+          marginTop: 24,
+          alignItems: "center",
+        }}
+      >
         <div
           style={{
             display: "flex",
-            flex: 1,
+            width: 666,
+            minWidth: 666,
             flexDirection: "column",
-            justifyContent: "center",
-            minWidth: 0,
           }}
         >
           <span
             style={{
-              fontSize: 17,
-              fontWeight: 700,
-              color: "#5135e5",
-              letterSpacing: 2,
+              fontSize: 13,
+              fontWeight: 900,
+              color: VIOLET,
+              letterSpacing: 2.1,
               textTransform: "uppercase",
-              marginBottom: 16,
+              marginBottom: 17,
             }}
           >
             {page.eyebrow}
@@ -88,72 +261,81 @@ export function publicOgCard({
             style={{
               display: "flex",
               fontSize: titleSize,
-              fontWeight: 700,
-              letterSpacing: -2,
-              lineHeight: 1.06,
+              fontWeight: 900,
+              letterSpacing: -2.5,
+              lineHeight: 1.03,
             }}
           >
             {page.title}
           </div>
           <p
             style={{
-              fontSize: 23,
-              lineHeight: 1.35,
-              color: "#625f6d",
-              marginTop: 22,
+              fontSize: 21,
+              fontWeight: 400,
+              lineHeight: 1.45,
+              color: "#60566e",
+              marginTop: 21,
               marginBottom: 0,
             }}
           >
             {description}
           </p>
         </div>
-        {artData ? (
-          <div
-            style={{
-              display: "flex",
-              width: 400,
-              minWidth: 400,
-              padding: 12,
-              alignItems: "center",
-              justifyContent: "center",
-              background: tone,
-              border: "1px solid #dbd0c5",
-              borderRadius: 24,
-              overflow: "hidden",
-            }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
+        <div
+          style={{
+            display: "flex",
+            width: 356,
+            minWidth: 356,
+            height: 324,
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: 22,
+            background: artData ? "#ffffff70" : "transparent",
+            border: artData ? "1px solid #d6c6eb" : "0",
+            padding: artData ? 10 : 0,
+            overflow: "hidden",
+          }}
+        >
+          {artData ? (
+            // eslint-disable-next-line @next/next/no-img-element
             <img
               src={artData}
               alt=""
-              width={374}
+              width={336}
               height={304}
               style={{
                 width: "100%",
                 height: "100%",
-                objectFit: "contain",
+                objectFit: "cover",
                 objectPosition: "center",
+                borderRadius: 13,
               }}
             />
-          </div>
-        ) : null}
+          ) : (
+            <ServiceMotif page={page} />
+          )}
+        </div>
       </div>
       <div
         style={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          marginTop: 30,
-          padding: "16px 20px",
-          borderRadius: 14,
-          background: tone,
+          paddingTop: 21,
+          marginTop: 20,
+          borderTop: "1px solid #d9cdec",
         }}
       >
-        <span style={{ fontSize: 17, color: "#34313f" }}>
+        <span
+          style={{
+            fontSize: page.path.length > 46 ? 12 : 16,
+            color: "#5e526d",
+          }}
+        >
           theleadflowpro.com{page.path === "/" ? "" : page.path}
         </span>
-        <span style={{ fontSize: 18, fontWeight: 700, color: "#5135e5" }}>
-          Explore →
+        <span style={{ fontSize: 18, fontWeight: 900, color: VIOLET }}>
+          Take the next step →
         </span>
       </div>
     </div>

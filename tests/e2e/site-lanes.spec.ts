@@ -1,5 +1,5 @@
 // The buyer paths on a phone and on a desktop: homepage consultation form and
-// the done-for-you service links; packages → Stripe click-through; plugin →
+// the done-for-you service links; legacy packages → pricing → Stripe click-through; plugin →
 // checkout start; agency intake. Read-only: nothing is submitted and nothing
 // is paid.
 
@@ -42,7 +42,8 @@ for (const vp of VIEWPORTS) {
     });
 
     test("packages page carries the Website Launch deposit link to Stripe", async ({ page }) => {
-      await page.goto("/packages");
+      await page.goto("/packages?utm_source=buyer-path-check");
+      await expect(page).toHaveURL(/\/pricing\?utm_source=buyer-path-check$/);
       await noHorizontalScroll(page);
       const stripe = page.locator('a[href^="https://book.stripe.com/"]').first();
       await expect(stripe).toBeVisible();
@@ -97,7 +98,7 @@ for (const vp of VIEWPORTS) {
       // Consent to texts without a number must be refused without losing the answers.
       await page.check('input[name="sms_consent"]');
       await page.fill('textarea[name="bottleneck"]', "Leads come in and nobody follows up.");
-      await page.check('input[name="ad_budget"][value="ads_0"]');
+      await page.check('input[name="managed_plan_budget"][value="recommended"]');
       await page.check('input[name="decision_maker"][value="me"]');
       await page.check('input[name="timeline"][value="researching"]');
       await page.getByRole("button", { name: /Send it to Ryan/ }).click();

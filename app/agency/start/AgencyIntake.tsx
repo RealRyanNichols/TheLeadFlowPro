@@ -10,6 +10,8 @@ import { useState } from "react";
 import { ArrowRight, Check } from "lucide-react";
 import { SmsConsentText } from "@/components/site/SmsConsentText";
 import { campaignTags, storedCampaignTags } from "@/lib/site/campaignTags";
+import { MANAGED_PLANS, managedAdvertisingExplanation, managedBillingExplanation, managedPlanPrice, managedUpfrontSummary } from "@/lib/site/managedPlans";
+import { usd } from "@/lib/site/prices";
 
 type ServiceOption = { slug: string; label: string };
 
@@ -22,13 +24,11 @@ const CHANNELS = [
   ["none", "Nothing steady yet"],
 ] as const;
 
-// Monthly ad spend paid straight to Meta or Google. Not LeadFlow prices.
+// Total managed engagement, including the proposal's advertising allocation.
 const BUDGETS = [
-  ["ads_0", "$0 right now"],
-  ["ads_under_500", "Under $500 a month"],
-  ["ads_500_1500", "$500 to $1,500 a month"],
-  ["ads_1500_5000", "$1,500 to $5,000 a month"],
-  ["ads_5000_plus", "$5,000 or more a month"],
+  ...MANAGED_PLANS.map((plan) => [plan.id, `${plan.name}: ${managedPlanPrice(plan).amount} ${managedPlanPrice(plan).unit}; ${usd(plan.firstMonthUsd)} first month upfront`] as const),
+  ["custom", "A larger monthly plan or custom build"],
+  ["discuss", "Help me assess whether a managed plan fits"],
 ] as const;
 
 const DECIDERS = [
@@ -50,9 +50,15 @@ export default function AgencyIntake({
   services,
   preselected,
   placement = "agency_start",
+  initialPlan = null,
+  requestedService = null,
+  originatingLead = null,
 }: {
   services: ServiceOption[];
   preselected: string | null;
+  initialPlan?: string | null;
+  requestedService?: string | null;
+  originatingLead?: string | null;
   /** Which page the form was on, so the admin workspace can tell the hub from the intake page. */
   placement?: "agency_start" | "agency_hub";
 }) {
@@ -75,7 +81,7 @@ export default function AgencyIntake({
       return;
     }
     const channels = CHANNELS.filter(([id]) => form.get(`channel_${id}`) === "on");
-    const budget = BUDGETS.find(([id]) => id === form.get("ad_budget"));
+    const budget = BUDGETS.find(([id]) => id === form.get("managed_plan_budget"));
     const decider = DECIDERS.find(([id]) => id === form.get("decision_maker"));
     const timeline = TIMELINES.find(([id]) => id === form.get("timeline"));
     const bottleneck = String(form.get("bottleneck") ?? "").trim();
@@ -83,7 +89,7 @@ export default function AgencyIntake({
     const summary = [
       `AGENCY INTAKE: ${picked.map((s) => s.label).join(", ")}.`,
       channels.length ? `Current channels: ${channels.map(([, label]) => label).join(", ")}.` : "",
-      budget ? `Monthly ad budget genuinely prepared to spend: ${budget[1]}.` : "",
+      budget ? `Managed monthly plan under consideration (advertising included): ${budget[1]}.` : "",
       decider ? `Decision-maker: ${decider[1]}.` : "",
       timeline ? `Timeline: ${timeline[1]}.` : "",
       bottleneck ? `Bottleneck: ${bottleneck}` : "",
@@ -115,15 +121,19 @@ export default function AgencyIntake({
           utm_medium: tags.utm_medium,
           utm_campaign: tags.utm_campaign,
           diagnostic: {
-            version: 1,
+            version: 2,
             source: "agency_intake",
             services: picked.map((s) => s.slug),
             channels: channels.map(([id]) => id),
-            ad_budget: budget?.[0] ?? null,
+            managed_plan_budget: budget?.[0] ?? null,
+            advertising_included: true,
+            upfront_treatment: "first_month",
             decision_maker: decider?.[0] ?? null,
             timeline: timeline?.[0] ?? null,
             bottleneck: bottleneck.slice(0, 1000),
             preselected,
+            requested_service: requestedService ?? preselected,
+            originating_lead_id: originatingLead,
             placement,
           },
         }),
@@ -147,8 +157,8 @@ export default function AgencyIntake({
         <p className="cb-eyebrow">It is in</p>
         <h2 className="cb-h2">Ryan has it.</h2>
         <p className="cb-lead">
-          A short note is on its way to your inbox now. Expect a text or call within one business day
-          to map the first ninety days. Nothing is scoped, built, or billed until you see it in writing.
+          Your request has been received. Expect a reply within one business day
+          to map the first ninety days; we call or text only when you selected that consent. Nothing is scoped, built, or billed until you see it in writing.
         </p>
       </div>
     );
@@ -203,14 +213,13 @@ export default function AgencyIntake({
       </fieldset>
 
       <fieldset className="hq-card grid gap-3">
-        <legend className="cb-eyebrow">4. The monthly ad budget you are genuinely prepared to spend</legend>
+        <legend className="cb-eyebrow">4. The monthly plan you are prepared to support</legend>
         <p className="text-sm text-[var(--muted)]">
-          Paid by you, directly to Meta or Google. A $0 answer does not disqualify you; it routes you to
-          the right lane.
+          {managedUpfrontSummary()} {managedBillingExplanation()} {managedAdvertisingExplanation()}
         </p>
         {BUDGETS.map(([id, label]) => (
           <label key={id} className="flex items-start gap-3 text-sm">
-            <input type="radio" name="ad_budget" value={id} required className="mt-1 h-5 w-5" />
+            <input type="radio" name="managed_plan_budget" value={id} defaultChecked={initialPlan === id} required className="mt-1 h-5 w-5" />
             <span>{label}</span>
           </label>
         ))}

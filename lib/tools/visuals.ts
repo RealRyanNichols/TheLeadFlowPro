@@ -16,6 +16,7 @@
 // document for writers), so the set never reads as one template.
 
 import type { OgLayout, ToolVisual } from "./types";
+import { uniqueOgImagePath } from "../uniqueOgImages";
 
 /** The ten OG composition families, in the order types.ts declares them. */
 export const OG_LAYOUTS: OgLayout[] = [
@@ -40,7 +41,9 @@ const art = (slug: string) => ({
   cardImage: `/tools-art/card/${slug}.svg`,
   cardImageAlt: "",
   heroImage: `/tools-art/hero/${slug}.svg`,
-  ogImage: `/og/tools/${slug}.jpg`,
+  ogImage: uniqueOgImagePath(`/tools/${slug}`)
+    ? `/og/tools/${slug}.jpg`
+    : `/og/tools/violet-20261003/${slug}.jpg`,
   imageSource: "Original vector illustration, The LeadFlow Pro",
   license: "Original work, The LeadFlow Pro",
   sourceDate: "2026-08-12",

@@ -20,8 +20,7 @@ import RevealObserver from "./Reveal";
 
 export const metadata: Metadata = withPublicPageMetadata("/go/time-back", {
   title: "Get Your Time Back From Posting | The LeadFlow Pro",
-  description:
-    `Pick how many days and how many posts per day. We write it in your voice, schedule it in your accounts, and wire the follow-up. From ${usd(PRICES.timeBackFrom)} one-time. No passwords, no monthly seat.`,
+  description: `Pick how many days and how many posts per day. We write it in your voice, schedule it in your accounts, and wire the follow-up. From ${usd(PRICES.timeBackFrom)} one-time. No passwords, no monthly seat.`,
   alternates: { canonical: "https://www.theleadflowpro.com/go/time-back" },
   robots: { index: false, follow: true },
 });
@@ -227,8 +226,10 @@ export default function TimeBackPage() {
               <p className="mt-4 max-w-xl text-base text-[#625f6d] sm:text-lg">
                 3+ posts a day on Facebook, Instagram, and X. Written in your
                 voice, scheduled in YOUR accounts, follow-up wired.{" "}
-                <b className="text-[#20212b]">From {usd(PRICES.timeBackFrom)}, one-time.</b> No
-                monthly seat to rent.
+                <b className="text-[#20212b]">
+                  From {usd(PRICES.timeBackFrom)}, one-time.
+                </b>{" "}
+                No monthly seat to rent.
               </p>
               <div className="mt-6 flex flex-wrap items-center gap-3">
                 <a
@@ -320,8 +321,8 @@ export default function TimeBackPage() {
             <Link className="cb-btn cb-btn--ghost" href="/portfolio">
               See the live systems
             </Link>
-            <Link className="cb-btn cb-btn--ghost" href="/packages/system-map">
-              Want the full picture first? The {usd(PRICES.systemMap)} System Map
+            <Link className="cb-btn cb-btn--ghost" href="/pricing">
+              Compare monthly service plans
             </Link>
           </div>
           <p className="mt-6 text-sm text-[var(--quiet)]">

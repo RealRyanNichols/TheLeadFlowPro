@@ -87,15 +87,7 @@ export default async function TlfpPage({
   const referralUrl = account?.referralCode ? `${BUSINESS.siteUrl}/r/${account.referralCode}` : "";
 
   const redeemOffers: RedeemOffer[] = [
-    { kind: "system_map", label: "System Map", priceUsd: PRICES.systemMap, note: "Credited toward the build it maps." },
     { kind: LEAD_FOLLOW_UP.id, label: LEAD_FOLLOW_UP.name, priceUsd: LEAD_FOLLOW_UP.priceUsd },
-    {
-      kind: "build_deposit",
-      label: "Build down payment",
-      priceUsd: PRICES.buildDepositMin,
-      body: { amount_usd: PRICES.buildDepositMin },
-      note: "The smallest deposit; every dollar credits toward the work.",
-    },
   ];
 
   return (
@@ -297,7 +289,7 @@ export default async function TlfpPage({
           <p className="eyebrow">Spend credits</p>
           <h2 className="mt-3 text-3xl font-black text-[var(--heading)]">Credits apply first. The card covers the rest.</h2>
           <p className="mt-3 max-w-2xl text-[var(--muted)]">
-            Put them on a System Map, a follow-up campaign, or a build deposit. When the credits cover the
+            Use them on separate products here, or agree on their use in your written monthly service scope. When the credits cover the
             whole thing, there is no card at all.
           </p>
           <div className="mt-8">

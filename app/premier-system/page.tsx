@@ -17,9 +17,9 @@ import {
   ShieldCheck,
   Users,
 } from "lucide-react";
-import { WEBSITE_LAUNCH_CHECKOUT } from "@/lib/offers";
 import { BUSINESS } from "@/lib/site/business";
-import { PRICES, usd } from "@/lib/site/prices";
+import { MANAGED_COMMERCIAL_TERMS, managedAdvertisingExplanation, managedBillingExplanation, managedMonthlySummary, managedUpfrontSummary } from "@/lib/site/managedPlans";
+import { usd } from "@/lib/site/prices";
 import ContactForm from "@/app/contact/ContactForm";
 import styles from "./premier-system.module.css";
 
@@ -112,7 +112,7 @@ const SYSTEM_PIECES = [
   },
 ];
 
-const WEBSITE_LAUNCH_SCOPE = [
+const MANAGED_SCOPE = [
   {
     number: "01",
     name: "Conversion map",
@@ -121,9 +121,9 @@ const WEBSITE_LAUNCH_SCOPE = [
   },
   {
     number: "02",
-    name: "Five agreed pages",
+    name: "The agreed website and systems",
     detail:
-      "Typically Home, About, Offer or Services, Proof, and Contact. The final page list is written into the scope.",
+      "Pages, lead capture, follow-up, and connected tools are selected around your business priorities and written into the plan.",
   },
   {
     number: "03",
@@ -145,73 +145,43 @@ const WEBSITE_LAUNCH_SCOPE = [
   },
   {
     number: "06",
-    name: "Two focused revision rounds",
+    name: "A review before launch",
     detail:
-      "Review a working preview, then tighten the approved scope before the final launch payment.",
+      "Review a working preview and the agreed revisions. Responsibilities and ongoing capacity are confirmed in writing.",
   },
 ];
 
 const MILESTONES = [
-  {
-    number: "01",
-    name: `${usd(PRICES.websiteLaunchDeposit)} starts the project`,
-    detail: "The first payment reserves the Website Launch and opens intake.",
-  },
-  {
-    number: "02",
-    name: "Scope is confirmed in writing",
-    detail:
-      "Pages, assets, primary action, responsibilities, and launch requirements are agreed before production.",
-  },
-  {
-    number: "03",
-    name: "You review working proof",
-    detail:
-      "The site is presented in a live review environment with two focused revision rounds.",
-  },
-  {
-    number: "04",
-    name: `${usd(PRICES.websiteLaunchFinal)} is due after approval`,
-    detail:
-      "The remaining balance is paid after approval and before the production site goes live.",
-  },
+  { number: "01", name: "Scope is confirmed in writing", detail: "Your priorities, work, capacity, account ownership, and advertising allocation are agreed before work starts." },
+  { number: "02", name: managedUpfrontSummary(), detail: managedBillingExplanation() },
+  { number: "03", name: "You review working proof", detail: "Review the agreed website, capture paths, and connected systems before launch." },
+  { number: "04", name: "Monthly work follows the plan", detail: `${managedMonthlySummary()} Your proposal names the ongoing work, advertising allocation, and billing dates.` },
 ];
 
 const EXCLUSIONS = [
-  "A custom CRM or database",
-  "Funnels beyond the five-page site",
-  "Student, client, or member portals",
-  "Course-platform development",
-  "Payment-plan or enrollment systems",
-  "Email or text automation sequences",
-  "Ad production, media buying, or daily content",
-  "E-commerce, custom tools, or private dashboards",
-  "Unlimited revisions or ongoing maintenance",
-  "Third-party subscriptions, hosting, or platform fees",
+  "Work beyond the monthly capacity and deliverables in the signed scope",
+  "Unapproved changes to the advertising allocation or service territory",
+  "Additional custom systems or integrations outside the agreed build",
+  "Outside vendor charges not already included in the plan allocation",
+  "Unlimited revisions, support, or service capacity",
 ];
 
 const FAQ = [
   {
-    question:
-      `Is the ${usd(PRICES.websiteLaunchTotal)} Website Launch the same system Ryan built for Premier?`,
-    answer:
-      `No. Premier is proof of a larger, separately scoped operating system. The ${usd(PRICES.websiteLaunchTotal)} Website Launch is a focused five-page public foundation with the exact items listed on this page.`,
+    question: "Will my business get the same system as this example?",
+    answer: "This is proof of a system built for one business. Your plan is scoped around your own priorities, capacity, and workflows; the example does not promise identical tools or outcomes.",
   },
   {
-    question: "How do the two payments work?",
-    answer:
-      `${usd(PRICES.websiteLaunchDeposit)} reserves the Website Launch and starts intake. The remaining ${usd(PRICES.websiteLaunchFinal)} is due after you approve the working site and before it is launched to production.`,
+    question: "How does the first month work?",
+    answer: `${managedUpfrontSummary()} ${managedMonthlySummary()} ${managedBillingExplanation()}`,
   },
   {
-    question: "Are the premium graphics included?",
-    answer:
-      "At the current founding rate, three premium visual scenes are included as a bonus inside the agreed five-page Website Launch. Their purpose and placement are confirmed in the written scope.",
+    question: "Are graphics and advertising included?",
+    answer: `${managedAdvertisingExplanation()} Visuals, production, and placement are defined within the agreed scope, not a fixed bonus promise.`,
   },
   {
-    question:
-      "Can I add a funnel, CRM, portal, course, payments, ads, or automation?",
-    answer:
-      `Yes, when the business case is clear. Those are separate modules with their own written scope, price, requirements, and timeline. They are not hidden inside the ${usd(PRICES.websiteLaunchTotal)} Website Launch.`,
+    question: "Can I include a CRM, portal, course, payments, or automation?",
+    answer: "Yes, when it fits the business case and agreed plan capacity. Larger custom builds or work beyond the approved scope receive a separate written quote before work begins.",
   },
   {
     question: "Who did what in the Premier build?",
@@ -231,10 +201,10 @@ const JSON_LD = {
     {
       "@type": "Service",
       "@id": `${CANONICAL_URL}#service`,
-      name: "The LeadFlow Pro Website Launch",
-      serviceType: "Conversion-led five-page website design and development",
+      name: "The LeadFlow Pro managed business system",
+      serviceType: "Managed marketing and business systems",
       description:
-        "A five-page Website Launch with conversion mapping, responsive production, lead capture, launch setup, two revision rounds, and a founding-rate visual bonus.",
+        "A scoped managed plan combining the agreed website and systems, onboarding, marketing, and included advertising allocation.",
       provider: {
         "@type": "Organization",
         name: "The LeadFlow Pro",
@@ -243,11 +213,11 @@ const JSON_LD = {
       },
       offers: {
         "@type": "Offer",
-        price: String(PRICES.websiteLaunchTotal),
+        price: String(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd),
         priceCurrency: "USD",
-        url: "https://www.theleadflowpro.com/packages/launch",
+        url: "https://www.theleadflowpro.com/pricing",
         description:
-          `${usd(PRICES.websiteLaunchDeposit)} to start and ${usd(PRICES.websiteLaunchFinal)} after approval, before production launch. The initial deposit becomes non-refundable once intake begins, except where the written agreement or applicable law requires otherwise.`,
+          `${managedUpfrontSummary()} ${managedMonthlySummary()} ${managedBillingExplanation()} ${managedAdvertisingExplanation()}`,
       },
     },
     {
@@ -618,14 +588,12 @@ export default function PremierSystemPage() {
               <em>Build the next pieces from there.</em>
             </h2>
             <p>
-              Premier is a larger, separately scoped system. Our Website Launch
-              starts with the public foundation: five agreed pages and one clear
-              way for customers to reach you.
+              Premier is a separately scoped example. Your managed plan connects the website, marketing, and next steps around the way your own business operates.
             </p>
           </header>
           <div className={styles.offerGrid}>
             <div className={styles.scopeList}>
-              {WEBSITE_LAUNCH_SCOPE.map((item) => (
+              {MANAGED_SCOPE.map((item) => (
                 <div key={item.number}>
                   <Check aria-hidden="true" size={20} />
                   <div>
@@ -636,23 +604,18 @@ export default function PremierSystemPage() {
               ))}
             </div>
             <aside className={styles.priceCard}>
-              <span>Website Launch · fixed scope</span>
-              <strong>{usd(PRICES.websiteLaunchTotal)}</strong>
-              <p>{usd(PRICES.websiteLaunchDeposit)} to start. {usd(PRICES.websiteLaunchFinal)} after approval, before launch.</p>
-              <a
-                href={WEBSITE_LAUNCH_CHECKOUT}
+              <span>Managed plan · first month</span>
+              <strong>{usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd)} upfront</strong>
+              <p>{managedMonthlySummary()} Advertising is included within your written allocation.</p>
+              <Link
+                href="/agency/start"
                 className={styles.primary}
-                data-cta="premier_launch_checkout"
+                data-cta="premier_managed_scope"
                 data-cta-placement="premier_offer"
               >
-                Start my website · {usd(PRICES.websiteLaunchDeposit)}{" "}
-                <ArrowRight size={18} aria-hidden="true" />
-              </a>
-              <small>
-                Checkout through {BUSINESS.legalName}. Once intake
-                begins, the deposit is non-refundable, except where the written
-                agreement or applicable law requires otherwise.
-              </small>
+                Get my managed scope <ArrowRight size={18} aria-hidden="true" />
+              </Link>
+              <small>{managedBillingExplanation()}</small>
               <a href="#talk-about-your-build" className={styles.textLink}>
                 Need a larger system? Talk to Ryan{" "}
                 <ArrowRight size={17} aria-hidden="true" />
@@ -662,10 +625,9 @@ export default function PremierSystemPage() {
           <div className={styles.bonus}>
             <BookOpen size={25} aria-hidden="true" />
             <div>
-              <h3>Three custom visual scenes included at the founding rate.</h3>
+              <h3>Visuals built around your business.</h3>
               <p>
-                A hero image, a process visual, and a proof or approval scene,
-                planned for your business within the agreed five-page scope.
+                The images, process visuals, and proof scenes your business needs are defined within your written plan.
               </p>
             </div>
           </div>
