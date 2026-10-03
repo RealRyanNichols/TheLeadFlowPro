@@ -2,9 +2,9 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
+import { MENU_LINKS } from "../app/admin/backOfficeNav.ts";
 
 const page = readFileSync(join(process.cwd(), "app/admin/purchases/page.tsx"), "utf8");
-const layout = readFileSync(join(process.cwd(), "app/admin/layout.tsx"), "utf8");
 
 test("the purchases page checks the admin role next to the private read", () => {
   assert.ok(page.includes('profile?.role !== "admin"'), "the page gates on the admin role");
@@ -31,5 +31,5 @@ test("the purchases page has the stated error and empty copy, with no em dashes"
 });
 
 test("the admin nav links to the purchases page", () => {
-  assert.ok(layout.includes("/admin/purchases"));
+  assert.ok(MENU_LINKS.some((l) => l.href === "/admin/purchases" && l.label === "Purchases"));
 });
