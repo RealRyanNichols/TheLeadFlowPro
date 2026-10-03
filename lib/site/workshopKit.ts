@@ -52,7 +52,7 @@ export type WorkshopKit = {
 
 export const DAY_TWO_OFFERS: Record<DayTwoOffer, { name: string; price: string; path: string; pitch: string }> = {
   website_launch: {
-    name: "The first 90-day campaign",
+    name: "The first 90-day acquisition campaign",
     price: `${usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd)} upfront minimum`,
     path: "/pricing",
     pitch: `The first ${MANAGED_COMMERCIAL_TERMS.initialCampaignDays} days include the agreed build, onboarding, and advertising allocation. We define the acquisition target, counting rules, and any additional prepaid acquisition scope in writing. At day 90 we review results and capacity; scaling requires a new written scope and price, with no automatic extension or charge.`,

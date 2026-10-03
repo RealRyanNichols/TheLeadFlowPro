@@ -10,13 +10,15 @@ import {
 } from "lucide-react";
 import { commerceCatalog } from "@/lib/commerce";
 import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
+import { productProjectIntakeHref } from "@/lib/site/agencyIntake";
+import { PROJECT_QUOTE_SUMMARY } from "@/lib/site/projectQuotes";
 import CommercePlanner from "./CommercePlanner";
 import styles from "./commerce.module.css";
 
 export const metadata: Metadata = withPublicPageMetadata("/commerce", {
-  title: "eCommerce Websites, Payments & Tools | The LeadFlow Pro",
+  title: "Storefront & Product Project Quotes | The LeadFlow Pro",
   description:
-    "Connect your online store, payments, downloads and customer follow-up. Try useful tools or plan an eCommerce build with The LeadFlow Pro in Longview, Texas.",
+    "Quote your storefront, product launch, checkout, delivery, and support. Smaller commerce projects have their own scope, separate from managed acquisition.",
 });
 
 export default function CommercePage() {
@@ -39,17 +41,18 @@ export default function CommercePage() {
                 you can fulfill.
               </p>
               <div className={styles.actions}>
-                <Link className={styles.primary} href="#plan">
-                  Plan my selling setup{" "}
+                <Link className={styles.primary} href={productProjectIntakeHref({ service: "websites" })}>
+                  Quote my storefront project{" "}
                   <ArrowRight size={18} aria-hidden="true" />
                 </Link>
-                <Link className={styles.secondary} href="#kits">
-                  Try a working product
+                <Link className={styles.secondary} href="#plan">
+                  Plan my selling setup
                 </Link>
               </div>
               <p className={styles.fine}>
-                Websites and commerce systems for businesses in Longview, East
-                Texas, and beyond. Start with what you already have.
+                Build and launch deliverables, usage costs, and support agreed
+                in writing. A project quote does not enroll you in the managed
+                acquisition campaign.
               </p>
             </div>
             <figure className={styles.heroArt}>
@@ -89,7 +92,8 @@ export default function CommercePage() {
             <h2>What are you selling?</h2>
             <p>
               Choose your business type. See the customer path, try the tools,
-              and save a build list.
+              and save a build list. Product orders use your own margin and
+              selling model; farm job and property deal targets do not apply.
             </p>
           </div>
           <CommercePlanner />
@@ -174,8 +178,8 @@ export default function CommercePage() {
                 remain in preparation.
               </p>
               <div className={styles.actions}>
-                <Link className={styles.primary} href="#build">
-                  Plan my commerce build{" "}
+                <Link className={styles.primary} href={productProjectIntakeHref({ service: "websites" })}>
+                  Quote my commerce build{" "}
                   <ArrowRight size={18} aria-hidden="true" />
                 </Link>
                 <Link className={styles.secondary} href="/tools/pro">
@@ -219,11 +223,12 @@ export default function CommercePage() {
               <p className={styles.eyebrow}>BEFORE THE BUILD</p>
               <h3>Start with a website.</h3>
               <p>
-                Need the foundation first? Scope the website and inquiry path
-                within a current managed plan.
+                Need the foundation first? Quote the website, storefront, and
+                customer path you need. Launch and operating support belong in
+                your project scope; acquisition is optional.
               </p>
               <Link href="/agency/websites">
-                See managed website work{" "}
+                See website and storefront projects{" "}
                 <ArrowRight size={17} aria-hidden="true" />
               </Link>
             </article>
@@ -253,6 +258,15 @@ export default function CommercePage() {
           </div>
           <div className={styles.faq}>
             <h2>Before you connect anything</h2>
+            <details>
+              <summary>Does a storefront require an acquisition campaign?</summary>
+              <p>{PROJECT_QUOTE_SUMMARY}</p>
+              <p>
+                A product build has its own deliverables and launch checks. We
+                do not apply farm job or property deal acquisition targets to
+                ordinary product sales. Managed acquisition is a separate scope.
+              </p>
+            </details>
             <details>
               <summary>Who can sell on Gideon HQ?</summary>
               <p>

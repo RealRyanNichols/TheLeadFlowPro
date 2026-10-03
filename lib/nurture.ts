@@ -43,7 +43,7 @@ export const NURTURE_CAMPAIGN = "free_build";
 // The free website build was retired on 2026-09-22 (its page is a 301 to
 // /services). New leads get the Rent Receipt series (lib/nurtureRentReceipt.ts);
 // only earlier leads or leads that already started this sequence finish it.
-// Future sends describe current new-work terms. Existing approved scopes,
+// Future sends describe current managed acquisition terms. Existing approved scopes,
 // campaign keys, step IDs, recipient eligibility, and send history stay intact.
 const CAMPAIGN_UPFRONT = usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd);
 const CAMPAIGN_DAYS = MANAGED_COMMERCIAL_TERMS.initialCampaignDays;
@@ -177,11 +177,11 @@ export const NURTURE_STEPS: NurtureStep[] = [
 
 Here it is with nothing around it.
 
-New managed clients start at ${CAMPAIGN_UPFRONT} upfront for one campaign lasting up to ${CAMPAIGN_DAYS} days. The agreed build, onboarding, and advertising allocation are included in the written scope.
+Managed acquisition campaigns start at ${CAMPAIGN_UPFRONT} upfront for one campaign lasting up to ${CAMPAIGN_DAYS} days. The agreed build, onboarding, and advertising allocation are included in the written scope.
 
 We agree the services, territory, acquisition target, and what counts before work starts. No automatic monthly renewal.
 
-Earlier approved agreements keep their own prices and deliverables. New work does not change anything already owed under your written scope.
+Smaller storefront and product builds have a separate written quote. Earlier approved agreements keep their own prices and deliverables; new work does not change anything already owed.
 
 ${nurtureLink(1, "/pricing")}`,
   },
@@ -263,7 +263,7 @@ ${nurtureLink(5)}`,
     subject: "💼 The campaign, itemized",
     body: (first) => `${first},
 
-One initial campaign, starting at ${CAMPAIGN_UPFRONT} upfront, for up to ${CAMPAIGN_DAYS} days.
+One managed acquisition campaign, starting at ${CAMPAIGN_UPFRONT} upfront, for up to ${CAMPAIGN_DAYS} days.
 
 The agreed build, onboarding, and advertising allocation are included. We write down the services, territory, acquisition target, and what you own before you pay.
 
@@ -453,7 +453,7 @@ ${nurtureLink(16)}`,
     subject: "Am I ready for this campaign?",
     body: (first) => `${first},
 
-The starting investment is ${CAMPAIGN_UPFRONT} upfront for up to ${CAMPAIGN_DAYS} days. It has to fit your business, not just your desire for more calls.
+The managed acquisition starting investment is ${CAMPAIGN_UPFRONT} upfront for up to ${CAMPAIGN_DAYS} days. It has to fit your business, not just your desire for more calls.
 
 Can you answer inquiries, quote the work, and take on the jobs if the campaign works? Those questions matter as much as the advertising.
 
@@ -539,7 +539,7 @@ ${nurtureLink(21)}`,
     subject: "Know the investment before the work",
     body: (first) => `${first},
 
-New managed work starts at ${CAMPAIGN_UPFRONT} upfront for up to ${CAMPAIGN_DAYS} days. The agreed build, onboarding, and advertising allocation belong in the written campaign scope.
+Managed acquisition campaigns start at ${CAMPAIGN_UPFRONT} upfront for up to ${CAMPAIGN_DAYS} days. The agreed build, onboarding, and advertising allocation belong in the written campaign scope.
 
 ${managedAdditionalScopeExplanation()}
 
@@ -619,7 +619,7 @@ If nothing changes, next year can still mean missed calls, leads gone cold becau
 
 Start by finding the leak. Some fixes are habits you can change today. Others need a scoped build and a campaign your business can support.
 
-New managed work starts at ${CAMPAIGN_UPFRONT} upfront for up to ${CAMPAIGN_DAYS} days, with the agreed build and advertising allocation included. Use the numbers to decide; there is no automatic commitment.
+Managed acquisition campaigns start at ${CAMPAIGN_UPFRONT} upfront for up to ${CAMPAIGN_DAYS} days, with the agreed build and advertising allocation included. Use the numbers to decide; there is no automatic commitment.
 
 ${nurtureLink(26, "/pricing")}`,
   },
@@ -671,7 +671,7 @@ Before we accept a campaign, we check your services, territory, and capacity to 
 
 Interest is not a reservation. The written agreement defines any service-area protection and the acquisition goal. We do not invent a slot count to rush you.
 
-The first campaign starts at ${CAMPAIGN_UPFRONT} upfront for up to ${CAMPAIGN_DAYS} days. If the fit is wrong, we say so before payment or work.
+The first managed acquisition campaign starts at ${CAMPAIGN_UPFRONT} upfront for up to ${CAMPAIGN_DAYS} days. If the fit is wrong, we say so before payment or work.
 
 Earlier approved scopes keep their terms. A new campaign does not replace anything already agreed.
 
@@ -687,7 +687,7 @@ Thirty days. This is the last email in this sequence.
 
 If the timing is wrong, keep my number: ${BUSINESS.phone.display}. Text whenever you have a question.
 
-For new managed work, the starting point is ${CAMPAIGN_UPFRONT} upfront for one campaign lasting up to ${CAMPAIGN_DAYS} days. The agreed build, onboarding, and advertising allocation are included in writing.
+For a managed acquisition campaign, the starting point is ${CAMPAIGN_UPFRONT} upfront for one campaign lasting up to ${CAMPAIGN_DAYS} days. The agreed build, onboarding, and advertising allocation are included in writing.
 
 Reach the agreed target early and new acquisition ends. Captured inquiries are still handed over. At day 90 we review results, with no automatic extension.
 

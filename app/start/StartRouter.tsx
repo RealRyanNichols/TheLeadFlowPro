@@ -23,6 +23,8 @@ import { useFormReady } from "@/components/site/useFormReady";
 import { BUSINESS } from "@/lib/site/business";
 import { campaignTags, storedCampaignTags } from "@/lib/site/campaignTags";
 import { consultationReplyMethod } from "@/lib/site/inquiryValidation";
+import { productProjectIntakeHref } from "@/lib/site/agencyIntake";
+import { PROJECT_QUOTE_SUMMARY } from "@/lib/site/projectQuotes";
 import styles from "./start-v2.module.css";
 import {
   Archive,
@@ -1321,9 +1323,20 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
   const [step, setStep] = useState<string>(validInitial ? "industry" : "goal");
   const [showContact, setShowContact] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [projectQuoteHref, setProjectQuoteHref] = useState(
+    productProjectIntakeHref(),
+  );
   const headingRef = useRef<HTMLHeadingElement | null>(null);
 
   const steps = STEPS;
+
+  useEffect(() => {
+    setProjectQuoteHref(
+      productProjectIntakeHref({
+        ...Object.fromEntries(new URLSearchParams(window.location.search)),
+      }),
+    );
+  }, []);
 
   const stepIndex = steps.indexOf(step);
   const progress =
@@ -1995,13 +2008,21 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
                 </div>
               </div>
               <aside className="result-package-card">
-                <span className="eyebrow">Your campaign starting point</span>
+                <span className="eyebrow">If you want managed acquisition</span>
                 <h2>{pkg.name}</h2>
                 <p className="result-price">{pkg.price}</p>
                 <p>{pkg.description}</p>
                 <div className="result-map-note">
                   <strong>{managedUpfrontSummary()}</strong>
                   <span>{managedBillingExplanation()}</span>
+                </div>
+                <div className="result-map-note">
+                  <strong>Need a storefront or product build?</strong>
+                  <span>{PROJECT_QUOTE_SUMMARY}</span>
+                  <Link href={projectQuoteHref} className="button-secondary">
+                    Request a product project quote
+                    <ArrowRight aria-hidden="true" className="h-4 w-4" />
+                  </Link>
                 </div>
               </aside>
             </div>
@@ -2030,6 +2051,10 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
                   Discuss This Campaign
                   <ArrowRight aria-hidden="true" className="h-4 w-4" />
                 </button>
+                <Link href={projectQuoteHref} className="button-secondary">
+                  Request a Product Project Quote
+                  <ArrowRight aria-hidden="true" className="h-4 w-4" />
+                </Link>
                 <Link
                   href="/diagnostic?utm_source=website&utm_medium=system_map&utm_campaign=business_diagnostic"
                   className="button-secondary"

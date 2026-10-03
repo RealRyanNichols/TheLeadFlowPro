@@ -7,11 +7,11 @@ import ServicesPreview from "@/components/site/ServicesPreview";
 import CtaLink from "@/components/site/CtaLink";
 import { PHONE_DISPLAY, PHONE_TEL } from "@/lib/siteContent";
 import { CONSULTATION } from "@/lib/site/consultation";
+import { productProjectIntakeHref } from "@/lib/site/agencyIntake";
+import { PROJECT_QUOTE_SUMMARY } from "@/lib/site/projectQuotes";
 import {
   MANAGED_PLANS,
   managedPlanPrice,
-  managedUpfrontSummary,
-  managedCampaignSummary,
   managedAdvertisingExplanation,
   managedBillingExplanation,
   managedCompletionExplanation,
@@ -33,7 +33,7 @@ const SITE = "https://www.theleadflowpro.com";
 
 const SERVICES_TITLE =
   "Website Design and Lead Systems for Longview, TX Businesses | The LeadFlow Pro";
-const SERVICES_DESCRIPTION = `Websites, lead capture, CRM, follow-up, payments, portals, and reporting built in accounts you control. A 90-day campaign includes its advertising allocation. ${managedUpfrontSummary()}`;
+const SERVICES_DESCRIPTION = "Website and storefront projects quoted to your scope. Connect payments, delivery, and customer records. Managed acquisition is a separate decision.";
 
 export const metadata: Metadata = withPublicPageMetadata("/services", {
   title: SERVICES_TITLE,
@@ -111,12 +111,12 @@ export default function ServicesPage() {
             </p>
             <div className={styles.actions}>
               <CtaLink
-                href={CONSULTATION.href}
-                event="consultation_cta"
+                href={productProjectIntakeHref({ service: "websites" })}
+                event="product_project_quote"
                 placement="services_hero"
                 className={styles.button}
               >
-                Book the free consultation{" "}
+                Get my project quote{" "}
                 <ArrowRight size={19} aria-hidden="true" />
               </CtaLink>
               <a
@@ -129,14 +129,16 @@ export default function ServicesPage() {
               </a>
             </div>
             <p className={styles.small}>
-              {CONSULTATION.minutes} minutes with Ryan. No pitch deck. You get
-              the pages, features, and cost in writing before any build starts.
+              You get the pages, features, operating costs, and support in
+              writing before any build starts.
+              <br />
+              Website, storefront, and product projects are quoted separately.
               <br />
               <Link href="/pricing">
-                {managedUpfrontSummary()} {managedCampaignSummary()}
+                See optional managed acquisition pricing.
               </Link>
               <br />
-              Want the marketing run for you?{" "}
+              Want the acquisition campaign run for you?{" "}
               <Link href="/agency">Explore managed ads and follow-up.</Link>
             </p>
             <p className={styles.ownership}>
@@ -309,10 +311,36 @@ export default function ServicesPage() {
         </div>
       </section>
 
+      <section id="project-quotes" className={styles.section}>
+        <div className={styles.shell}>
+          <div className={styles.heading}>
+            <p className={styles.eyebrow}>YOUR WEBSITE OR PRODUCT PROJECT</p>
+            <h2>Build what you need. Agree the scope.</h2>
+            <p>{PROJECT_QUOTE_SUMMARY}</p>
+          </div>
+          <div className={styles.custom}>
+            <div>
+              <h3>A storefront, a product launch, or a useful customer path.</h3>
+              <p>
+                Start with the pages, catalog, payment and delivery steps you need.
+                We quote the build and identify usage costs and ongoing support.
+                The request does not enroll you in a campaign or authorize payment.
+              </p>
+            </div>
+            <Link className={styles.button} href={productProjectIntakeHref({ service: "websites" })}>
+              Get my project quote <ArrowRight size={18} aria-hidden="true" />
+            </Link>
+          </div>
+          <Link className={styles.textLink} href="/commerce">
+            Explore storefront and product planning <ArrowRight size={18} aria-hidden="true" />
+          </Link>
+        </div>
+      </section>
+
       <section id="packages" className={styles.section}>
         <div className={styles.shell}>
           <div className={styles.heading}>
-            <p className={styles.eyebrow}>YOUR STARTING POINT</p>
+            <p className={styles.eyebrow}>OPTIONAL MANAGED ACQUISITION</p>
             <h2>One campaign. Up to 90 days. A clear scope.</h2>
             <p>
               {managedBillingExplanation()}{" "}
@@ -367,7 +395,7 @@ export default function ServicesPage() {
           </div>
           <div className={styles.custom}>
             <div>
-              <h3>Need us to run the marketing?</h3>
+              <h3>Need us to run acquisition?</h3>
               <p>
                 Managed ads, follow-up, video, and content have their own
                 written scope. Check your service area before discussing a
@@ -404,8 +432,9 @@ export default function ServicesPage() {
             <p className={styles.small}>
               Longview and East Texas businesses can meet at their shop or at
               the Longview office. Anywhere else, it is a phone or video call.
-              {managedAdvertisingExplanation()} Domain, hosting, and other
-              provider subscriptions are identified in the written scope.
+              Product projects define their build, usage costs, and support in a
+              separate quote. {managedAdvertisingExplanation()} Domain, hosting,
+              and other provider subscriptions are identified in the written scope.
             </p>
           </div>
           <aside className={styles.helpCard}>

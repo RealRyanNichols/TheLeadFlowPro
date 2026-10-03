@@ -453,7 +453,7 @@ The fix for monthly fees is not a cheaper subscription. It is owning the thing.
 
 Concretely: your website, hosting, database, and customer records live in accounts you control. We compare the actual costs before changing the stack. Ownership does not make hosting, vendors, or ongoing work free.
 
-New managed clients start at ${MANAGED_UPFRONT} upfront for the first ${CAMPAIGN_DAYS} days. The agreed build and advertising allocation are included in the written campaign scope. You approve it before work starts; there is no automatic monthly renewal.
+Managed acquisition campaigns start at ${MANAGED_UPFRONT} upfront for the first ${CAMPAIGN_DAYS} days. The agreed build and advertising allocation are included in the written campaign scope. You approve it before work starts; there is no automatic monthly renewal.
 
 I have done it for my own businesses and for other people's. The results are public.
 
@@ -823,7 +823,7 @@ ${close(21, c, `The first 90 day campaign defines the build, acquisition target,
 
 You have not asked, so I will just tell you.
 
-A twenty minute call is free. New managed clients start at ${MANAGED_UPFRONT} upfront for the first ${CAMPAIGN_DAYS} days. The agreed build, onboarding, and advertising allocation are included in writing.
+A twenty minute call is free. Managed acquisition campaigns start at ${MANAGED_UPFRONT} upfront for the first ${CAMPAIGN_DAYS} days. The agreed build, onboarding, and advertising allocation are included in writing.
 
 Farm and agricultural work targets ${MANAGED_COMMERCIAL_TERMS.farmJobTarget} signed or paid acquired jobs. Extra farm acquisition targets are ${usd(PRICES.farmAcquiredJobPlanningTarget)} each. Real estate and mortgage use ${usd(PRICES.propertyCompletedDealPlanningTarget)} per targeted completed deal while we dial it in: ${MANAGED_COMMERCIAL_TERMS.propertyDealPlanningTarget} at the starting investment.
 

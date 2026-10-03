@@ -86,6 +86,7 @@ describe("funnel-specific lead welcomes", () => {
       "tool_studio",
       "package_page",
       "agency_intake",
+      "product_project",
     ]) {
       for (const contact of [
         { phone: null, sms_consent: false },
@@ -117,6 +118,16 @@ describe("funnel-specific lead welcomes", () => {
         );
       }
     }
+  });
+
+  it("keeps product project requests separate from campaign enrollment and acquired-job pricing", () => {
+    const payload = leadWelcomePayload({ ...base, interest: "done_for_you", funnel: "product_project" });
+    assert.match(payload.subject, /product project request/);
+    assert.match(payload.text, /build and launch deliverables/);
+    assert.match(payload.text, /operating costs, support, and project price/);
+    assert.match(payload.text, /not enrollment in an acquisition campaign or authorization for a charge/);
+    assert.match(payload.text, /Product sales do not carry farm job or property deal targets/);
+    assert.doesNotMatch(payload.text, /\$7,500|15 (?:signed|paid|acquired)|minimum upfront|automatic proposal/i);
   });
 
   it("confirms the upfront campaign scope without enrolling an inquiry in recurring billing", () => {

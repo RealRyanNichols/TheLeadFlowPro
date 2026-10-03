@@ -142,6 +142,7 @@ test("future historical-sequence sends use current campaign terms without resurr
   const first = NURTURE_STEPS[0].body("Ryan");
   const last = NURTURE_STEPS.at(-1)!.body("Ryan");
   for (const body of [first, last]) {
+    assert.match(body, /managed acquisition/i);
     assert.ok(body.includes(`${usd(PRICES.managedStartingUpfront)} upfront`));
     assert.match(body, /up to 90 days/);
     assert.match(body, /advertising allocation are included/);
@@ -151,6 +152,7 @@ test("future historical-sequence sends use current campaign terms without resurr
     );
     assert.match(body, /\/pricing\?utm_source=email/);
   }
+  assert.match(first, /Smaller storefront and product builds have a separate written quote/);
   assert.match(last, /Captured inquiries are still handed over/);
   assert.match(last, /no automatic extension/);
   assert.match(last, /new written scope and price/);

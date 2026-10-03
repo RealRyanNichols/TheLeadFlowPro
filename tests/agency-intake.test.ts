@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   agencyIntakeContext,
   agencyIntakeHref,
+  productProjectIntakeHref,
   agencyWebsiteUrl,
   validateAgencyIntake,
 } from "../lib/site/agencyIntake.ts";
@@ -185,6 +186,7 @@ test("service and private lead attribution remain independent of a selected plan
       preselected: "meta-ads",
       initialPlan: "recommended",
       originatingLead: lead.toLowerCase(),
+      inquiryKind: "managed-campaign",
     },
   );
   assert.deepEqual(
@@ -198,6 +200,7 @@ test("service and private lead attribution remain independent of a selected plan
       preselected: "custom",
       initialPlan: "recommended",
       originatingLead: lead.toLowerCase(),
+      inquiryKind: "managed-campaign",
     },
   );
 });
@@ -216,6 +219,7 @@ test("unknown or repeated query choices do not silently select a plan, service, 
       preselected: null,
       initialPlan: null,
       originatingLead: null,
+      inquiryKind: "managed-campaign",
     });
   }
 });
@@ -265,4 +269,77 @@ test("handoff only forwards bounded named public fields", () => {
   const query = new URL(href, "https://example.com").searchParams;
   assert.deepEqual(Array.from(query.keys()).sort(), ["plan", "utm_source"]);
   assert.equal(query.get("utm_source")?.length, 100);
+});
+
+test("only one reviewed product-project scope enters the separate quote path", () => {
+  const context = agencyIntakeContext(
+    { scope: "product-project", service: "custom", plan: "recommended" },
+    known,
+    services,
+  );
+  assert.equal(context.inquiryKind, "product-project");
+  assert.equal(context.initialPlan, null);
+  assert.equal(context.preselected, "custom");
+  for (const scope of ["cheap", ["product-project", "product-project"]]) {
+    assert.equal(
+      agencyIntakeContext({ scope }, known, services).inquiryKind,
+      "managed-campaign",
+    );
+  }
+});
+
+test("product handoff preserves attribution without campaign tiers or private context", () => {
+  const href = productProjectIntakeHref({
+    scope: "managed-campaign",
+    plan: "recommended",
+    service: "custom",
+    utm_source: "facebook",
+    utm_content: ["storefront", "product"],
+    lead: "abcdef01-0000-4000-8000-000000000001",
+    email: "private@example.com",
+    token: "private-token",
+  });
+  const query = new URL(href, "https://example.com").searchParams;
+  assert.equal(query.get("scope"), "product-project");
+  assert.equal(query.get("service"), "custom");
+  assert.deepEqual(query.getAll("utm_content"), ["storefront", "product"]);
+  assert.deepEqual(Array.from(query.keys()).sort(), [
+    "scope", "service", "utm_content", "utm_content", "utm_source",
+  ]);
+  assert.equal(productProjectIntakeHref(), "/agency/start?scope=product-project");
+  assert.equal(
+    new URL(agencyIntakeHref("recommended", { scope: "product-project" }), "https://example.com").searchParams.has("scope"),
+    false,
+  );
+});
+
+test("a separately scoped product quote requires useful answers but no campaign commitment", () => {
+  const form = completed();
+  form.delete("managed_plan_budget");
+  form.delete("campaign_acknowledged");
+  form.set("bottleneck", "Build a storefront and order handoff.");
+  const result = validateAgencyIntake(form, services, "product-project");
+  assert.equal(result.ok, true);
+  if (!result.ok) return;
+  assert.equal(result.value.inquiryKind, "product-project");
+  assert.equal(result.value.plan, null);
+  assert.equal(result.value.campaignAcknowledged, false);
+  assert.equal(result.value.smsConsent, false);
+  assert.equal(result.value.marketingEmailConsent, false);
+
+  form.set("inquiry_kind", "product-project");
+  const campaign = validateAgencyIntake(form, services);
+  assert.equal(campaign.ok, false, "a hidden field cannot bypass campaign review");
+  if (!campaign.ok) {
+    assert.ok(campaign.errors.managed_plan_budget);
+    assert.ok(campaign.errors.campaign_acknowledged);
+  }
+  form.set("email", "bad-email");
+  form.set("sms_consent", "on");
+  const invalid = validateAgencyIntake(form, services, "product-project");
+  assert.equal(invalid.ok, false);
+  if (!invalid.ok) {
+    assert.ok(invalid.errors.email);
+    assert.ok(invalid.errors.phone);
+  }
 });

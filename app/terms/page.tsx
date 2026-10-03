@@ -11,6 +11,7 @@ import {
   managedRenewalExplanation,
   managedUpfrontSummary,
 } from "@/lib/site/managedPlans";
+import { PROJECT_QUOTE_SUMMARY } from "@/lib/site/projectQuotes";
 
 export const metadata: Metadata = withPublicPageMetadata("/terms", {
   title: "Terms of Use | The LeadFlow Pro",
@@ -37,6 +38,7 @@ export default function TermsPage() {
         change.
       </p>
       <h2>Prices, scope, and results</h2>
+      <p>{PROJECT_QUOTE_SUMMARY}</p>
       <p>
         {managedUpfrontSummary()} {managedCampaignSummary()} {managedBillingExplanation()}
         A larger initial acquisition scope or any renewal receives its own written

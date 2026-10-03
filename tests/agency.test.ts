@@ -34,7 +34,7 @@ test("ten agency services, each with one audience, one problem, inclusions, owne
     assert.ok(s.clientPaysDirectly.length >= 1, s.slug);
     assert.ok(s.notIncluded.length >= 2, s.slug);
     assert.ok(s.faq.length >= 3, s.slug);
-    assert.equal(s.intakeHref, `/agency/start?service=${s.slug}`, s.slug);
+    assert.equal(s.intakeHref, s.slug === "websites" ? "/agency/start?scope=product-project&service=websites" : `/agency/start?service=${s.slug}`, s.slug);
     assert.ok(!s.related.some((r) => r.href.startsWith("/free-build")), s.slug);
     assert.ok(agencyService(s.slug));
     const text = JSON.stringify(s).toLowerCase();
@@ -86,6 +86,11 @@ test("agency public copy uses managed plan prices and no longer promotes the old
   assert.equal(MANAGED_COMMERCIAL_TERMS.adSpendTreatment, "included");
   assert.match(AGENCY_HUB.budgetNote, /initial campaign|90/);
   assert.match(AGENCY_HUB.budgetNote, /\$7,500/);
+  const website = agencyService("websites")!;
+  assert.equal(website.inquiryKind, "product-project");
+  assert.match(website.faq.find((item) => item.q === "What does it cost?")!.a, /separate written quote/);
+  assert.doesNotMatch(website.metaDescription, /first 90|\$7,500/);
+  assert.ok(agencyService("content")!.related.some((link) => link.href === "/agency/start?scope=product-project&service=content"));
   for (const service of AGENCY_SERVICES) {
     assert.ok(!JSON.stringify(service).includes("Website Launch"), service.slug);
     assert.ok(!service.related.some((link) => link.href === "/packages/launch"), service.slug);

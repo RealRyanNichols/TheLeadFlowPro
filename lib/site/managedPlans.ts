@@ -18,8 +18,10 @@ export type ManagedPlan = {
  * One prepaid campaign, with a maximum 90-day delivery window. The written
  * scope defines outcomes, attribution, media allocation, and additional targets.
  * This public catalog does not change existing signed customer agreements.
+ * Smaller storefront/product projects use separate scope-based quotes.
  */
 export const MANAGED_COMMERCIAL_TERMS = {
+  appliesTo: "managed_acquisition",
   startingUpfrontUsd: PRICES.managedStartingUpfront,
   initialCampaignDays: 90,
   upfrontTreatment: "initial_campaign",
@@ -72,7 +74,7 @@ export function managedPlanPrice(plan: ManagedPlan): {
 }
 
 export function managedUpfrontSummary(): string {
-  return `Starts at ${usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd)} upfront.`;
+  return `Managed acquisition campaigns start at ${usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd)} upfront.`;
 }
 
 export function managedCampaignSummary(): string {

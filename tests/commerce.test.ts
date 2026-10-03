@@ -75,5 +75,7 @@ describe("public commerce connector", () => {
       /did not buy a service, connect an account, or authorize a charge/,
     );
     assert.match(payload.text, /agree the scope, cost/);
+    assert.match(payload.text, /separate project quote, not acquisition campaign enrollment/);
+    assert.doesNotMatch(payload.text, /\$7,500|15 signed or paid acquired jobs/);
   });
 });

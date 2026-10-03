@@ -294,6 +294,25 @@ function workshopListWelcome(base: { from: string; to: string[]; reply_to: strin
 function funnelWelcome(lead: NotifiableLead, first: string) {
   const base = { from: FROM_RYAN, to: [lead.email], reply_to: BUSINESS.email.hello };
   switch (lead.funnel) {
+    case "product_project":
+      return {
+        ...base,
+        subject: `${first}, your product project request is in.`,
+        text: [
+          `${first},`,
+          "",
+          "Your website, storefront, or product project request is saved with The LeadFlow Pro.",
+          "",
+          "I will review what you sell and what needs to work. We will agree the build and launch deliverables, ownership, timing, operating costs, support, and project price in writing before work or payment.",
+          "",
+          `I reply within one business day by email.${lead.sms_consent && lead.phone ? ` With your permission, I may also call or text from ${BUSINESS.phone.display}.` : ""}`,
+          "",
+          "This is a project quote request, not enrollment in an acquisition campaign or authorization for a charge. Product sales do not carry farm job or property deal targets. Managed acquisition is optional and requires its own agreed scope.",
+          "",
+          "Reply here with any details you want to add. Do not send passwords, payment information, or customer lists.",
+          ...SIGNATURE,
+        ].join("\n"),
+      };
     case "commerce_planner":
       return {
         ...base,
@@ -306,6 +325,8 @@ function funnelWelcome(lead: NotifiableLead, first: string) {
           "I will review what you sell and the accounts you already use. We will agree the scope, cost, and payment and delivery checks before any build.",
           "",
           "Submitting the list did not buy a service, connect an account, or authorize a charge.",
+          "",
+          "It is a separate project quote, not acquisition campaign enrollment. Product sales do not carry farm job or property deal targets; any managed acquisition needs its own written scope.",
           "",
           "Reply here with any details you want to add. Do not send passwords, payment information, or customer lists.",
           "",

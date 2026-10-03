@@ -1,6 +1,12 @@
 import { MANAGED_PLANS, type ManagedPlanId } from "./managedPlans";
 
 export type AgencyServiceOption = { slug: string; label: string };
+export type AgencyInquiryKind = "managed-campaign" | "product-project";
+export const PRODUCT_PROJECT_SERVICES: readonly AgencyServiceOption[] = [
+  { slug: "websites", label: "Website, storefront, or product pages" },
+  { slug: "content", label: "Product copy or launch assets" },
+  { slug: "custom", label: "A custom tool, application, or another build" },
+];
 export const AGENCY_CHANNELS = [
   ["facebook_instagram", "Facebook or Instagram"],
   ["google_ads", "Google Ads"],
@@ -50,10 +56,17 @@ function currentCampaignId(value: QueryValue): ManagedPlanId | null {
 
 /** Normalize historical offers; repeated/unknown choices never select a client. */
 export function agencyIntakeContext(
-  params: { service?: QueryValue; plan?: QueryValue; lead?: QueryValue },
+  params: {
+    service?: QueryValue;
+    plan?: QueryValue;
+    lead?: QueryValue;
+    scope?: QueryValue;
+  },
   knownServices: readonly { slug: string }[],
   coreServices: readonly { slug: string }[],
 ) {
+  const inquiryKind: AgencyInquiryKind =
+    params.scope === "product-project" ? "product-project" : "managed-campaign";
   const requestedService =
     typeof params.service === "string" &&
     knownServices.some((service) => service.slug === params.service)
@@ -64,7 +77,8 @@ export function agencyIntakeContext(
       ? requestedService
       : "custom"
     : null;
-  const initialPlan = currentCampaignId(params.plan);
+  const initialPlan =
+    inquiryKind === "managed-campaign" ? currentCampaignId(params.plan) : null;
   const originatingLead =
     typeof params.lead === "string" &&
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
@@ -72,15 +86,17 @@ export function agencyIntakeContext(
     )
       ? params.lead.toLowerCase()
       : null;
-  return { requestedService, preselected, initialPlan, originatingLead };
+  return {
+    requestedService,
+    preselected,
+    initialPlan,
+    originatingLead,
+    inquiryKind,
+  };
 }
 
-/** Carry public campaign attribution through an intake handoff.
- * Private lead IDs, contact details, and arbitrary query fields are not forwarded. */
-export function agencyIntakeHref(
-  plan: AgencyPlanChoice | null,
-  params: Record<string, QueryValue> = {},
-): string {
+/** Private IDs, contact details, and arbitrary queries never enter a public handoff. */
+function intakePublicQuery(params: Record<string, QueryValue>) {
   const query = new URLSearchParams();
   for (const key of [
     "utm_source",
@@ -99,9 +115,27 @@ export function agencyIntakeHref(
     /^[a-z][a-z\d-]{0,59}$/.test(params.service)
   )
     query.set("service", params.service);
+  return query;
+}
+
+/** Carry reviewed public attribution to the managed acquisition intake. */
+export function agencyIntakeHref(
+  plan: AgencyPlanChoice | null,
+  params: Record<string, QueryValue> = {},
+): string {
+  const query = intakePublicQuery(params);
   const campaignId = currentCampaignId(plan ?? undefined);
   if (campaignId) query.set("plan", campaignId);
   return `/agency/start${query.size ? `?${query}` : ""}`;
+}
+
+/** A build-only quote has no campaign plan or acquisition-price acknowledgment. */
+export function productProjectIntakeHref(
+  params: Record<string, QueryValue> = {},
+): string {
+  const query = new URLSearchParams({ scope: "product-project" });
+  for (const [key, value] of intakePublicQuery(params)) query.append(key, value);
+  return `/agency/start?${query}`;
 }
 
 function text(form: FormData, name: string): string {
@@ -132,6 +166,7 @@ export function agencyWebsiteUrl(value: string): string | null {
 export function validateAgencyIntake(
   form: FormData,
   services: readonly AgencyServiceOption[],
+  inquiryKind: AgencyInquiryKind = "managed-campaign",
 ) {
   const errors: AgencyIntakeErrors = {};
   const businessName = text(form, "business_name");
@@ -143,8 +178,10 @@ export function validateAgencyIntake(
     (service) => form.get(`service_${service.slug}`) === "on",
   );
   const rawPlan = text(form, "managed_plan_budget");
-  const plan = currentCampaignId(rawPlan);
-  const campaignAcknowledged = form.get("campaign_acknowledged") === "on";
+  const isCampaign = inquiryKind !== "product-project";
+  const plan = isCampaign ? currentCampaignId(rawPlan) : null;
+  const campaignAcknowledged =
+    isCampaign && form.get("campaign_acknowledged") === "on";
   const decider = AGENCY_DECIDERS.find(
     ([id]) => id === form.get("decision_maker"),
   );
@@ -175,10 +212,10 @@ export function validateAgencyIntake(
   }
   if (!picked.length)
     errors.services = "Choose at least one service, or select a custom build.";
-  if (!plan)
+  if (isCampaign && !plan)
     errors.managed_plan_budget =
       "Review the current campaign before sending your request.";
-  if (!campaignAcknowledged)
+  if (isCampaign && !campaignAcknowledged)
     errors.campaign_acknowledged =
       "Confirm that you understand the campaign starting point. This does not authorize a charge.";
   if (!bottleneck || bottleneck.length > 1000)
@@ -200,7 +237,8 @@ export function validateAgencyIntake(
       smsConsent,
       marketingEmailConsent: form.get("marketing_email_consent") === "on",
       picked,
-      plan: plan!,
+      inquiryKind,
+      plan,
       campaignAcknowledged,
       decider: decider!,
       timeline: timeline!,

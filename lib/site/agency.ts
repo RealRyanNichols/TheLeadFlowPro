@@ -10,6 +10,8 @@ import { BUSINESS } from "./business";
 import { offer, type Offer } from "./offers";
 import { PRICES, usd } from "./prices";
 import { MANAGED_COMMERCIAL_TERMS, managedAdvertisingExplanation, managedBillingExplanation, managedCampaignSummary } from "./managedPlans";
+import { productProjectIntakeHref } from "./agencyIntake";
+import { PROJECT_QUOTE_SUMMARY } from "./projectQuotes";
 
 export const AGENCY_PLAN_SUMMARY = `${managedCampaignSummary()} Paid upfront. Advertising is included within your written campaign allocation.`;
 
@@ -29,6 +31,14 @@ export const AGENCY_PROCESS = [
   { step: "03", name: "Build", body: "Accounts, tracking, pages, forms, creative, and routing set up in your accounts, tested with the way you actually answer the phone." },
   { step: "04", name: "Launch", body: "Live on an agreed date with the first-party trace in place: source, action, outcome, against your own records." },
   { step: "05", name: "Measure", body: "Reports connect inquiries to the agreed counted outcomes using your closing records. At day 90 we review results and capacity. If the work supports scaling, a higher investment needs a new written scope and price; there is no automatic extension or charge." },
+] as const;
+
+export const PROJECT_BUILD_PROCESS = [
+  { step: "01", name: "Map", body: "Review what you sell, who uses it, and the website, catalog, payment, and delivery accounts you already have." },
+  { step: "02", name: "Scope", body: "Agree the build and launch deliverables, ownership, timing, operating costs, support, and project price in writing before work or payment." },
+  { step: "03", name: "Build", body: "Build the agreed pages, checkout, delivery, or customer workflow in accounts you control. Review the work before launch." },
+  { step: "04", name: "Launch", body: "Test the agreed customer path, access rules, and handoff. Launch only after the required content and account approvals are complete." },
+  { step: "05", name: "Measure", body: "Review the product and operating records agreed in your scope. Any ongoing support or managed acquisition needs its own written responsibilities and price; the build has no automatic job target or renewal." },
 ] as const;
 
 export type AgencyService = {
@@ -54,6 +64,8 @@ export type AgencyService = {
   faq: { q: string; a: string }[];
   /** Where the intake pre-selects this service. */
   intakeHref: string;
+  /** Build-only inquiries use a project quote, without a campaign acknowledgment. */
+  inquiryKind?: "product-project";
   /** Existing pages this service hands off to, when the work already exists. */
   related: { href: string; label: string }[];
   /**
@@ -154,13 +166,14 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
     navLabel: "Websites",
     seoTitle: "Website Design for Longview, TX Businesses | The LeadFlow Pro",
     metaDescription:
-      "Business websites for Longview and East Texas, scoped within your first 90-day campaign to capture inquiries and connect follow-up. You own the domain and site.",
+      "Website and storefront projects for Longview and East Texas, quoted around your build, launch, and support. You own your site and accounts.",
     eyebrow: "A website that gives people a next step",
     audience: "Any business whose website cannot answer what you do, what it costs, and how to reach you from a phone.",
     problem: "A template someone else owns, a contact form that goes nowhere, and a monthly bill for a site that has never produced a lead you could trace.",
-    promise: "A website built around your services, proof, and lead capture, connected to your inbox or CRM and included within the written campaign scope. You own the site and accounts.",
+    promise: "A website or storefront built around what you sell, with the pages, checkout, delivery, and support agreed in a separate project quote. You own the site and accounts; managed acquisition is optional.",
     included: [
-      "The pages agreed in your plan: services, proof, contact, and the conversion paths your business needs",
+      "The pages agreed in your quote: services or products, proof, contact, and the customer paths your business needs",
+      "Storefront, checkout, download, or order handoff features when included in your project scope",
       "One lead-capture path with routing to the agreed inbox or CRM",
       "LocalBusiness structured data, titles, descriptions, sitemap, and indexing submission",
       "First-party analytics connected in your account",
@@ -169,15 +182,19 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
     ],
     clientOwns: ["The code, the domain, and the hosting project", "The form, the leads, and the analytics", "Every account created for the build"],
     clientPaysDirectly: ["Domain registration", "Third-party hosting fees, unless you choose managed hosting", "Any paid software the site depends on"],
-    notIncluded: ["A promise of a Google ranking, a number of leads, or sales", "Unlimited pages or revisions", "Work beyond the build and capacity agreed for the first 90 days"],
+    notIncluded: ["A promise of a Google ranking, a number of leads, or sales", "Unlimited pages or revisions", "Managed acquisition or ongoing support not agreed in the project scope"],
     faq: [
-      { q: "What does it cost?", a: AGENCY_PLAN_SUMMARY },
+      { q: "What does it cost?", a: PROJECT_QUOTE_SUMMARY },
       { q: "Do you host it?", a: "Hosting, access, and responsibilities are written into your proposal. You own the domain and site. Any vendor item outside the approved plan is disclosed before you agree." },
-      { q: "Can it connect to my ads?", a: "Yes. The pixel, tag, and lead routing are set up so an ad click, a form, and a lead record connect. That is the trace-the-sale chain the rest of this site teaches." },
+      { q: "Do I have to buy an acquisition campaign?", a: "No. A storefront or product build can have its own project quote. A managed acquisition campaign is a separate decision, with its goal, advertising allocation, price, and responsibilities agreed in writing." },
+      { q: "Does a product build carry a farm job target?", a: "No. Product build and launch deliverables are defined in your project quote. We do not apply farm job or property deal targets to ordinary product sales." },
+      { q: "Can it connect to my ads?", a: "Yes. We can scope tracking and inquiry routing for your customer path. Running the acquisition campaign is optional and requires its own written scope." },
     ],
-    intakeHref: intake("websites"),
+    intakeHref: productProjectIntakeHref({ service: "websites" }),
+    inquiryKind: "product-project",
     related: [
-      { href: "/pricing", label: "90-day campaign and scope" },
+      { href: "/commerce", label: "Storefront and product planning" },
+      { href: "/pricing", label: "Optional managed acquisition campaign" },
     ],
   },
   {
@@ -273,12 +290,14 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
     clientPaysDirectly: ["Email software or scheduling tools identified outside the included campaign allocation in your written scope", "Additional promotion beyond the campaign's included advertising allocation, only with a separately approved scope and budget"],
     notIncluded: ["Invented reviews, statistics, or claims", "Marketing email to anyone who did not opt in", "Posting from LeadFlow accounts on your behalf"],
     faq: [
-      { q: "What does it cost?", a: AGENCY_PLAN_SUMMARY },
+      { q: "What does a managed acquisition campaign cost?", a: AGENCY_PLAN_SUMMARY },
+      { q: "Can I quote content for a product launch separately?", a: PROJECT_QUOTE_SUMMARY },
       { q: "Will it sound like me?", a: "It has to. The first job is a short voice interview; every draft is checked against it, and nothing publishes without your approval on the first batch." },
       { q: "Can I learn to do this myself?", a: "Yes. The Content Engine course in the Operator Academy teaches the same process." },
     ],
     intakeHref: intake("content"),
     related: [
+      { href: productProjectIntakeHref({ service: "content" }), label: "Quote product launch content" },
       { href: "/operator-academy/content-engine", label: "The Content Engine course" },
     ],
   },

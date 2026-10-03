@@ -19,6 +19,8 @@ import {
   type AgencyService,
 } from "@/lib/site/agency";
 import { BUSINESS } from "@/lib/site/business";
+import { PROJECT_QUOTE_SUMMARY } from "@/lib/site/projectQuotes";
+import { productProjectIntakeHref } from "@/lib/site/agencyIntake";
 import { PRICES, usd } from "@/lib/site/prices";
 import {
   MANAGED_PLANS,
@@ -38,7 +40,7 @@ import { breadcrumbJsonLd, graph, jsonLdText, localBusinessJsonLd } from "@/lib/
 export const metadata: Metadata = withPublicPageMetadata("/agency", {
   title: "Agency: Meta ads, Google Ads, websites, automation, video, content | The LeadFlow Pro",
   description:
-    "Full-service ads, websites, automation, video, and content for East Texas businesses, plus specialty builds for crypto communities, CPA firms, and shops, run in accounts you own. Advertising is included in your written plan allocation. You keep your accounts and records.",
+    "Managed acquisition campaigns and separately quoted website, storefront, and product projects for East Texas businesses. You keep your accounts and records.",
 });
 
 const ALWAYS_TRUE = [
@@ -54,14 +56,14 @@ function ServiceCard({ service }: { service: AgencyService }) {
       <h3>{service.name}</h3>
       <p>{service.promise}</p>
       <div className="cb-servicecard-price">
-        <strong>Within your agreed campaign</strong>
-        <span>The work and advertising allocation are agreed in writing.</span>
+        <strong>{service.inquiryKind === "product-project" ? "A separate project quote" : "Within your agreed acquisition campaign"}</strong>
+        <span>{service.inquiryKind === "product-project" ? "Build, launch, usage costs, and support agreed in writing." : "The work and advertising allocation are agreed in writing."}</span>
       </div>
       <Link href={`/agency/${service.slug}`} className="cb-textlink" data-cta="agency_service_open" data-cta-placement={service.slug}>
         See what is included <ArrowRight aria-hidden="true" />
       </Link>
       <Link href={service.intakeHref} className="cb-textlink" data-cta="agency_service_intake" data-cta-placement={service.slug}>
-        Scope this work <ArrowRight aria-hidden="true" />
+        {service.inquiryKind === "product-project" ? "Quote this project" : "Scope this campaign"} <ArrowRight aria-hidden="true" />
       </Link>
     </article>
   );
@@ -89,7 +91,7 @@ export default function AgencyHubPage() {
         eyebrow="Run my marketing"
         mutedTitle="Your marketing."
         title="Handled for you."
-        body={`Ads, websites, follow-up, video, and content, managed in accounts you own. ${managedUpfrontSummary()} ${managedCampaignSummary()} Advertising is included.`}
+        body={`An acquisition campaign with the agreed ads, website, follow-up, video, and content, managed in accounts you own. ${managedUpfrontSummary()} ${managedCampaignSummary()} Advertising is included.`}
         media={{
           src: "/images/services/quote-follow-up-light.webp",
           alt: "A quote clipboard, reminder bell, calendar, and phone connected across a bright cream desk",
@@ -100,6 +102,26 @@ export default function AgencyHubPage() {
         secondary={{ href: "#plans", label: "See campaign terms" }}
         trustLine={OWNERSHIP_PROMISE.headline}
       />
+
+      <section id="project-quotes" className="cb-band" aria-labelledby="project-quotes-title">
+        <div className="cb-shell">
+          <div className="cb-headrow">
+            <div>
+              <p className="cb-eyebrow">Website, storefront, or product launch</p>
+              <h2 id="project-quotes-title" className="cb-h2 cb-heading">Quote the project you need.</h2>
+            </div>
+            <p className="cb-lead">{PROJECT_QUOTE_SUMMARY}</p>
+          </div>
+          <div className="cb-actions">
+            <Link href={productProjectIntakeHref()} className="cb-btn cb-btn--primary" data-cta="product_project_quote" data-cta-placement="agency_project">
+              Get my project quote <ArrowRight aria-hidden="true" className="h-4 w-4" />
+            </Link>
+            <Link href="/commerce" className="cb-btn cb-btn--ghost">
+              Explore product and storefront work
+            </Link>
+          </div>
+        </div>
+      </section>
 
       <section id="plans" className="cb-band cb-band--tint" aria-labelledby="plans-title" tabIndex={-1}>
         <div className="cb-shell">
@@ -409,7 +431,7 @@ export default function AgencyHubPage() {
           <div className="sv-form-intro">
             <p className="cb-eyebrow">The intake</p>
             <h2 id="intake-title" className="cb-h2 cb-heading">
-              Tell Ryan what is leaking.
+              Scope your managed acquisition campaign.
             </h2>
             <p className="cb-lead">
               Share your business, services, territory, and capacity so Ryan can scope the first

@@ -16,8 +16,10 @@ import {
   validateAgencyIntake,
   type AgencyIntakeErrors,
   type AgencyIntakeField,
+  type AgencyInquiryKind,
   type AgencyServiceOption,
 } from "@/lib/site/agencyIntake";
+import { PROJECT_QUOTE_SUMMARY } from "@/lib/site/projectQuotes";
 import {
   MANAGED_COMMERCIAL_TERMS,
   MANAGED_PLANS,
@@ -70,12 +72,14 @@ export default function AgencyIntake({
   placement = "agency_start",
   requestedService = null,
   originatingLead = null,
+  inquiryKind = "managed-campaign",
 }: {
   services: AgencyServiceOption[];
   preselected: string | null;
   initialPlan?: string | null;
   requestedService?: string | null;
   originatingLead?: string | null;
+  inquiryKind?: AgencyInquiryKind;
   placement?: "agency_start" | "agency_hub";
 }) {
   const ready = useFormReady();
@@ -90,6 +94,7 @@ export default function AgencyIntake({
   const doneHeading = useRef<HTMLHeadingElement>(null);
   const campaign = MANAGED_PLANS[0];
   const campaignPrice = managedPlanPrice(campaign);
+  const isProject = inquiryKind === "product-project";
   const busy = !ready || status === "sending";
 
   useEffect(() => {
@@ -138,6 +143,7 @@ export default function AgencyIntake({
     const result = validateAgencyIntake(
       new FormData(event.currentTarget),
       services,
+      inquiryKind,
     );
     if (!result.ok) {
       setErrors(result.errors);
@@ -147,11 +153,13 @@ export default function AgencyIntake({
     setErrors({});
     const values = result.value;
     const summary = [
-      `AGENCY INTAKE: ${values.picked.map((service) => service.label).join(", ")}.`,
+      `${isProject ? "PRODUCT PROJECT QUOTE" : "AGENCY INTAKE"}: ${values.picked.map((service) => service.label).join(", ")}.`,
       values.channels.length
         ? `Current channels: ${values.channels.map(([, label]) => label).join(", ")}.`
         : "",
-      `Campaign under consideration: ${campaign.name}, ${campaignPrice.amount} ${campaignPrice.unit}. Agreed advertising allocation included; scope and goal agreed in writing.`,
+      isProject
+        ? "Separate build quote requested. Deliverables, ownership, timing, operating costs, support and price require a written scope before work or payment."
+        : `Campaign under consideration: ${campaign.name}, ${campaignPrice.amount} ${campaignPrice.unit}. Agreed advertising allocation included; scope and goal agreed in writing.`,
       `Decision-maker: ${values.decider[1]}.`,
       `Timeline: ${values.timeline[1]}.`,
       `Bottleneck: ${values.bottleneck}`,
@@ -163,7 +171,7 @@ export default function AgencyIntake({
     const tags = campaignTags(
       new URLSearchParams(window.location.search),
       storedCampaignTags(),
-      "agency_intake",
+      isProject ? "product_project" : "agency_intake",
     );
     try {
       const res = await fetch("/api/leads", {
@@ -187,16 +195,22 @@ export default function AgencyIntake({
           utm_medium: tags.utm_medium,
           utm_campaign: tags.utm_campaign,
           diagnostic: {
-            version: 3,
-            source: "agency_intake",
+            version: 4,
+            source: isProject ? "product_project" : "agency_intake",
+            inquiry_kind: values.inquiryKind,
             services: values.picked.map((service) => service.slug),
             channels: values.channels.map(([choice]) => choice),
-            managed_plan_budget: values.plan,
-            advertising_included: true,
-            upfront_treatment: "initial_campaign",
-            initial_campaign_days: MANAGED_COMMERCIAL_TERMS.initialCampaignDays,
-            campaign_acknowledged: values.campaignAcknowledged,
-            automatic_extension: false,
+            ...(isProject
+              ? { quote_required: true }
+              : {
+                  managed_plan_budget: values.plan,
+                  advertising_included: true,
+                  upfront_treatment: "initial_campaign",
+                  initial_campaign_days:
+                    MANAGED_COMMERCIAL_TERMS.initialCampaignDays,
+                  campaign_acknowledged: values.campaignAcknowledged,
+                  automatic_extension: false,
+                }),
             decision_maker: values.decider[0],
             timeline: values.timeline[0],
             bottleneck: values.bottleneck,
@@ -227,13 +241,15 @@ export default function AgencyIntake({
           Your next step is a clear scope.
         </h2>
         <p>
-          Expect a reply within one business day to map the first ninety days.
+          Expect a reply within one business day to{" "}
+          {isProject ? "scope your project." : "map the first ninety days."}{" "}
           We call or text only when you chose that consent.
         </p>
         <p>Nothing is scoped, built, or billed until you see it in writing.</p>
-        <p>{managedRenewalExplanation()}</p>
-        <Link href="/pricing" className={styles.textLink}>
-          Review the 90-day campaign <ArrowRight size={15} aria-hidden="true" />
+        {!isProject ? <p>{managedRenewalExplanation()}</p> : null}
+        <Link href={isProject ? "/services" : "/pricing"} className={styles.textLink}>
+          {isProject ? "Review build options" : "Review the 90-day campaign"}{" "}
+          <ArrowRight size={15} aria-hidden="true" />
         </Link>
       </div>
     );
@@ -247,22 +263,29 @@ export default function AgencyIntake({
       onSubmit={submit}
       onChange={clearError}
       noValidate
-      aria-label="Agency intake"
+      aria-label={isProject ? "Product project quote request" : "Agency intake"}
       aria-busy={busy}
     >
       <noscript>
         <p className={styles.helper}>
           This form needs JavaScript. You can{" "}
           <a href={BUSINESS.phone.tel}>call {BUSINESS.phone.display}</a> or{" "}
-          <a href={BUSINESS.phone.sms}>text us</a> to discuss a campaign.
+          <a href={BUSINESS.phone.sms}>text us</a> to discuss{" "}
+          {isProject ? "your project." : "a campaign."}
         </p>
       </noscript>
       <div className={styles.planSummary}>
         <ShieldCheck size={24} aria-hidden="true" />
         <div>
           <p className={styles.eyebrow}>Your starting point</p>
-          <strong>{managedCampaignSummary()}</strong>
-          <p>{managedAdvertisingExplanation()}</p>
+          <strong>
+            {isProject
+              ? "Your product build. Quoted from scope."
+              : managedCampaignSummary()}
+          </strong>
+          <p>
+            {isProject ? PROJECT_QUOTE_SUMMARY : managedAdvertisingExplanation()}
+          </p>
         </div>
       </div>
       <p className={styles.requiredNote}>
@@ -394,7 +417,7 @@ export default function AgencyIntake({
       <Section
         number={2}
         disabled={busy}
-        title="What should we handle?"
+        title={isProject ? "What should we build?" : "What should we handle?"}
         requiredMark
         note="Choose everything that needs attention. We will agree on what belongs in your scope."
         id={id("services")}
@@ -436,42 +459,65 @@ export default function AgencyIntake({
       <Section
         number={4}
         disabled={busy}
-        title="Review the campaign starting point"
-        requiredMark
-        note="This request does not start a subscription or authorize a payment. We confirm fit, the goal, and scope before you pay."
+        title={
+          isProject
+            ? "Your written project quote"
+            : "Review the campaign starting point"
+        }
+        requiredMark={!isProject}
+        note={
+          isProject
+            ? "Tell us the build you need. We review the project and quote its scope separately before you choose to proceed."
+            : "This request does not start a subscription or authorize a payment. We confirm fit, the goal, and scope before you pay."
+        }
         id={id("managed_plan_budget")}
         tabIndex={-1}
       >
-        <input type="hidden" name="managed_plan_budget" value={campaign.id} />
-        <label className={`${styles.choice} ${styles.planChoice}`}>
-          <input
-            id={id("campaign_acknowledged")}
-            type="checkbox"
-            name="campaign_acknowledged"
-            required
-            {...fieldA11y("campaign_acknowledged")}
-          />
-          <span className={styles.planDetails}>
-            <strong className={styles.planName}>{campaign.name}</strong>
-            <span className={styles.planPrice}>
-              {campaignPrice.amount} <small>{campaignPrice.unit}</small>
-            </span>
-            <span className={styles.planUpfront}>
-              I understand this starting point and want to discuss whether it fits my business.
-            </span>
-          </span>
-        </label>
-        <p className={styles.helper}>{managedCompletionExplanation()}</p>
-        <p className={styles.helper}>{managedRenewalExplanation()}</p>
-        <p className={styles.helper}>
-          Want more acquisition capacity? Tell us below. Any added prepaid scope,
-          price, and outcome goal must be agreed in writing.
-        </p>
-        {fieldError("campaign_acknowledged")}
-        {fieldError("managed_plan_budget")}
+        <input type="hidden" name="inquiry_kind" value={inquiryKind} />
+        {isProject ? (
+          <p className={styles.helper}>
+            Your quote will name the deliverables, ownership, timing, operating
+            costs, support, and price. This request does not authorize a payment
+            or enroll you in an acquisition campaign.
+          </p>
+        ) : (
+          <>
+            <input type="hidden" name="managed_plan_budget" value={campaign.id} />
+            <label className={`${styles.choice} ${styles.planChoice}`}>
+              <input
+                id={id("campaign_acknowledged")}
+                type="checkbox"
+                name="campaign_acknowledged"
+                required
+                {...fieldA11y("campaign_acknowledged")}
+              />
+              <span className={styles.planDetails}>
+                <strong className={styles.planName}>{campaign.name}</strong>
+                <span className={styles.planPrice}>
+                  {campaignPrice.amount} <small>{campaignPrice.unit}</small>
+                </span>
+                <span className={styles.planUpfront}>
+                  I understand this starting point and want to discuss whether it fits my business.
+                </span>
+              </span>
+            </label>
+            <p className={styles.helper}>{managedCompletionExplanation()}</p>
+            <p className={styles.helper}>{managedRenewalExplanation()}</p>
+            <p className={styles.helper}>
+              Want more acquisition capacity? Tell us below. Any added prepaid scope,
+              price, and outcome goal must be agreed in writing.
+            </p>
+            {fieldError("campaign_acknowledged")}
+            {fieldError("managed_plan_budget")}
+          </>
+        )}
       </Section>
 
-      <Section number={5} title="What needs to improve?" disabled={busy}>
+      <Section
+        number={5}
+        title={isProject ? "What does the project need to do?" : "What needs to improve?"}
+        disabled={busy}
+      >
         <label className={styles.label} htmlFor={id("bottleneck")}>
           Tell us in your own words <span aria-hidden="true">*</span>
           <textarea
@@ -481,7 +527,11 @@ export default function AgencyIntake({
             required
             maxLength={1000}
             rows={4}
-            placeholder="For example: leads arrive on Facebook, but we miss the follow-up. Or we miss calls while we are on a job."
+            placeholder={
+              isProject
+                ? "For example: a storefront for our products, checkout, and a clear order handoff. Tell us what exists now and what needs building."
+                : "For example: leads arrive on Facebook, but we miss the follow-up. Or we miss calls while we are on a job."
+            }
             {...fieldA11y("bottleneck")}
           />
           {fieldError("bottleneck")}

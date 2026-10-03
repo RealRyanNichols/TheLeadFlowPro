@@ -224,6 +224,7 @@ test("future Rent Receipt recommendations describe the 90-day campaign, counted 
       /\$497|\$1,000|System Map|five page site you own outright|Nothing is monthly unless/i,
     );
     if (rendered.day === 22) {
+      assert.match(rendered.body, /Managed acquisition campaigns start at/);
       assert.ok(
         rendered.body.includes(`${usd(PRICES.managedStartingUpfront)} upfront`),
       );

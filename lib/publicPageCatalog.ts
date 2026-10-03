@@ -333,9 +333,9 @@ export const PUBLIC_PAGE_CATALOG = [
   },
   {
     path: "/agency/start",
-    title: "Scope your 90-day acquisition campaign",
+    title: "Request a service scope",
     description:
-      `Share your business needs and review the single ${CAMPAIGN_MINIMUM} minimum upfront campaign. Scope, advertising allocation, attribution, and goals are agreed before payment.`,
+      "Tell us about your business. Request a separate product or storefront quote, or scope a managed acquisition campaign. Agree the work and price before payment.",
     eyebrow: "Agency intake",
     index: false,
   },

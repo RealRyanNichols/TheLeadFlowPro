@@ -24,7 +24,11 @@ import {
   managedCompletionExplanation,
   managedRenewalExplanation,
 } from "@/lib/site/managedPlans";
-import { agencyIntakeHref } from "@/lib/site/agencyIntake";
+import {
+  agencyIntakeHref,
+  productProjectIntakeHref,
+} from "@/lib/site/agencyIntake";
+import { PROJECT_QUOTE_SUMMARY } from "@/lib/site/projectQuotes";
 import styles from "./managed-pricing.module.css";
 
 export const metadata: Metadata = withPublicPageMetadata("/pricing", {
@@ -37,6 +41,10 @@ export const metadata: Metadata = withPublicPageMetadata("/pricing", {
 });
 
 const QUESTIONS = [
+  {
+    question: "What if I need a smaller storefront or product project?",
+    answer: PROJECT_QUOTE_SUMMARY,
+  },
   {
     question: "What does the upfront investment include?",
     answer: managedBillingExplanation(),
@@ -84,13 +92,14 @@ export default async function PricingPage({
   const farmRate = usd(PRICES.farmAcquiredJobPlanningTarget);
   const propertyRate = usd(PRICES.propertyCompletedDealPlanningTarget);
   const intake = agencyIntakeHref(MANAGED_PLANS[0].id, query);
+  const projectIntake = productProjectIntakeHref(query);
   return (
     <main className={styles.page}>
       <div className={styles.shell}>
         <section className={styles.hero}>
           <div>
             <p className={styles.eyebrow}>
-              One starting offer. A clear objective.
+              Managed acquisition. A clear starting offer.
             </p>
             <h1>
               Your first 90 days. <span>Built to win work.</span>
@@ -145,6 +154,26 @@ export default async function PricingPage({
               </div>
             </div>
           </aside>
+        </section>
+
+        <section
+          className={styles.projectScope}
+          aria-labelledby="project-scope-title"
+        >
+          <div>
+            <p className={styles.eyebrow}>Build around what you need</p>
+            <h2 id="project-scope-title">Have a product ready to sell?</h2>
+            <p>{PROJECT_QUOTE_SUMMARY}</p>
+          </div>
+          <CtaLink
+            href={projectIntake}
+            event="product_project_intake"
+            placement="pricing_project_scope"
+            className={styles.secondary}
+          >
+            Scope my product project
+            <ArrowRight size={16} aria-hidden="true" />
+          </CtaLink>
         </section>
 
         <section

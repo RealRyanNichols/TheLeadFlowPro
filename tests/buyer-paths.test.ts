@@ -6,6 +6,12 @@ import { createElement, type ComponentType, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import ts from "typescript";
 import * as commerce from "../lib/commerce.ts";
+import * as agency from "../lib/site/agency.ts";
+import * as agencyIntake from "../lib/site/agencyIntake.ts";
+import * as managedPlans from "../lib/site/managedPlans.ts";
+import * as structuredData from "../lib/site/structuredData.ts";
+import { PROJECT_QUOTE_SUMMARY } from "../lib/site/projectQuotes.ts";
+import { BUSINESS } from "../lib/site/business.ts";
 import { withPublicPageMetadata } from "../lib/publicPageMetadata.ts";
 import { TOOL_COUNT } from "../lib/tools/index.ts";
 import { renderableCaseStudies } from "../lib/site/caseStudies.ts";
@@ -26,7 +32,7 @@ class Redirect extends Error {
 
 const require = createRequire(import.meta.url);
 
-function renderBuyerPage(file: string): string {
+function loadBuyerPage(file: string) {
   // Execute the real page with real catalog data. Framework image/link and
   // unrelated planner/analytics leaves are neutral; no handler or transport runs.
   const basicLink = ({
@@ -42,6 +48,7 @@ function renderBuyerPage(file: string): string {
     "react/jsx-runtime": require("react/jsx-runtime"),
     "lucide-react": require("lucide-react"),
     "next/link": { __esModule: true, default: basicLink },
+    "next/navigation": { notFound: () => { throw new Error("not found"); } },
     "next/image": {
       __esModule: true,
       default: ({ src, alt }: { src: string; alt: string }) =>
@@ -52,6 +59,22 @@ function renderBuyerPage(file: string): string {
     "@/lib/commerce": commerce,
     "@/lib/publicPageMetadata": { withPublicPageMetadata },
     "@/lib/tools": { TOOL_COUNT },
+    "@/lib/site/agency": agency,
+    "@/lib/site/agencyIntake": agencyIntake,
+    "@/lib/site/managedPlans": managedPlans,
+    "@/lib/site/projectQuotes": { PROJECT_QUOTE_SUMMARY },
+    "@/lib/site/business": { BUSINESS },
+    "@/lib/site/structuredData": structuredData,
+    "@/components/site/system/SiteHero": {
+      __esModule: true,
+      default: ({ body, primary }: { body: string; primary: { href: string; label: string } }) =>
+        createElement("section", null, createElement("p", null, body), createElement("a", { href: primary.href }, primary.label)),
+    },
+    "@/components/site/system/FinalCta": {
+      __esModule: true,
+      default: ({ body, primary }: { body: string; primary: { href: string; label: string } }) =>
+        createElement("section", null, createElement("p", null, body), createElement("a", { href: primary.href }, primary.label)),
+    },
   };
   const exports = {} as { default: ComponentType };
   const code = ts.transpileModule(readFileSync(file, "utf8"), {
@@ -68,7 +91,11 @@ function renderBuyerPage(file: string): string {
       throw new Error(`Unexpected buyer page import: ${name}`);
     return modules[name];
   }, exports);
-  return renderToStaticMarkup(createElement(exports.default));
+  return exports.default;
+}
+
+function renderBuyerPage(file: string): string {
+  return renderToStaticMarkup(createElement(loadBuyerPage(file)));
 }
 
 test("unavailable client websites retain the real case study without outgoing paused-site links", () => {
@@ -103,6 +130,24 @@ test("unavailable marketplace points buyers to available products and preserves 
   assert.match(html, /href="\/tools\/pro"/);
   for (const product of commerce.commerceCatalog().products)
     assert.ok(html.includes(`href="${product.url}"`), product.id);
+  assert.match(html, /href="\/agency\/start\?scope=product-project&amp;service=websites"/);
+  assert.doesNotMatch(html, /within a current managed plan/);
+});
+
+test("actual service pages route build quotes separately from the managed acquisition campaign", async () => {
+  const page = loadBuyerPage("app/agency/[service]/page.tsx") as unknown as (props: { params: Promise<{ service: string }> }) => Promise<ReactNode>;
+  const render = async (service: string) => renderToStaticMarkup(await page({ params: Promise.resolve({ service }) }));
+  const website = await render("websites");
+  assert.match(website, /href="\/agency\/start\?scope=product-project&amp;service=websites"/);
+  assert.match(website, /A separate written quote|separate written quote/);
+  assert.match(website, /operating costs, support, and project price/);
+  assert.doesNotMatch(website, /\$7,500|15 signed or paid acquired jobs/);
+  const acquisition = await render("meta-ads");
+  assert.match(acquisition, /href="\/agency\/start\?service=meta-ads"/);
+  assert.match(acquisition, /\$7,500/);
+  const content = await render("content");
+  assert.match(content, /href="\/agency\/start\?service=content"/);
+  assert.match(content, /href="\/agency\/start\?scope=product-project&amp;service=content"/);
 });
 
 const routeSource = readFileSync("app/packages/page.tsx", "utf8");

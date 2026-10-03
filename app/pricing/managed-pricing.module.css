@@ -3,7 +3,8 @@
   --body: #675671;
   --violet: #7145bc;
   --line: #ddd0e9;
-  background: radial-gradient(ellipse at 92% 2%, #e8d9f8 0, transparent 38%),
+  background:
+    radial-gradient(ellipse at 92% 2%, #e8d9f8 0, transparent 38%),
     radial-gradient(ellipse at 4% 44%, #e9eafa 0, transparent 36%), #faf7fc;
   color: var(--ink);
   font-family: var(--font-inter), sans-serif;
@@ -14,6 +15,7 @@
   padding: 0 32px;
 }
 .hero > *,
+.projectScope > *,
 .intro > *,
 .benchmarks > *,
 .benchmarkGrid > *,
@@ -175,6 +177,7 @@
   border-top: 1px solid var(--line);
 }
 .intro h2,
+.projectScope h2,
 .benchmarks h2,
 .faq h2,
 .next h2 {
@@ -191,6 +194,38 @@
   color: var(--body);
   max-width: 375px;
   margin: 0;
+}
+.projectScope {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  margin: 0 0 30px;
+  padding: 26px 30px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fffafd;
+}
+.projectScope h2 {
+  font-size: clamp(24px, 2.5vw, 31px);
+}
+.projectScope p:not(.eyebrow) {
+  max-width: 710px;
+  color: var(--body);
+  font-size: 14px;
+  line-height: 1.7;
+  margin: 16px 0 0;
+}
+.projectScope .secondary {
+  flex-shrink: 0;
+}
+@media (max-width: 800px) {
+  .projectScope {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 22px;
+    padding: 24px;
+  }
 }
 .benchmarks {
   display: grid;
@@ -449,7 +484,7 @@
   margin-top: 22px;
 }
 .growthCheck {
-  background: linear-gradient(135deg,#ede5f8,#f1edfb 65%,#e5ecf7);
+  background: linear-gradient(135deg, #ede5f8, #f1edfb 65%, #e5ecf7);
   border: 1px solid #d5c6e6;
   border-radius: 18px;
   padding: 34px;
