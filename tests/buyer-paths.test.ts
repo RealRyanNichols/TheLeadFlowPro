@@ -2,7 +2,14 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import test from "node:test";
+import { createElement, type ComponentType, type ReactNode } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 import ts from "typescript";
+import * as commerce from "../lib/commerce.ts";
+import { withPublicPageMetadata } from "../lib/publicPageMetadata.ts";
+import { TOOL_COUNT } from "../lib/tools/index.ts";
+import { renderableCaseStudies } from "../lib/site/caseStudies.ts";
+import { STAGES } from "../lib/system-stages.ts";
 import { liveOffers } from "../lib/site/offers.ts";
 import { PRICES } from "../lib/site/prices.ts";
 import { localBusinessJsonLd } from "../lib/site/structuredData.ts";
@@ -17,6 +24,86 @@ class Redirect extends Error {
 }
 
 const require = createRequire(import.meta.url);
+
+function renderBuyerPage(file: string): string {
+  // Execute the real page with real catalog data. Framework image/link and
+  // unrelated planner/analytics leaves are neutral; no handler or transport runs.
+  const basicLink = ({
+    href,
+    className,
+    children,
+  }: {
+    href: string;
+    className?: string;
+    children: ReactNode;
+  }) => createElement("a", { href, className }, children);
+  const modules: Record<string, unknown> = {
+    "react/jsx-runtime": require("react/jsx-runtime"),
+    "lucide-react": require("lucide-react"),
+    "next/link": { __esModule: true, default: basicLink },
+    "next/image": {
+      __esModule: true,
+      default: ({ src, alt }: { src: string; alt: string }) =>
+        createElement("img", { src, alt }),
+    },
+    "@/components/site/CtaLink": { __esModule: true, default: basicLink },
+    "./CommercePlanner": { __esModule: true, default: () => null },
+    "@/lib/commerce": commerce,
+    "@/lib/publicPageMetadata": { withPublicPageMetadata },
+    "@/lib/tools": { TOOL_COUNT },
+  };
+  const exports = {} as { default: ComponentType };
+  const code = ts.transpileModule(readFileSync(file, "utf8"), {
+    compilerOptions: {
+      module: ts.ModuleKind.CommonJS,
+      target: ts.ScriptTarget.ES2022,
+      jsx: ts.JsxEmit.ReactJSX,
+      esModuleInterop: true,
+    },
+  }).outputText;
+  new Function("require", "exports", code)((name: string) => {
+    if (name.endsWith(".module.css")) return { __esModule: true, default: {} };
+    if (!(name in modules))
+      throw new Error(`Unexpected buyer page import: ${name}`);
+    return modules[name];
+  }, exports);
+  return renderToStaticMarkup(createElement(exports.default));
+}
+
+test("unavailable client websites retain the real case study without outgoing paused-site links", () => {
+  const portfolio = renderBuyerPage("app/portfolio/page.tsx");
+  const results = renderBuyerPage("app/results/page.tsx");
+  for (const html of [portfolio, results]) {
+    assert.ok(!/href="https:\/\/(?:www\.)?lonestartotalwash\.com/.test(html));
+    assert.match(html, /live client website is currently unavailable/);
+  }
+  assert.match(portfolio, /id="lone-star"/);
+  assert.match(
+    portfolio,
+    /src="\/images\/portfolio\/lone-star-fleet-before-after\.jpg"/,
+  );
+  assert.match(results, /href="\/portfolio#lone-star"/);
+  const study = renderableCaseStudies().find(
+    (entry) => entry.id === "lonestar",
+  )!;
+  assert.equal(study.href, "/portfolio#lone-star");
+  assert.match(study.disclosure ?? "", /currently unavailable/);
+  const stageProof = STAGES.flatMap((stage) => stage.proof).filter(
+    (entry) => entry.name === "Lone Star Total Wash",
+  );
+  assert.equal(stageProof.length, 3);
+  assert.ok(stageProof.every((entry) => entry.url === study.href));
+});
+
+test("unavailable marketplace points buyers to available products and preserves their real catalog links", () => {
+  const html = renderBuyerPage("app/commerce/page.tsx");
+  assert.ok(!/href="https:\/\/gideonhq\.com/.test(html));
+  assert.match(html, /Marketplace in preparation/);
+  assert.match(html, /href="\/tools\/pro"/);
+  for (const product of commerce.commerceCatalog().products)
+    assert.ok(html.includes(`href="${product.url}"`), product.id);
+});
+
 const routeSource = readFileSync("app/packages/page.tsx", "utf8");
 const compiled = ts.transpileModule(routeSource, {
   compilerOptions: {

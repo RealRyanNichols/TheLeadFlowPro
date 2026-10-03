@@ -158,13 +158,13 @@ export default function CommercePage() {
           <div className={styles.gideon}>
             <div>
               <p className={styles.eyebrow}>GIDEON HQ + THE LEADFLOW PRO</p>
-              <h2>Open to buyers. Built for our clients and partners.</h2>
+              <h2>Marketplace in preparation. Plan your commerce build now.</h2>
               <p>
-                Gideon HQ is the commerce side of The LeadFlow Pro. Anyone can
-                browse. Selling requires an approved LeadFlow client
+                Gideon HQ is a developing marketplace connected to The LeadFlow
+                Pro. Its public marketplace is currently unavailable. The
+                planned seller program requires an approved LeadFlow client
                 relationship or partner agreement, including verified AI-company
-                partners. Creating an account or buying a tool does not
-                automatically approve a seller.
+                partners. A kit purchase does not grant seller approval.
               </p>
               <p>
                 LeadFlow kits use the checkout and download access on this
@@ -178,15 +178,10 @@ export default function CommercePage() {
                   Plan my commerce build{" "}
                   <ArrowRight size={18} aria-hidden="true" />
                 </Link>
-                <a
-                  className={styles.secondary}
-                  href="https://gideonhq.com/marketplace"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Explore the marketplace preview{" "}
+                <Link className={styles.secondary} href="/tools/pro">
+                  Explore available kits{" "}
                   <ArrowRight size={18} aria-hidden="true" />
-                </a>
+                </Link>
               </div>
             </div>
             <aside>
@@ -213,9 +208,9 @@ export default function CommercePage() {
                 </li>
               </ul>
               <p>
-                Apply, agree the relationship and terms, then receive seller
-                access after approval. Existing billing agreements keep their
-                terms.
+                Seller access is not available through this page. Discuss your
+                commerce needs and agree any future marketplace participation in
+                writing. Existing billing agreements keep their terms.
               </p>
             </aside>
           </div>
@@ -261,11 +256,11 @@ export default function CommercePage() {
             <details>
               <summary>Who can sell on Gideon HQ?</summary>
               <p>
-                Approved LeadFlow clients and partners. We review the business
-                relationship and written agreement before granting seller
-                access. AI-company ownership must be verified and still requires
-                an agreement. A free account, listing claim, or kit purchase
-                alone does not grant approval.
+                The planned program is for approved LeadFlow clients and
+                partners. Marketplace access remains in preparation. The
+                business relationship and written agreement must be reviewed
+                before any seller access is granted. A free account, listing
+                claim, or kit purchase alone does not grant approval.
               </p>
             </details>
             <details>
@@ -289,7 +284,8 @@ export default function CommercePage() {
             <details>
               <summary>Are all of Gideon’s marketplace features ready?</summary>
               <p>
-                No. Its marketplace is a preview. Live seller checkout requires
+                No. The public marketplace is currently unavailable and its
+                features remain in preparation. Live seller checkout requires
                 verified payment settlement, merchant onboarding, tax,
                 fulfillment, and customer support. The LeadFlow kits on this
                 page use this website’s existing checkout and access system.

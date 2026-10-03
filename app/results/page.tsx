@@ -50,11 +50,11 @@ const EXAMPLES = [
     logo: "/images/portfolio/lone-star-logo.png",
     title: "Finished work that earns a second look.",
     description:
-      "The crew does the washing. The website shows its actual jobs, answers service questions, and gives customers a clear way to request a quote.",
+      "The crew does the washing. The documented website build connected actual job photos, service information, and quote requests. Review the project photos and build summary here.",
     href: "/portfolio#lone-star",
     link: "See the Lone Star build",
-    evidence: "https://www.lonestartotalwash.com/jobs",
-    evidenceLabel: "Browse the actual job gallery",
+    evidence: null,
+    evidenceLabel: null,
     contain: false,
   },
   {
@@ -141,7 +141,11 @@ export default function ResultsPage() {
                       <ArrowRight aria-hidden="true" />
                     </Link>
                   )}
-                  {example.evidence.startsWith("https://") ? (
+                  {example.evidence === null ? (
+                    <p className={styles.evidenceNote}>
+                      The live client website is currently unavailable.
+                    </p>
+                  ) : example.evidence.startsWith("https://") ? (
                     <a
                       href={example.evidence}
                       target="_blank"

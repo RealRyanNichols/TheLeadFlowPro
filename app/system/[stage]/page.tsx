@@ -495,8 +495,8 @@ export default async function StagePage({
               <h2>Already built. Go look.</h2>
             </div>
             <p>
-              Live systems where this stage is running right now. Open any of
-              them and check the work rather than taking our word for it.
+              Available websites and documented builds. Open a case study or
+              website to inspect the work.
             </p>
           </div>
           <div className={styles.proofGrid}>
@@ -516,7 +516,7 @@ export default async function StagePage({
                     target="_blank"
                     rel="noreferrer"
                   >
-                    Visit it
+                    Review the work
                     <ExternalLink aria-hidden="true" />
                   </a>
                 )}
