@@ -19,11 +19,20 @@ import {
   type AgencyService,
 } from "@/lib/site/agency";
 import { BUSINESS } from "@/lib/site/business";
-import { MANAGED_PLANS, managedAdvertisingExplanation, managedBillingExplanation, managedMonthlySummary, managedPlanPrice, managedUpfrontSummary } from "@/lib/site/managedPlans";
-import { usd } from "@/lib/site/prices";
+import { PRICES, usd } from "@/lib/site/prices";
+import {
+  MANAGED_PLANS,
+  managedAdvertisingExplanation,
+  managedBillingExplanation,
+  managedCampaignSummary,
+  managedCompletionExplanation,
+  managedRenewalExplanation,
+  managedPlanPrice,
+  managedUpfrontSummary,
+} from "@/lib/site/managedPlans";
 import { breadcrumbJsonLd, graph, jsonLdText, localBusinessJsonLd } from "@/lib/site/structuredData";
 
-// Public plans are scoped before purchase. Existing clients keep a separate
+// The public campaign is scoped before purchase. Existing clients keep a separate
 // signed-scope payment path; their agreed charge rules are unchanged.
 
 export const metadata: Metadata = withPublicPageMetadata("/agency", {
@@ -45,7 +54,7 @@ function ServiceCard({ service }: { service: AgencyService }) {
       <h3>{service.name}</h3>
       <p>{service.promise}</p>
       <div className="cb-servicecard-price">
-        <strong>Within your managed plan</strong>
+        <strong>Within your agreed campaign</strong>
         <span>The work and advertising allocation are agreed in writing.</span>
       </div>
       <Link href={`/agency/${service.slug}`} className="cb-textlink" data-cta="agency_service_open" data-cta-placement={service.slug}>
@@ -80,7 +89,7 @@ export default function AgencyHubPage() {
         eyebrow="Run my marketing"
         mutedTitle="Your marketing."
         title="Handled for you."
-        body={`Ads, websites, follow-up, video, and content, managed in accounts you own. ${managedUpfrontSummary()} ${managedMonthlySummary()} Advertising is included.`}
+        body={`Ads, websites, follow-up, video, and content, managed in accounts you own. ${managedUpfrontSummary()} ${managedCampaignSummary()} Advertising is included.`}
         media={{
           src: "/images/services/quote-follow-up-light.webp",
           alt: "A quote clipboard, reminder bell, calendar, and phone connected across a bright cream desk",
@@ -88,7 +97,7 @@ export default function AgencyHubPage() {
           caption: "Ads, inquiries, follow-up, and the next decision. Handled in your accounts.",
         }}
         primary={{ href: "#intake", label: "Get my scope" }}
-        secondary={{ href: "#plans", label: "Compare monthly plans" }}
+        secondary={{ href: "#plans", label: "See campaign terms" }}
         trustLine={OWNERSHIP_PROMISE.headline}
       />
 
@@ -96,12 +105,12 @@ export default function AgencyHubPage() {
         <div className="cb-shell">
           <div className="cb-headrow">
             <div>
-              <p className="cb-eyebrow">A plan your business can support</p>
-              <h2 id="plans-title" className="cb-h2 cb-heading">The first month starts the work.</h2>
+              <p className="cb-eyebrow">One minimum starting campaign</p>
+              <h2 id="plans-title" className="cb-h2 cb-heading">Up to 90 days, with a clear target.</h2>
             </div>
             <p className="cb-lead">{managedBillingExplanation()}</p>
           </div>
-          <div className="cb-servicegrid mt-8">
+          <div className="cb-servicegrid mt-8" style={{ gridTemplateColumns: "minmax(0, 1fr)" }}>
             {MANAGED_PLANS.map((plan) => {
               const price = managedPlanPrice(plan);
               return (
@@ -111,7 +120,7 @@ export default function AgencyHubPage() {
                   <p>{plan.description}</p>
                   <div className="cb-servicecard-price">
                     <strong>{price.amount} {price.unit}</strong>
-                    <span>First month: {usd(plan.firstMonthUsd)} upfront. {plan.billingNote}</span>
+                    <span>{plan.billingNote}</span>
                   </div>
                   <Link href="#intake" className="cb-textlink" data-cta="agency_plan_intake" data-cta-placement={plan.id}>
                     {plan.cta} <ArrowRight aria-hidden="true" />
@@ -120,7 +129,14 @@ export default function AgencyHubPage() {
               );
             })}
           </div>
-          <p className="cb-lead mt-6">{managedAdvertisingExplanation()} Larger plans and custom builds are scoped individually.</p>
+          <p className="cb-lead mt-6">{managedAdvertisingExplanation()}</p>
+          <p className="cb-lead mt-6">
+            For farm/ag work, the planning goal is 15 acquired jobs with signed or
+            paid confirmation at a {usd(PRICES.farmAcquiredJobPlanningTarget)} cost per acquisition. It is a target, not
+            a promise. A lead or appointment is not an acquired job.
+          </p>
+          <p className="cb-lead mt-6">{managedCompletionExplanation()}</p>
+          <p className="cb-lead mt-6">{managedRenewalExplanation()}</p>
         </div>
       </section>
 
@@ -132,7 +148,7 @@ export default function AgencyHubPage() {
               <h2 className="cb-h2 cb-heading">Pick the piece that is leaking.</h2>
             </div>
             <p className="cb-lead">
-              Choose the priorities within your monthly plan. We define the work, capacity, and advertising allocation before the first month starts.
+              Choose the priorities within your campaign. We define the work, acquisition target, capacity, and advertising allocation before it starts.
               {" "}<Link href="/services" className="underline underline-offset-4">Want a build your own team runs? Explore build services.</Link>
             </p>
           </div>
@@ -186,7 +202,7 @@ export default function AgencyHubPage() {
               <span className="cb-door-num">01 · Tell</span>
               <h3>Ten questions, one business day.</h3>
               <p>
-                Business, channels, the monthly plan you are prepared to support, the bottleneck,
+                Business, channels, the campaign you are prepared to support, the bottleneck,
                 who decides, and when. Saved the second you send it, with an alert on Ryan&rsquo;s phone.
               </p>
               <ul>
@@ -407,7 +423,7 @@ export default function AgencyHubPage() {
               </li>
               <li>
                 <Check aria-hidden="true" className="h-5 w-5" />
-                Your accounts stay in your name. Ad spend goes from your card to the platform.
+                Your accounts stay in your name. The included advertising allocation is defined in your written campaign scope.
               </li>
               <li>
                 <Check aria-hidden="true" className="h-5 w-5" />

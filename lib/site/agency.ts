@@ -9,9 +9,9 @@
 import { BUSINESS } from "./business";
 import { offer, type Offer } from "./offers";
 import { PRICES, usd } from "./prices";
-import { managedAdvertisingExplanation, managedBillingExplanation, managedMonthlySummary, managedUpfrontSummary } from "./managedPlans";
+import { MANAGED_COMMERCIAL_TERMS, managedAdvertisingExplanation, managedBillingExplanation, managedCampaignSummary } from "./managedPlans";
 
-export const AGENCY_PLAN_SUMMARY = `${managedUpfrontSummary()} ${managedMonthlySummary()} Advertising is included within your written plan allocation.`;
+export const AGENCY_PLAN_SUMMARY = `${managedCampaignSummary()} Paid upfront. Advertising is included within your written campaign allocation.`;
 
 export const OWNERSHIP_PROMISE = {
   headline: "You own the accounts and data. Your plan includes advertising.",
@@ -24,11 +24,11 @@ export const OWNERSHIP_PROMISE = {
 } as const;
 
 export const AGENCY_PROCESS = [
-  { step: "01", name: "Map", body: "One call. What you sell, who buys it, where leads come from now, and the monthly plan your business is prepared to support." },
-  { step: "02", name: "Scope", body: "A written scope: what gets built, what you own, the included advertising allocation, any separately quoted items, the price, and the first ninety days. Nothing starts without your approval." },
+  { step: "01", name: "Map", body: "One call. What you sell, who buys it, where leads come from now, and the first 90-day campaign and the jobs your business can handle." },
+  { step: "02", name: "Scope", body: `A written scope for the first ${MANAGED_COMMERCIAL_TERMS.initialCampaignDays} days: the agreed build, what you own, the included advertising allocation, the acquisition target, how outcomes count, and the ${usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd)} upfront minimum and any additional prepaid acquisition scope. Nothing starts without your approval.` },
   { step: "03", name: "Build", body: "Accounts, tracking, pages, forms, creative, and routing set up in your accounts, tested with the way you actually answer the phone." },
   { step: "04", name: "Launch", body: "Live on an agreed date with the first-party trace in place: source, action, outcome, against your own records." },
-  { step: "05", name: "Measure", body: "A plain-English report on a fixed cadence with definitions printed on it, and one recommended next decision." },
+  { step: "05", name: "Measure", body: "Reports connect inquiries to the agreed counted outcomes using your closing records. At day 90 we review results and capacity. If the work supports scaling, a higher investment needs a new written scope and price; there is no automatic extension or charge." },
 ] as const;
 
 export type AgencyService = {
@@ -101,10 +101,10 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
     clientPaysDirectly: ["Only vendor or software items identified outside the included plan allocation in your written scope"],
     notIncluded: ["A promise of a particular cost per lead, number of leads, or return on ad spend", "Running ads for two businesses from one account or audience", "Spending beyond the advertising allocation without an approved scope change"],
     faq: [
-      { q: "Do I need a website first?", a: "No. Meta lead forms can work without one. If a website or landing page is needed, we define the build within your managed plan before work begins." },
+      { q: "Do I need a website first?", a: "No. Meta lead forms can work without one. If a website or landing page is needed, we define the build within your 90-day campaign before work begins." },
       { q: "Who owns the ad account?", a: "You do. If it does not exist yet it is created in your Business Manager. If it exists somewhere else, moving it into your name is the first job." },
       { q: "What does it cost?", a: AGENCY_PLAN_SUMMARY },
-      { q: "What happens if we stop?", a: "The account, pixel, audiences, and leads are already yours. Access is removed and everything keeps running." },
+      { q: "What happens if we stop?", a: "The account, pixel, audiences, and leads are already yours. Our access is removed. Your accounts and records stay yours; whether advertising continues depends on your instructions and funding." },
     ],
     intakeHref: intake("meta-ads"),
     related: [
@@ -154,11 +154,11 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
     navLabel: "Websites",
     seoTitle: "Website Design for Longview, TX Businesses | The LeadFlow Pro",
     metaDescription:
-      "Business websites for Longview and East Texas, scoped within your managed marketing plan to capture inquiries and connect follow-up. You own the domain and site.",
+      "Business websites for Longview and East Texas, scoped within your first 90-day campaign to capture inquiries and connect follow-up. You own the domain and site.",
     eyebrow: "A website that gives people a next step",
     audience: "Any business whose website cannot answer what you do, what it costs, and how to reach you from a phone.",
     problem: "A template someone else owns, a contact form that goes nowhere, and a monthly bill for a site that has never produced a lead you could trace.",
-    promise: "A website built around your services, proof, and lead capture, connected to your inbox or CRM and managed within the written plan. You own the site and accounts.",
+    promise: "A website built around your services, proof, and lead capture, connected to your inbox or CRM and included within the written campaign scope. You own the site and accounts.",
     included: [
       "The pages agreed in your plan: services, proof, contact, and the conversion paths your business needs",
       "One lead-capture path with routing to the agreed inbox or CRM",
@@ -169,7 +169,7 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
     ],
     clientOwns: ["The code, the domain, and the hosting project", "The form, the leads, and the analytics", "Every account created for the build"],
     clientPaysDirectly: ["Domain registration", "Third-party hosting fees, unless you choose managed hosting", "Any paid software the site depends on"],
-    notIncluded: ["A promise of a Google ranking, a number of leads, or sales", "Unlimited pages or revisions", "Work beyond the build and monthly capacity agreed in your plan"],
+    notIncluded: ["A promise of a Google ranking, a number of leads, or sales", "Unlimited pages or revisions", "Work beyond the build and capacity agreed for the first 90 days"],
     faq: [
       { q: "What does it cost?", a: AGENCY_PLAN_SUMMARY },
       { q: "Do you host it?", a: "Hosting, access, and responsibilities are written into your proposal. You own the domain and site. Any vendor item outside the approved plan is disclosed before you agree." },
@@ -177,7 +177,7 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
     ],
     intakeHref: intake("websites"),
     related: [
-      { href: "/pricing", label: "Managed plans and scope" },
+      { href: "/pricing", label: "90-day campaign and scope" },
     ],
   },
   {
@@ -212,7 +212,7 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
     ],
     intakeHref: intake("automation"),
     related: [
-      { href: "/pricing", label: "Managed plans and scope" },
+      { href: "/pricing", label: "90-day campaign and scope" },
       { href: "/plugin", label: `The plugin, ${usd(PRICES.pluginMonthly)} a month` },
     ],
   },
@@ -237,11 +237,11 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
       "Files delivered to storage you own, with captions and thumbnails",
     ],
     clientOwns: ["Every file, raw and finished", "The channels they are posted to", "The releases and consent records"],
-    clientPaysDirectly: ["Any paid stock music or licensed assets", "Ad spend if the video runs as an ad"],
+    clientPaysDirectly: ["Only licensed assets or vendor items identified outside the included campaign allocation in your written scope"],
     notIncluded: ["Testimonials without a signed release", "Scripted claims about results, rankings, or savings", "Filming customers, students, or patients who have not agreed in writing"],
     faq: [
       { q: "Can you film my customers?", a: "Only with a signed release that says how the footage may be used. Anyone who declines is seated or shot out of frame, and nothing they say is used." },
-      { q: "What packages are there?", a: "Video work is part of the scope we agree within your managed plan. A shorts package, an offer explainer, or a capture day is selected around your business priorities and capacity." },
+      { q: "What packages are there?", a: "Video work is part of the scope we agree within your 90-day campaign. A shorts package, an offer explainer, or a capture day is selected around your business priorities and capacity." },
       { q: "Do I get the raw footage?", a: "Yes. Raw and finished files are delivered to storage in your name." },
     ],
     intakeHref: intake("video"),
@@ -494,7 +494,7 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
     intakeHref: intake("crypto-checkout"),
     related: [
       { href: "/agency/websites", label: "Websites" },
-      { href: "/pricing", label: "Managed plans and scope" },
+      { href: "/pricing", label: "90-day campaign and scope" },
     ],
   },
 ];

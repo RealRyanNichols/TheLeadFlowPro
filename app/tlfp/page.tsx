@@ -289,7 +289,7 @@ export default async function TlfpPage({
           <p className="eyebrow">Spend credits</p>
           <h2 className="mt-3 text-3xl font-black text-[var(--heading)]">Credits apply first. The card covers the rest.</h2>
           <p className="mt-3 max-w-2xl text-[var(--muted)]">
-            Use them on separate products here, or agree on their use in your written monthly service scope. When the credits cover the
+            Use them on separate products here, or agree on their use in your approved campaign scope. When the credits cover the
             whole thing, there is no card at all.
           </p>
           <div className="mt-8">

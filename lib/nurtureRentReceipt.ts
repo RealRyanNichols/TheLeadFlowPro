@@ -40,7 +40,7 @@
 
 import { bookingPage } from "@/lib/site/external-links";
 import { BUSINESS } from "@/lib/site/business";
-import { usd } from "@/lib/site/prices";
+import { PRICES, usd } from "@/lib/site/prices";
 import { MANAGED_COMMERCIAL_TERMS } from "@/lib/site/managedPlans";
 import {
   isFreeWebsiteProgramNurtureLead,
@@ -156,8 +156,8 @@ type RentStep = {
   write: Writer;
 };
 
-const MANAGED_MONTHLY = usd(MANAGED_COMMERCIAL_TERMS.minimumMonthlyUsd);
 const MANAGED_UPFRONT = usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd);
+const CAMPAIGN_DAYS = MANAGED_COMMERCIAL_TERMS.initialCampaignDays;
 const PHONE = BUSINESS.phone.display;
 
 // ----- Week one, per pain -------------------------------------------------
@@ -453,7 +453,7 @@ The fix for monthly fees is not a cheaper subscription. It is owning the thing.
 
 Concretely: your website, hosting, database, and customer records live in accounts you control. We compare the actual costs before changing the stack. Ownership does not make hosting, vendors, or ongoing work free.
 
-Our current managed work is monthly, with the build and advertising allocation defined in the written proposal. You approve the scope and billing dates before work starts.
+New managed clients start at ${MANAGED_UPFRONT} upfront for the first ${CAMPAIGN_DAYS} days. The agreed build and advertising allocation are included in the written campaign scope. You approve it before work starts; there is no automatic monthly renewal.
 
 I have done it for my own businesses and for other people's. The results are public.
 
@@ -481,11 +481,11 @@ Four emails in. Here is where I would start with you.
 
 With the receipt. The list of what you pay, what each one does, and which ones you would keep if you owned the core. Half the time the answer is: keep two, replace three, cancel four.
 
-Then the build and ongoing work, scoped in accounts you control.
+Then the first 90 day campaign, with the agreed build and advertising allocation scoped in accounts you control.
 
 On a call I ask what you pay, what you use, and what you are afraid of losing if you stop. Then I tell you what it would take. No pitch, no catch, nothing to buy on the call.
 
-${close(5, c, `Current managed work starts at ${MANAGED_MONTHLY} a month, with at least ${MANAGED_UPFRONT} upfront and a written included advertising allocation:`, "pricing")}`,
+${close(5, c, `The first ${CAMPAIGN_DAYS} days start at ${MANAGED_UPFRONT} upfront, with the agreed build and advertising allocation included:`, "pricing")}`,
     },
   ],
 
@@ -664,11 +664,11 @@ I would rather tell you now than waste your twenty minutes.
 
 This is not for you if you want a ninety nine dollar template site and nothing else. That is renting with extra steps, and there are cheaper people for it.
 
-It is not for you if you want a guarantee on leads or revenue. Nobody honest can give you one and I will not pretend.
+It is not for you if you want raw names called customers. We agree what counts as an acquired job or completed deal, and use your closing records to measure it. A lead or appointment is a different step.
 
 It is not for you if you need somebody to run your whole marketing department by Friday.
 
-It is for you if you want to own the thing that runs your business, you are willing to spend one afternoon getting it set up right, and you would rather look at real numbers than hear a pitch.
+It is for you if you want to own the thing that runs your business, you are willing to help with setup, follow up, and accurate closing records, and you would rather look at real numbers than hear a pitch.
 
 ${close(12, c, "Who is on the other end of this:", "about")}`,
   },
@@ -814,7 +814,7 @@ The ones who never fix it are not lazy. They are waiting for a quiet week. The q
 
 If the thing you filled out the form about is still there, it is not going to leave on its own.
 
-${close(21, c, `The current plans define the build, monthly work, and included advertising allocation before you approve. See the upfront and monthly terms:`, "pricing")}`,
+${close(21, c, `The first 90 day campaign defines the build, acquisition target, and included advertising allocation before you approve. See the upfront terms and day 90 review:`, "pricing")}`,
   },
   {
     day: 22,
@@ -823,13 +823,19 @@ ${close(21, c, `The current plans define the build, monthly work, and included a
 
 You have not asked, so I will just tell you.
 
-A twenty minute call is free. Current managed work starts at ${MANAGED_MONTHLY} a month, with at least ${MANAGED_UPFRONT} upfront. Larger plans and custom builds are scoped in writing because a coffee shop and a three location service company need different work.
+A twenty minute call is free. New managed clients start at ${MANAGED_UPFRONT} upfront for the first ${CAMPAIGN_DAYS} days. The agreed build, onboarding, and advertising allocation are included in writing.
 
-The advertising allocation is included in the written plan. The proposal defines the build, ongoing work, upfront treatment, and billing dates before approval. No number of leads, jobs, or sales is promised.
+Farm and agricultural work targets ${MANAGED_COMMERCIAL_TERMS.farmJobTarget} signed or paid acquired jobs. Extra farm acquisition targets are ${usd(PRICES.farmAcquiredJobPlanningTarget)} each. Real estate and mortgage use ${usd(PRICES.propertyCompletedDealPlanningTarget)} per targeted completed deal while we dial it in: ${MANAGED_COMMERCIAL_TERMS.propertyDealPlanningTarget} at the starting investment.
 
-Your accounts remain yours. Separate software, tools, courses, and existing signed agreements retain their own terms.
+Extra acquisition targets are scoped and paid upfront, with no automatic success charge. These are planning targets, not audited results or outcome guarantees. Leads and appointments do not count; you provide follow up and closing records.
 
-${close(22, c, "Every price on one page. No call required to see it:", "pricing")}`,
+Reach the agreed target early and we stop new acquisition. Inquiries already captured stay yours.
+
+At day 90 we review results and capacity, with no automatic extension. Scaling to a higher investment needs a new written scope and price; nothing charges automatically.
+
+Your accounts stay yours. Separate tools and existing signed agreements retain their own terms.
+
+${close(22, c, "The 90 day campaign, on one page:", "pricing")}`,
   },
   {
     day: 23,

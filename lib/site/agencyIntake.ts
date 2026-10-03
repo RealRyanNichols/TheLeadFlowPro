@@ -20,10 +20,8 @@ export const AGENCY_TIMELINES = [
   ["this_quarter", "This quarter"],
   ["researching", "Just researching for now"],
 ] as const;
-export const AGENCY_OTHER_PLANS = [
-  ["custom", "A larger plan or custom build"],
-  ["discuss", "Help me choose a starting plan"],
-] as const;
+// Historical links remain usable without presenting retired offers as choices.
+const LEGACY_PLAN_IDS = ["foundation", "structured", "custom", "discuss"] as const;
 
 export type AgencyIntakeField =
   | "business_name"
@@ -33,14 +31,24 @@ export type AgencyIntakeField =
   | "website_url"
   | "services"
   | "managed_plan_budget"
+  | "campaign_acknowledged"
   | "bottleneck"
   | "decision_maker"
   | "timeline";
 export type AgencyIntakeErrors = Partial<Record<AgencyIntakeField, string>>;
-export type AgencyPlanChoice = ManagedPlanId | "custom" | "discuss";
+export type AgencyPlanChoice = ManagedPlanId | (typeof LEGACY_PLAN_IDS)[number];
 type QueryValue = string | string[] | undefined;
 
-/** Ignore repeated/unknown choices rather than silently selecting a tier or client. */
+function currentCampaignId(value: QueryValue): ManagedPlanId | null {
+  return typeof value === "string" &&
+    [...MANAGED_PLANS.map((plan) => plan.id), ...LEGACY_PLAN_IDS].some(
+      (choice) => choice === value,
+    )
+    ? "recommended"
+    : null;
+}
+
+/** Normalize historical offers; repeated/unknown choices never select a client. */
 export function agencyIntakeContext(
   params: { service?: QueryValue; plan?: QueryValue; lead?: QueryValue },
   knownServices: readonly { slug: string }[],
@@ -56,14 +64,7 @@ export function agencyIntakeContext(
       ? requestedService
       : "custom"
     : null;
-  const initialPlan =
-    typeof params.plan === "string" &&
-    [
-      ...MANAGED_PLANS.map((plan) => plan.id),
-      ...AGENCY_OTHER_PLANS.map(([choice]) => choice),
-    ].some((choice) => choice === params.plan)
-      ? (params.plan as AgencyPlanChoice)
-      : null;
+  const initialPlan = currentCampaignId(params.plan);
   const originatingLead =
     typeof params.lead === "string" &&
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
@@ -74,8 +75,8 @@ export function agencyIntakeContext(
   return { requestedService, preselected, initialPlan, originatingLead };
 }
 
-/** Carry campaign and private scope attribution through a price-card handoff.
- * Only named attribution fields are copied; no arbitrary query or secret is forwarded. */
+/** Carry public campaign attribution through an intake handoff.
+ * Private lead IDs, contact details, and arbitrary query fields are not forwarded. */
 export function agencyIntakeHref(
   plan: AgencyPlanChoice | null,
   params: Record<string, QueryValue> = {},
@@ -98,14 +99,8 @@ export function agencyIntakeHref(
     /^[a-z][a-z\d-]{0,59}$/.test(params.service)
   )
     query.set("service", params.service);
-  if (
-    typeof params.lead === "string" &&
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-      params.lead,
-    )
-  )
-    query.set("lead", params.lead.toLowerCase());
-  if (plan) query.set("plan", plan);
+  const campaignId = currentCampaignId(plan ?? undefined);
+  if (campaignId) query.set("plan", campaignId);
   return `/agency/start${query.size ? `?${query}` : ""}`;
 }
 
@@ -148,10 +143,8 @@ export function validateAgencyIntake(
     (service) => form.get(`service_${service.slug}`) === "on",
   );
   const rawPlan = text(form, "managed_plan_budget");
-  const plan = [
-    ...MANAGED_PLANS.map((entry) => entry.id),
-    ...AGENCY_OTHER_PLANS.map(([id]) => id),
-  ].find((id) => id === rawPlan);
+  const plan = currentCampaignId(rawPlan);
+  const campaignAcknowledged = form.get("campaign_acknowledged") === "on";
   const decider = AGENCY_DECIDERS.find(
     ([id]) => id === form.get("decision_maker"),
   );
@@ -183,7 +176,11 @@ export function validateAgencyIntake(
   if (!picked.length)
     errors.services = "Choose at least one service, or select a custom build.";
   if (!plan)
-    errors.managed_plan_budget = "Choose a plan, or ask us to help you choose.";
+    errors.managed_plan_budget =
+      "Review the current campaign before sending your request.";
+  if (!campaignAcknowledged)
+    errors.campaign_acknowledged =
+      "Confirm that you understand the campaign starting point. This does not authorize a charge.";
   if (!bottleneck || bottleneck.length > 1000)
     errors.bottleneck =
       "Tell us what you want to improve in a sentence or two.";
@@ -204,6 +201,7 @@ export function validateAgencyIntake(
       marketingEmailConsent: form.get("marketing_email_consent") === "on",
       picked,
       plan: plan!,
+      campaignAcknowledged,
       decider: decider!,
       timeline: timeline!,
       bottleneck,

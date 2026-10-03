@@ -19,7 +19,7 @@ export default function CustomDepositPage() {
             Keep the payment tied to the work.
           </h1>
           <p className="cb-hero-lead">
-            Existing clients: pay only the deposit amount in your approved written scope. This page does not purchase a new managed plan. If you do not have a written amount, discuss a plan before paying.
+            Existing clients: pay only the deposit amount in your approved written scope. This page does not purchase a new 90-day campaign. If you do not have a written amount, discuss the campaign before paying.
           </p>
         </div>
       </section>
@@ -30,9 +30,9 @@ export default function CustomDepositPage() {
             <p className="cb-eyebrow">Before you pay</p>
             <h2 className="cb-h2 cb-heading">Match the scope, amount and business.</h2>
             <p className="cb-lead">
-              Looking for a new managed plan?{" "}
+              Looking for a new 90-day campaign?{" "}
               <Link className="cb-textlink" href="/pricing">
-                Compare monthly plans and request your scope
+                Review the 90-day campaign and request your scope
               </Link>
               .
             </p>

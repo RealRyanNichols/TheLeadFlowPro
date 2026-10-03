@@ -12,7 +12,6 @@ import { BUSINESS } from "@/lib/site/business";
 import {
   AGENCY_CHANNELS,
   AGENCY_DECIDERS,
-  AGENCY_OTHER_PLANS,
   AGENCY_TIMELINES,
   validateAgencyIntake,
   type AgencyIntakeErrors,
@@ -22,9 +21,12 @@ import {
 import {
   MANAGED_COMMERCIAL_TERMS,
   MANAGED_PLANS,
+  managedCampaignSummary,
+  managedAdvertisingExplanation,
+  managedCompletionExplanation,
+  managedRenewalExplanation,
   managedPlanPrice,
 } from "@/lib/site/managedPlans";
-import { usd } from "@/lib/site/prices";
 import styles from "./agency-intake.module.css";
 
 type Status = "idle" | "sending" | "done";
@@ -66,7 +68,6 @@ export default function AgencyIntake({
   services,
   preselected,
   placement = "agency_start",
-  initialPlan = null,
   requestedService = null,
   originatingLead = null,
 }: {
@@ -84,14 +85,11 @@ export default function AgencyIntake({
   const [errors, setErrors] = useState<AgencyIntakeErrors>({});
   const [serverError, setServerError] = useState(false);
   const [errorVersion, setErrorVersion] = useState(0);
-  const [planChoice, setPlanChoice] = useState(initialPlan ?? "");
   const sending = useRef(false);
   const errorNotice = useRef<HTMLDivElement>(null);
   const doneHeading = useRef<HTMLHeadingElement>(null);
-  const selectedPlan = MANAGED_PLANS.find((plan) => plan.id === planChoice);
-  const otherPlan = AGENCY_OTHER_PLANS.find(
-    ([choice]) => choice === planChoice,
-  );
+  const campaign = MANAGED_PLANS[0];
+  const campaignPrice = managedPlanPrice(campaign);
   const busy = !ready || status === "sending";
 
   useEffect(() => {
@@ -148,16 +146,12 @@ export default function AgencyIntake({
     }
     setErrors({});
     const values = result.value;
-    const plan = MANAGED_PLANS.find((entry) => entry.id === values.plan);
-    const budgetLabel = plan
-      ? `${plan.name}: ${managedPlanPrice(plan).amount} ${managedPlanPrice(plan).unit}; ${usd(plan.firstMonthUsd)} first month upfront`
-      : AGENCY_OTHER_PLANS.find(([choice]) => choice === values.plan)?.[1];
     const summary = [
       `AGENCY INTAKE: ${values.picked.map((service) => service.label).join(", ")}.`,
       values.channels.length
         ? `Current channels: ${values.channels.map(([, label]) => label).join(", ")}.`
         : "",
-      `Managed monthly plan under consideration (advertising included): ${budgetLabel}.`,
+      `Campaign under consideration: ${campaign.name}, ${campaignPrice.amount} ${campaignPrice.unit}. Agreed advertising allocation included; scope and goal agreed in writing.`,
       `Decision-maker: ${values.decider[1]}.`,
       `Timeline: ${values.timeline[1]}.`,
       `Bottleneck: ${values.bottleneck}`,
@@ -193,13 +187,16 @@ export default function AgencyIntake({
           utm_medium: tags.utm_medium,
           utm_campaign: tags.utm_campaign,
           diagnostic: {
-            version: 2,
+            version: 3,
             source: "agency_intake",
             services: values.picked.map((service) => service.slug),
             channels: values.channels.map(([choice]) => choice),
             managed_plan_budget: values.plan,
             advertising_included: true,
-            upfront_treatment: "first_month",
+            upfront_treatment: "initial_campaign",
+            initial_campaign_days: MANAGED_COMMERCIAL_TERMS.initialCampaignDays,
+            campaign_acknowledged: values.campaignAcknowledged,
+            automatic_extension: false,
             decision_maker: values.decider[0],
             timeline: values.timeline[0],
             bottleneck: values.bottleneck,
@@ -234,8 +231,9 @@ export default function AgencyIntake({
           We call or text only when you chose that consent.
         </p>
         <p>Nothing is scoped, built, or billed until you see it in writing.</p>
+        <p>{managedRenewalExplanation()}</p>
         <Link href="/pricing" className={styles.textLink}>
-          Review the managed plans <ArrowRight size={15} aria-hidden="true" />
+          Review the 90-day campaign <ArrowRight size={15} aria-hidden="true" />
         </Link>
       </div>
     );
@@ -256,30 +254,15 @@ export default function AgencyIntake({
         <p className={styles.helper}>
           This form needs JavaScript. You can{" "}
           <a href={BUSINESS.phone.tel}>call {BUSINESS.phone.display}</a> or{" "}
-          <a href={BUSINESS.phone.sms}>text us</a> to discuss a managed plan.
+          <a href={BUSINESS.phone.sms}>text us</a> to discuss a campaign.
         </p>
       </noscript>
       <div className={styles.planSummary}>
         <ShieldCheck size={24} aria-hidden="true" />
         <div>
-          <p className={styles.eyebrow}>
-            {selectedPlan || otherPlan
-              ? "Your starting point"
-              : "Before we scope the work"}
-          </p>
-          <strong>
-            {selectedPlan
-              ? `${selectedPlan.name} · ${managedPlanPrice(selectedPlan).amount}/month${selectedPlan.id === "foundation" ? " minimum" : ""}`
-              : (otherPlan?.[1] ??
-                `Managed service starts at ${usd(MANAGED_COMMERCIAL_TERMS.minimumMonthlyUsd)}/month.`)}
-          </strong>
-          <p>
-            {selectedPlan
-              ? `${usd(selectedPlan.firstMonthUsd)} for the first month, paid upfront.`
-              : `Expect at least ${usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd)} upfront for the first month.`}{" "}
-            Advertising is included within the written allocation. We agree on
-            the scope and billing dates before work starts.
-          </p>
+          <p className={styles.eyebrow}>Your starting point</p>
+          <strong>{managedCampaignSummary()}</strong>
+          <p>{managedAdvertisingExplanation()}</p>
         </div>
       </div>
       <p className={styles.requiredNote}>
@@ -453,64 +436,38 @@ export default function AgencyIntake({
       <Section
         number={4}
         disabled={busy}
-        title="Which plan should we scope?"
+        title="Review the campaign starting point"
         requiredMark
-        note="Choose a starting point. This request does not start a subscription or take a payment."
+        note="This request does not start a subscription or authorize a payment. We confirm fit, the goal, and scope before you pay."
         id={id("managed_plan_budget")}
         tabIndex={-1}
-        {...fieldA11y("managed_plan_budget")}
       >
-        <div className={styles.planGrid}>
-          {MANAGED_PLANS.map((plan) => (
-            <label
-              key={plan.id}
-              className={`${styles.choice} ${styles.planChoice}`}
-            >
-              <input
-                type="radio"
-                name="managed_plan_budget"
-                value={plan.id}
-                checked={planChoice === plan.id}
-                onChange={() => setPlanChoice(plan.id)}
-                required
-                {...fieldA11y("managed_plan_budget")}
-              />
-              <span className={styles.planDetails}>
-                <strong className={styles.planName}>{plan.name}</strong>
-                <span className={styles.planPrice}>
-                  {usd(plan.amountUsd)}
-                  <small>
-                    /month{plan.id === "foundation" ? " minimum" : ""}
-                  </small>
-                </span>
-                <span className={styles.planUpfront}>
-                  {usd(plan.firstMonthUsd)} first month, paid upfront
-                </span>
-              </span>
-            </label>
-          ))}
-        </div>
-        <div className={styles.choiceGrid}>
-          {AGENCY_OTHER_PLANS.map(([choice, label]) => (
-            <label key={choice} className={styles.choice}>
-              <input
-                type="radio"
-                name="managed_plan_budget"
-                value={choice}
-                checked={planChoice === choice}
-                onChange={() => setPlanChoice(choice)}
-                required
-                {...fieldA11y("managed_plan_budget")}
-              />
-              <span>{label}</span>
-            </label>
-          ))}
-        </div>
+        <input type="hidden" name="managed_plan_budget" value={campaign.id} />
+        <label className={`${styles.choice} ${styles.planChoice}`}>
+          <input
+            id={id("campaign_acknowledged")}
+            type="checkbox"
+            name="campaign_acknowledged"
+            required
+            {...fieldA11y("campaign_acknowledged")}
+          />
+          <span className={styles.planDetails}>
+            <strong className={styles.planName}>{campaign.name}</strong>
+            <span className={styles.planPrice}>
+              {campaignPrice.amount} <small>{campaignPrice.unit}</small>
+            </span>
+            <span className={styles.planUpfront}>
+              I understand this starting point and want to discuss whether it fits my business.
+            </span>
+          </span>
+        </label>
+        <p className={styles.helper}>{managedCompletionExplanation()}</p>
+        <p className={styles.helper}>{managedRenewalExplanation()}</p>
         <p className={styles.helper}>
-          Your first month includes onboarding, the agreed build, and its
-          advertising allocation. No second setup payment is added. Work beyond
-          the agreed capacity receives a separate written quote.
+          Want more acquisition capacity? Tell us below. Any added prepaid scope,
+          price, and outcome goal must be agreed in writing.
         </p>
+        {fieldError("campaign_acknowledged")}
         {fieldError("managed_plan_budget")}
       </Section>
 

@@ -431,7 +431,9 @@ I said in the video that I would tell you. Here it is.
 
 I am building owned systems for business owners while the tools are cheap and most people are still arguing about whether any of this is real.
 
-The current starting point is a written scope for a [managed plan](/pricing). Ongoing service starts at ${usd(MANAGED_COMMERCIAL_TERMS.minimumMonthlyUsd)} per month; expect at least ${usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd)} upfront. The proposal defines the build, ongoing work, included advertising allocation, and billing dates before work begins.
+New managed clients start with a [90-day campaign](/pricing): from ${usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd)} upfront for the first ${MANAGED_COMMERCIAL_TERMS.initialCampaignDays} days. The written scope defines the agreed build, onboarding, included advertising allocation, acquisition target, counting rules, and any additional prepaid acquisition scope before work begins.
+
+At day 90 we review results and capacity. Scaling into a higher investment requires a new written scope and price; there is no automatic extension or charge.
 
 Website work, follow-up, and a larger connected system belong in that scope when they support the business. Separate software, tools, and courses retain their own purchase terms. Previous signed agreements keep their own terms.
 
@@ -693,7 +695,7 @@ Do not trust a blended fee percentage from a blog post, including this one. Pull
     faq: [
       {
         q: "How much should a five-page small business website cost?",
-        a: `The cost depends on the pages, inquiry path, integrations, and ongoing work. The LeadFlow Pro scopes website work within current managed plans: ongoing service starts at ${usd(MANAGED_COMMERCIAL_TERMS.minimumMonthlyUsd)} per month, with at least ${usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd)} upfront and an included advertising allocation defined in writing. That is a managed engagement, not a standalone five-page website quote. Compare what each proposal actually includes.`,
+        a: `The cost depends on the pages, inquiry path, and integrations. New managed clients at The LeadFlow Pro start at ${usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd)} upfront for the first ${MANAGED_COMMERCIAL_TERMS.initialCampaignDays} days. Any agreed website build, onboarding, and advertising allocation are included in that written campaign scope. This is an acquisition campaign, not a standalone five-page website quote. At day 90 we review results and capacity; any higher investment needs a new written scope and price.`,
       },
       {
         q: "Why is there such a huge range in website quotes?",
@@ -736,7 +738,7 @@ Local agencies and freelancers commonly land between two and ten thousand dollar
 
 Building custom used to be the expensive option. That changed. Modern tools cut the labor dramatically, which is the whole reason The LeadFlow Pro exists. An owned build costs more up front than a template, and then the monthly picture flips: infrastructure for an owned stack often runs less than a single builder subscription, and there is no per-feature toll booth.
 
-You are not paying for pixels. You are paying for the system: the site, the lead capture, the follow-up, the database, all in accounts with your name on them. See [what those builds include](/pricing) if you want real ranges instead of a mystery quote.
+You are not paying for pixels. You are paying for the system: the site, the lead capture, the follow-up, the database, all in accounts with your name on them. See [the first 90-day campaign](/pricing) for the upfront price and how any website work fits its written scope.
 
 ## Before you buy anything, grade what you have
 
@@ -1554,7 +1556,7 @@ This is the rare business decision you can start with an hour and a bank stateme
         },
         {
           name: "Put in what the system costs",
-          text: "A one-time build cost plus its monthly running cost. If you have a quote, use it. If not, use the build shapes on the pricing page as honest placeholders.",
+          text: "Use a written quote for the system itself plus its running costs. Do not substitute the full 90-day acquisition campaign price for a standalone build cost; it also includes agreed campaign work and advertising. If you do not have a quote, label the number as your own scenario.",
         },
         {
           name: "Be honest about the overlap",

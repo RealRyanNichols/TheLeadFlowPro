@@ -13,7 +13,7 @@ import { BUSINESS } from "@/lib/site/business";
 import { CONSULTATION } from "@/lib/site/consultation";
 import {
   managedUpfrontSummary,
-  managedMonthlySummary,
+  managedCampaignSummary,
 } from "@/lib/site/managedPlans";
 import { TOOL_COUNT } from "@/lib/tools";
 import { CALL_LABEL, TEXT_LABEL, smsHref } from "@/lib/site/textLinks";
@@ -116,8 +116,8 @@ export default function LongviewPage() {
               </h2>
             </div>
             <p className="cb-lead">
-              Each service is scoped on its own and priced in writing before it
-              starts. Advertising spend is included in the agreed plan. You keep
+              The services within your campaign are agreed in writing before it
+              starts. Advertising spend is included in that allocation. You keep
               the accounts, the leads, and the reporting.
             </p>
           </div>
@@ -143,8 +143,8 @@ export default function LongviewPage() {
             ))}
           </div>
           <p className="cb-lead mt-6">
-            {managedUpfrontSummary()} {managedMonthlySummary()}{" "}
-            <Link href="/pricing">Compare the monthly plans</Link> or{" "}
+            {managedUpfrontSummary()} {managedCampaignSummary()}{" "}
+            <Link href="/pricing">See the 90-day campaign</Link> or{" "}
             <Link href="/services">see what we build</Link>.
           </p>
         </div>

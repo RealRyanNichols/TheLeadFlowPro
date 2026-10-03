@@ -7,10 +7,17 @@ import SiteHero from "@/components/site/system/SiteHero";
 import FinalCta from "@/components/site/system/FinalCta";
 import { AGENCY_PROCESS, AGENCY_SERVICES, OWNERSHIP_PROMISE, agencyService, countWord } from "@/lib/site/agency";
 import { BUSINESS } from "@/lib/site/business";
-import { managedAdvertisingExplanation, managedBillingExplanation, managedMonthlySummary, managedUpfrontSummary } from "@/lib/site/managedPlans";
+import {
+  managedAdvertisingExplanation,
+  managedBillingExplanation,
+  managedCampaignSummary,
+  managedCompletionExplanation,
+  managedRenewalExplanation,
+  managedUpfrontSummary,
+} from "@/lib/site/managedPlans";
 import { breadcrumbJsonLd, faqJsonLd, graph, jsonLdText } from "@/lib/site/structuredData";
 
-// Service details explain the work within a managed plan, not a standalone
+// Service details explain the work within the agreed campaign, not a standalone
 // low-priced checkout. The signed-scope payment handler remains separate.
 
 export function generateStaticParams() {
@@ -159,15 +166,17 @@ export default async function AgencyServicePage({ params }: { params: Promise<{ 
                 {managedUpfrontSummary()}
               </h2>
             </div>
-            <p className="cb-lead">{managedMonthlySummary()} {managedBillingExplanation()}</p>
+            <p className="cb-lead">{managedCampaignSummary()} {managedBillingExplanation()}</p>
           </div>
           <p className="cb-lead mt-6">{managedAdvertisingExplanation()}</p>
+          <p className="cb-lead mt-6">{managedCompletionExplanation()}</p>
+          <p className="cb-lead mt-6">{managedRenewalExplanation()}</p>
           <div className="cb-actions">
             <Link href={s.intakeHref} className="cb-btn cb-btn--primary" data-cta="agency_service_intake" data-cta-placement={s.slug}>
               Get my scope <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
             <Link href="/pricing" className="cb-btn cb-btn--ghost" data-cta="agency_service_plans" data-cta-placement={s.slug}>
-              Compare monthly plans
+              See the 90-day campaign
             </Link>
           </div>
           {s.related.length > 0 ? (

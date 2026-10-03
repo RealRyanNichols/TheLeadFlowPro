@@ -24,6 +24,7 @@ function completed() {
     email: " fixture@example.com ",
     "service_meta-ads": "on",
     managed_plan_budget: "recommended",
+    campaign_acknowledged: "on",
     bottleneck: " Follow-up is getting missed. ",
     decision_maker: "me",
     timeline: "researching",
@@ -45,6 +46,7 @@ test("a completed inquiry trims answers without requiring phone, channel choices
   assert.equal(result.value.marketingEmailConsent, false);
   assert.deepEqual(result.value.channels, []);
   assert.equal(result.value.plan, "recommended");
+  assert.equal(result.value.campaignAcknowledged, true);
 });
 
 test("required whitespace and malformed email produce field-specific errors before a request", () => {
@@ -131,7 +133,7 @@ test("unrecognized plan, decision, timeline, and service answers cannot become a
     ]);
 });
 
-test("all three current tiers and custom/help choices are accepted without manufacturing another price", () => {
+test("historical plan identifiers normalize to the sole current campaign", () => {
   for (const choice of [
     "foundation",
     "recommended",
@@ -143,7 +145,30 @@ test("all three current tiers and custom/help choices are accepted without manuf
     form.set("managed_plan_budget", choice);
     const result = validateAgencyIntake(form, services);
     assert.equal(result.ok, true, choice);
-    if (result.ok) assert.equal(result.value.plan, choice);
+    if (result.ok) assert.equal(result.value.plan, "recommended");
+  }
+});
+
+test("a campaign link or historical plan never substitutes for explicit acknowledgement", () => {
+  for (const choice of [
+    "recommended",
+    "foundation",
+    "structured",
+    "custom",
+    "discuss",
+  ]) {
+    const form = completed();
+    form.set("managed_plan_budget", choice);
+    form.delete("campaign_acknowledged");
+    const result = validateAgencyIntake(form, services);
+    assert.equal(result.ok, false, choice);
+    if (!result.ok) {
+      assert.deepEqual(Object.keys(result.errors), ["campaign_acknowledged"]);
+      assert.match(
+        result.errors.campaign_acknowledged!,
+        /does not authorize a charge/,
+      );
+    }
   }
 });
 
@@ -158,7 +183,7 @@ test("service and private lead attribution remain independent of a selected plan
     {
       requestedService: "meta-ads",
       preselected: "meta-ads",
-      initialPlan: "structured",
+      initialPlan: "recommended",
       originatingLead: lead.toLowerCase(),
     },
   );
@@ -171,7 +196,7 @@ test("service and private lead attribution remain independent of a selected plan
     {
       requestedService: "crypto-tax-intake",
       preselected: "custom",
-      initialPlan: "custom",
+      initialPlan: "recommended",
       originatingLead: lead.toLowerCase(),
     },
   );
@@ -195,7 +220,7 @@ test("unknown or repeated query choices do not silently select a plan, service, 
   }
 });
 
-test("pricing handoff carries the chosen tier and campaign attribution even when session storage is unavailable", () => {
+test("pricing handoff carries the current campaign and attribution without private identifiers", () => {
   const href = agencyIntakeHref("foundation", {
     plan: "structured",
     utm_source: "facebook",
@@ -208,9 +233,9 @@ test("pricing handoff carries the chosen tier and campaign attribution even when
     email: "private@example.com",
   });
   const query = new URL(href, "https://example.com").searchParams;
-  assert.equal(query.get("plan"), "foundation");
+  assert.equal(query.get("plan"), "recommended");
   assert.equal(query.get("service"), "meta-ads");
-  assert.equal(query.get("lead"), "abcdef01-0000-4000-8000-000000000001");
+  assert.equal(query.has("lead"), false);
   assert.deepEqual(query.getAll("utm_content"), ["video", "proof"]);
   assert.equal(query.has("token"), false);
   assert.equal(query.has("email"), false);
@@ -224,6 +249,20 @@ test("pricing handoff carries the chosen tier and campaign attribution even when
     new URL(agencyIntakeHref("custom"), "https://example.com").searchParams.get(
       "plan",
     ),
-    "custom",
+    "recommended",
   );
+});
+
+test("handoff only forwards bounded named public fields", () => {
+  const href = agencyIntakeHref("recommended", {
+    utm_source: `  ${"x".repeat(150)}  `,
+    service: ["meta-ads", "custom"],
+    phone: "+1-903-555-0100",
+    lead: "abcdef01-0000-4000-8000-000000000001",
+    return_url: "https://private.example/secret",
+    token: "private-token",
+  });
+  const query = new URL(href, "https://example.com").searchParams;
+  assert.deepEqual(Array.from(query.keys()).sort(), ["plan", "utm_source"]);
+  assert.equal(query.get("utm_source")?.length, 100);
 });

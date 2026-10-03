@@ -18,7 +18,15 @@ import {
   Users,
 } from "lucide-react";
 import { BUSINESS } from "@/lib/site/business";
-import { MANAGED_COMMERCIAL_TERMS, managedAdvertisingExplanation, managedBillingExplanation, managedMonthlySummary, managedUpfrontSummary } from "@/lib/site/managedPlans";
+import {
+  MANAGED_COMMERCIAL_TERMS,
+  managedAdvertisingExplanation,
+  managedBillingExplanation,
+  managedCampaignSummary,
+  managedCompletionExplanation,
+  managedRenewalExplanation,
+  managedUpfrontSummary,
+} from "@/lib/site/managedPlans";
 import { usd } from "@/lib/site/prices";
 import ContactForm from "@/app/contact/ContactForm";
 import styles from "./premier-system.module.css";
@@ -155,11 +163,11 @@ const MILESTONES = [
   { number: "01", name: "Scope is confirmed in writing", detail: "Your priorities, work, capacity, account ownership, and advertising allocation are agreed before work starts." },
   { number: "02", name: managedUpfrontSummary(), detail: managedBillingExplanation() },
   { number: "03", name: "You review working proof", detail: "Review the agreed website, capture paths, and connected systems before launch." },
-  { number: "04", name: "Monthly work follows the plan", detail: `${managedMonthlySummary()} Your proposal names the ongoing work, advertising allocation, and billing dates.` },
+  { number: "04", name: "Review the results and next scope", detail: `${managedCompletionExplanation()} ${managedRenewalExplanation()}` },
 ];
 
 const EXCLUSIONS = [
-  "Work beyond the monthly capacity and deliverables in the signed scope",
+  "Work beyond the campaign capacity and deliverables in the signed scope",
   "Unapproved changes to the advertising allocation or service territory",
   "Additional custom systems or integrations outside the agreed build",
   "Outside vendor charges not already included in the plan allocation",
@@ -172,8 +180,12 @@ const FAQ = [
     answer: "This is proof of a system built for one business. Your plan is scoped around your own priorities, capacity, and workflows; the example does not promise identical tools or outcomes.",
   },
   {
-    question: "How does the first month work?",
-    answer: `${managedUpfrontSummary()} ${managedMonthlySummary()} ${managedBillingExplanation()}`,
+    question: "How does the 90-day campaign work?",
+    answer: `${managedUpfrontSummary()} ${managedCampaignSummary()} ${managedBillingExplanation()}`,
+  },
+  {
+    question: "What happens when the target is reached or day 90 arrives?",
+    answer: `${managedCompletionExplanation()} ${managedRenewalExplanation()}`,
   },
   {
     question: "Are graphics and advertising included?",
@@ -204,7 +216,7 @@ const JSON_LD = {
       name: "The LeadFlow Pro managed business system",
       serviceType: "Managed marketing and business systems",
       description:
-        "A scoped managed plan combining the agreed website and systems, onboarding, marketing, and included advertising allocation.",
+        "An initial campaign of up to 90 days combining the agreed website and systems, onboarding, marketing, and included advertising allocation.",
       provider: {
         "@type": "Organization",
         name: "The LeadFlow Pro",
@@ -217,7 +229,7 @@ const JSON_LD = {
         priceCurrency: "USD",
         url: "https://www.theleadflowpro.com/pricing",
         description:
-          `${managedUpfrontSummary()} ${managedMonthlySummary()} ${managedBillingExplanation()} ${managedAdvertisingExplanation()}`,
+          `${managedUpfrontSummary()} ${managedCampaignSummary()} ${managedBillingExplanation()} ${managedAdvertisingExplanation()}`,
       },
     },
     {
@@ -588,7 +600,7 @@ export default function PremierSystemPage() {
               <em>Build the next pieces from there.</em>
             </h2>
             <p>
-              Premier is a separately scoped example. Your managed plan connects the website, marketing, and next steps around the way your own business operates.
+              Premier is a separately scoped example. Your campaign connects the website, marketing, and next steps around the way your own business operates.
             </p>
           </header>
           <div className={styles.offerGrid}>
@@ -604,9 +616,9 @@ export default function PremierSystemPage() {
               ))}
             </div>
             <aside className={styles.priceCard}>
-              <span>Managed plan · first month</span>
-              <strong>{usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd)} upfront</strong>
-              <p>{managedMonthlySummary()} Advertising is included within your written allocation.</p>
+              <span>Initial campaign · up to 90 days</span>
+              <strong>{usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd)} upfront minimum</strong>
+              <p>{managedCampaignSummary()} Advertising is included within your written allocation.</p>
               <Link
                 href="/agency/start"
                 className={styles.primary}

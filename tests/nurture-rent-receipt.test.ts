@@ -217,7 +217,7 @@ test("hot leads close on the booking link every day; cool leads only on the door
   assert.ok(rentReceiptCallLink(3, c).startsWith(booking!));
 });
 
-test("future Rent Receipt recommendations use current managed amounts and included advertising without changing the 20-minute call", () => {
+test("future Rent Receipt recommendations describe the 90-day campaign, counted outcomes and a written renewal without changing the 20-minute call", () => {
   for (const rendered of renderAll()) {
     assert.doesNotMatch(
       rendered.body,
@@ -225,16 +225,44 @@ test("future Rent Receipt recommendations use current managed amounts and includ
     );
     if (rendered.day === 22) {
       assert.ok(
-        rendered.body.includes(`${usd(PRICES.managedMonthlyMinimum)} a month`),
-      );
-      assert.ok(
         rendered.body.includes(`${usd(PRICES.managedStartingUpfront)} upfront`),
       );
-      assert.match(rendered.body, /advertising allocation is included/);
+
       assert.match(rendered.body, /A twenty minute call is free/);
+      assert.match(rendered.body, /first 90 days/);
+      assert.match(rendered.body, /advertising allocation are included/);
+      assert.match(rendered.body, /15 signed or paid acquired jobs/);
+      assert.match(rendered.body, /5 at the starting investment/);
       assert.match(
         rendered.body,
-        /No number of leads, jobs, or sales is promised/,
+        /Extra acquisition targets are scoped and paid upfront/,
+      );
+      assert.match(
+        rendered.body,
+        /Extra farm acquisition targets are \$500 each/,
+      );
+      assert.match(rendered.body, /no automatic success charge/);
+      assert.doesNotMatch(rendered.body, /\$1,250|six completed deals/);
+      assert.ok(
+        rendered.body.includes(usd(PRICES.farmAcquiredJobPlanningTarget)),
+      );
+      assert.ok(
+        rendered.body.includes(usd(PRICES.propertyCompletedDealPlanningTarget)),
+      );
+      assert.match(rendered.body, /not audited results or outcome guarantees/);
+      assert.match(rendered.body, /stop new acquisition/);
+      assert.match(rendered.body, /Inquiries already captured stay yours/);
+      assert.match(
+        rendered.body,
+        /At day 90 we review results and capacity, with no automatic extension/,
+      );
+      assert.match(
+        rendered.body,
+        /higher investment needs a new written scope and price/,
+      );
+      assert.doesNotMatch(
+        rendered.body,
+        /\$5,000|\$15,000|per month|a month|first month/,
       );
     }
     if (

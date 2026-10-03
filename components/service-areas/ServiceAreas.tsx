@@ -35,7 +35,7 @@ import {
 import Link from "next/link";
 import {
   managedUpfrontSummary,
-  managedMonthlySummary,
+  managedCampaignSummary,
 } from "@/lib/site/managedPlans";
 import TerritoryMap, { type MapView } from "./TerritoryMap";
 import styles from "./service-areas.module.css";
@@ -525,7 +525,7 @@ export default function ServiceAreas({
             <p>
               <Link href="/pricing">
                 <strong>{managedUpfrontSummary()}</strong>{" "}
-                {managedMonthlySummary()} Compare the monthly plans.
+                {managedCampaignSummary()} See the 90-day campaign.
               </Link>
             </p>
             <ul>

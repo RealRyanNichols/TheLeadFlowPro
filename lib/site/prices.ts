@@ -12,14 +12,11 @@
 // a guessed number here.
 
 export const PRICES = {
-  /** Owner-approved managed-service expectations, October 3, 2026. */
+  /** Owner-approved minimum upfront investment for the initial 90-day campaign. */
   managedStartingUpfront: 7500,
-  managedMonthlyMinimum: 5000,
-  /** Structured monthly plan and its first month, paid upfront. */
-  managedStructuredPlan: 15000,
   /** Owner planning targets per completed outcome, not a charge or measured CAC. */
   farmAcquiredJobPlanningTarget: 500,
-  propertyCompletedDealPlanningTarget: 1250,
+  propertyCompletedDealPlanningTarget: 1500,
 
   /** Ryan-approved September 2026 introductory package, one time. */
   septemberSpecialTotal: 1497,

@@ -18,6 +18,8 @@ import {
   MANAGED_PLANS,
   managedPlanPrice,
   managedAdvertisingExplanation,
+  managedCompletionExplanation,
+  managedRenewalExplanation,
 } from "./managedPlans";
 import { EXTERNAL_LINKS } from "./external-links";
 import { PRICES, usd, usdFrom, usdPerMonth, usdRange } from "./prices";
@@ -65,12 +67,11 @@ const REVIEW = "2026-12-01";
 export const OFFERS: readonly Offer[] = [
   ...MANAGED_PLANS.map((plan): Offer => ({
     id: `managed_${plan.id}`,
-    name: `${plan.name} monthly service`,
+    name: plan.name,
     category: "agency",
     priceUsd: plan.amountUsd,
-    priceLabel: `${managedPlanPrice(plan).amount} / month`,
-    terms: `First month: ${usd(plan.firstMonthUsd)} paid upfront. ${plan.billingNote} ${managedAdvertisingExplanation()}`,
-    billingPeriod: "P1M",
+    priceLabel: `${managedPlanPrice(plan).amount} minimum upfront · up to 90 days`,
+    terms: `${plan.billingNote} ${managedAdvertisingExplanation()} ${managedCompletionExplanation()} ${managedRenewalExplanation()}`,
     status: "live",
     effectiveDate: "2026-10-03",
     reviewDate: REVIEW,

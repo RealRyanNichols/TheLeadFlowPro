@@ -2,7 +2,15 @@ import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BUSINESS } from "@/lib/site/business";
-import { managedAdvertisingExplanation, managedBillingExplanation, managedMonthlySummary, managedUpfrontSummary } from "@/lib/site/managedPlans";
+import { PRICES, usd } from "@/lib/site/prices";
+import {
+  managedAdvertisingExplanation,
+  managedBillingExplanation,
+  managedCampaignSummary,
+  managedCompletionExplanation,
+  managedRenewalExplanation,
+  managedUpfrontSummary,
+} from "@/lib/site/managedPlans";
 
 export const metadata: Metadata = withPublicPageMetadata("/terms", {
   title: "Terms of Use | The LeadFlow Pro",
@@ -30,12 +38,23 @@ export default function TermsPage() {
       </p>
       <h2>Prices, scope, and results</h2>
       <p>
-        {managedUpfrontSummary()} {managedMonthlySummary()} {managedBillingExplanation()}
-        Higher-capacity plans and custom builds receive their own written scope. Final
+        {managedUpfrontSummary()} {managedCampaignSummary()} {managedBillingExplanation()}
+        A larger initial acquisition scope or any renewal receives its own written
+        scope and upfront price. Final
         price, timing, deliverables, responsibilities, ownership, support, advertising
         allocation, and billing dates are established in the signed agreement.
       </p>
       <p>{managedAdvertisingExplanation()}</p>
+      <h2>Campaign completion and renewal</h2>
+      <p>{managedCompletionExplanation()}</p>
+      <p>{managedRenewalExplanation()}</p>
+      <p>
+        For farm/ag work, 15 acquired jobs with signed or paid confirmation at a
+        {usd(PRICES.farmAcquiredJobPlanningTarget)} cost per acquisition is a planning goal, not a guaranteed outcome.
+        Leads, inquiries and appointments do not count as acquired jobs. Reaching
+        the agreed target ends future acquisition under that campaign; captured
+        leads and client records are not withheld.
+      </p>
       <p>
         Earlier approved agreements keep their own prices, scope, payment schedules,
         advertising treatment, and cancellation or refund terms. Current website pricing
@@ -104,7 +123,7 @@ export default function TermsPage() {
         <a href={`mailto:${BUSINESS.email.hello}`}>{BUSINESS.email.hello}</a>.
       </p>
       <Link className="button-secondary" href="/pricing">
-        Compare managed plans
+        See the 90-day campaign
       </Link>
     </main>
   );

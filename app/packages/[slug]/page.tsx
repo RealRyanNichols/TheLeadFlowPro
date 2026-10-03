@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
+import { buyerHref } from "@/lib/site/publicBuyerRoutes";
 
 const LEGACY_PACKAGES = ["launch", "system-map", "industry-os"] as const;
 export const metadata: Metadata = {
-  title: "Current monthly plans | The LeadFlow Pro",
+  title: "90-Day Campaign | The LeadFlow Pro",
   robots: { index: false, follow: true },
 };
 export function generateStaticParams() {
@@ -22,10 +23,5 @@ export default async function LegacyPackagePage({
   if (!LEGACY_PACKAGES.includes(slug as (typeof LEGACY_PACKAGES)[number]))
     notFound();
   const incoming = await searchParams;
-  const query = new URLSearchParams();
-  for (const [key, value] of Object.entries(incoming)) {
-    if (Array.isArray(value)) value.forEach((item) => query.append(key, item));
-    else if (value !== undefined) query.set(key, value);
-  }
-  permanentRedirect(query.size ? `/pricing?${query}` : "/pricing");
+  permanentRedirect(buyerHref("/pricing", incoming));
 }

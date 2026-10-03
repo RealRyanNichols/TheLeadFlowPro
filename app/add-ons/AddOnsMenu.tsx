@@ -60,7 +60,7 @@ import { smsHref } from "@/lib/site/textLinks";
 import { consultationReplyMethod } from "@/lib/site/inquiryValidation";
 import {
   managedUpfrontSummary,
-  managedMonthlySummary,
+  managedCampaignSummary,
 } from "@/lib/site/managedPlans";
 
 declare global {
@@ -611,14 +611,14 @@ export default function AddOnsMenu({
                 <ArrowRight aria-hidden="true" />
               </a>
               <Link href="/pricing" className={styles.secondaryButton}>
-                See managed plans
+                See the 90-day campaign
               </Link>
             </div>
             <div className={styles.qualifier}>
               <ShieldCheck aria-hidden="true" />
               <p>
-                {managedUpfrontSummary()} {managedMonthlySummary()} Advertising
-                spend is included in the managed plan&apos;s written allocation.
+                {managedUpfrontSummary()} {managedCampaignSummary()} Advertising
+                spend is included in the campaign&apos;s written allocation.
                 Custom work is scoped before approval.
               </p>
             </div>
@@ -852,7 +852,7 @@ export default function AddOnsMenu({
                 See the Live Work
               </Link>
               <Link href="/pricing" className={styles.secondaryButton}>
-                See managed plans
+                See the 90-day campaign
               </Link>
             </div>
           </div>

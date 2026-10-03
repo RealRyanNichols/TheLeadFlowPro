@@ -34,6 +34,7 @@ import type { NurtureContext } from "@/lib/nurtureContext";
 import { BUSINESS } from "@/lib/site/business";
 import { eventWhen, featuredEvent, featuredEventStartMs } from "@/lib/site/events";
 import { usd } from "@/lib/site/prices";
+import { MANAGED_COMMERCIAL_TERMS, managedAdvertisingExplanation, managedAdditionalScopeExplanation } from "@/lib/site/managedPlans";
 
 // Part of the send idempotency key (lib/nurtureDelivery.ts). Never rename it,
 // even though the offer it was named for is retired.
@@ -41,10 +42,11 @@ export const NURTURE_CAMPAIGN = "free_build";
 
 // The free website build was retired on 2026-09-22 (its page is a 301 to
 // /services). New leads get the Rent Receipt series (lib/nurtureRentReceipt.ts);
-// only leads that already started this sequence finish it. Its add-on prices
-// are frozen here because they are no longer sold or in lib/site/prices.ts.
-const RETIRED_FOLLOW_UP_PACK = usd(197);
-const RETIRED_CONTENT_ENGINE = usd(497);
+// only earlier leads or leads that already started this sequence finish it.
+// Future sends describe current new-work terms. Existing approved scopes,
+// campaign keys, step IDs, recipient eligibility, and send history stay intact.
+const CAMPAIGN_UPFRONT = usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd);
+const CAMPAIGN_DAYS = MANAGED_COMMERCIAL_TERMS.initialCampaignDays;
 
 /**
  * The business diagnostic has its own consent snapshot, submission clock, and
@@ -170,37 +172,36 @@ export const NURTURE_STEPS: NurtureStep[] = [
   {
     step: 101,
     day: 1,
-    subject: "🏗️ The whole offer, in two lines",
+    subject: "🏗️ The current starting point",
     body: (first) => `${first},
 
 Here it is with nothing around it.
 
-If your business qualifies, I build the first five-page website with a $0 build fee.
-You own it.
+New managed clients start at ${CAMPAIGN_UPFRONT} upfront for one campaign lasting up to ${CAMPAIGN_DAYS} days. The agreed build, onboarding, and advertising allocation are included in the written scope.
 
-Paid growth services are optional. Ads. Follow-up. Content. CRM. Automation. SEO. Video. A larger operating system.
+We agree the services, territory, acquisition target, and what counts before work starts. No automatic monthly renewal.
 
-Domain registration, paid hosting after the included 90 days, software, and ad spend are outside costs. Every one is disclosed before you approve it.
+Earlier approved agreements keep their own prices and deliverables. New work does not change anything already owed under your written scope.
 
-${nurtureLink(1)}`,
+${nurtureLink(1, "/pricing")}`,
   },
   {
     step: 102,
     day: 2,
-    subject: "What free means, and what it does not",
+    subject: "What the campaign includes",
     body: (first) => `${first},
 
-Free means the five-page build fee is $0. Not a trial and not a template you rent from me forever.
+One campaign. A written scope before payment or work.
 
-Built for you. Handed to you. On a domain in your name.
+The first ${CAMPAIGN_DAYS} days start at ${CAMPAIGN_UPFRONT} upfront. We name the agreed build, onboarding, advertising allocation, outcome target, attribution, and your responsibilities.
 
-What it is not: unlimited pages, a store, a portal, a CRM, ad spend, paid software, or open-ended revisions.
+A lead or appointment is not an acquired job or completed deal. We agree how outcomes are counted and use your closing records.
 
-The catch is scope and capacity. Apply. Qualify. Give me the real business information and organized feedback. The first 90 days include up to two minor correction requests per month.
+Your accounts stay in your name. Additional targets are agreed and paid upfront; nothing charges automatically when a job closes.
 
-No add-on purchase is required. I would rather you read the limits here than find them later.
+Earlier signed scopes retain their own terms.
 
-${nurtureLink(2)}`,
+${nurtureLink(2, "/pricing")}`,
   },
   {
     step: 103,
@@ -216,7 +217,7 @@ It never brought him one customer.
 
 That is most small business websites. A business card nobody asked for.
 
-So I quit charging for the part that sits there and started charging for the part that works.
+The website needs to support the acquisition campaign, not just look finished. We define that work in the written scope.
 
 ${nurtureLink(3)}`,
   },
@@ -234,7 +235,7 @@ You do not need software for this. You need one message already written, saved o
 
 Write it tonight. Save it as a quick reply. That is a free fix and it takes ten minutes.
 
-If you want that message written properly, in your words, that is the ${RETIRED_FOLLOW_UP_PACK}.
+If you want help with the follow up, we define that work inside the campaign scope before anything starts.
 
 ${nurtureLink(4)}`,
   },
@@ -259,18 +260,20 @@ ${nurtureLink(5)}`,
   {
     step: 106,
     day: 6,
-    subject: `💼 The optional ${RETIRED_CONTENT_ENGINE} engine, itemized`,
+    subject: "💼 The campaign, itemized",
     body: (first) => `${first},
 
-The middle one, line by line.
+One initial campaign, starting at ${CAMPAIGN_UPFRONT} upfront, for up to ${CAMPAIGN_DAYS} days.
 
-Free, at $0: up to five scoped pages built for a phone first. Lead capture. Search foundation. Analytics in your account. Ninety days of defined corrections. Code, domain, tracking, and leads under your control.
+The agreed build, onboarding, and advertising allocation are included. We write down the services, territory, acquisition target, and what you own before you pay.
 
-Optional, ${RETIRED_CONTENT_ENGINE} one time: fourteen days of business-specific content, a campaign calendar tied to the offer, one visual direction, and a publishing handoff inside client-controlled accounts.
+${managedAdvertisingExplanation()}
 
-No ad spend. No subscription. Nothing renews without written approval.
+If the agreed target is reached early, new acquisition ends. Captured inquiries are still handed over. At day 90 we review results; there is no automatic extension.
 
-${nurtureLink(6)}`,
+Any next campaign needs a new written scope and price. Existing approved agreements keep their own terms.
+
+${nurtureLink(6, "/pricing")}`,
   },
   {
     step: 107,
@@ -282,7 +285,7 @@ Seven emails. Here is the only question that matters this week.
 
 When somebody calls your business and nobody picks up, what happens next?
 
-If the honest answer is nothing, that is the cheapest hole in your business and you can plug it for ${RETIRED_FOLLOW_UP_PACK}.
+If the honest answer is nothing, start with a saved reply and a callback habit. Bring the follow-up problem into the campaign scope if you need help building it.
 
 If the honest answer is something, good. You are further along than most and we should talk about the next thing instead.
 
@@ -318,7 +321,7 @@ They cannot know that. Neither can I.
 
 I do not know your market, your prices, whether you answer your phone, or what you are like on it. Anyone who promises you a lead count is either guessing or lying, and both should worry you.
 
-What I will promise is the part inside my control: I tell you the real queue before accepting the application, put the five-page scope in writing, and target a working preview within ten business days after complete intake and assets.
+We agree the campaign scope, territory, outcome target, and timing before work starts. Existing approved builds retain their written timelines and deliverables.
 
 No promise of leads, sales, revenue, ad return, or a Google position. I would rather give you a delivery target I can keep.
 
@@ -348,7 +351,7 @@ Then bring it to the call and I will tell you straight which kind you have.
 
 Most sites I see look fine and are dead behind the glass. No form that reaches anybody. No pixel. Nothing following up. Pretty, and doing nothing.
 
-If yours is one of those, the free build can become a focused replacement or campaign path inside the written five-page scope. Nothing gets torn down without approval.
+If yours is one of those, we define any replacement or campaign path in writing before work begins. Nothing gets torn down without approval.
 
 If yours is already working, I will tell you that too and we will talk about the engine only. I am not going to sell you a site you do not need.
 
@@ -370,7 +373,7 @@ Every stock photo on a small business site says the same thing to a customer: th
 
 That is a free upgrade and it takes twenty minutes.
 
-If you want somewhere good to put them, that part I do for free too.
+If website work belongs in your campaign, those photos help make it specific to your business.
 
 ${nurtureLink(12)}`,
   },
@@ -386,7 +389,7 @@ Somebody fills in your form. Where does it go?
 
 If the answer is an email address you check on Sundays, you do not have a lead system. You have a suggestion box.
 
-The fix is not complicated. A form that emails and pings you inside seconds, and one place you actually look. That is included free in every build I do, because a form that does not reach you is not a feature, it is decoration.
+The fix starts with a form that reaches the agreed inbox and one place you actually look. We define and test that inquiry path in the campaign scope; a form that reaches nobody is decoration.
 
 ${nurtureLink(13)}`,
   },
@@ -404,7 +407,7 @@ You cannot out-spend a leak at the back. You just pay more per hole.
 
 Fix the back first. It is cheaper, it is faster, and it makes everything you already spend work harder.
 
-That is why the cheapest thing I sell is the follow-up and not the website.
+That is why follow up belongs in the acquisition campaign, alongside the website and advertising.
 
 ${nurtureLink(14)}`,
   },
@@ -447,18 +450,18 @@ ${nurtureLink(16)}`,
   {
     step: 117,
     day: 17,
-    subject: "I am too small for this",
+    subject: "Am I ready for this campaign?",
     body: (first) => `${first},
 
-That is the one I hear most, and it is usually backwards.
+The starting investment is ${CAMPAIGN_UPFRONT} upfront for up to ${CAMPAIGN_DAYS} days. It has to fit your business, not just your desire for more calls.
 
-A big company can survive a missed call. It has four other people answering phones. You cannot. One missed call is a real percentage of your month.
+Can you answer inquiries, quote the work, and take on the jobs if the campaign works? Those questions matter as much as the advertising.
 
-Small is exactly who this is for. That is why the website application starts at $0 and the paid growth services stay separate.
+If the timing or investment does not fit, use the free tools and keep what already works. A written scope comes before any commitment.
 
-If you are one truck and a phone, you are not too small. You are the whole point.
+Earlier approved agreements retain their own terms.
 
-${nurtureLink(17)}`,
+${nurtureLink(17, "/pricing")}`,
   },
   {
     step: 118,
@@ -476,7 +479,7 @@ Five. A one page cheat sheet of what goes out when, for whoever answers the phon
 
 Written for your business, handed to you, yours to keep and reuse forever.
 
-${RETIRED_FOLLOW_UP_PACK} for the follow-up pack. Optional. The website application stays available at $0 without it.
+We agree which of these pieces belong in your campaign. Earlier purchased work keeps its own deliverables and terms.
 
 ${nurtureLink(18)}`,
   },
@@ -533,24 +536,26 @@ ${nurtureLink(21)}`,
   {
     step: 122,
     day: 22,
-    subject: `Why the first optional service is ${RETIRED_FOLLOW_UP_PACK}`,
+    subject: "Know the investment before the work",
     body: (first) => `${first},
 
-Because $3,000 is where good work goes to die in a small business.
+New managed work starts at ${CAMPAIGN_UPFRONT} upfront for up to ${CAMPAIGN_DAYS} days. The agreed build, onboarding, and advertising allocation belong in the written campaign scope.
 
-You save for it. You put it off. You finally do it, once, and then it sits for two years because another three grand is not happening.
+${managedAdditionalScopeExplanation()}
 
-${RETIRED_FOLLOW_UP_PACK} is a fixed follow-up work product, not a retainer and not ad management. It is small enough to solve one leak without pretending to rebuild the whole company.
+If the target is reached early, new acquisition ends and captured inquiries are still handed over. At day 90 we review results and capacity, with no automatic extension.
 
-The site being free is the same logic. I would rather earn the bigger work by showing the work first.
+If the evidence supports a higher investment, we agree the next scope and price before payment or work. Existing approved scopes retain their terms.
 
-${nurtureLink(22)}`,
+${nurtureLink(22, "/pricing")}`,
   },
   {
     step: 123,
     day: 23,
-    subject: "What I actually do in those ten days",
+    subject: "How an approved build reaches preview",
     body: (first) => `${first},
+
+For an existing approved five-page build, its written timeline and deliverables still apply. The outline below describes that build process; a new campaign has its own agreed scope and timing.
 
 Day one. Written scope and complete intake. What you do, who you want calling, the five pages, the offer, ownership, outside costs, and exclusions.
 
@@ -598,7 +603,7 @@ Eight prompts. Rotate them and you have a month.
 
 You do not need to be clever online. You need to be visible and specific. Specific beats clever every single time.
 
-If you want it built for you, the optional ${RETIRED_CONTENT_ENGINE} content engine covers fourteen days of business-specific content, a campaign calendar, one visual direction, and a client-controlled publishing handoff.
+If you want help producing the content, we agree the work, publishing responsibilities, and capacity within your campaign scope. Existing purchased content retains its approved deliverables.
 
 ${nurtureLink(25)}`,
   },
@@ -610,15 +615,13 @@ ${nurtureLink(25)}`,
 
 Not a scare. Just straight.
 
-If nothing changes, next August looks like this August. Same missed calls. Same leads gone cold because nobody followed up twice. Same monthly bills to four platforms for tools you do not own and cannot take with you.
+If nothing changes, next year can still mean missed calls, leads gone cold because nobody followed up, and bills for tools you barely use.
 
-Nothing dramatic happens. That is what makes it dangerous. It costs you quietly and never sends an invoice for it.
+Start by finding the leak. Some fixes are habits you can change today. Others need a scoped build and a campaign your business can support.
 
-I made the build free so the price would stop being the reason people stay stuck.
+New managed work starts at ${CAMPAIGN_UPFRONT} upfront for up to ${CAMPAIGN_DAYS} days, with the agreed build and advertising allocation included. Use the numbers to decide; there is no automatic commitment.
 
-The price is not the reason anymore.
-
-${nurtureLink(26)}`,
+${nurtureLink(26, "/pricing")}`,
   },
   {
     step: 127,
@@ -634,7 +637,7 @@ I ask what you do and who you want calling you. I ask what happens now when some
 
 If it is not me, I will say so and tell you what to do instead. That has happened plenty and I sleep fine.
 
-If it is me, we write the five-page scope and start the working-preview target when the intake and assets are complete.
+If it is me, we agree the campaign scope, start date, acquisition target, and included advertising allocation before work or payment.
 
 ${nurtureLink(27, "/book")}`,
   },
@@ -646,7 +649,7 @@ ${nurtureLink(27, "/book")}`,
 
 Worth saying out loud.
 
-Not for you if you want unlimited pages, a store, a portal, a custom app, or an open-ended redesign inside the free scope. Those are separate jobs.
+Not for you if you want unlimited pages or an open-ended redesign. The agreed build and capacity are defined in the campaign scope.
 
 Not for you if you want somebody to hand you a folder of drafts and disappear. I build it and switch it on, or I do not take it.
 
@@ -661,18 +664,18 @@ ${nurtureLink(28)}`,
   {
     step: 129,
     day: 29,
-    subject: "Ten a month, and why",
+    subject: "Capacity before commitment",
     body: (first) => `${first},
 
-Ten qualified free builds a month. That is not a scarcity trick, it is capacity.
+Before we accept a campaign, we check your services, territory, and capacity to handle the work.
 
-Each one is a written scope, intake, five-page build, launch review, deployment path, and 90-day correction window. Ten is the starting cap while the workflow is proven.
+Interest is not a reservation. The written agreement defines any service-area protection and the acquisition goal. We do not invent a slot count to rush you.
 
-When the month is full, qualified applications move to the next opening. Nobody gets bumped and nothing gets rushed.
+The first campaign starts at ${CAMPAIGN_UPFRONT} upfront for up to ${CAMPAIGN_DAYS} days. If the fit is wrong, we say so before payment or work.
 
-If you have been circling this for a month, that is the only real reason to move now. Not a fake timer.
+Earlier approved scopes keep their terms. A new campaign does not replace anything already agreed.
 
-${nurtureLink(29)}`,
+${nurtureLink(29, "/pricing")}`,
   },
   {
     step: 130,
@@ -680,15 +683,19 @@ ${nurtureLink(29)}`,
     subject: "🏁 Last one from me",
     body: (first) => `${first},
 
-Thirty days. This is the last email in this sequence and I am not going to keep pushing.
+Thirty days. This is the last email in this sequence.
 
-If the timing is wrong, that is a real answer and I respect it. Keep my number: ${BUSINESS.phone.display}. Text it whenever, even a year from now, even if it is just a question you want a straight answer to. I will answer it either way.
+If the timing is wrong, keep my number: ${BUSINESS.phone.display}. Text whenever you have a question.
 
-If the timing is right, the offer is simple. Apply for the first five-page website at a $0 build fee. No paid add-on is required. Paid growth services, outside vendor costs, and ad spend are disclosed and approved separately.
+For new managed work, the starting point is ${CAMPAIGN_UPFRONT} upfront for one campaign lasting up to ${CAMPAIGN_DAYS} days. The agreed build, onboarding, and advertising allocation are included in writing.
 
-${nurtureLink(30)}
+Reach the agreed target early and new acquisition ends. Captured inquiries are still handed over. At day 90 we review results, with no automatic extension.
 
-Thank you for reading this far. I built this whole thing because I needed a platform nobody could take from me. I would rather help you build yours than watch you rent one.
+A higher investment needs a new written scope and price. Existing approved agreements keep their own terms.
+
+${nurtureLink(30, "/pricing")}
+
+Thank you for reading.
 
 Ryan`,
   },

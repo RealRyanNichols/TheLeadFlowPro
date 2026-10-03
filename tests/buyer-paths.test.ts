@@ -12,6 +12,7 @@ import { renderableCaseStudies } from "../lib/site/caseStudies.ts";
 import { STAGES } from "../lib/system-stages.ts";
 import { liveOffers } from "../lib/site/offers.ts";
 import { PRICES } from "../lib/site/prices.ts";
+import { buyerHref } from "../lib/site/publicBuyerRoutes.ts";
 import { localBusinessJsonLd } from "../lib/site/structuredData.ts";
 import { FOOTER_COLUMNS, chromeInternalHrefs } from "../lib/site/navigation.ts";
 
@@ -125,7 +126,9 @@ new Function("require", "exports", compiled)(
             throw new Redirect(destination);
           },
         }
-      : require(name),
+      : name === "@/lib/site/publicBuyerRoutes"
+        ? { buyerHref }
+        : require(name),
   route,
 );
 
@@ -140,7 +143,10 @@ test("legacy package overview uses the one comparison page and preserves campaig
         utm_source: "facebook",
         utm_campaign: "website launch",
         ref: ["first", "second"],
-        ignored: undefined,
+        ignored: "private-context",
+        email: "private@example.test",
+        phone: "private-phone",
+        lead: "private-lead",
       }),
     }),
     (error) => {
@@ -150,7 +156,8 @@ test("legacy package overview uses the one comparison page and preserves campaig
       assert.equal(url.searchParams.get("utm_source"), "facebook");
       assert.equal(url.searchParams.get("utm_campaign"), "website launch");
       assert.deepEqual(url.searchParams.getAll("ref"), ["first", "second"]);
-      assert.equal(url.searchParams.has("ignored"), false);
+      for (const key of ["ignored", "email", "phone", "lead"])
+        assert.equal(url.searchParams.has(key), false);
       return true;
     },
   );
@@ -235,7 +242,9 @@ test("retired package URLs redirect with attribution rather than advertise legac
               throw new Error("404");
             },
           }
-        : require(name),
+        : name === "@/lib/site/publicBuyerRoutes"
+          ? { buyerHref }
+          : require(name),
     exports,
   );
   for (const slug of ["launch", "system-map", "industry-os"]) {
@@ -285,7 +294,7 @@ test("public offer discovery excludes old service scopes while preserving separa
       .filter((offer) => offer.id.startsWith("managed_"))
       .map((offer) => offer.priceUsd)
       .sort((a, b) => Number(a) - Number(b)),
-    [5000, 7500, 15000],
+    [7500],
   );
   assert.equal(
     publicOffers.find((offer) => offer.id === "chase_sheet_monthly")?.priceUsd,
@@ -302,10 +311,12 @@ test("public offer discovery excludes old service scopes while preserving separa
     ),
   );
   const managed = catalog.filter((item) =>
-    /monthly service/.test(item.itemOffered.name),
+    /90-Day Campaign/.test(item.itemOffered.name),
   );
-  assert.equal(managed.length, 3);
+  assert.equal(managed.length, 1);
   assert.ok(
-    managed.every((item) => item.priceSpecification?.billingDuration === "P1M"),
+    managed.every(
+      (item) => item.priceSpecification?.billingDuration === undefined,
+    ),
   );
 });

@@ -2,87 +2,75 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
-  Building2,
-  Layers3,
+  Check,
   MapPin,
   Plus,
   ShieldCheck,
   Target,
-  Users,
+  TrendingUp,
   WalletCards,
 } from "lucide-react";
 import CtaLink from "@/components/site/CtaLink";
 import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import { CONSULTATION } from "@/lib/site/consultation";
-import { usd } from "@/lib/site/prices";
+import { PRICES, usd } from "@/lib/site/prices";
 import {
-  ACQUISITION_PLANNING_TARGETS,
   MANAGED_COMMERCIAL_TERMS,
   MANAGED_PLANS,
-  acquisitionPlanningExplanation,
+  managedAdditionalScopeExplanation,
   managedAdvertisingExplanation,
   managedBillingExplanation,
-  managedMonthlySummary,
-  managedPlanPrice,
-  managedUpfrontSummary,
+  managedCampaignSummary,
+  managedCompletionExplanation,
+  managedRenewalExplanation,
 } from "@/lib/site/managedPlans";
-import styles from "./managed-pricing.module.css";
 import { agencyIntakeHref } from "@/lib/site/agencyIntake";
+import styles from "./managed-pricing.module.css";
 
 export const metadata: Metadata = withPublicPageMetadata("/pricing", {
-  title: "Managed Plans & Pricing | The LeadFlow Pro",
-  description: `${managedUpfrontSummary()} ${managedMonthlySummary()} Choose a starting plan or a larger custom engagement built around your business.`,
+  title: "90-Day Campaign Pricing | The LeadFlow Pro",
+  description: `Start a 90-day campaign from ${usd(PRICES.managedStartingUpfront)} upfront. Agree on your territory, signed-job target, advertising allocation, and scope before launch.`,
   openGraph: {
-    title: managedUpfrontSummary(),
-    description: `${managedMonthlySummary()} Scope and ongoing costs are agreed in writing.`,
+    title: "One campaign. Up to 90 days.",
+    description: managedCampaignSummary(),
   },
 });
 
-const SCOPE_FACTORS = [
-  {
-    icon: Layers3,
-    title: "The assets already in place",
-    body: "Your website, accounts, customer records, content, and existing systems shape what needs to be built or connected.",
-  },
-  {
-    icon: Users,
-    title: "The people doing the work",
-    body: "Staffing, responsibilities, approvals, and the support your team needs determine the capacity we plan around.",
-  },
-  {
-    icon: Target,
-    title: "The business and its market",
-    body: "Your offer, industry, locations, service area, and customer demand determine the work that makes sense.",
-  },
-  {
-    icon: WalletCards,
-    title: "The advertising budget",
-    body: "The proposal names the advertising allocation and how it fits the delivery plan, alongside the agreed billing dates.",
-  },
-];
-
 const QUESTIONS = [
   {
-    question: "What should I expect before we start?",
-    answer: `${managedUpfrontSummary()} ${managedMonthlySummary()} Your written proposal names the commitment, billing dates, ongoing price, and the work we are responsible for.`,
-  },
-  {
-    question: "What does the upfront payment cover?",
+    question: "What does the upfront investment include?",
     answer: managedBillingExplanation(),
   },
   {
-    question: "What work can the plan cover?",
-    answer:
-      "We scope marketing, ads, websites, customer records, follow-up, content, video, and operating systems around what the business needs. Your proposal names the actual work, deliverables, capacity, and review points.",
+    question: "What happens if we reach the target early?",
+    answer: managedCompletionExplanation(),
   },
   {
-    question: "How does the advertising budget work?",
+    question: "Can I invest more in the initial campaign?",
+    answer: managedAdditionalScopeExplanation(),
+  },
+  {
+    question: "Is advertising spend included?",
     answer: managedAdvertisingExplanation(),
+  },
+  {
+    question: "What happens at the 90-day review?",
+    answer: managedRenewalExplanation(),
+  },
+  {
+    question: "What counts as an acquired job?",
+    answer:
+      "A farm/ag job must have signed or paid confirmation, with attribution and reporting agreed in the written scope. We count real estate and mortgage deals at completion. An inquiry, appointment, or unaccepted estimate is not a completed outcome. We agree on how cancellations and disputed attribution are handled before launch.",
+  },
+  {
+    question: "Are the outcome targets guaranteed?",
+    answer:
+      "No. A target gives the campaign a clear objective; it is not a promise of sales. Market demand, qualification, your pricing, response time, capacity, and closing process affect results. We review the evidence together at day 90 if the target has not been reached; there is no automatic extension.",
   },
   {
     question: "How does service-area protection work?",
     answer:
-      "We review your services and geography before agreeing to territory protection. Interest on the map is not a reservation. Your written agreement defines the services and area protected.",
+      "We check your services and geography before agreeing to territory protection. Interest on the map is not a reservation. Your written agreement defines the services and area protected.",
   },
 ];
 
@@ -93,29 +81,34 @@ export default async function PricingPage({
 }) {
   const query = await searchParams;
   const upfront = usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd);
-  const monthly = usd(MANAGED_COMMERCIAL_TERMS.minimumMonthlyUsd);
+  const farmRate = usd(PRICES.farmAcquiredJobPlanningTarget);
+  const propertyRate = usd(PRICES.propertyCompletedDealPlanningTarget);
+  const intake = agencyIntakeHref(MANAGED_PLANS[0].id, query);
   return (
     <main className={styles.page}>
       <div className={styles.shell}>
         <section className={styles.hero}>
           <div>
-            <p className={styles.eyebrow}>A serious plan for the business</p>
+            <p className={styles.eyebrow}>
+              One starting offer. A clear objective.
+            </p>
             <h1>
-              <span>{upfront} upfront.</span>Built for your business.
+              Your first 90 days. <span>Built to win work.</span>
             </h1>
             <p className={styles.lead}>
-              Expect {upfront} upfront for the initial month. Ongoing service
-              starts at {monthly}/month. Your plan includes onboarding, the
-              agreed build, and its advertising allocation.
+              Start at {upfront} upfront. We build one acquisition campaign
+              around your business, your territory, and the jobs you want to
+              win. The campaign runs for up to 90 days, with its outcome target
+              agreed before launch.
             </p>
             <div className={styles.actions}>
               <CtaLink
-                href={agencyIntakeHref(null, query)}
+                href={intake}
                 event="managed_plan_intake"
                 placement="pricing_hero"
                 className={styles.primary}
               >
-                Find my plan
+                Scope my campaign
                 <ArrowRight size={16} aria-hidden="true" />
               </CtaLink>
               <Link href="/service-areas" className={styles.secondary}>
@@ -125,190 +118,211 @@ export default async function PricingPage({
             </div>
             <p className={styles.trust}>
               <ShieldCheck size={16} aria-hidden="true" />
-              Every proposal names the work, advertising allocation,
-              responsibilities, and billing dates before we start.
+              Your scope, advertising allocation, outcome target, and
+              responsibilities are agreed in writing before you pay.
             </p>
           </div>
           <aside
             className={styles.commitment}
-            aria-label="Starting investment and ongoing monthly minimum"
+            aria-label="The single initial campaign offer"
           >
-            <small>Your starting expectation</small>
+            <small>90-Day Acquisition Campaign</small>
             <strong>{upfront}</strong>
-            <span>upfront · first month of our most chosen plan</span>
-            <p>{managedBillingExplanation()}</p>
-            <div className={styles.monthlyFloor}>
-              <WalletCards size={23} aria-hidden="true" />
+            <span>minimum upfront · up to 90 days</span>
+            <p>
+              Includes onboarding, the agreed build, and the agreed advertising
+              allocation. One campaign investment, with no separate setup fee.
+            </p>
+            <div className={styles.outcome}>
+              <Target size={23} aria-hidden="true" />
               <div>
-                <strong>{monthly} / month minimum</strong>
-                <span>Ongoing service · exact scope agreed in writing</span>
+                <strong>15 farm/ag jobs</strong>
+                <span>
+                  Initial target · signed or paid confirmation
+                  <br />
+                  {farmRate} per targeted acquired job
+                </span>
               </div>
             </div>
           </aside>
         </section>
 
-        <section aria-labelledby="plans-title" id="plans">
+        <section
+          id="plans"
+          aria-labelledby="plans-title"
+          className={styles.campaignSection}
+        >
           <div className={styles.intro}>
             <div>
-              <p className={styles.eyebrow}>Clear expectations</p>
-              <h2 id="plans-title">Choose the right level of work.</h2>
+              <p className={styles.eyebrow}>Define it. Build it. Measure it.</p>
+              <h2 id="plans-title">A campaign with a finish line.</h2>
             </div>
             <p>
-              The first month is paid upfront. Each plan includes its
-              advertising allocation and agreed delivery scope. Larger business
-              needs receive a custom quote.
+              We measure the work you actually win. Leads and appointments help
+              create opportunities; they do not count as acquired jobs.
             </p>
           </div>
-          <div className={styles.plans}>
-            {MANAGED_PLANS.map((plan) => {
-              const price = managedPlanPrice(plan);
-              return (
-                <article
-                  key={plan.id}
-                  id={plan.id}
-                  className={`${styles.plan} ${plan.id === "recommended" ? styles.recommended : ""}`}
-                >
-                  {plan.badge ? (
-                    <span className={styles.badge}>{plan.badge}</span>
-                  ) : null}
-                  <small>
-                    {plan.id === "recommended"
-                      ? "The recommended plan"
-                      : plan.id === "foundation"
-                        ? "The minimum monthly engagement"
-                        : "More capacity. More moving parts."}
-                  </small>
-                  <h3>{plan.name}</h3>
-                  <div className={styles.price}>
-                    <strong>{price.amount}</strong>
-                    <span>{price.unit}</span>
-                    <small className={styles.initialPayment}>
-                      {usd(plan.firstMonthUsd)} first month · paid upfront
-                    </small>
-                  </div>
-                  <p>{plan.description}</p>
-                  <div className={styles.billingNote}>
-                    <ShieldCheck size={14} aria-hidden="true" />
-                    <span>{plan.billingNote}</span>
-                  </div>
-                  <CtaLink
-                    href={agencyIntakeHref(plan.id, query)}
-                    event="managed_plan_intake"
-                    placement={`pricing_${plan.id}`}
-                    className={
-                      plan.id === "recommended"
-                        ? styles.primary
-                        : styles.secondary
-                    }
-                  >
-                    {plan.cta}
-                    <ArrowRight size={15} aria-hidden="true" />
-                  </CtaLink>
-                </article>
-              );
-            })}
-          </div>
-          <div className={styles.custom}>
-            <div>
-              <p className={styles.eyebrow}>Custom engagement</p>
-              <h3>Need more than a structured plan?</h3>
+          <ol className={styles.steps}>
+            <li>
+              <span>01</span>
+              <h3>Agree on the campaign</h3>
               <p>
-                Higher capacity, larger teams, more locations, and broader
-                systems are scoped around the real business. We define the work,
-                resources, and price together.
+                Confirm your services, territory, capacity, start date,
+                acquisition target, and included advertising allocation.
               </p>
-            </div>
+            </li>
+            <li>
+              <span>02</span>
+              <h3>Launch and improve</h3>
+              <p>
+                Connect the agreed build, creative, advertising, and follow-up.
+                Review inquiries and attributed signed or paid jobs together.
+              </p>
+            </li>
+            <li>
+              <span>03</span>
+              <h3>Reach the target or review</h3>
+              <p>
+                Acquisition ends at the agreed target or day 90. If the target
+                is reached on day 45, acquisition is complete. Captured
+                inquiries are still handed over.
+              </p>
+            </li>
+          </ol>
+          <p className={styles.finePrint}>
+            Day 90 is a results review if the target is still unmet. There is no
+            automatic extension, renewal charge, or promise of a specific
+            result.
+          </p>
+        </section>
+
+        <section className={styles.benchmarks} aria-labelledby="targets-title">
+          <div>
+            <p className={styles.eyebrow}>Add acquisition scope</p>
+            <h2 id="targets-title">
+              Same campaign.
+              <br />
+              More room to grow.
+            </h2>
+            <p>{managedAdditionalScopeExplanation()}</p>
+            <p>
+              Our CPA planning rates describe the investment per targeted
+              acquired outcome. They are our commercial rates, not published
+              industry averages or the price of an unclosed lead.
+            </p>
+          </div>
+          <div className={styles.benchmarkGrid}>
+            <article>
+              <small>Farm/ag & service industries</small>
+              <strong>{farmRate}</strong>
+              <span>per additional targeted signed or paid job</span>
+              <p>
+                The {upfront} farm/ag base campaign targets 15 acquired jobs.
+                Other service industries confirm their outcome goal in writing.
+              </p>
+            </article>
+            <article>
+              <small>Real estate & mortgage</small>
+              <strong>{propertyRate}</strong>
+              <span>
+                per additional targeted completed deal while we dial it in
+              </span>
+              <p>
+                At this planning rate, {upfront} targets 5 completed deals. Your
+                scope confirms the goal.
+              </p>
+            </article>
+          </div>
+        </section>
+
+        <section className={styles.growth} aria-labelledby="growth-title">
+          <div>
+            <p className={styles.eyebrow}>The next engagement</p>
+            <h2 id="growth-title">
+              When it works,
+              <br />
+              build on it.
+            </h2>
+            <p>{managedRenewalExplanation()}</p>
+          </div>
+          <div className={styles.growthCheck}>
+            <TrendingUp size={32} aria-hidden="true" />
+            <h3>Grow with the evidence.</h3>
+            <ul>
+              <li>
+                <Check size={17} aria-hidden="true" />
+                Review acquired outcomes and campaign costs
+              </li>
+              <li>
+                <Check size={17} aria-hidden="true" />
+                Confirm staffing and capacity for more work
+              </li>
+              <li>
+                <Check size={17} aria-hidden="true" />
+                Agree on a larger scope and price in writing
+              </li>
+            </ul>
             <CtaLink
-              href={agencyIntakeHref("custom", query)}
+              href={intake}
               event="managed_plan_intake"
-              placement="pricing_custom"
-              className={styles.secondary}
+              placement="pricing_growth"
+              className={styles.primary}
             >
-              Scope my business
+              Talk through my business
               <ArrowRight size={16} aria-hidden="true" />
             </CtaLink>
           </div>
         </section>
 
-        <section className={styles.scope} aria-labelledby="scope-title">
-          <p className={styles.eyebrow}>Why the plan changes</p>
-          <h2 id="scope-title">The scope follows the business.</h2>
-          <div className={styles.scopeGrid}>
-            {SCOPE_FACTORS.map((factor) => (
-              <article key={factor.title}>
-                <factor.icon size={25} aria-hidden="true" />
-                <h3>{factor.title}</h3>
-                <p>{factor.body}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section
-          className={styles.benchmarks}
-          aria-labelledby="benchmarks-title"
-        >
+        <section className={styles.faq} aria-labelledby="faq-title">
           <div>
-            <p className={styles.eyebrow}>Plan around winning work</p>
-            <h2 id="benchmarks-title">Planning targets by industry.</h2>
-            <p>{acquisitionPlanningExplanation()}</p>
-          </div>
-          <div className={styles.benchmarkGrid}>
-            {ACQUISITION_PLANNING_TARGETS.map((target) => (
-              <article key={target.industry}>
-                <small>{target.industry}</small>
-                <strong>About {usd(target.amountUsd)}</strong>
-                <span>Per {target.outcome.toLowerCase()}</span>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className={styles.faq} aria-labelledby="questions-title">
-          <div>
-            <p className={styles.eyebrow}>Before we get to work</p>
-            <h2 id="questions-title">Know what you are agreeing to.</h2>
+            <p className={styles.eyebrow}>Before you commit</p>
+            <h2 id="faq-title">Know what you’re buying.</h2>
           </div>
           <div>
-            {QUESTIONS.map((item) => (
-              <details key={item.question}>
+            {QUESTIONS.map(({ question, answer }) => (
+              <details key={question}>
                 <summary>
-                  {item.question}
-                  <Plus size={16} aria-hidden="true" />
+                  {question}
+                  <Plus size={17} aria-hidden="true" />
                 </summary>
-                <p>{item.answer}</p>
+                <p>{answer}</p>
               </details>
             ))}
           </div>
         </section>
-
         <section className={styles.next}>
-          <p className={styles.eyebrow}>Your next move</p>
-          <h2>
-            Bring the business.
-            <br />
-            We&rsquo;ll build the plan.
-          </h2>
+          <p className={styles.eyebrow}>Make the first move</p>
+          <h2>Give the campaign a business worth growing.</h2>
           <p>
-            Start with a practical conversation about your goals, team, assets,
-            and market. Leave with a clear direction for the work and the scope
-            we need to agree.
+            Tell us what you do, where you work, and how much new work you can
+            take on. We’ll check territory availability and confirm whether the
+            campaign fits.
           </p>
           <div className={styles.actions}>
             <CtaLink
-              href={CONSULTATION.href}
-              event="consultation_cta"
-              placement="pricing_final"
+              href={intake}
+              event="managed_plan_intake"
+              placement="pricing_footer"
               className={styles.primary}
             >
-              Book a consultation
+              Scope my 90-day campaign
               <ArrowRight size={16} aria-hidden="true" />
             </CtaLink>
-            <Link href="/agency" className={styles.secondary}>
-              See the managed services
-              <Building2 size={16} aria-hidden="true" />
-            </Link>
+            <CtaLink
+              href={CONSULTATION.href}
+              event={CONSULTATION.funnel}
+              placement="pricing_consultation"
+              className={styles.secondary}
+            >
+              Book a free consultation
+              <WalletCards size={16} aria-hidden="true" />
+            </CtaLink>
           </div>
+          <p className={styles.finePrint}>
+            Looking for a separate software tool?{" "}
+            <Link href="/tools">Explore our tools and their own pricing.</Link>
+          </p>
         </section>
       </div>
     </main>

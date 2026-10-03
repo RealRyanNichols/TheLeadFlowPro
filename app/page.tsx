@@ -24,7 +24,7 @@ import { BUSINESS } from "@/lib/site/business";
 import { CONSULTATION } from "@/lib/site/consultation";
 import {
   managedUpfrontSummary,
-  managedMonthlySummary,
+  managedCampaignSummary,
 } from "@/lib/site/managedPlans";
 import { TEXT_LABEL, smsHref } from "@/lib/site/textLinks";
 import {
@@ -100,7 +100,7 @@ export default function HomePage() {
           <p className="lf-plan-expectation">
             <Link href="/pricing">
               <strong>{managedUpfrontSummary()}</strong>{" "}
-              {managedMonthlySummary()}
+              {managedCampaignSummary()}
             </Link>
           </p>
           <div className="lf-actions">
@@ -195,7 +195,7 @@ export default function HomePage() {
               </Link>
               <small>
                 Just want the messages written?{" "}
-                <Link href="/pricing">Compare monthly service plans.</Link>
+                <Link href="/pricing">See the 90-day campaign.</Link>
               </small>
             </article>
             <article>
@@ -213,7 +213,7 @@ export default function HomePage() {
               </Link>
               <small>
                 <Link href="/pricing">
-                  {managedUpfrontSummary()} {managedMonthlySummary()}
+                  {managedUpfrontSummary()} {managedCampaignSummary()}
                 </Link>
               </small>
             </article>

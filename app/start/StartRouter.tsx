@@ -11,10 +11,18 @@ import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   MANAGED_PLANS,
+  MANAGED_COMMERCIAL_TERMS,
   managedPlanPrice,
   managedUpfrontSummary,
   managedBillingExplanation,
+  managedCompletionExplanation,
+  managedRenewalExplanation,
+  managedAdditionalScopeExplanation,
 } from "@/lib/site/managedPlans";
+import { useFormReady } from "@/components/site/useFormReady";
+import { BUSINESS } from "@/lib/site/business";
+import { campaignTags, storedCampaignTags } from "@/lib/site/campaignTags";
+import { consultationReplyMethod } from "@/lib/site/inquiryValidation";
 import styles from "./start-v2.module.css";
 import {
   Archive,
@@ -766,24 +774,27 @@ const GOAL_MODULE_ORDER: Record<string, string[]> = {
   custom: Object.keys(MODULES),
 };
 
+const INITIAL_CAMPAIGN = MANAGED_PLANS[0];
+const CAMPAIGN_PRICE = managedPlanPrice(INITIAL_CAMPAIGN);
+// Preserve historical diagnostic build-path keys, with one current entry offer.
 const PACKAGES = {
   launch: {
-    name: "Focused monthly plan",
-    price: `${managedPlanPrice(MANAGED_PLANS[1]).amount} / month minimum`,
+    name: INITIAL_CAMPAIGN.name,
+    price: `${CAMPAIGN_PRICE.amount} ${CAMPAIGN_PRICE.unit}`,
     description:
-      "A conversion-led five-page public experience with lead capture, responsive production, core analytics, deployment, and two revision rounds.",
+      "Begin with the offer, lead capture, and follow-up your campaign needs. We agree on the build, advertising allocation, and acquired-outcome target before work starts.",
   },
   industry_os: {
-    name: "Growth monthly plan",
-    price: `${managedPlanPrice(MANAGED_PLANS[0]).amount} / month`,
+    name: INITIAL_CAMPAIGN.name,
+    price: `${CAMPAIGN_PRICE.amount} ${CAMPAIGN_PRICE.unit}`,
     description:
-      "The public experience plus the portals, industry tools, courses, archives, calls, texts, and deeper workflows that make the vertical different.",
+      "Use your operating needs to shape one acquisition campaign. We confirm which workflows belong in the initial scope and which need added prepaid scope.",
   },
   custom_platform: {
-    name: "Custom Platform",
-    price: "Custom quote for your business",
+    name: INITIAL_CAMPAIGN.name,
+    price: `${CAMPAIGN_PRICE.amount} ${CAMPAIGN_PRICE.unit}`,
     description:
-      "A larger product, multi-location operation, custom data platform, advanced connector, or system with complex migration and permissions.",
+      "A complex operation needs a careful fit review. We identify a useful acquisition starting point and agree on any added prepaid build or acquisition scope in writing.",
   },
 } as const;
 
@@ -1014,20 +1025,27 @@ function ContactCard({
   onCancel: () => void;
   onSuccess: () => void;
 }) {
+  const ready = useFormReady();
   const [sending, setSending] = useState(false);
+  const pending = useRef(false);
   const [error, setError] = useState<string | null>(null);
-  const isWebsiteLaunch = packageId === "launch";
+  const busy = !ready || sending;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setSending(true);
+    if (!ready || pending.current) return;
     setError(null);
     const form = new FormData(e.currentTarget);
     const phone = String(form.get("phone") ?? "").trim();
     const smsConsent = form.get("sms_consent") === "on";
     if (smsConsent && !phone) {
       setError("Add a mobile number before choosing call or text consent.");
-      setSending(false);
+      return;
+    }
+    if (form.get("campaign_acknowledged") !== "on") {
+      setError(
+        "Review the campaign starting point before sending. This request does not authorize a charge.",
+      );
       return;
     }
     const goal = goalOf(answers.goal);
@@ -1044,77 +1062,98 @@ function ContactCard({
         ? `Sales channels: ${channelLabels.join(", ")}.`
         : "",
       `Current setup: ${stageLabels.join("; ") || "Not specified"}.`,
-      `Recommended path: ${PACKAGES[packageId].name}.`,
+      `Campaign under consideration: ${INITIAL_CAMPAIGN.name}, ${PACKAGES[packageId].price}. Agreed advertising allocation included; scope and outcome target agreed in writing.`,
       `System map: ${moduleLabels.join(", ")}.`,
       ownerNotes ? `Owner notes: ${ownerNotes}` : "",
     ]
       .filter(Boolean)
       .join(" ");
 
-    const params = new URLSearchParams(window.location.search);
-    const res = await fetch("/api/leads", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        full_name: form.get("full_name"),
-        business_name: form.get("business_name"),
-        email: form.get("email"),
-        phone: phone || null,
-        website_url: form.get("website_url"),
-        industry: answers.industry,
-        desired_modules: recommendedModules,
-        current_platform: answers.presence,
-        interest: packageId === "launch" ? "launch_system" : packageId,
-        goals: summary,
-        budget_range: form.get("budget_range"),
-        timeline: form.get("timeline"),
-        best_contact_method: form.get("best_contact_method"),
-        sms_consent: smsConsent,
-        marketing_email_consent: form.get("marketing_email_consent") === "on",
-        utm_source: params.get("utm_source"),
-        utm_medium: params.get("utm_medium"),
-        utm_campaign: params.get("utm_campaign"),
-        industry_label: industry.label,
-        diagnostic: {
-          version: 2,
-          completed: true,
-          answers: {
-            goal: answers.goal,
-            industry: answers.industry,
-            presence: answers.presence,
-            sales_channels: answers.salesChannels,
-            stages: answers.stages,
-            selected_modules: answers.modules,
+    const tags = campaignTags(
+      new URLSearchParams(window.location.search),
+      storedCampaignTags(),
+      "system_map",
+    );
+    pending.current = true;
+    setSending(true);
+    try {
+      const res = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          full_name: form.get("full_name"),
+          business_name: form.get("business_name"),
+          email: form.get("email"),
+          phone: phone || null,
+          website_url: form.get("website_url"),
+          industry: answers.industry,
+          desired_modules: recommendedModules,
+          current_platform: answers.presence,
+          interest: "done_for_you",
+          goals: summary,
+          budget_range: INITIAL_CAMPAIGN.id,
+          timeline: form.get("timeline"),
+          best_contact_method: consultationReplyMethod(form),
+          sms_consent: smsConsent,
+          marketing_email_consent: form.get("marketing_email_consent") === "on",
+          utm_source: tags.utm_source,
+          utm_medium: tags.utm_medium,
+          utm_campaign: tags.utm_campaign,
+          industry_label: industry.label,
+          diagnostic: {
+            version: 3,
+            source: "system_map",
+            completed: true,
+            managed_plan_budget: INITIAL_CAMPAIGN.id,
+            campaign_acknowledged: true,
+            advertising_included: true,
+            upfront_treatment: "initial_campaign",
+            initial_campaign_days: MANAGED_COMMERCIAL_TERMS.initialCampaignDays,
+            automatic_extension: false,
+            answers: {
+              goal: answers.goal,
+              industry: answers.industry,
+              presence: answers.presence,
+              sales_channels: answers.salesChannels,
+              stages: answers.stages,
+              selected_modules: answers.modules,
+            },
+            labels: {
+              goal: goal.label,
+              industry: industry.label,
+              presence: presence.label,
+              sales_channels: channelLabels,
+              stages: stageLabels,
+            },
+            recommendation: {
+              package: packageId,
+              package_name: PACKAGES[packageId].name,
+              price_range: PACKAGES[packageId].price,
+              modules: recommendedModules,
+              module_labels: moduleLabels,
+            },
+            next_action: `${managedUpfrontSummary()} Confirm fit, the acquired-outcome target, attribution, maximum 90-day window, and advertising allocation in writing. No automatic extension or follow-on charge.`,
+            owner_notes: ownerNotes || null,
           },
-          labels: {
-            goal: goal.label,
-            industry: industry.label,
-            presence: presence.label,
-            sales_channels: channelLabels,
-            stages: stageLabels,
-          },
-          recommendation: {
-            package: packageId,
-            package_name: PACKAGES[packageId].name,
-            price_range: PACKAGES[packageId].price,
-            modules: recommendedModules,
-            module_labels: moduleLabels,
-          },
-          next_action: `${managedUpfrontSummary()} Review the diagnostic, confirm the initial month, ongoing monthly scope, advertising allocation, and billing dates in writing.`,
-          owner_notes: ownerNotes || null,
-        },
-      }),
-    });
-    if (!res.ok) {
+        }),
+      });
+      if (!res.ok) {
+        setError(
+          (await res.json().catch(() => ({}) as { error?: string })).error ??
+            "The request did not go through. Please try again.",
+        );
+        return;
+      }
+      window.fbq?.("track", "Lead");
+      onSuccess();
+    } catch {
       setError(
-        (await res.json().catch(() => ({}) as { error?: string })).error ??
-          "The request did not go through. Please try again.",
+        "We could not confirm your request. Your answers are still here. Try again, or contact us directly.",
       );
+    } finally {
+      pending.current = false;
       setSending(false);
-      return;
     }
-    window.fbq?.("track", "Lead");
-    onSuccess();
   }
 
   return (
@@ -1122,152 +1161,150 @@ function ContactCard({
       <div className="result-contact-heading">
         <div>
           <span className="eyebrow">Now the handoff</span>
-          <h2>
-            {isWebsiteLaunch
-              ? "Send the service plan details with your business attached."
-              : "Send this map with your business attached."}
-          </h2>
+          <h2>Send this campaign outline with your business attached.</h2>
           <p>
-            {isWebsiteLaunch
-              ? "You already did the thinking. This keeps intake focused on the initial scope and monthly priorities."
-              : "You already did the thinking. This keeps the first conversation focused on the larger system."}
+            Your answers help us check fit and define an acquisition scope.
+            This request does not authorize a payment.
           </p>
         </div>
         <button type="button" className="button-quiet" onClick={onCancel}>
           Keep exploring
         </button>
       </div>
-      <form onSubmit={handleSubmit} className="system-map-form">
-        <div className="form-grid">
-          <Field label="Your name" required>
-            <input
-              name="full_name"
-              autoComplete="name"
-              required
-              maxLength={200}
-            />
-          </Field>
-          <Field label="Business name" required>
-            <input
-              name="business_name"
-              autoComplete="organization"
-              required
-              maxLength={200}
-            />
-          </Field>
-          <Field label="Work email" required>
-            <input
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              maxLength={200}
-            />
-          </Field>
-          <Field label="Mobile phone">
-            <input name="phone" type="tel" autoComplete="tel" maxLength={50} />
-          </Field>
-          <Field label="Website or main selling profile">
-            <input
-              name="website_url"
-              type="text"
-              inputMode="url"
-              placeholder="Website, store URL, marketplace profile, or none"
-              maxLength={300}
-            />
-          </Field>
-          <Field label="Prepared monthly service budget" required>
-            <select name="budget_range" required defaultValue="">
-              <option value="" disabled>
-                Choose the closest range
-              </option>
-              {MANAGED_PLANS.map((plan) => (
-                <option key={plan.id} value={plan.id}>
-                  {plan.name} — {managedPlanPrice(plan).amount} / month
-                </option>
-              ))}
-              <option value="custom">
-                Custom scope above the structured plan
-              </option>
-              <option value="scope_first">Discuss the scope first</option>
-            </select>
-          </Field>
-          <Field label="Target timing" required>
-            <select name="timeline" required defaultValue="">
-              <option value="" disabled>
-                Choose one
-              </option>
-              <option value="scope_approved">
-                As soon as the scope is approved
-              </option>
-              <option value="30_days">Within 30 days</option>
-              <option value="90_days">Within 90 days</option>
-              <option value="this_year">This year</option>
-              <option value="exploring">I am still exploring</option>
-            </select>
-          </Field>
-          <Field label="Best response channel">
-            <select name="best_contact_method" defaultValue="email">
-              <option value="email">Email</option>
-              <option value="call">Call</option>
-              <option value="text">Text</option>
-              <option value="any">Any</option>
-            </select>
-          </Field>
-        </div>
-        <Field
-          label={
-            isWebsiteLaunch
-              ? "Anything the launch recommendation missed?"
-              : "Anything the map missed?"
-          }
-        >
-          <textarea
-            name="goals"
-            rows={4}
-            maxLength={1000}
-            placeholder="Tell Ryan about the offer, the people, the handoff, or the bigger idea that needs to work."
-          />
-        </Field>
-        <div className="consent-list">
-          <label>
-            <input type="checkbox" name="sms_consent" />
-            <span>
-              <SmsConsentText topic="this request and related project updates" />
-            </span>
-          </label>
-          <label>
-            <input type="checkbox" name="marketing_email_consent" />
-            <span>
-              Send me occasional LeadFlow articles, tools, and launch updates by
-              email. I can unsubscribe at any time.
-            </span>
-          </label>
-        </div>
-        {error && (
-          <p className="form-error" role="alert">
-            {error}
+      <form
+        method="post"
+        action="/api/leads"
+        onSubmit={handleSubmit}
+        className="system-map-form"
+        aria-busy={busy}
+      >
+        <noscript>
+          <p className="form-legal">
+            This form needs JavaScript. You can{" "}
+            <a href={BUSINESS.phone.tel}>call {BUSINESS.phone.display}</a> or{" "}
+            <a href={BUSINESS.phone.sms}>text us</a> to discuss the campaign.
           </p>
-        )}
-        <button
-          type="submit"
-          className="button-primary form-submit"
-          disabled={sending}
+        </noscript>
+        <fieldset
+          disabled={busy}
+          style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}
         >
-          {sending
-            ? isWebsiteLaunch
-              ? "Sending service plan Details..."
-              : "Sending Your Map..."
-            : isWebsiteLaunch
-              ? "Send My service plan Details"
-              : "Send My System Map Request"}
-          {!sending && <ArrowRight aria-hidden="true" className="h-4 w-4" />}
-        </button>
-        <p className="form-legal">
-          By submitting, you agree to our <Link href="/terms">Terms</Link> and
-          acknowledge our <Link href="/privacy">Privacy Policy</Link>. We use
-          your information to respond to this request.
-        </p>
+          <legend className="sr-only">Campaign request details</legend>
+          <div className="form-grid">
+            <Field label="Your name" required>
+              <input
+                name="full_name"
+                autoComplete="name"
+                required
+                maxLength={200}
+              />
+            </Field>
+            <Field label="Business name" required>
+              <input
+                name="business_name"
+                autoComplete="organization"
+                required
+                maxLength={200}
+              />
+            </Field>
+            <Field label="Work email" required>
+              <input
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                maxLength={200}
+              />
+            </Field>
+            <Field label="Mobile phone">
+              <input name="phone" type="tel" autoComplete="tel" maxLength={50} />
+            </Field>
+            <Field label="Website or main selling profile">
+              <input
+                name="website_url"
+                type="text"
+                inputMode="url"
+                placeholder="Website, store URL, marketplace profile, or none"
+                maxLength={300}
+              />
+            </Field>
+            <Field label="Target timing" required>
+              <select name="timeline" required defaultValue="">
+                <option value="" disabled>
+                  Choose one
+                </option>
+                <option value="scope_approved">
+                  As soon as the scope is approved
+                </option>
+                <option value="30_days">Within 30 days</option>
+                <option value="90_days">Within 90 days</option>
+                <option value="this_year">This year</option>
+                <option value="exploring">I am still exploring</option>
+              </select>
+            </Field>
+            <Field label="Best response channel">
+              <select name="best_contact_method" defaultValue="email">
+                <option value="email">Email</option>
+                <option value="call">Call</option>
+                <option value="text">Text</option>
+                <option value="any">Any</option>
+              </select>
+            </Field>
+          </div>
+          <Field label="Anything this campaign outline missed?">
+            <textarea
+              name="goals"
+              rows={4}
+              maxLength={1000}
+              placeholder="Tell Ryan about the offer, the people, the handoff, or the bigger idea that needs to work."
+            />
+          </Field>
+          <div className="consent-list">
+            <label>
+              <input type="checkbox" name="campaign_acknowledged" required />
+              <span>
+                I understand the {INITIAL_CAMPAIGN.name} starts at {CAMPAIGN_PRICE.amount} minimum,
+                paid upfront for up to 90 days, with an agreed advertising allocation
+                included. I want to discuss whether it fits my business. This request
+                does not authorize a charge.
+              </span>
+            </label>
+            <p className="form-legal">{managedCompletionExplanation()}</p>
+            <p className="form-legal">{managedAdditionalScopeExplanation()}</p>
+            <p className="form-legal">{managedRenewalExplanation()}</p>
+            <label>
+              <input type="checkbox" name="sms_consent" />
+              <span>
+                <SmsConsentText topic="this request and related project updates" />
+              </span>
+            </label>
+            <label>
+              <input type="checkbox" name="marketing_email_consent" />
+              <span>
+                Send me occasional LeadFlow articles, tools, and launch updates by
+                email. I can unsubscribe at any time.
+              </span>
+            </label>
+          </div>
+          {error && (
+            <p className="form-error" role="alert">
+              {error}
+            </p>
+          )}
+          <button
+            type="submit"
+            className="button-primary form-submit"
+            disabled={busy}
+          >
+            {sending ? "Sending Your Request..." : "Send My Campaign Request"}
+            {!sending && <ArrowRight aria-hidden="true" className="h-4 w-4" />}
+          </button>
+          <p className="form-legal">
+            By submitting, you agree to our <Link href="/terms">Terms</Link> and
+            acknowledge our <Link href="/privacy">Privacy Policy</Link>. We use
+            your information to respond to this request.
+          </p>
+        </fieldset>
       </form>
     </div>
   );
@@ -1958,7 +1995,7 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
                 </div>
               </div>
               <aside className="result-package-card">
-                <span className="eyebrow">Likely build path</span>
+                <span className="eyebrow">Your campaign starting point</span>
                 <h2>{pkg.name}</h2>
                 <p className="result-price">{pkg.price}</p>
                 <p>{pkg.description}</p>
@@ -1973,7 +2010,7 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
               <div>
                 <strong>This is a recommendation, not a box.</strong>
                 <span>
-                  Change the priorities, compare the packages, or keep exploring
+                  Change the priorities, review the campaign scope, or keep exploring
                   before you talk to anybody.
                 </span>
               </div>
@@ -1990,7 +2027,7 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
                   className="button-primary"
                   onClick={() => setShowContact(true)}
                 >
-                  Talk to Ryan About This Build
+                  Discuss This Campaign
                   <ArrowRight aria-hidden="true" className="h-4 w-4" />
                 </button>
                 <Link
@@ -2022,19 +2059,17 @@ export default function StartRouter({ initialGoal }: { initialGoal?: string }) {
                   className="h-10 w-10 text-[var(--green)]"
                 />
                 <div>
-                  <h2>
-                    {packageId === "launch"
-                      ? "Your service plan details are in."
-                      : "Your system map request is in."}
-                  </h2>
+                  <h2>Your campaign request is in.</h2>
                   <p>
                     Your priorities and current setup are ready for review. We
-                    confirm the initial month, ongoing monthly scope, and
-                    advertising allocation before payment.
+                    confirm fit, the acquired-outcome target, scope, and included
+                    advertising allocation before payment. The campaign ends when
+                    its target is reached or at day 90. Any follow-on requires a
+                    new written agreement; no charge or extension is automatic.
                   </p>
                   <div className="router-success-actions">
                     <Link href="/pricing" className="button-primary">
-                      Review current monthly plans{" "}
+                      Review the 90-day campaign{" "}
                       <ArrowRight aria-hidden="true" className="h-4 w-4" />
                     </Link>
                     <Link href="/portfolio" className="button-secondary">

@@ -36,7 +36,7 @@ import { TOOLS } from "@/lib/tools";
 
 import {
   managedUpfrontSummary,
-  managedMonthlySummary,
+  managedCampaignSummary,
 } from "@/lib/site/managedPlans";
 import CtaLink from "@/components/site/CtaLink";
 import CapabilityWorkflow from "@/components/site/CapabilityWorkflow";
@@ -252,11 +252,11 @@ export default async function StagePage({
                   href="/pricing"
                   data-analytics={`cta-website-launch-stage-${stage.slug}`}
                 >
-                  Compare monthly plans
+                  See the 90-day campaign
                 </Link>
               </div>
               <p className={styles.checkoutNote}>
-                {managedUpfrontSummary()} {managedMonthlySummary()}
+                {managedUpfrontSummary()} {managedCampaignSummary()}
                 Advertising spend is included in the plan’s written allocation.
               </p>
               <p className={styles.ownershipLine}>

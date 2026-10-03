@@ -1,5 +1,7 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { MANAGED_COMMERCIAL_TERMS } from "../lib/site/managedPlans.ts";
+import { usd } from "../lib/site/prices.ts";
 import { leadWelcomePayload, welcomeSuppressed } from "../lib/leadNotify.ts";
 
 const base = {
@@ -115,6 +117,40 @@ describe("funnel-specific lead welcomes", () => {
         );
       }
     }
+  });
+
+  it("confirms the upfront campaign scope without enrolling an inquiry in recurring billing", () => {
+    const payload = leadWelcomePayload({ ...base, funnel: "agency_intake" });
+    assert.ok(
+      payload.text.includes(
+        `${usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd)} upfront`,
+      ),
+    );
+    assert.ok(
+      payload.text.includes(
+        `first ${MANAGED_COMMERCIAL_TERMS.initialCampaignDays} days start at`,
+      ),
+    );
+    assert.match(payload.text, /included advertising allocation/);
+    assert.match(
+      payload.text,
+      /acquisition target and counting rules in writing/,
+    );
+    assert.match(payload.text, /At day 90 we review results and capacity/);
+    assert.match(
+      payload.text,
+      /higher investment requires a new written scope and price/,
+    );
+    assert.match(payload.text, /no automatic extension or charge/i);
+    assert.match(
+      payload.text,
+      /additional acquisition targets are scoped and funded upfront/i,
+    );
+    assert.match(payload.text, /not charged automatically when a job closes/);
+    assert.doesNotMatch(
+      payload.text,
+      /ongoing monthly prices|first month|\$5,000|\$15,000/,
+    );
   });
 
   it("suppresses the welcome for an existing customer changing their monthly menu", () => {

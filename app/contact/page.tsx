@@ -18,7 +18,7 @@ export default function ContactPage() {
         eyebrow="Ask it straight"
         mutedTitle="No ticket queue."
         title="Send Ryan the real question."
-        body="Question about a monthly plan, your service area, a tool, or what your business needs next? Send the context. Ryan reads every message himself."
+        body="Question about a 90-day campaign, your service area, a tool, or what your business needs next? Send the context. Ryan reads every message himself."
         media={{
           src: "/images/page-art/contact.png",
           alt: "An open envelope, speech bubbles and phone handset for a direct conversation",

@@ -9,6 +9,7 @@ import { CONSULTATION } from "@/lib/site/consultation";
 import { bookingPage } from "@/lib/site/external-links";
 import { PAST_EVENT_COPY, resolveFeaturedEvent } from "@/lib/site/events";
 import { usd } from "@/lib/site/prices";
+import { MANAGED_COMMERCIAL_TERMS } from "@/lib/site/managedPlans";
 import {
   CONTRACTOR_CAMPAIGN,
   CONTRACTOR_FUNNEL,
@@ -500,7 +501,11 @@ function funnelWelcome(lead: NotifiableLead, first: string) {
           ``,
           `2. I reply within one business day by email. If you gave call or text permission, we may also follow up at the number you provided.`,
           ``,
-          `3. You get the work, what you own, the included advertising allocation, the upfront and ongoing monthly prices, and the billing dates in writing before work starts.`,
+          `3. The first ${MANAGED_COMMERCIAL_TERMS.initialCampaignDays} days start at ${usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd)} upfront. You get the agreed build, what you own, the included advertising allocation, and the acquisition target and counting rules in writing before work starts.`,
+          ``,
+          `Any additional acquisition targets are scoped and funded upfront, not charged automatically when a job closes.`,
+          ``,
+          `At day 90 we review results and capacity. Scaling into a higher investment requires a new written scope and price. There is no automatic extension or charge.`,
           ``,
           `Two things that will not change: the ad accounts, pixel, audiences, and leads stay in your name, and nothing runs without your written approval.`,
           ``,

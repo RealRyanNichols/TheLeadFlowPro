@@ -132,3 +132,70 @@ test("buyer handoffs retain deliberate scope and place attribution before the de
   assert.equal(url.searchParams.has("unknown"), false);
   assert.equal(url.hash, "#scope");
 });
+
+test("actual retired package detail aliases preserve attribution and discard private form answers", async () => {
+  const code = ts.transpileModule(
+    readFileSync("app/packages/[slug]/page.tsx", "utf8"),
+    {
+      compilerOptions: {
+        module: ts.ModuleKind.CommonJS,
+        target: ts.ScriptTarget.ES2022,
+      },
+    },
+  ).outputText;
+  class NotFound extends Error {}
+  const route = {} as {
+    default: (props: {
+      params: Promise<{ slug: string }>;
+      searchParams: Promise<buyerRoutes.BuyerQuery>;
+    }) => Promise<void>;
+  };
+  new Function("require", "exports", code)((name: string) => {
+    if (name === "next/navigation")
+      return {
+        permanentRedirect: (destination: string) => {
+          throw new Redirect(destination);
+        },
+        notFound: () => {
+          throw new NotFound();
+        },
+      };
+    if (name === "@/lib/site/publicBuyerRoutes") return buyerRoutes;
+    throw new Error(`Unexpected package route import: ${name}`);
+  }, route);
+  for (const slug of ["launch", "system-map", "industry-os"]) {
+    await assert.rejects(
+      route.default({
+        params: Promise.resolve({ slug }),
+        searchParams: Promise.resolve({
+          utm_source: "facebook",
+          utm_campaign: "old package",
+          ref: ["first", "second"],
+          full_name: "private visitor",
+          email: "private@example.test",
+          phone: "9035550101",
+          goals: "private answers",
+          lead: "00000000-0000-4000-8000-000000000001",
+        }),
+      }),
+      (error) => {
+        assert.ok(error instanceof Redirect);
+        const url = new URL(error.destination, "https://example.test");
+        assert.equal(url.pathname, "/pricing");
+        assert.equal(url.searchParams.get("utm_source"), "facebook");
+        assert.equal(url.searchParams.get("utm_campaign"), "old package");
+        assert.deepEqual(url.searchParams.getAll("ref"), ["first", "second"]);
+        for (const key of ["full_name", "email", "phone", "goals", "lead"])
+          assert.equal(url.searchParams.has(key), false);
+        return true;
+      },
+    );
+  }
+  await assert.rejects(
+    route.default({
+      params: Promise.resolve({ slug: "unknown" }),
+      searchParams: Promise.resolve({}),
+    }),
+    NotFound,
+  );
+});

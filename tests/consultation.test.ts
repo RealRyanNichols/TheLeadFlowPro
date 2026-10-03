@@ -95,7 +95,7 @@ test("consultation follow-up copy promises email without phone permission", () =
 test("managed inquiry welcome agrees with included advertising and written billing scope", () => {
   const mail = leadWelcomePayload({ full_name: "Fixture Owner", email: "fixture@example.com", interest: "done_for_you", funnel: "agency_intake" });
   assert.match(mail.text, /included advertising allocation/);
-  assert.match(mail.text, /upfront and ongoing monthly prices/);
-  assert.doesNotMatch(mail.text, /pay the platforms directly|first ninety days/);
+  assert.match(mail.text, /first 90 days start at \$7,500 upfront/);
+  assert.doesNotMatch(mail.text, /pay the platforms directly|ongoing monthly prices/);
   assert.match(mail.text, /permission/);
 });

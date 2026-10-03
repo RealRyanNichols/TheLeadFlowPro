@@ -9,7 +9,7 @@ export function generateStaticParams() {
 
 export const metadata: Metadata = {
   title: "Pricing | The LeadFlow Pro",
-  description: "Compare the current monthly service plans and written scope.",
+  description: "Review the 90-day acquisition campaign and its written scope.",
   robots: { index: false, follow: true },
 };
 

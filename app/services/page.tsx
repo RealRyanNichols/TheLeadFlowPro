@@ -11,8 +11,11 @@ import {
   MANAGED_PLANS,
   managedPlanPrice,
   managedUpfrontSummary,
-  managedMonthlySummary,
+  managedCampaignSummary,
   managedAdvertisingExplanation,
+  managedBillingExplanation,
+  managedCompletionExplanation,
+  managedRenewalExplanation,
 } from "@/lib/site/managedPlans";
 import {
   areaServedJsonLd,
@@ -30,7 +33,7 @@ const SITE = "https://www.theleadflowpro.com";
 
 const SERVICES_TITLE =
   "Website Design and Lead Systems for Longview, TX Businesses | The LeadFlow Pro";
-const SERVICES_DESCRIPTION = `Websites, lead capture, CRM, follow-up, payments, portals, and reporting built in accounts you control. Monthly service includes advertising. ${managedUpfrontSummary()}`;
+const SERVICES_DESCRIPTION = `Websites, lead capture, CRM, follow-up, payments, portals, and reporting built in accounts you control. A 90-day campaign includes its advertising allocation. ${managedUpfrontSummary()}`;
 
 export const metadata: Metadata = withPublicPageMetadata("/services", {
   title: SERVICES_TITLE,
@@ -130,7 +133,7 @@ export default function ServicesPage() {
               the pages, features, and cost in writing before any build starts.
               <br />
               <Link href="/pricing">
-                {managedUpfrontSummary()} {managedMonthlySummary()}
+                {managedUpfrontSummary()} {managedCampaignSummary()}
               </Link>
               <br />
               Want the marketing run for you?{" "}
@@ -310,16 +313,15 @@ export default function ServicesPage() {
         <div className={styles.shell}>
           <div className={styles.heading}>
             <p className={styles.eyebrow}>YOUR STARTING POINT</p>
-            <h2>One monthly plan. A clear scope.</h2>
+            <h2>One campaign. Up to 90 days. A clear scope.</h2>
             <p>
-              The first month includes onboarding, the agreed build, and the
-              advertising allocation.{" "}
+              {managedBillingExplanation()}{" "}
               <Link href="/pricing" className={styles.textLink}>
-                Compare monthly plans.
+                See the 90-day campaign.
               </Link>
             </p>
           </div>
-          <div className={styles.packages}>
+          <div className={styles.packages} style={{ gridTemplateColumns: "minmax(0, 1fr)" }}>
             {MANAGED_PLANS.map((offer) => (
               <article
                 key={offer.name}
@@ -331,7 +333,7 @@ export default function ServicesPage() {
                 }
               >
                 <span className={styles.packageKind}>
-                  {offer.badge ?? "Monthly service"}
+                  {offer.badge ?? "90-day campaign"}
                 </span>
                 <h3>{offer.name}</h3>
                 <p className={styles.price}>
@@ -355,16 +357,12 @@ export default function ServicesPage() {
           </div>
           <div className={styles.custom}>
             <div>
-              <h3>Need a custom platform?</h3>
-              <p>
-                Multi-location systems, complex migrations, deeper permissions,
-                and software products receive a custom quote based on your
-                business, staff, capacity, assets, and budget. We confirm the
-                dependencies first.
-              </p>
+              <h3>Complete the target. Review the next scope.</h3>
+              <p>{managedCompletionExplanation()}</p>
+              <p>{managedRenewalExplanation()}</p>
             </div>
-            <Link className={styles.textLink} href="/start?goal=custom">
-              Talk through the idea <ArrowRight size={18} aria-hidden="true" />
+            <Link className={styles.textLink} href="/pricing">
+              See campaign terms <ArrowRight size={18} aria-hidden="true" />
             </Link>
           </div>
           <div className={styles.custom}>

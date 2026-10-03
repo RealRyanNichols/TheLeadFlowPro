@@ -82,9 +82,9 @@ test("legacy signed-scope offer mappings remain compatible while public plan ter
 
 test("agency public copy uses managed plan prices and no longer promotes the old website checkout", () => {
   assert.equal(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd, 7500);
-  assert.equal(MANAGED_COMMERCIAL_TERMS.minimumMonthlyUsd, 5000);
+  assert.equal(MANAGED_COMMERCIAL_TERMS.initialCampaignDays, 90);
   assert.equal(MANAGED_COMMERCIAL_TERMS.adSpendTreatment, "included");
-  assert.match(AGENCY_HUB.budgetNote, /first month/);
+  assert.match(AGENCY_HUB.budgetNote, /initial campaign|90/);
   assert.match(AGENCY_HUB.budgetNote, /\$7,500/);
   for (const service of AGENCY_SERVICES) {
     assert.ok(!JSON.stringify(service).includes("Website Launch"), service.slug);

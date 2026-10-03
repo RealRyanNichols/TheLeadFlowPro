@@ -24,6 +24,9 @@ import {
   MANAGED_PLANS,
   managedPlanPrice,
   managedUpfrontSummary,
+  managedCampaignSummary,
+  managedCompletionExplanation,
+  managedRenewalExplanation,
   managedAdvertisingExplanation,
 } from "@/lib/site/managedPlans";
 import { agencyIntakeHref } from "@/lib/site/agencyIntake";
@@ -369,7 +372,7 @@ export default async function OperatorOSPage({
               What you are buying
             </p>
             <h2 className="mt-3 text-4xl font-black tracking-[-0.035em] text-[#20212b] sm:text-5xl">
-              Scope the workflow. Choose the managed plan.
+              Scope the workflow within the campaign.
             </h2>
             <p className="mt-5 text-lg leading-8 text-[#625f6d]">
               AI workflows belong in a written scope around your business,
@@ -425,11 +428,11 @@ export default async function OperatorOSPage({
 
           <div>
             <p className="mb-5 text-sm leading-6 text-[#625f6d]">
-              {managedUpfrontSummary()} {managedAdvertisingExplanation()}
+              {managedUpfrontSummary()} {managedCampaignSummary()} {managedAdvertisingExplanation()}
               Custom integrations and work beyond the approved scope receive a
               separate written quote. Existing agreements keep their terms.
             </p>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-4">
               {MANAGED_PLANS.map((plan) => {
                 const price = managedPlanPrice(plan);
                 return (
@@ -457,29 +460,18 @@ export default async function OperatorOSPage({
                   </article>
                 );
               })}
-              <article className="flex flex-col rounded-3xl border border-[#dbd0c5] bg-[#ede6f3] p-6">
-                <h3 className="text-2xl font-black text-[#20212b]">
-                  Custom operating system
-                </h3>
-                <p className="mt-4 text-sm leading-6 text-[#625f6d]">
-                  More departments, integrations, permissions, or capacity need
-                  a custom proposal. Scope and price come before approval; no
-                  fixed worker count or business result is promised.
-                </p>
-                <Link
-                  href={agencyIntakeHref("custom", incoming)}
-                  className="mt-5 inline-flex min-h-[50px] items-center justify-center gap-2 rounded-xl border border-[#b9aabd] px-4 text-sm font-black text-[#5135e5]"
-                >
-                  Scope the custom build{" "}
-                  <ArrowRight className="h-4 w-4" aria-hidden="true" />
-                </Link>
-              </article>
             </div>
+            <p className="mt-5 text-sm leading-6 text-[#625f6d]">
+              {managedCompletionExplanation()}
+            </p>
+            <p className="mt-5 text-sm leading-6 text-[#625f6d]">
+              {managedRenewalExplanation()}
+            </p>
             <Link
               href={buyerHref("/pricing", incoming)}
               className="mt-5 inline-block text-sm font-bold text-[#5135e5] underline"
             >
-              Compare upfront and monthly terms
+              See campaign and renewal terms
             </Link>
           </div>
         </div>
