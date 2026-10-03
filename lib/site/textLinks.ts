@@ -17,7 +17,7 @@ export const TEXT_BODIES = {
   longview: "Hi Ryan, I am in East Texas and want the free consultation. ",
   contact: "Hi Ryan, I have a question about my business. ",
   contact_sent: "Hi Ryan, I just sent a message through your contact form. ",
-  agency_start: "Hi Ryan, I have a question about a managed plan. ",
+  agency_start: "Hi Ryan, I have a question about scoping work for my business. ",
 } as const;
 
 export type TextPlacement = keyof typeof TEXT_BODIES;
