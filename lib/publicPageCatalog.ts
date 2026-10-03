@@ -453,6 +453,7 @@ export const PUBLIC_PAGE_CATALOG = [
   },
   {
     path: "/go/lead-follow-up",
+    index: false,
     title: "Give every inquiry a next step",
     description:
       "Review the scope of a practical lead follow-up campaign written for one business offer.",
@@ -476,6 +477,7 @@ export const PUBLIC_PAGE_CATALOG = [
   },
   {
     path: "/book",
+    index: false,
     title: "Talk through your next move",
     description:
       "Share your business, the problem you want to solve, and the next step you need to make clear.",

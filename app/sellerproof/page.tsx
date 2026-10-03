@@ -20,6 +20,8 @@ import styles from "./sellerproof.module.css";
 const title = "SellerProof: Chargeback Evidence Packets | The LeadFlow Pro";
 const description =
   `Organize a chargeback response, timeline, and evidence index before your deadline. Preview free. Export one packet for ${usd(PRICES.sellerProofPacket)}. You review and submit it yourself.`;
+// A fixed public revision refreshes social crawler caches; no visitor data enters it.
+const shareImage = "/sellerproof/opengraph-image?v=violet-20261003";
 export const metadata: Metadata = {
   title,
   description,
@@ -28,13 +30,13 @@ export const metadata: Metadata = {
     title,
     description,
     url: "/sellerproof",
-    images: [{ url: "/sellerproof/opengraph-image", width: 1200, height: 630 }],
+    images: [{ url: shareImage, width: 1200, height: 630 }],
   },
   twitter: {
     card: "summary_large_image",
     title,
     description,
-    images: ["/sellerproof/opengraph-image"],
+    images: [shareImage],
   },
 };
 const included = [

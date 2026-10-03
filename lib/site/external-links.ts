@@ -49,11 +49,11 @@ export const EXTERNAL_LINKS = {
   bookingPage: "https://calendly.com/ryan-realryannichols/straight-answer-call-20-min" as string,
 
   /**
-   * The Google Business Profile listing (the "share" address of the profile).
-   * Empty until the listing is verified. While empty, structured data and
-   * the contact page leave it out; nothing links to an unverified profile.
+   * Public Google Maps listing verified against the hello account's managed
+   * profile on 2026-10-03: business name, Longview office, phone and website.
+   * Keep account-management URLs and authentication parameters out of this link.
    */
-  googleBusinessProfile: "" as string,
+  googleBusinessProfile: "https://www.google.com/maps/place/The+LeadFlow+Pro/data=!4m2!3m1!1s0x0:0x3f9692a4f2d63883" as string,
 } as const;
 
 export type ExternalLinkKey = keyof typeof EXTERNAL_LINKS;

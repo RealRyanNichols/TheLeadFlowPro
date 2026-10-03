@@ -95,7 +95,7 @@ export default async function CoursePage({
                 ? { href: standaloneHref, label: isFreeAcademyCourse ? "Unlock free access" : "View founding access" }
                 : !access.user
                   ? { href: "/login", label: "Log in to continue" }
-                  : { href: "/start?goal=delivery", label: "Plan a training platform" }
+                  : { href: "/add-ons?module=courses#build-request", label: "Scope a training platform" }
             }
             secondary={
               isAcademyCourse
@@ -103,7 +103,7 @@ export default async function CoursePage({
                     href: `/login?next=/training/${course.slug}`,
                     label: isFreeAcademyCourse ? "Already unlocked? Log in to save progress" : "Purchased already? Log in",
                   }
-                : { href: "/packages/system-map", label: "Start with a System Map" }
+                : { href: "/pricing", label: "See current managed plans" }
             }
             trustLine={
               isAcademyCourse
@@ -139,12 +139,12 @@ export default async function CoursePage({
                   ) : null}
                   <Link
                     className="cb-btn cb-btn--ghost"
-                    href={isAcademyCourse ? standaloneHref : "/start?goal=delivery"}
+                    href={isAcademyCourse ? standaloneHref : "/add-ons?module=courses#build-request"}
                   >
-                    {isAcademyCourse ? "View academy access" : "Plan a Training Platform"}
+                    {isAcademyCourse ? "View academy access" : "Scope a training platform"}
                   </Link>
-                  <Link className={styles.textLink} href="/packages/system-map">
-                    <Map aria-hidden="true" /> Start with a System Map
+                  <Link className={styles.textLink} href="/pricing">
+                    <Map aria-hidden="true" /> See current managed plans
                   </Link>
                 </div>
               </div>

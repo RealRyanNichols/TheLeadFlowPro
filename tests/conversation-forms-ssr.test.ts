@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import test from "node:test";
-import { createElement, type ComponentType } from "react";
+import { createElement, type ComponentType, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import ts from "typescript";
 import { SmsConsentText } from "../components/site/SmsConsentText.tsx";
@@ -13,8 +13,14 @@ import * as consultation from "../lib/site/consultation.ts";
 import * as externalLinks from "../lib/site/external-links.ts";
 import * as validation from "../lib/site/inquiryValidation.ts";
 import * as textLinks from "../lib/site/textLinks.ts";
+import * as plans from "../lib/site/managedPlans.ts";
+import * as diagnostic from "../lib/businessDiagnostic.ts";
+import * as toolStudio from "../lib/toolStudio.ts";
 
-function renderConversationForm(file: string): string {
+function renderConversationForm(
+  file: string,
+  props: Record<string, unknown> = {},
+): string {
   // Real React, readiness hook, disclosure, and pure helpers. Effects do not
   // run during SSR; no handlers execute and no transport is mocked or invoked.
   const require = createRequire(import.meta.url);
@@ -30,6 +36,27 @@ function renderConversationForm(file: string): string {
     react: require("react"),
     "react/jsx-runtime": require("react/jsx-runtime"),
     "lucide-react": require("lucide-react"),
+    "next/link": {
+      __esModule: true,
+      default: ({
+        children,
+        ...props
+      }: {
+        children: ReactNode;
+        href: string;
+      }) => createElement("a", props, children),
+    },
+    "next/image": {
+      __esModule: true,
+      default: ({
+        priority: _priority,
+        ...props
+      }: {
+        priority?: boolean;
+        src: string;
+        alt: string;
+      }) => createElement("img", props),
+    },
     "@/components/site/SmsConsentText": { SmsConsentText },
     "@/components/site/useFormReady": { useFormReady },
     "./useFormReady": { useFormReady },
@@ -39,9 +66,12 @@ function renderConversationForm(file: string): string {
     "@/lib/site/external-links": externalLinks,
     "@/lib/site/inquiryValidation": validation,
     "@/lib/site/textLinks": textLinks,
+    "@/lib/site/managedPlans": plans,
+    "@/lib/businessDiagnostic": diagnostic,
+    "@/lib/toolStudio": toolStudio,
   };
   const compiledModule = {
-    exports: {} as { default: ComponentType<Record<string, never>> },
+    exports: {} as { default: ComponentType<Record<string, unknown>> },
   };
   new Function("require", "module", "exports", code)(
     (name: string) => {
@@ -55,7 +85,7 @@ function renderConversationForm(file: string): string {
     compiledModule.exports,
   );
   return renderToStaticMarkup(
-    createElement(compiledModule.exports.default, {}),
+    createElement(compiledModule.exports.default, props),
   );
 }
 
@@ -79,7 +109,7 @@ function assertSafeBeforeHydration(html: string, action: string) {
   let submits = 0;
   const fallbackLinks: string[] = [];
   for (const match of html.matchAll(
-    /<\/?(?:fieldset|input|textarea|button|a)\b[^>]*>/g,
+    /<\/?(?:form|fieldset|input|textarea|select|button|a)\b[^>]*>/g,
   )) {
     const tag = match[0];
     if (tag.startsWith("</fieldset")) {
@@ -87,7 +117,7 @@ function assertSafeBeforeHydration(html: string, action: string) {
       fieldsets.pop();
     } else if (tag.startsWith("<fieldset"))
       fieldsets.push(/\bdisabled=""/.test(tag));
-    else if (/^<(?:input|textarea)\b/.test(tag)) {
+    else if (/^<(?:input|textarea|select)\b/.test(tag)) {
       inputs++;
       assert.ok(
         fieldsets.some(Boolean) || /\bdisabled=""/.test(tag),
@@ -128,4 +158,70 @@ test("server-rendered consultation form cannot leak answers through native GET a
     renderConversationForm("components/site/ConsultationForm.tsx"),
     "/api/leads",
   );
+});
+
+test("custom scope request guards all answers and submit before hydration while preserving selected training-platform intent", () => {
+  const html = renderConversationForm("app/add-ons/AddOnsMenu.tsx", {
+    initialModule: "courses",
+  });
+  assertSafeBeforeHydration(html, "/api/leads");
+  const selected = Array.from(
+    html.matchAll(/<button\b[^>]*aria-pressed="true"[^>]*>[\s\S]*?<\/button>/g),
+    (match) => match[0],
+  );
+  assert.equal(selected.length, 1);
+  assert.ok(selected[0].includes("Courses and training delivery"));
+  assert.match(selected[0], /\bdisabled=""/);
+  assert.match(html, /id="build-request"/);
+});
+
+test("Tool Studio keeps customer fields disabled before hydration and its unchanged POST checkout path behind the handler", () => {
+  const html = renderConversationForm("app/go/tools/ToolStudioFunnel.tsx");
+  // Its independent, anonymous scenario calculator is outside the customer
+  // form. Only the form's named answers could fall through to native submit.
+  const form = html.match(/<form\b[\s\S]*?<\/form>/)?.[0] ?? "";
+  assertSafeBeforeHydration(form, "/api/leads");
+});
+
+test("workshop-list signup cannot accept names or email before hydration", () => {
+  assertSafeBeforeHydration(
+    renderConversationForm("components/site/WorkshopListForm.tsx", {
+      eventSlug: "chatgpt-for-business-owners-longview",
+      placement: "events_page",
+    }),
+    "/api/leads",
+  );
+});
+
+test("diagnostic refuses native GET for a fresh questionnaire and a pending resume without running resume transport", () => {
+  for (const resumeToken of ["", "private-resume-example"]) {
+    const html = renderConversationForm(
+      "app/diagnostic/BusinessDiagnosticForm.tsx",
+      {
+        initialAnswers: {},
+        resumeToken,
+        sourceChannel: "website",
+        sourceDetail: "test",
+        utm: { source: "", medium: "", campaign: "", content: "", term: "" },
+      },
+    );
+    if (resumeToken) {
+      assert.doesNotMatch(
+        html,
+        /<form\b/,
+        "resume waits for transport before exposing a questionnaire",
+      );
+      assert.doesNotMatch(
+        html,
+        /<(?:input|textarea|select)\b/,
+        "loading resume has no editable answer controls",
+      );
+      assert.match(html, /<noscript>/);
+      assert.ok(html.includes(business.BUSINESS.phone.tel));
+    } else assertSafeBeforeHydration(html, "/api/business-diagnostic");
+    assert.ok(
+      !html.includes(resumeToken || "no-empty-check"),
+      "private resume token is not rendered into controls",
+    );
+  }
 });

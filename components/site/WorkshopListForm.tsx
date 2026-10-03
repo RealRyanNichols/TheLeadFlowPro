@@ -9,6 +9,9 @@
 
 import { useState } from "react";
 import { ArrowRight, Check } from "lucide-react";
+import { useFormReady } from "./useFormReady";
+import { BUSINESS } from "@/lib/site/business";
+import { smsHref } from "@/lib/site/textLinks";
 
 type Status = "idle" | "sending" | "done";
 
@@ -19,16 +22,20 @@ export default function WorkshopListForm({
   eventSlug: string;
   placement: string;
 }) {
+  const ready = useFormReady();
   const [status, setStatus] = useState<Status>("idle");
   const [error, setError] = useState<string | null>(null);
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!ready || status === "sending") return;
     setError(null);
     const form = new FormData(event.currentTarget);
     const consent = form.get("marketing_email_consent") === "on";
     if (!consent) {
-      setError("Tick the box so we know it is okay to email you about the next date.");
+      setError(
+        "Tick the box so we know it is okay to email you about the next date.",
+      );
       return;
     }
     setStatus("sending");
@@ -47,12 +54,19 @@ export default function WorkshopListForm({
           utm_source: params.get("utm_source"),
           utm_medium: params.get("utm_medium") ?? "workshop_list",
           utm_campaign: params.get("utm_campaign"),
-          diagnostic: { version: 1, source: "workshop_waitlist", event_slug: eventSlug, placement },
+          diagnostic: {
+            version: 1,
+            source: "workshop_waitlist",
+            event_slug: eventSlug,
+            placement,
+          },
         }),
       });
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
-        setError(data.error ?? "That did not go through. Try again, or text us.");
+        setError(
+          data.error ?? "That did not go through. Try again, or text us.",
+        );
         setStatus("idle");
         return;
       }
@@ -65,48 +79,107 @@ export default function WorkshopListForm({
 
   if (status === "done") {
     return (
-      <div className="lf-workshop-list-form lf-workshop-list-form--done" role="status">
+      <div
+        className="lf-workshop-list-form lf-workshop-list-form--done"
+        role="status"
+      >
         <Check aria-hidden="true" size={20} />
         <div>
           <strong>You are on the list.</strong>
-          <p>Ryan will email you when the next date is set. A short note is on its way now.</p>
+          <p>
+            Ryan will email you when the next date is set. A short note is on
+            its way now.
+          </p>
         </div>
       </div>
     );
   }
 
   return (
-    <form className="lf-workshop-list-form" onSubmit={submit} aria-label="Get notified about the next workshop">
-      <div className="lf-workshop-list-fields">
-        <label>
-          <span>Your name</span>
-          <input name="full_name" type="text" autoComplete="name" required maxLength={200} />
+    <form
+      method="post"
+      action="/api/leads"
+      className="lf-workshop-list-form"
+      onSubmit={submit}
+      aria-label="Get notified about the next workshop"
+      aria-busy={!ready || status === "sending"}
+    >
+      <fieldset
+        disabled={!ready || status === "sending"}
+        style={{
+          minWidth: 0,
+          border: 0,
+          padding: 0,
+          margin: 0,
+          display: "grid",
+          gap: 14,
+        }}
+      >
+        <legend className="sr-only">Your workshop notification request</legend>
+        <div className="lf-workshop-list-fields">
+          <label>
+            <span>Your name</span>
+            <input
+              name="full_name"
+              type="text"
+              autoComplete="name"
+              required
+              maxLength={200}
+            />
+          </label>
+          <label>
+            <span>Email</span>
+            <input
+              name="email"
+              type="email"
+              autoComplete="email"
+              required
+              maxLength={200}
+              inputMode="email"
+            />
+          </label>
+          <label>
+            <span>Business (optional)</span>
+            <input
+              name="business_name"
+              type="text"
+              autoComplete="organization"
+              maxLength={200}
+            />
+          </label>
+        </div>
+        <label className="lf-workshop-list-consent">
+          <input type="checkbox" name="marketing_email_consent" required />
+          <span>
+            Email me when the next workshop date is set, plus the occasional
+            practical note from Ryan. One click unsubscribes at any time.
+          </span>
         </label>
-        <label>
-          <span>Email</span>
-          <input name="email" type="email" autoComplete="email" required maxLength={200} inputMode="email" />
-        </label>
-        <label>
-          <span>Business (optional)</span>
-          <input name="business_name" type="text" autoComplete="organization" maxLength={200} />
-        </label>
-      </div>
-      <label className="lf-workshop-list-consent">
-        <input type="checkbox" name="marketing_email_consent" required />
-        <span>
-          Email me when the next workshop date is set, plus the occasional practical note from Ryan.
-          One click unsubscribes at any time.
-        </span>
-      </label>
+      </fieldset>
       {error ? (
         <p className="lf-workshop-list-error" role="alert">
           {error}
         </p>
       ) : null}
-      <button className="lf-workshop-seat" type="submit" disabled={status === "sending"} data-cta="workshop_list_join" data-cta-placement={placement}>
-        {status === "sending" ? "Adding you…" : "Get notified about the next workshop"}
+      <button
+        className="lf-workshop-seat"
+        type="submit"
+        disabled={!ready || status === "sending"}
+        data-cta="workshop_list_join"
+        data-cta-placement={placement}
+      >
+        {status === "sending"
+          ? "Adding you…"
+          : "Get notified about the next workshop"}
         <ArrowRight size={19} aria-hidden="true" />
       </button>
+      <noscript>
+        <p>
+          Enable JavaScript to join the list, or{" "}
+          <a href={BUSINESS.phone.tel}>call Ryan</a> or{" "}
+          <a href={smsHref("contact")}>text Ryan</a> about the next workshop.
+        </p>
+      </noscript>
     </form>
   );
 }

@@ -17,6 +17,9 @@ import {
   type ToolBuildId,
 } from "@/lib/toolStudio";
 import { SmsConsentText } from "@/components/site/SmsConsentText";
+import { useFormReady } from "@/components/site/useFormReady";
+import { BUSINESS } from "@/lib/site/business";
+import { smsHref } from "@/lib/site/textLinks";
 
 declare global {
   interface Window {
@@ -37,6 +40,7 @@ function card(on: boolean) {
 }
 
 export default function ToolStudioFunnel() {
+  const ready = useFormReady();
   const [buildId, setBuildId] = useState<ToolBuildId>("tool_funnel");
   const [monthly, setMonthly] = useState<MonthlyMenuId[]>([]);
   const [adSpend, setAdSpend] = useState(500);
@@ -66,7 +70,7 @@ export default function ToolStudioFunnel() {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!priced) return;
+    if (!ready || sending || !priced) return;
     setSending(true);
     setError(null);
     setNotice(null);
@@ -119,7 +123,7 @@ export default function ToolStudioFunnel() {
             ? `${money(priced.renewsMonthlyUsd)}/month selected`
             : `${money(priced.dueTodayUsd)} one time`,
           goals: `TOOL STUDIO ORDER. ${selectionText} Tool idea: ${String(form.get("tool_idea") ?? "").trim()}`,
-          best_contact_method: phone ? "text" : "email",
+          best_contact_method: phone && smsConsent ? "text" : "email",
           sms_consent: smsConsent,
           marketing_email_consent: form.get("marketing_email_consent") === "on",
           utm_source: params.get("utm_source"),
@@ -214,6 +218,7 @@ export default function ToolStudioFunnel() {
               <button
                 key={build.id}
                 type="button"
+                disabled={!ready || sending}
                 className={card(on)}
                 aria-pressed={on}
                 onClick={() => setBuildId(build.id)}
@@ -398,6 +403,7 @@ export default function ToolStudioFunnel() {
                 <button
                   key={item.id}
                   type="button"
+                  disabled={!ready || sending}
                   className={card(on)}
                   aria-pressed={on}
                   onClick={() => toggleMonthly(item.id)}
@@ -475,104 +481,118 @@ export default function ToolStudioFunnel() {
             ) : null}
           </div>
 
-          <form onSubmit={handleSubmit} className="grid gap-4">
-            <div className="grid gap-4 sm:grid-cols-2">
+          <form
+            method="post"
+            action="/api/leads"
+            onSubmit={handleSubmit}
+            className="grid gap-4"
+            aria-busy={!ready || sending}
+          >
+            <fieldset
+              disabled={!ready || sending}
+              className="m-0 grid min-w-0 gap-4 border-0 p-0"
+            >
+              <legend className="sr-only">
+                Your tool request and optional contact permissions
+              </legend>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="grid gap-2 text-sm font-bold text-[#34313f]">
+                  Your name *
+                  <input
+                    name="full_name"
+                    autoComplete="name"
+                    required
+                    maxLength={200}
+                    className="min-h-12 rounded-xl border border-[#dbd0c5] bg-[#f6e9dc] px-4 text-[#20212b] outline-none focus:border-[#5135e5]"
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-bold text-[#34313f]">
+                  Business name
+                  <input
+                    name="business_name"
+                    autoComplete="organization"
+                    maxLength={200}
+                    className="min-h-12 rounded-xl border border-[#dbd0c5] bg-[#f6e9dc] px-4 text-[#20212b] outline-none focus:border-[#5135e5]"
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-bold text-[#34313f]">
+                  Email *
+                  <input
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    maxLength={200}
+                    className="min-h-12 rounded-xl border border-[#dbd0c5] bg-[#f6e9dc] px-4 text-[#20212b] outline-none focus:border-[#5135e5]"
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-bold text-[#34313f]">
+                  Mobile phone
+                  <input
+                    name="phone"
+                    type="tel"
+                    autoComplete="tel"
+                    maxLength={50}
+                    className="min-h-12 rounded-xl border border-[#dbd0c5] bg-[#f6e9dc] px-4 text-[#20212b] outline-none focus:border-[#5135e5]"
+                  />
+                </label>
+                <label className="grid gap-2 text-sm font-bold text-[#34313f] sm:col-span-2">
+                  Current website or main profile
+                  <input
+                    name="website_url"
+                    inputMode="url"
+                    maxLength={300}
+                    placeholder="Website, Facebook page, or none yet"
+                    className="min-h-12 rounded-xl border border-[#dbd0c5] bg-[#f6e9dc] px-4 text-[#20212b] outline-none placeholder:text-[#625f6d] focus:border-[#5135e5]"
+                  />
+                </label>
+              </div>
               <label className="grid gap-2 text-sm font-bold text-[#34313f]">
-                Your name *
-                <input
-                  name="full_name"
-                  autoComplete="name"
+                What should the tool help your customer decide or do? *
+                <textarea
+                  name="tool_idea"
                   required
-                  maxLength={200}
-                  className="min-h-12 rounded-xl border border-[#dbd0c5] bg-[#f6e9dc] px-4 text-[#20212b] outline-none focus:border-[#5135e5]"
+                  rows={4}
+                  maxLength={1200}
+                  className="rounded-xl border border-[#dbd0c5] bg-[#f6e9dc] px-4 py-3 text-[#20212b] outline-none focus:border-[#5135e5]"
                 />
               </label>
-              <label className="grid gap-2 text-sm font-bold text-[#34313f]">
-                Business name
-                <input
-                  name="business_name"
-                  autoComplete="organization"
-                  maxLength={200}
-                  className="min-h-12 rounded-xl border border-[#dbd0c5] bg-[#f6e9dc] px-4 text-[#20212b] outline-none focus:border-[#5135e5]"
-                />
-              </label>
-              <label className="grid gap-2 text-sm font-bold text-[#34313f]">
-                Email *
-                <input
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  maxLength={200}
-                  className="min-h-12 rounded-xl border border-[#dbd0c5] bg-[#f6e9dc] px-4 text-[#20212b] outline-none focus:border-[#5135e5]"
-                />
-              </label>
-              <label className="grid gap-2 text-sm font-bold text-[#34313f]">
-                Mobile phone
-                <input
-                  name="phone"
-                  type="tel"
-                  autoComplete="tel"
-                  maxLength={50}
-                  className="min-h-12 rounded-xl border border-[#dbd0c5] bg-[#f6e9dc] px-4 text-[#20212b] outline-none focus:border-[#5135e5]"
-                />
-              </label>
-              <label className="grid gap-2 text-sm font-bold text-[#34313f] sm:col-span-2">
-                Current website or main profile
-                <input
-                  name="website_url"
-                  inputMode="url"
-                  maxLength={300}
-                  placeholder="Website, Facebook page, or none yet"
-                  className="min-h-12 rounded-xl border border-[#dbd0c5] bg-[#f6e9dc] px-4 text-[#20212b] outline-none placeholder:text-[#625f6d] focus:border-[#5135e5]"
-                />
-              </label>
-            </div>
-            <label className="grid gap-2 text-sm font-bold text-[#34313f]">
-              What should the tool help your customer decide or do? *
-              <textarea
-                name="tool_idea"
-                required
-                rows={4}
-                maxLength={1200}
-                className="rounded-xl border border-[#dbd0c5] bg-[#f6e9dc] px-4 py-3 text-[#20212b] outline-none focus:border-[#5135e5]"
-              />
-            </label>
-            <label className="flex gap-3 text-xs leading-5 text-[#625f6d]">
-              <input
-                type="checkbox"
-                name="sms_consent"
-                className="mt-1 h-4 w-4 accent-[#5135e5]"
-              />
-              <span>
-                <SmsConsentText topic="this request and project updates" />
-              </span>
-            </label>
-            <label className="flex gap-3 text-xs leading-5 text-[#625f6d]">
-              <input
-                type="checkbox"
-                name="marketing_email_consent"
-                className="mt-1 h-4 w-4 accent-[#5135e5]"
-              />
-              Send me occasional LeadFlow tools, articles, and launch updates by
-              email. I can unsubscribe at any time.
-            </label>
-            {monthly.length > 0 ? (
-              <label className="flex gap-3 rounded-xl border border-amber-300/20 bg-[#f6e9dc] p-4 text-xs leading-5 text-[#34313f]">
+              <label className="flex gap-3 text-xs leading-5 text-[#625f6d]">
                 <input
                   type="checkbox"
-                  name="monthly_terms"
-                  required
+                  name="sms_consent"
                   className="mt-1 h-4 w-4 accent-[#5135e5]"
                 />
-                I authorize {money(priced?.renewsMonthlyUsd ?? 0)} to renew
-                monthly on the same calendar date until canceled or changed. I
-                will submit menu changes at least three business days before
-                renewal. After a renewal is charged and that month's work
-                begins, the paid service period is non-refundable except where
-                law requires otherwise.
+                <span>
+                  <SmsConsentText topic="this request and project updates" />
+                </span>
               </label>
-            ) : null}
+              <label className="flex gap-3 text-xs leading-5 text-[#625f6d]">
+                <input
+                  type="checkbox"
+                  name="marketing_email_consent"
+                  className="mt-1 h-4 w-4 accent-[#5135e5]"
+                />
+                Send me occasional LeadFlow tools, articles, and launch updates
+                by email. I can unsubscribe at any time.
+              </label>
+              {monthly.length > 0 ? (
+                <label className="flex gap-3 rounded-xl border border-amber-300/20 bg-[#f6e9dc] p-4 text-xs leading-5 text-[#34313f]">
+                  <input
+                    type="checkbox"
+                    name="monthly_terms"
+                    required
+                    className="mt-1 h-4 w-4 accent-[#5135e5]"
+                  />
+                  I authorize {money(priced?.renewsMonthlyUsd ?? 0)} to renew
+                  monthly on the same calendar date until canceled or changed. I
+                  will submit menu changes at least three business days before
+                  renewal. After a renewal is charged and that month's work
+                  begins, the paid service period is non-refundable except where
+                  law requires otherwise.
+                </label>
+              ) : null}
+            </fieldset>
             {error ? (
               <p
                 role="alert"
@@ -587,7 +607,7 @@ export default function ToolStudioFunnel() {
               </p>
             ) : null}
             <button
-              disabled={sending}
+              disabled={!ready || sending}
               type="submit"
               className="inline-flex min-h-13 items-center justify-center gap-2 rounded-xl bg-[#ffb443] px-5 py-4 text-sm font-black uppercase tracking-wider text-[#20212b] hover:bg-[#ffca76] disabled:cursor-wait disabled:opacity-60"
             >
@@ -615,6 +635,13 @@ export default function ToolStudioFunnel() {
               </Link>
               .
             </p>
+            <noscript>
+              <p className="text-sm leading-6 text-[#625f6d]">
+                Enable JavaScript to select a tool and continue to checkout, or{" "}
+                <a href={BUSINESS.phone.tel}>call Ryan</a> or{" "}
+                <a href={smsHref("contact")}>text Ryan</a> with your question.
+              </p>
+            </noscript>
           </form>
         </section>
       </div>

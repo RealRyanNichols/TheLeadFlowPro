@@ -59,14 +59,15 @@ test("marketing steps carry the unsubscribe link and the transactional step does
 
 test("the day-2 email makes exactly one offer, priced from the registry", () => {
   const dayTwo = WORKSHOP_FOLLOW_UP_STEPS[1];
-  // The kit default and an explicit pick are the same live offer: the
-  // Website Launch. The free website build it used to sell is retired.
+  // Saved drafts retain the old offer key, but recommend the current managed
+  // scope and amounts. This sequence remains unactivated.
   for (const body of [dayTwo.body(CTX), dayTwo.body({ ...CTX, dayTwoOffer: "website_launch" })]) {
-    assert.ok(body.includes(usd(PRICES.websiteLaunchTotal)));
-    assert.ok(body.includes(usd(PRICES.websiteLaunchDeposit)));
-    assert.equal((body.match(/\$/g) ?? []).length, 2, "the total and the deposit, nothing else");
-    assert.ok(body.includes("/packages/launch?utm_source=email"));
-    assert.ok(!/free-build|\$0|build fee/i.test(body), "no retired free-build offer");
+    assert.ok(body.includes(`${usd(PRICES.managedMonthlyMinimum)}/month`));
+    assert.ok(body.includes(`${usd(PRICES.managedStartingUpfront)} upfront`));
+    assert.equal((body.match(/\$/g) ?? []).length, 2, "the monthly minimum and upfront expectation");
+    assert.ok(body.includes("/pricing?utm_source=email"));
+    assert.ok(body.includes("included advertising allocation"));
+    assert.ok(!/free-build|Website Launch|\$0|\$1,000|\$500 to start/i.test(body), "no retired standalone offer");
   }
 });
 

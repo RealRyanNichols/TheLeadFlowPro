@@ -311,6 +311,32 @@ test("canonical and social metadata agree while preserving page-specific and pri
   }
 });
 
+test("reviewed page descriptions fill missing metadata without replacing explicit copy or privacy flags", () => {
+  for (const path of ["/sellerproof/privacy", "/sellerproof/terms"]) {
+    const page = PUBLIC_PAGE_CATALOG.find((entry) => entry.path === path);
+    assert.ok(page);
+    const inherited = withPublicPageMetadata(path, {
+      title: page.title,
+      robots: { index: false, follow: false },
+      referrer: "no-referrer",
+    });
+    assert.equal(inherited.description, page.description);
+    assert.equal(inherited.openGraph?.description, page.description);
+    assert.equal(inherited.twitter?.description, page.description);
+    assert.deepEqual(inherited.robots, { index: false, follow: false });
+    assert.equal(inherited.referrer, "no-referrer");
+
+    const custom = withPublicPageMetadata(path, {
+      title: "A deliberately distinct page title",
+      description: "A page-specific description remains authoritative.",
+      openGraph: { description: "A separately reviewed share description." },
+    });
+    assert.equal(custom.description, "A page-specific description remains authoritative.");
+    assert.equal(custom.openGraph?.description, "A separately reviewed share description.");
+    assert.equal(custom.twitter?.description, "A separately reviewed share description.");
+  }
+});
+
 test("unknown, private, query, and traversal paths never become public social records", () => {
   for (const invalid of [
     "/admin",

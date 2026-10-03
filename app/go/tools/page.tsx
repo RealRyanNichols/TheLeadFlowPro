@@ -94,6 +94,13 @@ export default function ToolStudioPage() {
                 hidden behind a teaser price.
               </p>
             </div>
+            <p className="mt-4 max-w-2xl text-sm leading-6 text-[#625f6d]">
+              Tool Studio is a separate, bounded software purchase. It does not
+              include managed advertising or ongoing marketing. For that work,
+              <Link href="/pricing" className="ml-1 font-bold text-[#5135e5] underline">
+                see managed plans and their included advertising allocation
+              </Link>.
+            </p>
           </div>
           <figure className="overflow-hidden rounded-[28px] border border-[#5135e5] bg-[#fff9ef] shadow-2xl shadow-[#43364c]/10">
             <Image

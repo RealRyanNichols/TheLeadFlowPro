@@ -231,7 +231,7 @@ export const NURTURE_STEP_MEDIA: Record<number, NurtureStepMedia> = {
   518: { hero: IMG.customerRecord, heroAlt: "A laptop with the call, email, and calendar that belong to one customer", cta: "Make my review link", ctaHot: "Pick a time, I call you", tool: TOOLS.googleProfile },
   519: { hero: IMG.connected, heroAlt: "A connected company you own", cta: "See the stack live", ctaHot: "Grab a slot", tool: TOOLS.subscriptionAudit },
   520: { hero: IMG.customerRecord, heroAlt: "A customer record with the call, email, and calendar attached", cta: "Open the free courses", ctaHot: "Book the twenty minutes", tool: TOOLS.textback },
-  521: { hero: IMG.loop, heroAlt: "The operating loop", cta: "See the System Map", ctaHot: "Pick a time, I call you", tool: TOOLS.afterHours },
+  521: { hero: IMG.loop, heroAlt: "The operating loop", cta: "See managed plans", ctaHot: "Pick a time, I call you", tool: TOOLS.afterHours },
   522: { hero: IMG.approvalPath, heroAlt: "The build path from intake to launch", cta: "See every price", ctaHot: "Grab a slot", tool: TOOLS.rentReceipt },
   523: { hero: IMG.mall, heroAlt: "A still from the Longview Mall walk video", cta: "Open the free tools", ctaHot: "Book the twenty minutes", tool: TOOLS.googleProfile },
   524: { hero: IMG.premierStudents, heroAlt: "Premier Dental Academy of Longview students outside the school", cta: "Open the free courses", ctaHot: "Pick a time, I call you", tool: TOOLS.reviewScript },

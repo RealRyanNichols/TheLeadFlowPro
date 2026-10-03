@@ -30,6 +30,8 @@ import {
   type DiagnosticField,
 } from "@/lib/businessDiagnostic";
 import { BUSINESS } from "@/lib/site/business";
+import { smsHref } from "@/lib/site/textLinks";
+import { useFormReady } from "@/components/site/useFormReady";
 import styles from "./diagnostic.module.css";
 
 type UtmValues = {
@@ -48,7 +50,13 @@ type BusinessDiagnosticFormProps = {
   utm: UtmValues;
 };
 
-type RequestState = "idle" | "loading" | "saving" | "submitting" | "saved" | "error";
+type RequestState =
+  | "idle"
+  | "loading"
+  | "saving"
+  | "submitting"
+  | "saved"
+  | "error";
 
 type ApiResponse = {
   ok?: boolean;
@@ -83,7 +91,10 @@ function makeResumeToken(): string {
   const bytes = crypto.getRandomValues(new Uint8Array(32));
   let binary = "";
   for (const byte of bytes) binary += String.fromCharCode(byte);
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+  return btoa(binary)
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/g, "");
 }
 
 function visibleAnswers(answers: DiagnosticAnswers): DiagnosticAnswers {
@@ -125,6 +136,7 @@ export default function BusinessDiagnosticForm({
   sourceDetail,
   utm,
 }: BusinessDiagnosticFormProps) {
+  const ready = useFormReady();
   const [answers, setAnswers] = useState<DiagnosticAnswers>(initialAnswers);
   const [currentSection, setCurrentSection] = useState(0);
   const [requestState, setRequestState] = useState<RequestState>(
@@ -169,12 +181,17 @@ export default function BusinessDiagnosticForm({
             { cache: "no-store" },
           );
           const data = (await response.json()) as ApiResponse;
-          if (!response.ok) throw new Error(data.error || "That resume link could not be loaded.");
+          if (!response.ok)
+            throw new Error(
+              data.error || "That resume link could not be loaded.",
+            );
           if (cancelled) return;
           const record = data.diagnostic ?? data;
           setAnswers(cleanDiagnosticAnswers(record.answers));
           requestIdRef.current = record.request_id ?? data.request_id ?? "";
-          setSubmitted(record.status === "submitted" || data.status === "submitted");
+          setSubmitted(
+            record.status === "submitted" || data.status === "submitted",
+          );
           const cleanUrl = new URL(window.location.href);
           cleanUrl.searchParams.delete("resume");
           window.history.replaceState(
@@ -187,7 +204,11 @@ export default function BusinessDiagnosticForm({
         } catch (error) {
           if (cancelled) return;
           setRequestState("error");
-          setNotice(error instanceof Error ? error.message : "That resume link could not be loaded.");
+          setNotice(
+            error instanceof Error
+              ? error.message
+              : "That resume link could not be loaded.",
+          );
         } finally {
           if (!cancelled) setHydrated(true);
         }
@@ -199,7 +220,10 @@ export default function BusinessDiagnosticForm({
         if (storedValue) {
           const stored = JSON.parse(storedValue) as StoredDraft;
           if (stored.version === BUSINESS_DIAGNOSTIC_VERSION) {
-            setAnswers({ ...initialAnswers, ...cleanDiagnosticAnswers(stored.answers) });
+            setAnswers({
+              ...initialAnswers,
+              ...cleanDiagnosticAnswers(stored.answers),
+            });
             requestIdRef.current = stored.requestId ?? "";
             resumeTokenRef.current = stored.resumeToken ?? "";
             startedAtRef.current = stored.startedAt ?? startedAtRef.current;
@@ -249,12 +273,21 @@ export default function BusinessDiagnosticForm({
     }
   }
 
-  function toggleMulti(field: DiagnosticField, value: string, checked: boolean) {
-    const current = Array.isArray(answers[field.id]) ? (answers[field.id] as string[]) : [];
-    let next = checked ? [...current, value] : current.filter((item) => item !== value);
+  function toggleMulti(
+    field: DiagnosticField,
+    value: string,
+    checked: boolean,
+  ) {
+    const current = Array.isArray(answers[field.id])
+      ? (answers[field.id] as string[])
+      : [];
+    let next = checked
+      ? [...current, value]
+      : current.filter((item) => item !== value);
 
     if (checked && value === "none") next = ["none"];
-    if (checked && value !== "none") next = next.filter((item) => item !== "none");
+    if (checked && value !== "none")
+      next = next.filter((item) => item !== "none");
     if (field.id === "goal_types" && next.length > 3) {
       setRequestState("error");
       setNotice("Choose up to three outcomes that matter most.");
@@ -288,7 +321,10 @@ export default function BusinessDiagnosticForm({
   function validateSaveBasics(): string[] {
     const missing: string[] = [];
     if (!isAnswered(answers.full_name)) missing.push("full_name");
-    if (!isAnswered(answers.email) || !SIMPLE_EMAIL.test(String(answers.email))) {
+    if (
+      !isAnswered(answers.email) ||
+      !SIMPLE_EMAIL.test(String(answers.email))
+    ) {
       missing.push("email");
     }
     if (!isAnswered(answers.business_name)) missing.push("business_name");
@@ -296,25 +332,35 @@ export default function BusinessDiagnosticForm({
   }
 
   async function sendDiagnostic(action: "save" | "submit") {
+    if (
+      !ready ||
+      !hydrated ||
+      requestState === "saving" ||
+      requestState === "submitting"
+    )
+      return;
     if (action === "save") {
       const missing = validateSaveBasics();
       if (missing.length) {
         setInvalidFields(new Set(missing));
         setRequestState("error");
-        setNotice("Add your name, a valid email, and the business name before saving.");
+        setNotice(
+          "Add your name, a valid email, and the business name before saving.",
+        );
         moveToSection(0, true);
         return;
       }
     } else {
       const missing = missingRequiredFields(answers);
-      const emailValue = typeof answers.email === "string" ? answers.email.trim() : "";
+      const emailValue =
+        typeof answers.email === "string" ? answers.email.trim() : "";
       const invalidEmail = !SIMPLE_EMAIL.test(emailValue);
       if (missing.length || invalidEmail) {
         const ids = new Set(missing.map((field) => field.id));
         if (invalidEmail) ids.add("email");
         setInvalidFields(ids);
-        const firstMissingSection = BUSINESS_DIAGNOSTIC_SECTIONS.findIndex((item) =>
-          item.fields.some((field) => ids.has(field.id)),
+        const firstMissingSection = BUSINESS_DIAGNOSTIC_SECTIONS.findIndex(
+          (item) => item.fields.some((field) => ids.has(field.id)),
         );
         setRequestState("error");
         setNotice(
@@ -348,7 +394,9 @@ export default function BusinessDiagnosticForm({
       });
       const data = (await response.json()) as ApiResponse;
       if (!response.ok || data.ok === false) {
-        throw new Error(data.error || "We could not save the diagnostic. Please try again.");
+        throw new Error(
+          data.error || "We could not save the diagnostic. Please try again.",
+        );
       }
 
       requestIdRef.current = data.request_id ?? identity.requestId;
@@ -381,7 +429,9 @@ export default function BusinessDiagnosticForm({
         setSubmitted(true);
         setNotice("");
         window.scrollTo({ top: 0, behavior: "smooth" });
-        const trackedWindow = window as Window & { fbq?: (...args: unknown[]) => void };
+        const trackedWindow = window as Window & {
+          fbq?: (...args: unknown[]) => void;
+        };
         trackedWindow.fbq?.("track", "Lead", {
           content_name: "Business Growth Diagnostic",
           content_category: "Diagnostic",
@@ -389,7 +439,9 @@ export default function BusinessDiagnosticForm({
       }
     } catch (error) {
       setRequestState("error");
-      setNotice(error instanceof Error ? error.message : "We could not save this yet.");
+      setNotice(
+        error instanceof Error ? error.message : "We could not save this yet.",
+      );
     }
   }
 
@@ -406,6 +458,13 @@ export default function BusinessDiagnosticForm({
 
   function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (
+      !ready ||
+      !hydrated ||
+      requestState === "saving" ||
+      requestState === "submitting"
+    )
+      return;
     if (currentSection < FINAL_SECTION_INDEX) {
       moveToSection(currentSection + 1);
       return;
@@ -416,7 +475,9 @@ export default function BusinessDiagnosticForm({
   function sectionStatus(index: number) {
     const item = BUSINESS_DIAGNOSTIC_SECTIONS[index];
     const visible = item.fields.filter((field) => fieldVisible(field, answers));
-    const answered = visible.filter((field) => isAnswered(answers[field.id])).length;
+    const answered = visible.filter((field) =>
+      isAnswered(answers[field.id]),
+    ).length;
     const requiredIncomplete = visible.some(
       (field) => field.required && !isAnswered(answers[field.id]),
     );
@@ -430,8 +491,12 @@ export default function BusinessDiagnosticForm({
     return (
       <>
         {field.label}
-        {field.required ? <span className={styles.required}> Required</span> : null}
-        {!field.required ? <span className={styles.optional}> Optional</span> : null}
+        {field.required ? (
+          <span className={styles.required}> Required</span>
+        ) : null}
+        {!field.required ? (
+          <span className={styles.optional}> Optional</span>
+        ) : null}
       </>
     );
   }
@@ -439,7 +504,10 @@ export default function BusinessDiagnosticForm({
   function renderField(field: DiagnosticField) {
     const value = answers[field.id];
     const hasError = invalidFields.has(field.id);
-    const describedBy = [field.help ? fieldHelpId(field.id) : "", hasError ? fieldErrorId(field.id) : ""]
+    const describedBy = [
+      field.help ? fieldHelpId(field.id) : "",
+      hasError ? fieldErrorId(field.id) : "",
+    ]
       .filter(Boolean)
       .join(" ");
 
@@ -459,13 +527,19 @@ export default function BusinessDiagnosticForm({
           ) : null}
           <div className={styles.choiceGrid}>
             {field.options?.map((option) => {
-              const selected = Array.isArray(value) && value.includes(option.value);
+              const selected =
+                Array.isArray(value) && value.includes(option.value);
               return (
-                <label key={option.value} className={`${styles.choice} ${selected ? styles.choiceSelected : ""}`}>
+                <label
+                  key={option.value}
+                  className={`${styles.choice} ${selected ? styles.choiceSelected : ""}`}
+                >
                   <input
                     type="checkbox"
                     checked={selected}
-                    onChange={(event) => toggleMulti(field, option.value, event.target.checked)}
+                    onChange={(event) =>
+                      toggleMulti(field, option.value, event.target.checked)
+                    }
                   />
                   <span className={styles.choiceMark} aria-hidden="true">
                     {selected ? <Check /> : null}
@@ -486,8 +560,13 @@ export default function BusinessDiagnosticForm({
 
     if (field.type === "checkbox") {
       return (
-        <div key={field.id} className={`${styles.field} ${hasError ? styles.fieldError : ""}`}>
-          <label className={`${styles.confirmation} ${value === true ? styles.confirmationSelected : ""}`}>
+        <div
+          key={field.id}
+          className={`${styles.field} ${hasError ? styles.fieldError : ""}`}
+        >
+          <label
+            className={`${styles.confirmation} ${value === true ? styles.confirmationSelected : ""}`}
+          >
             <input
               type="checkbox"
               checked={value === true}
@@ -509,12 +588,17 @@ export default function BusinessDiagnosticForm({
                   <Link href="/terms" target="_blank" rel="noreferrer">
                     Terms
                   </Link>
-                  <span className={styles.srOnly}> (links open in new tabs)</span>
+                  <span className={styles.srOnly}>
+                    {" "}
+                    (links open in new tabs)
+                  </span>
                 </>
               ) : (
                 field.label
               )}
-              {field.required ? <span className={styles.required}> Required</span> : null}
+              {field.required ? (
+                <span className={styles.required}> Required</span>
+              ) : null}
             </span>
           </label>
           {field.help ? (
@@ -532,8 +616,13 @@ export default function BusinessDiagnosticForm({
     }
 
     return (
-      <div key={field.id} className={`${styles.field} ${hasError ? styles.fieldError : ""}`}>
-        <label htmlFor={`diagnostic-${field.id}`}>{renderQuestionLabel(field)}</label>
+      <div
+        key={field.id}
+        className={`${styles.field} ${hasError ? styles.fieldError : ""}`}
+      >
+        <label htmlFor={`diagnostic-${field.id}`}>
+          {renderQuestionLabel(field)}
+        </label>
         {field.help ? (
           <p id={fieldHelpId(field.id)} className={styles.help}>
             {field.help}
@@ -575,7 +664,13 @@ export default function BusinessDiagnosticForm({
             maxLength={field.maxLength}
             placeholder={field.placeholder}
             autoComplete={fieldAutoComplete(field.id)}
-            inputMode={field.type === "email" ? "email" : field.type === "tel" ? "tel" : undefined}
+            inputMode={
+              field.type === "email"
+                ? "email"
+                : field.type === "tel"
+                  ? "tel"
+                  : undefined
+            }
             onChange={(event) => setAnswer(field.id, event.target.value)}
             aria-describedby={describedBy || undefined}
             aria-invalid={hasError || undefined}
@@ -584,7 +679,9 @@ export default function BusinessDiagnosticForm({
         )}
         {hasError ? (
           <p id={fieldErrorId(field.id)} className={styles.errorText}>
-            {field.id === "email" ? "Enter a valid email address." : "Please answer this question."}
+            {field.id === "email"
+              ? "Enter a valid email address."
+              : "Please answer this question."}
           </p>
         ) : null}
       </div>
@@ -597,6 +694,13 @@ export default function BusinessDiagnosticForm({
         <section className={styles.loadingCard} aria-live="polite">
           <span className={styles.loadingMark} aria-hidden="true" />
           <p>Loading your saved diagnostic…</p>
+          <noscript>
+            <p>
+              Enable JavaScript to open your saved diagnostic, or{" "}
+              <a href={BUSINESS.phone.tel}>call Ryan</a> or{" "}
+              <a href={smsHref("contact")}>text Ryan</a> about your request.
+            </p>
+          </noscript>
         </section>
       </main>
     );
@@ -605,16 +709,19 @@ export default function BusinessDiagnosticForm({
   if (submitted) {
     return (
       <main className={styles.page}>
-        <section className={styles.success} aria-labelledby="diagnostic-success-title">
+        <section
+          className={styles.success}
+          aria-labelledby="diagnostic-success-title"
+        >
           <div className={styles.successIcon} aria-hidden="true">
             <CheckCircle2 />
           </div>
           <p className={styles.eyebrow}>Received and routed for review</p>
           <h1 id="diagnostic-success-title">Your diagnostic is in.</h1>
           <p className={styles.successLead}>
-            The LeadFlow Pro now has a clearer picture of the business, the leak, and the outcome
-            you want. We will review the details and use them to prepare the right questions and
-            next move.
+            The LeadFlow Pro now has a clearer picture of the business, the
+            leak, and the outcome you want. We will review the details and use
+            them to prepare the right questions and next move.
           </p>
           <div className={styles.successScore}>
             <div>
@@ -627,13 +734,14 @@ export default function BusinessDiagnosticForm({
           </div>
           {answers.seven_day_email_consent === true ? (
             <p className={styles.successNote}>
-              Your 7-Day Business Visibility Jumpstart will arrive by email. Each message includes
-              one practical move you can use while we follow up.
+              Your 7-Day Business Visibility Jumpstart will arrive by email.
+              Each message includes one practical move you can use while we
+              follow up.
             </p>
           ) : (
             <p className={styles.successNote}>
-              We will use your contact details only to follow up about this request unless you chose
-              additional email updates.
+              We will use your contact details only to follow up about this
+              request unless you chose additional email updates.
             </p>
           )}
           <div className={styles.successActions}>
@@ -660,7 +768,10 @@ export default function BusinessDiagnosticForm({
           </div>
           <p className={styles.successContact}>
             Need to add an attachment? Reply to our email or write to{" "}
-            <a href={`mailto:${BUSINESS.email.hello}`}>{BUSINESS.email.hello}</a>.
+            <a href={`mailto:${BUSINESS.email.hello}`}>
+              {BUSINESS.email.hello}
+            </a>
+            .
           </p>
         </section>
       </main>
@@ -676,9 +787,9 @@ export default function BusinessDiagnosticForm({
             The more context you share, <em>the sharper the plan.</em>
           </h1>
           <p>
-            Start with three core sections so we understand the business, the problem, and the
-            customer. Then add as much detail as you want about the website, visibility, leads,
-            operations, and scope.
+            Start with three core sections so we understand the business, the
+            problem, and the customer. Then add as much detail as you want about
+            the website, visibility, leads, operations, and scope.
           </p>
           <div className={styles.heroTrust}>
             <span>
@@ -697,15 +808,19 @@ export default function BusinessDiagnosticForm({
           <div>
             <strong>Keep sensitive information out.</strong>
             <p>
-              Never enter passwords, access codes, payment data, Social Security numbers, private
-              customer or patient information, or confidential case details. We will arrange secure
-              access later if a project moves forward.
+              Never enter passwords, access codes, payment data, Social Security
+              numbers, private customer or patient information, or confidential
+              case details. We will arrange secure access later if a project
+              moves forward.
             </p>
           </div>
         </aside>
       </section>
 
-      <section className={styles.formShell} aria-label="Business diagnostic questionnaire">
+      <section
+        className={styles.formShell}
+        aria-label="Business diagnostic questionnaire"
+      >
         <aside className={styles.progressPanel}>
           <div className={styles.progressSummary}>
             <div>
@@ -725,7 +840,10 @@ export default function BusinessDiagnosticForm({
             <p>{completeness > 0 ? readiness : "Start with what you know"}</p>
           </div>
 
-          <nav className={styles.sectionNav} aria-label="Questionnaire sections">
+          <nav
+            className={styles.sectionNav}
+            aria-label="Questionnaire sections"
+          >
             {BUSINESS_DIAGNOSTIC_SECTIONS.map((item, index) => {
               const status = sectionStatus(index);
               return (
@@ -733,7 +851,9 @@ export default function BusinessDiagnosticForm({
                   key={item.id}
                   type="button"
                   onClick={() => moveToSection(index)}
-                  className={index === currentSection ? styles.activeSection : ""}
+                  className={
+                    index === currentSection ? styles.activeSection : ""
+                  }
                   aria-current={index === currentSection ? "step" : undefined}
                 >
                   <span className={styles.stepNumber} aria-hidden="true">
@@ -741,7 +861,9 @@ export default function BusinessDiagnosticForm({
                   </span>
                   <span>
                     <strong>{item.shortTitle}</strong>
-                    <small>{index < CORE_SECTION_COUNT ? "Core" : "More detail"}</small>
+                    <small>
+                      {index < CORE_SECTION_COUNT ? "Core" : "More detail"}
+                    </small>
                   </span>
                 </button>
               );
@@ -751,7 +873,8 @@ export default function BusinessDiagnosticForm({
           <div className={styles.progressPrivacy}>
             <ShieldCheck aria-hidden="true" />
             <span>
-              Your progress stays on this browser automatically. Use <strong>Save and finish later</strong>
+              Your progress stays on this browser automatically. Use{" "}
+              <strong>Save and finish later</strong>
               to receive a secure link by email.
             </span>
           </div>
@@ -761,10 +884,19 @@ export default function BusinessDiagnosticForm({
           <div className={styles.sectionHeading}>
             <div className={styles.sectionMeta}>
               <span>
-                Section {currentSection + 1} of {BUSINESS_DIAGNOSTIC_SECTIONS.length}
+                Section {currentSection + 1} of{" "}
+                {BUSINESS_DIAGNOSTIC_SECTIONS.length}
               </span>
-              <span className={currentSection < CORE_SECTION_COUNT ? styles.coreTag : styles.detailTag}>
-                {currentSection < CORE_SECTION_COUNT ? "Core" : "Optional depth"}
+              <span
+                className={
+                  currentSection < CORE_SECTION_COUNT
+                    ? styles.coreTag
+                    : styles.detailTag
+                }
+              >
+                {currentSection < CORE_SECTION_COUNT
+                  ? "Core"
+                  : "Optional depth"}
               </span>
             </div>
             <h2 ref={sectionHeadingRef} tabIndex={-1}>
@@ -775,101 +907,170 @@ export default function BusinessDiagnosticForm({
               <div className={styles.coreCompleteCallout}>
                 <Sparkles aria-hidden="true" />
                 <div>
-                  <strong>{coreMissing.length ? "Core questions are still available to finish." : "The core is complete."}</strong>
+                  <strong>
+                    {coreMissing.length
+                      ? "Core questions are still available to finish."
+                      : "The core is complete."}
+                  </strong>
                   <p>
-                    Everything from here adds proposal detail. Answer what you know and skip what
-                    does not apply.
+                    Everything from here adds proposal detail. Answer what you
+                    know and skip what does not apply.
                   </p>
                 </div>
               </div>
             ) : null}
           </div>
 
-          <form onSubmit={onSubmit} noValidate>
-            <div className={styles.honeypot} aria-hidden="true">
-              <label htmlFor="company-website-diagnostic">Leave this field empty</label>
-              <input
-                id="company-website-diagnostic"
-                name="company_website"
-                value={honeypot}
-                onChange={(event) => setHoneypot(event.target.value)}
-                tabIndex={-1}
-                autoComplete="off"
-              />
-            </div>
-
-            <div className={styles.fields}>{visibleFields.map(renderField)}</div>
-
-            <div className={styles.formNotice} aria-live="polite">
-              {notice ? (
-                <div className={requestState === "error" ? styles.noticeError : styles.noticeSuccess}>
-                  {requestState === "error" ? <AlertCircle aria-hidden="true" /> : <CheckCircle2 aria-hidden="true" />}
-                  <span>{notice}</span>
-                </div>
-              ) : null}
-              {resumeUrl && requestState === "saved" ? (
-                <button type="button" className={styles.copyButton} onClick={() => void copyResumeLink()}>
-                  {copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
-                  {copied ? "Link copied" : "Copy secure return link"}
-                </button>
-              ) : null}
-            </div>
-
-            <div className={styles.formActions}>
-              <div>
-                {currentSection > 0 ? (
-                  <button
-                    type="button"
-                    className={styles.backButton}
-                    onClick={() => moveToSection(currentSection - 1)}
-                  >
-                    <ArrowLeft aria-hidden="true" />
-                    Back
-                  </button>
-                ) : null}
-                <button
-                  type="button"
-                  className={styles.saveButton}
-                  disabled={requestState === "saving" || requestState === "submitting"}
-                  onClick={() => void sendDiagnostic("save")}
-                >
-                  <Save aria-hidden="true" />
-                  {requestState === "saving" ? "Saving…" : "Save and finish later"}
-                </button>
+          <form
+            method="post"
+            action="/api/business-diagnostic"
+            onSubmit={onSubmit}
+            noValidate
+            aria-busy={
+              !ready ||
+              !hydrated ||
+              requestState === "saving" ||
+              requestState === "submitting"
+            }
+          >
+            <fieldset
+              disabled={
+                !ready ||
+                !hydrated ||
+                requestState === "saving" ||
+                requestState === "submitting"
+              }
+              style={{ minWidth: 0, border: 0, padding: 0, margin: 0 }}
+            >
+              <legend className="sr-only">
+                Your business diagnostic answers
+              </legend>
+              <div className={styles.honeypot} aria-hidden="true">
+                <label htmlFor="company-website-diagnostic">
+                  Leave this field empty
+                </label>
+                <input
+                  id="company-website-diagnostic"
+                  name="company_website"
+                  value={honeypot}
+                  onChange={(event) => setHoneypot(event.target.value)}
+                  tabIndex={-1}
+                  autoComplete="off"
+                />
               </div>
-              <div>
-                {currentSection === CORE_SECTION_COUNT - 1 ? (
+
+              <div className={styles.fields}>
+                {visibleFields.map(renderField)}
+              </div>
+
+              <div className={styles.formNotice} aria-live="polite">
+                {notice ? (
+                  <div
+                    className={
+                      requestState === "error"
+                        ? styles.noticeError
+                        : styles.noticeSuccess
+                    }
+                  >
+                    {requestState === "error" ? (
+                      <AlertCircle aria-hidden="true" />
+                    ) : (
+                      <CheckCircle2 aria-hidden="true" />
+                    )}
+                    <span>{notice}</span>
+                  </div>
+                ) : null}
+                {resumeUrl && requestState === "saved" ? (
                   <button
                     type="button"
-                    className={styles.reviewButton}
-                    onClick={() => moveToSection(FINAL_SECTION_INDEX)}
+                    className={styles.copyButton}
+                    onClick={() => void copyResumeLink()}
                   >
-                    Review and submit now
+                    {copied ? (
+                      <Check aria-hidden="true" />
+                    ) : (
+                      <Copy aria-hidden="true" />
+                    )}
+                    {copied ? "Link copied" : "Copy secure return link"}
                   </button>
                 ) : null}
-                <button
-                  type="submit"
-                  className={styles.primaryButton}
-                  disabled={requestState === "saving" || requestState === "submitting"}
-                >
-                  {currentSection === FINAL_SECTION_INDEX ? (
-                    requestState === "submitting" ? (
-                      "Submitting…"
+              </div>
+
+              <div className={styles.formActions}>
+                <div>
+                  {currentSection > 0 ? (
+                    <button
+                      type="button"
+                      className={styles.backButton}
+                      onClick={() => moveToSection(currentSection - 1)}
+                    >
+                      <ArrowLeft aria-hidden="true" />
+                      Back
+                    </button>
+                  ) : null}
+                  <button
+                    type="button"
+                    className={styles.saveButton}
+                    disabled={
+                      !ready ||
+                      !hydrated ||
+                      requestState === "saving" ||
+                      requestState === "submitting"
+                    }
+                    onClick={() => void sendDiagnostic("save")}
+                  >
+                    <Save aria-hidden="true" />
+                    {requestState === "saving"
+                      ? "Saving…"
+                      : "Save and finish later"}
+                  </button>
+                </div>
+                <div>
+                  {currentSection === CORE_SECTION_COUNT - 1 ? (
+                    <button
+                      type="button"
+                      className={styles.reviewButton}
+                      onClick={() => moveToSection(FINAL_SECTION_INDEX)}
+                    >
+                      Review and submit now
+                    </button>
+                  ) : null}
+                  <button
+                    type="submit"
+                    className={styles.primaryButton}
+                    disabled={
+                      !ready ||
+                      !hydrated ||
+                      requestState === "saving" ||
+                      requestState === "submitting"
+                    }
+                  >
+                    {currentSection === FINAL_SECTION_INDEX ? (
+                      requestState === "submitting" ? (
+                        "Submitting…"
+                      ) : (
+                        <>
+                          Submit my diagnostic
+                          <CheckCircle2 aria-hidden="true" />
+                        </>
+                      )
                     ) : (
                       <>
-                        Submit my diagnostic
-                        <CheckCircle2 aria-hidden="true" />
+                        Continue
+                        <ArrowRight aria-hidden="true" />
                       </>
-                    )
-                  ) : (
-                    <>
-                      Continue
-                      <ArrowRight aria-hidden="true" />
-                    </>
-                  )}
-                </button>
+                    )}
+                  </button>
+                </div>
               </div>
-            </div>
+            </fieldset>
+            <noscript>
+              <p>
+                Enable JavaScript to complete and save this diagnostic, or{" "}
+                <a href={BUSINESS.phone.tel}>call Ryan</a> or{" "}
+                <a href={smsHref("contact")}>text Ryan</a> about your business.
+              </p>
+            </noscript>
           </form>
         </div>
       </section>

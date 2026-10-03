@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { uniqueOgImagePath } from "./uniqueOgImages";
+import { PUBLIC_PAGE_CATALOG } from "./publicPageCatalog";
 
 export const PUBLIC_SITE_URL = "https://www.theleadflowpro.com";
 export const PUBLIC_OG_SIZE = { width: 1200, height: 630 } as const;
@@ -58,6 +59,7 @@ export function withPublicPageMetadata(
   const title = textTitle(metadata.title, "The LeadFlow Pro");
   const description =
     metadata.description ??
+    PUBLIC_PAGE_CATALOG.find((page) => page.path === path)?.description ??
     "Practical tools, learning, and business systems from The LeadFlow Pro.";
   const socialTitle = textTitle(metadata.openGraph?.title, title);
   const socialDescription = metadata.openGraph?.description ?? description;
@@ -68,6 +70,7 @@ export function withPublicPageMetadata(
   };
   return {
     ...metadata,
+    description,
     alternates: { ...metadata.alternates, canonical },
     openGraph: {
       type: "website",

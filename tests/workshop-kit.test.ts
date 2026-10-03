@@ -7,7 +7,6 @@ import { FEATURED_EVENT_SLUG, SITE_EVENTS, featuredEvent, type SiteEvent } from 
 import { DAY_TWO_OFFERS, KIT_TEMPLATE, WORKSHOP_KITS, kitCopyProblems, workshopKit, workshopKitOrDefault, worksheetPath } from "../lib/site/workshopKit.ts";
 import { WORKSHOP_FOLLOW_UP_STEPS, buildWorkshopFollowUp, workshopFollowUpDedupeKey } from "../lib/workshopFollowUp.ts";
 import { checkWorkshop } from "../scripts/check-workshop.ts";
-import { PRICES, usd } from "../lib/site/prices.ts";
 
 test("every SITE_EVENTS entry has a kit, and the featured kit is complete and clean", () => {
   for (const e of SITE_EVENTS) assert.ok(workshopKit(e.slug), e.slug);
@@ -65,17 +64,17 @@ test("the follow-up builds per event: dates, recap, offer, and dedupe keys come 
   const day2 = seq.steps[1].body(ctx);
   assert.ok(day2.includes("A quick recap of November 5,"));
   assert.ok(day2.includes("1. One.") && day2.includes("3. Three."));
-  assert.ok(day2.includes(`${DAY_TWO_OFFERS.website_launch.name}, ${usd(PRICES.websiteLaunchTotal)}.`));
-  assert.ok(day2.includes("/packages/launch?utm_source=email"));
+  assert.ok(day2.includes(`${DAY_TWO_OFFERS.website_launch.name}, ${DAY_TWO_OFFERS.website_launch.price}.`));
+  assert.ok(day2.includes("/pricing?utm_source=email"));
   assert.equal(seq.dedupeKey("r1", 302), "workshop-follow-up-v1:claude-for-operators-longview:r1:302");
   assert.notEqual(seq.dedupeKey("r1", 302), workshopFollowUpDedupeKey("r1", 302));
   assert.equal(seq.sequence.activated, false);
   // The featured sequence keeps its three steps and its own date. Its day-2
-  // offer is the Website Launch now that the free website build is retired.
+  // offer uses current managed terms while saved legacy keys still resolve.
   const featuredDay2 = WORKSHOP_FOLLOW_UP_STEPS[1].body(ctx);
   assert.ok(featuredDay2.includes("A quick recap of September 17,"));
-  assert.ok(featuredDay2.includes(`${DAY_TWO_OFFERS.website_launch.name}, ${usd(PRICES.websiteLaunchTotal)}.`));
-  assert.ok(featuredDay2.includes("/packages/launch?utm_source=email"));
+  assert.ok(featuredDay2.includes(`${DAY_TWO_OFFERS.website_launch.name}, ${DAY_TWO_OFFERS.website_launch.price}.`));
+  assert.ok(featuredDay2.includes("/pricing?utm_source=email"));
   assert.ok(!featuredDay2.includes("free-build"));
 });
 

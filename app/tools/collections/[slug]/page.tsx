@@ -39,7 +39,7 @@ export async function generateMetadata({
     ? [{ url: `${BASE}${imagePath}`, width: 1200, height: 630, alt: c.title }]
     : undefined;
   return {
-    title: `${c.title} (${n} free tools)`,
+    title: `${n} ${c.title}`,
     description: `${c.hook} ${n} free tools, no signup to use any of them.`,
     alternates: { canonical: url },
     openGraph: {

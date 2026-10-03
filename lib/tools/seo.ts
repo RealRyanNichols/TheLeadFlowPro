@@ -183,8 +183,8 @@ export const TOOL_SEO: Record<string, { seoTitle: string; seoDescription: string
     seoDescription: "Estimate business mileage deductions using the rate for each trip period. Keep the deduction separate from a tax-effect scenario. Free to use and share.",
   },
   "employee-true-cost": {
-    seoTitle: "True Cost of an Employee Calculator: the loaded number",
-    seoDescription: "Enter wage, payroll tax, workers comp, benefits and the hours spent managing them. Wage is maybe two-thirds of it. Get the loaded number. Free, no login.",
+    seoTitle: "Employee Cost Calculator: hourly and yearly hiring cost",
+    seoDescription: "Estimate hourly and yearly employee cost from wages, payroll taxes, workers comp, benefits, equipment and management time. Use your own rates. Free.",
   },
   "hire-vs-automate": {
     seoTitle: "Hire vs Automate Calculator: a person or a system",

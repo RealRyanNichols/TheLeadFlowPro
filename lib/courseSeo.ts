@@ -52,6 +52,15 @@ export function courseOfferName(course: CatalogCourse): string {
   return "Operator Academy all-access, founding price";
 }
 
+// Match the actual offer represented by the price: standalone courses have
+// their own enrollment sections; the other paid courses use all-access.
+export function courseOfferUrl(course: CatalogCourse): string {
+  if (course.isFree) return `${BASE}/academy#free-access`;
+  if (course.slug === CHATGPT_OPERATOR.slug) return `${BASE}/chatgpt#enroll`;
+  if (course.slug === CONTENT_ENGINE.slug) return `${BASE}/operator-academy/content-engine#enroll`;
+  return `${BASE}/academy#pricing`;
+}
+
 export function courseMetadata(slug: string): Metadata {
   const course = academyCourse(slug);
   if (!course) {
@@ -114,7 +123,7 @@ export function courseJsonLd(course: CatalogCourse) {
         price: priceCents === null ? undefined : (priceCents / 100).toFixed(2),
         priceCurrency: "USD",
         availability: "https://schema.org/InStock",
-        url: course.isFree ? `${BASE}/academy#free-access` : `${BASE}/academy#pricing`,
+        url: courseOfferUrl(course),
       },
     ],
     hasCourseInstance: [

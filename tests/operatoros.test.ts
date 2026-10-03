@@ -76,7 +76,7 @@ test("normalization applies safe defaults instead of trusting malformed fields",
   assert.equal(result.recommended_actions[0].risk_level, "yellow");
 });
 
-test("public OperatorOS offer copy uses the approved ladder and no em dash", () => {
+test("legacy OperatorOS offer records keep their original ladder and no em dash", () => {
   assert.deepEqual(
     OPERATOR_OFFERS.map((offer) => offer.name),
     ["FlowWorker", "FlowDesk", "FlowOps", "OperatorOS"],

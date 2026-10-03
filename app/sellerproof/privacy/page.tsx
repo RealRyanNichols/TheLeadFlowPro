@@ -1,10 +1,11 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Link from "next/link";
 import styles from "../sellerproof.module.css";
-export const metadata: Metadata = {
+export const metadata: Metadata = withPublicPageMetadata("/sellerproof/privacy", {
   title: "SellerProof privacy & evidence handling",
   alternates: { canonical: "/sellerproof/privacy" },
-};
+});
 export default function Privacy() {
   return (
     <main className={styles.page}>

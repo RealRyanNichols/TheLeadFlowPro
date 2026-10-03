@@ -224,10 +224,11 @@ export default function CommercePage() {
               <p className={styles.eyebrow}>BEFORE THE BUILD</p>
               <h3>Start with a website.</h3>
               <p>
-                Need the foundation first? See the five-page Website Launch.
+                Need the foundation first? Scope the website and inquiry path
+                within a current managed plan.
               </p>
-              <Link href="/packages/launch">
-                See the Website Launch{" "}
+              <Link href="/agency/websites">
+                See managed website work{" "}
                 <ArrowRight size={17} aria-hidden="true" />
               </Link>
             </article>

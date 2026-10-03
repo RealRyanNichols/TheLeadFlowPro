@@ -179,7 +179,7 @@ export const SCOREBOARD_METRICS: Array<{
     label: "Clicks",
     headline: true,
     what: "Recorded click and action events. Each business tracks a different action set, so read the source notes before comparing sites.",
-    move: { label: "Free tools people actually use", href: "/go/tools" },
+    move: { label: "Free tools people actually use", href: "/tools" },
   },
   {
     key: "leads",
@@ -221,7 +221,7 @@ export const SCOREBOARD_METRICS: Array<{
     label: "Form leads",
     headline: false,
     what: "Form, signup, and other form-source records returned by the feeds. Sources count these differently; the detail page shows the exact definitions.",
-    move: { label: "Forms that route to the right person", href: "/go/lead-follow-up" },
+    move: { label: "Forms that route to the right person", href: "/agency/automation" },
   },
   {
     key: "sales",

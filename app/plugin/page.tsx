@@ -1,6 +1,7 @@
 import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Link from "next/link";
+import reflow from "./plugin-reflow.module.css";
 import {
   Bell,
   CalendarCheck,
@@ -113,7 +114,7 @@ const WHO = [
 const NOT_FOR = [
   "Businesses that want an agency to run their ads and content for them. That is the agency lane, not the plugin.",
   "Anyone who needs texts sent to people who never agreed to be texted. The plugin will not do it.",
-  "Teams that need a full CRM with pipelines, quotes, and invoices today. The plugin tracks leads and conversations; a Company OS build covers the rest.",
+  "Teams that need a full CRM with pipelines, quotes, and invoices today. The plugin tracks leads and conversations; broader systems need a separate written scope.",
 ];
 
 function WeekChart() {
@@ -181,7 +182,7 @@ export default async function PluginPage() {
   );
 
   return (
-    <main className="cb-page plugin-page">
+    <main className={`cb-page plugin-page ${reflow.reflow}`}>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdText(jsonLd) }} />
 
       <SiteHero

@@ -40,7 +40,8 @@
 
 import { bookingPage } from "@/lib/site/external-links";
 import { BUSINESS } from "@/lib/site/business";
-import { PRICES, usd } from "@/lib/site/prices";
+import { usd } from "@/lib/site/prices";
+import { MANAGED_COMMERCIAL_TERMS } from "@/lib/site/managedPlans";
 import {
   isFreeWebsiteProgramNurtureLead,
   type FreeWebsiteNurtureCandidate,
@@ -92,7 +93,7 @@ export const RENT_RECEIPT_PATHS = {
   scoreboard: "/scoreboard",
   portfolio: "/portfolio",
   academy: "/academy",
-  systemMap: "/packages/system-map",
+  systemMap: "/pricing",
   pricing: "/pricing",
   tools: "/tools",
   about: "/about",
@@ -155,8 +156,8 @@ type RentStep = {
   write: Writer;
 };
 
-const SYSTEM_MAP = usd(PRICES.systemMap);
-const WEBSITE_LAUNCH = usd(PRICES.websiteLaunchTotal);
+const MANAGED_MONTHLY = usd(MANAGED_COMMERCIAL_TERMS.minimumMonthlyUsd);
+const MANAGED_UPFRONT = usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd);
 const PHONE = BUSINESS.phone.display;
 
 // ----- Week one, per pain -------------------------------------------------
@@ -207,7 +208,7 @@ Here is what the missed call fix looks like when it is built right. No jargon.
 2. Their reply lands in one inbox you actually see. Not six apps.
 3. Every one of those conversations is saved to a customer record you own, so nobody has to remember anything.
 
-That is it. Three parts. The whole thing runs in accounts you own, and nothing about it depends on a monthly plan somebody else can raise.
+That is it. Three parts in accounts you control. Hosting, vendors, and any managed work still have their own written costs.
 
 I run that exact setup for my own businesses. You can look at it live, right now.
 
@@ -450,9 +451,9 @@ ${close(2, c, "Here is the stack I own, running my own business, in public:", "s
 
 The fix for monthly fees is not a cheaper subscription. It is owning the thing.
 
-Concretely: your website lives in an account with your name on it, on hosting with your name on it, with a database with your name on it. The tools cost a few dollars a month at the vendor, and often nothing. No plan to cancel. No seat to pay for. No support ticket to ask for your own data.
+Concretely: your website, hosting, database, and customer records live in accounts you control. We compare the actual costs before changing the stack. Ownership does not make hosting, vendors, or ongoing work free.
 
-The catch, because there is always one: someone has to build it once, properly. That is a project with a start and an end. It is not a subscription.
+Our current managed work is monthly, with the build and advertising allocation defined in the written proposal. You approve the scope and billing dates before work starts.
 
 I have done it for my own businesses and for other people's. The results are public.
 
@@ -480,11 +481,11 @@ Four emails in. Here is where I would start with you.
 
 With the receipt. The list of what you pay, what each one does, and which ones you would keep if you owned the core. Half the time the answer is: keep two, replace three, cancel four.
 
-Then the build, in your accounts, once.
+Then the build and ongoing work, scoped in accounts you control.
 
 On a call I ask what you pay, what you use, and what you are afraid of losing if you stop. Then I tell you what it would take. No pitch, no catch, nothing to buy on the call.
 
-${close(5, c, `The written version of that conversation is the System Map, ${SYSTEM_MAP} one time. What you run, what it costs, what to fix first:`, "systemMap")}`,
+${close(5, c, `Current managed work starts at ${MANAGED_MONTHLY} a month, with at least ${MANAGED_UPFRONT} upfront and a written included advertising allocation:`, "pricing")}`,
     },
   ],
 
@@ -616,7 +617,7 @@ ${close(8, c, "The Rent Receipt:", "rent")}`,
 
 The whole philosophy in five words: own the core, rent the edges.
 
-The core is your website, your customer list, and the place your bookings and requests land. Those live in accounts with your name on them, on tools that cost a few dollars a month or nothing. Nobody can raise the price. Nobody can lock you out.
+The core is your website, your customer list, and the place your bookings and requests land. Keep those in accounts you control, with usable exports and documented access. Hosting, vendors, and managed work still have costs and terms.
 
 The edges are everything else. Your accounting software. Your phone plan. A design tool. Rent those. They are cheap to leave.
 
@@ -813,7 +814,7 @@ The ones who never fix it are not lazy. They are waiting for a quiet week. The q
 
 If the thing you filled out the form about is still there, it is not going to leave on its own.
 
-${close(21, c, `The written plan for which leak first is the System Map, ${SYSTEM_MAP} one time, credited toward the build if you do one:`, "systemMap")}`,
+${close(21, c, `The current plans define the build, monthly work, and included advertising allocation before you approve. See the upfront and monthly terms:`, "pricing")}`,
   },
   {
     day: 22,
@@ -822,11 +823,11 @@ ${close(21, c, `The written plan for which leak first is the System Map, ${SYSTE
 
 You have not asked, so I will just tell you.
 
-A twenty minute call is free. A written System Map is ${SYSTEM_MAP}, one time, credited toward the build if you do one. A five page site you own outright is ${WEBSITE_LAUNCH}. Bigger systems are scoped in writing before anyone starts, because a coffee shop and a three location service company are not the same build.
+A twenty minute call is free. Current managed work starts at ${MANAGED_MONTHLY} a month, with at least ${MANAGED_UPFRONT} upfront. Larger plans and custom builds are scoped in writing because a coffee shop and a three location service company need different work.
 
-Nothing is monthly unless you ask me to keep running it for you, and that is optional.
+The advertising allocation is included in the written plan. The proposal defines the build, ongoing work, upfront treatment, and billing dates before approval. No number of leads, jobs, or sales is promised.
 
-What you are not paying for: a plan, a seat, a template, or my ability to hold your site hostage.
+Your accounts remain yours. Separate software, tools, courses, and existing signed agreements retain their own terms.
 
 ${close(22, c, "Every price on one page. No call required to see it:", "pricing")}`,
   },
