@@ -87,3 +87,23 @@ export function refundOutcome(eventType: unknown, input: unknown): RefundOutcome
   }
   return null;
 }
+
+/**
+ * The invoice a payment intent paid, from Stripe's invoice payments list
+ * (GET /v1/invoice_payments?payment[type]=payment_intent&payment[payment_intent]=pi_...).
+ * Stripe API versions from 2025-03-31 (this account runs a 2026 version) no
+ * longer put the invoice on a charge, so this is how a refund or dispute on
+ * an invoice-paid charge (Sales Desk and dashboard invoices, renewals) finds
+ * its purchase. A paid invoice payment wins over an open or canceled one.
+ * Null when the list names no invoice.
+ */
+export function invoiceIdFromInvoicePayments(body: unknown): string | null {
+  const data = body && typeof body === "object" ? (body as { data?: unknown }).data : null;
+  if (!Array.isArray(data)) return null;
+  const rows = data
+    .map((row) => (row && typeof row === "object" ? (row as Record<string, unknown>) : {}))
+    .map((row) => ({ invoice: idOf(row.invoice), status: str(row.status, 40) }))
+    .filter((row): row is { invoice: string; status: string | null } => !!row.invoice && /^in_[A-Za-z0-9_]{4,200}$/.test(row.invoice));
+  const paid = rows.find((row) => row.status === "paid");
+  return (paid ?? rows[0])?.invoice ?? null;
+}

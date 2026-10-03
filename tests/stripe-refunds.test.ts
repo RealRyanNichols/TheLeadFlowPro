@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
-import { refundOutcome } from "../lib/stripeRefunds.ts";
+import { invoiceIdFromInvoicePayments, refundOutcome } from "../lib/stripeRefunds.ts";
 
 test("a full refund flips the status; a partial one, which Stripe sends with refunded false, only alerts", () => {
   const full = refundOutcome("charge.refunded", { id: "ch_1", refunded: true, amount: 49700, amount_refunded: 49700, payment_intent: "pi_1", invoice: null });
@@ -52,4 +52,33 @@ test("the webhook tries the invoice key first, flips only a paid row after alert
   assert.ok(hook.includes("charge.refunded, charge.dispute.created, charge.dispute.closed"), "the registration comment lists the new events");
   const access = readFileSync(join(process.cwd(), "lib/access.ts"), "utf8");
   assert.ok(access.includes('.eq("status", "paid")'), "course access still keys on paid, so a flip revokes it");
+});
+
+test("on this account's Stripe version a charge names no invoice, so the invoice comes from the invoice payment its payment intent made", () => {
+  assert.equal(invoiceIdFromInvoicePayments({ data: [{ id: "inpay_1", invoice: "in_1U8OVtBHH7tuNwAA", status: "paid", payment: { type: "payment_intent", payment_intent: "pi_1" } }] }), "in_1U8OVtBHH7tuNwAA");
+  assert.equal(invoiceIdFromInvoicePayments({ data: [{ invoice: { id: "in_obj1234" }, status: "paid" }] }), "in_obj1234", "an expanded invoice works too");
+  assert.equal(
+    invoiceIdFromInvoicePayments({ data: [{ invoice: "in_open1234", status: "open" }, { invoice: "in_paid1234", status: "paid" }] }),
+    "in_paid1234",
+    "a paid invoice payment wins over an open one",
+  );
+  assert.equal(invoiceIdFromInvoicePayments({ data: [{ invoice: "in_cancel12", status: "canceled" }] }), "in_cancel12", "otherwise the first named invoice");
+  assert.equal(invoiceIdFromInvoicePayments({ data: [] }), null);
+  assert.equal(invoiceIdFromInvoicePayments({ data: [{ invoice: "cs_not_an_invoice", status: "paid" }] }), null, "only an invoice id");
+  assert.equal(invoiceIdFromInvoicePayments(null), null);
+  assert.equal(invoiceIdFromInvoicePayments({ error: { message: "nope" } }), null);
+});
+
+test("money back on an invoice-paid charge is mapped through invoice payments before the purchase lookup, and a Stripe outage retries", () => {
+  const hook = readFileSync(join(process.cwd(), "app/api/stripe-webhook/route.ts"), "utf8");
+  const handler = hook.slice(hook.indexOf("async function handleMoneyBack("), hook.indexOf("async function noteSubscriptionEnd("));
+  const chargeLookup = handler.indexOf("stripeGet(`charges/${encodeURIComponent(outcome.chargeId)}`)");
+  const paymentLookup = handler.indexOf("await invoiceForPaymentIntent(outcome.paymentIntent, stripeKey)");
+  const purchaseLookup = handler.indexOf('.from("purchases").select("stripe_session_id, email, kind, status")');
+  assert.ok(chargeLookup > 0 && paymentLookup > chargeLookup && purchaseLookup > paymentLookup, "charge first, then invoice payments, then the purchase row");
+  assert.ok(handler.includes('if (!candidates.length && outcome.paymentIntent && stripeKey && eventType !== "checkout.session.async_payment_failed")'));
+  const lookup = hook.slice(hook.indexOf("async function invoiceForPaymentIntent("), hook.indexOf("async function handleMoneyBack("));
+  assert.ok(lookup.includes('"Stripe-Version": STRIPE_API_VERSION'), "asks in the account's pinned version");
+  assert.ok(lookup.includes("payment%5Btype%5D=payment_intent&payment%5Bpayment_intent%5D="), "the documented filter");
+  assert.ok(lookup.includes("if (r.status >= 400 && r.status < 500 && r.status !== 429) return null;") && lookup.includes("throw new Error"), "a 4xx is none; an outage or rate limit retries");
 });
