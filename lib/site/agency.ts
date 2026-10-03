@@ -14,7 +14,7 @@ import { MANAGED_COMMERCIAL_TERMS, managedAdvertisingExplanation, managedBilling
 export const AGENCY_PLAN_SUMMARY = `${managedCampaignSummary()} Paid upfront. Advertising is included within your written campaign allocation.`;
 
 export const OWNERSHIP_PROMISE = {
-  headline: "You own the accounts and data. Your plan includes advertising.",
+  headline: "You own the accounts and data. Your campaign includes advertising.",
   points: [
     "The ad account, pixel, tag, and audiences are created in your name or moved into it before a dollar is spent.",
     managedAdvertisingExplanation(),
@@ -98,7 +98,7 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
       "A weekly plain-English report: spend, leads by source, cost per lead record, and one recommended decision",
     ],
     clientOwns: ["Meta Business Manager and the ad account", "The pixel, events, and every audience", "Every lead, the CRM record, and the reporting"],
-    clientPaysDirectly: ["Only vendor or software items identified outside the included plan allocation in your written scope"],
+    clientPaysDirectly: ["Only vendor or software items identified outside the included campaign allocation in your written scope"],
     notIncluded: ["A promise of a particular cost per lead, number of leads, or return on ad spend", "Running ads for two businesses from one account or audience", "Spending beyond the advertising allocation without an approved scope change"],
     faq: [
       { q: "Do I need a website first?", a: "No. Meta lead forms can work without one. If a website or landing page is needed, we define the build within your 90-day campaign before work begins." },
@@ -133,7 +133,7 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
       "A weekly plain-English report: spend, leads by source, cost per lead record, and one recommended decision",
     ],
     clientOwns: ["The Google Ads account and billing profile", "The Google Tag, conversions, and audiences", "Every lead, call log, and the reporting"],
-    clientPaysDirectly: ["Only vendor or tracking software identified outside the included plan allocation in your written scope"],
+    clientPaysDirectly: ["Only vendor or tracking software identified outside the included campaign allocation in your written scope"],
     notIncluded: ["A promise of a ranking position, a number of calls, or a return on ad spend", "Search engine optimisation of the organic listing (a separate scope)", "Spending beyond the advertising allocation without an approved scope change"],
     faq: [
       { q: "Is this the same as SEO?", a: "No. Google Ads buys the top of the page today. Search optimisation earns the organic listing over months. Both can be scoped; this page is about the ads." },
@@ -270,7 +270,7 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
       "A monthly note on what people read, clicked, and asked next",
     ],
     clientOwns: ["Every post, page, article, and email", "The channels, the list, and the analytics", "The publishing calendar"],
-    clientPaysDirectly: ["Email software or scheduling tools, if used", "Ad spend if a post is promoted"],
+    clientPaysDirectly: ["Email software or scheduling tools identified outside the included campaign allocation in your written scope", "Additional promotion beyond the campaign's included advertising allocation, only with a separately approved scope and budget"],
     notIncluded: ["Invented reviews, statistics, or claims", "Marketing email to anyone who did not opt in", "Posting from LeadFlow accounts on your behalf"],
     faq: [
       { q: "What does it cost?", a: AGENCY_PLAN_SUMMARY },

@@ -200,15 +200,15 @@ export default function AgencyHubPage() {
           <div className="cb-doors">
             <div className="cb-door">
               <span className="cb-door-num">01 · Tell</span>
-              <h3>Ten questions, one business day.</h3>
+              <h3>Your business. A clear next step.</h3>
               <p>
                 Business, channels, the campaign you are prepared to support, the bottleneck,
-                who decides, and when. Saved the second you send it, with an alert on Ryan&rsquo;s phone.
+                who decides, and when. Your answers are saved for review.
               </p>
               <ul>
                 <li><Check aria-hidden="true" /> A written reply within one business day</li>
                 <li><Check aria-hidden="true" /> The scope, ownership, and price in writing before anything starts</li>
-                <li><Check aria-hidden="true" /> Advertising is included in the agreed plan allocation</li>
+                <li><Check aria-hidden="true" /> Advertising is included in the agreed campaign allocation</li>
               </ul>
               <div className="cb-actions">
                 <Link href="#intake" className="cb-btn cb-btn--primary" data-cta="agency_door_intake" data-cta-placement="agency_hub">
@@ -412,9 +412,9 @@ export default function AgencyHubPage() {
               Tell Ryan what is leaking.
             </h2>
             <p className="cb-lead">
-              Ten questions. The answers land on Ryan&rsquo;s desk the moment you send them, with a
-              note back to your inbox. Expect a text or call within one business day to map the first
-              ninety days.
+              Share your business, services, territory, and capacity so Ryan can scope the first
+              ninety days. Expect an email reply within one business day. With your permission,
+              Ryan may also call or text.
             </p>
             <ul className="sv-form-points">
               <li>

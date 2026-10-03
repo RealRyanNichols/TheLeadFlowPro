@@ -132,7 +132,7 @@ export default async function AgencyServicePage({ params }: { params: Promise<{ 
               </ul>
             </div>
             <div className="cb-vs-col cb-vs-col--them">
-              <p className="cb-vs-label">Outside the plan, only when disclosed</p>
+              <p className="cb-vs-label">Outside the agreed campaign scope</p>
               <ul className="cb-vs-list">
                 {s.clientPaysDirectly.map((item) => (
                   <li key={item}>

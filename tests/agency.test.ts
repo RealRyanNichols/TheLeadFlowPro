@@ -58,7 +58,7 @@ test("ads pages keep client ownership while advertising is included in the writt
     assert.match(owns, /pixel|tag/, slug);
     assert.match(owns, /audience/, slug);
     assert.match(owns, /lead/, slug);
-    assert.match(pays, /outside the included plan allocation/, slug);
+    assert.match(pays, /outside the included campaign allocation/, slug);
     assert.ok(s.notIncluded.some((n) => /advertising allocation/i.test(n)), slug);
   }
   assert.ok(OWNERSHIP_PROMISE.points.some((p) => /Advertising spend is included/i.test(p)));
