@@ -5,6 +5,7 @@ import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
 import { sendInternalLeadAlert } from "@/lib/leadNotify";
 import { deliverLeadEmailNotificationsForLead } from "@/lib/leadEmailNotifications";
 import { dispatchSpeedToLeadWithBudget } from "@/lib/speedToLeadAlertsServer";
+import { contractorFollowUp, metaAnswerLines } from "@/lib/metaLeadAnswers";
 import {
   syncResendContacts,
   type ResendContactSyncResult,
@@ -206,9 +207,12 @@ function mapLead(raw: MetaLead) {
 
   // Everything the lead actually told us, kept verbatim so the admin view and
   // the alert email show real answers instead of an empty row.
-  const answers = [...fields.entries()]
-    .filter(([k]) => !/^(email|phone_number|full_name|first_name|last_name)$/.test(k))
-    .map(([k, v]) => `${k.replace(/_/g, " ").replace(/\?$/, "")}: ${v}`);
+  // Registered forms with answerLabels read in the words on the form.
+  const answers = metaAnswerLines(fields.entries(), registration);
+  // Pat's follow up grouping (v2 contractor form only) goes on top, and sets
+  // the lead's priority so the priority group is easy to find.
+  const followUp = registration?.funnel === "contractor_owner" ? contractorFollowUp(fields.entries()) : null;
+  if (followUp) answers.unshift(followUp.label);
 
   return {
     external_id: `meta:${raw.id}`,
@@ -223,6 +227,7 @@ function mapLead(raw: MetaLead) {
       desired_modules: desiredModules,
       interest: isWebsiteCampaign ? "website_launch" : "done_for_you",
       goals: answers.length ? answers.join("\n") : null,
+      ...(followUp ? { priority: followUp.priority } : {}),
       budget_range: budgetRange,
       timeline,
       best_contact_method: phone ? "text" : "email",

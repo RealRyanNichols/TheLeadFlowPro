@@ -114,8 +114,11 @@ test("nurture route retains failed claims and finalizes only accepted sends", as
   );
   assert.match(route, /delivery_status:\s*"pending"/);
   assert.match(route, /nurtureEmailIdempotencyKey\(lead\.id, next\.step, sequence\.campaign\)/);
-  // Text and the designed HTML on every thirty day send, so Resend can count opens and clicks.
-  assert.match(route, /html:\s*renderNurtureHtml\(\{ step: next, firstName: context\.first, unsubUrl, context \}\)/);
+  // Text and the designed HTML on every thirty day send and every contractor
+  // send, so Resend can count opens and clicks.
+  assert.match(route, /renderNurtureHtml\(\{ step, firstName: context\.first, unsubUrl, context \}\)/);
+  assert.match(route, /renderContractorHtml\(\{ email, firstName: first, unsubUrl \}\)/);
+  assert.match(route, /\.\.\.\(html \? \{ html \} : \{\}\)/);
   assert.match(route, /nurtureRetryWindowExpired\(pendingRow\.first_attempt_at\)/);
   assert.match(route, /delivery_status:\s*"sent"/);
   assert.doesNotMatch(route, /\.from\("lead_emails"\)[\s\S]{0,120}\.delete\(\)/);

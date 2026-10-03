@@ -101,6 +101,7 @@ export const MENU_GROUPS: readonly BackOfficeGroup[] = [
     links: [
       { href: "/admin/command-center", label: "Overview", description: "The whole business at a glance, read only" },
       { href: "/admin/operator", label: "OperatorOS", description: "AI helpers suggest work from your records; you approve" },
+      { href: "/admin/idea-lab", label: "Idea Lab", description: "Reviewed ideas, experiments, and the next build to pick" },
       // The live RN-1 trading desk on its own server. The Overview page frames it too.
       { href: "https://trading.theleadflowpro.com/", label: "RN-1 Desk", description: "The trading robot's live page, on its own site", external: true },
     ],

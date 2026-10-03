@@ -9,6 +9,8 @@ import * as nurture from "../lib/nurture";
 import * as nurtureContext from "../lib/nurtureContext";
 import * as nurtureRentReceipt from "../lib/nurtureRentReceipt";
 import * as guard from "../lib/metaCampaignGuard";
+import * as contractorSeries from "../lib/contractorSeries";
+import * as contractorEmailHtml from "../lib/contractorEmailHtml";
 
 const require = createRequire(import.meta.url);
 const website = {
@@ -121,6 +123,7 @@ async function recipients(rows: Lead[], now = "2026-09-07T00:00:00Z") {
           CRON_SECRET: "fixture-cron",
           SUPABASE_SERVICE_ROLE_KEY: "fixture-db",
           RESEND_API_KEY: "fixture-email",
+          NURTURE_SEND_WINDOW: "off",
         },
       },
     },
@@ -141,6 +144,8 @@ async function recipients(rows: Lead[], now = "2026-09-07T00:00:00Z") {
       if (name === "@/lib/nurtureContext") return nurtureContext;
       if (name === "@/lib/nurtureRentReceipt") return nurtureRentReceipt;
       if (name === "@/lib/metaCampaignGuard") return guard;
+      if (name === "@/lib/contractorSeries") return contractorSeries;
+      if (name === "@/lib/contractorEmailHtml") return contractorEmailHtml;
       if (name === "@/lib/site/business") return business;
       if (name === "@/lib/unsubscribe")
         return { unsubscribeSecret: () => "fixture-unsubscribe" };

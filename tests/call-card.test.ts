@@ -1116,7 +1116,9 @@ test("call card harness: the sample renders the fictional lead in sample mode an
   assert.deepEqual(copyProblems(text), []);
 });
 
-test("call card harness: a real lead is read after auth, and links follow consent", async () => {
+test("call card harness: a real lead is read after auth, and links follow consent", async (t) => {
+  // Keep the September 25 follow-up ahead of the fixture clock as real time moves on.
+  t.mock.timers.enable({ apis: ["Date"], now: new Date("2026-09-22T15:00:00.000Z") });
   const detail = "Call: talked, call back Fri, Sep 25 at 10:00 AM. Talked about Website Launch. Outcome: call_back. Offer ids: website_launch, system_map. Ref 3f2b8c1e-5a4d-4e6f-9b7a-0c1d2e3f4a5b";
   const out = await callCard(LEAD_ID, {
     lead: realLead(),

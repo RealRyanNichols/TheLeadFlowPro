@@ -119,6 +119,122 @@ class SiteTestBase(unittest.TestCase):
         return (site.site_dir(settings or self.settings) / rel).read_text(encoding="utf-8")
 
 
+# ---------------------------------------------------------------- card facts
+
+class CardSince(SiteTestBase):
+    """A card's one dated line comes from a public record, in record wording, the year only."""
+
+    def test_since_line_wording(self):
+        data = fixture_export()
+        base = data["businesses"][0]
+        permit, franchise, neither = clone(base, 1), clone(base, 2), clone(base, 3)
+        permit.update(permitSince="2015-03-04", registeredSince=None)
+        franchise.update(permitSince=None, registeredSince="2011-07-01")
+        neither.update(permitSince=None, registeredSince=None)
+        self.assertEqual(site.since_line(permit), "Permit on file since 2015")
+        self.assertEqual(site.since_line(franchise), "Registered since 2011")
+        self.assertIsNone(site.since_line(neither))
+        both = dict(permit, registeredSince="2011-07-01")
+        self.assertEqual(site.since_line(both), "Permit on file since 2015")
+
+    def test_cards_show_at_most_one_since_line_and_never_founded(self):
+        pages_ = self.build(fixture_export())
+        seen = 0
+        for rel, text in pages_.items():
+            for li in re.findall(r'<li class="card"[^>]*>.*?</li>(?=<li class="card"|</ul>)', text):
+                self.assertLessEqual(li.count('class="card-since"'), 1, rel)
+                seen += li.count('class="card-since"')
+                self.assertNotRegex(li.lower(), r"founded|opened|established|years in business")
+        self.assertGreater(seen, 0)
+        self.assertNotIn('class="card-since"', pages_["new/index.html"])  # that page shows the full date
+
+
+class LetterJump(SiteTestBase):
+    """Long lists: jump by letter and by page number, with no script."""
+
+    def setUp(self):
+        super().setUp()
+        data = fixture_export()
+        base = data["businesses"][0]
+        words = ["Acme", "Bayou", "Cedar", "Delta", "Echo", "Fair", "Mesa", "Pine", "Zephyr", "4th Street"]
+        for n in range(120):
+            b = clone(base, n)
+            b["name"] = f"{words[n % len(words)]} Shop {n:03d}"
+            data["businesses"].append(b)
+        self.pages = self.build(data)
+
+    def test_letter_bar_links_resolve_to_anchors_on_built_pages(self):
+        first = self.pages["index.html"]
+        bar = re.search(r'<nav class="letters" aria-label="Jump to letter">(.*?)</nav>', first).group(1)
+        self.assertEqual(bar.count("<a ") + bar.count("<span "), 27)
+        self.assertIn('<span aria-disabled="true">Q</span>', bar)  # no Q names: no link
+        hrefs = re.findall(r'href="([^"]*)"', bar)
+        self.assertTrue(hrefs)
+        for href in hrefs:
+            page_part, _, anchor = href.partition("#")
+            rel = "index.html" if not page_part else page_part[len(BASE):] + "index.html"
+            self.assertIn(rel, self.pages, href)
+            self.assertIn(f'id="{anchor}"', self.pages[rel], href)
+            self.assertTrue(page_part == "" or page_part.startswith(BASE), href)
+
+    def test_numbered_pages(self):
+        second = self.pages["page-2/index.html"]
+        nav = re.search(r'<nav class="pages" aria-label="Pages">(.*?)</nav>', second).group(1)
+        self.assertIn('<span class="pages-now" aria-current="page">2</span>', nav)
+        self.assertIn(f'href="{BASE}"', nav)                 # page 1
+        self.assertIn(f'href="{BASE}page-3/"', nav)
+        self.assertIn("Page 2 of 3", Page(second).text)
+        self.assertIn('rel="prev"', nav)
+        self.assertIn('rel="next"', nav)
+        self.assertEqual(site.page_window(1, 9), [1, 2, None, 9])
+        self.assertEqual(site.page_window(5, 9), [1, None, 4, 5, 6, None, 9])
+        self.assertEqual(site.page_window(2, 3), [1, 2, 3])
+
+    def test_letter_of(self):
+        self.assertEqual(site.letter_of({"name": "Éclair Bakery"}), "e")
+        self.assertEqual(site.letter_of({"name": "4th Street Shop"}), "#")
+        self.assertEqual(site.letter_of({"name": "'Bout Time"}), "#")
+
+
+class ProfileHoursAndNeighbours(SiteTestBase):
+    def setUp(self):
+        super().setUp()
+        self.data = fixture_export()
+        self.pages = self.build(self.data)
+
+    def test_hours_rows_carry_stated_days_only(self):
+        tire = self.pages["example-tire-and-lube/index.html"]
+        self.assertIn('<tr data-d="mon" data-h="0730-1800">', tire)
+        self.assertIn('<tr data-d="sun" data-h="-">', tire)  # stated closed
+        self.assertIn('<p class="now" role="status" hidden></p>', tire)
+        self.assertIn(f'<script src="{BASE}search.js" defer></script>', tire)
+        taq = self.pages["example-taqueria/index.html"]
+        self.assertNotIn('data-d="sun"', taq)  # never stated: no row at all
+        lawn = self.pages["example-lawn-care/index.html"]
+        self.assertNotIn('class="now"', lawn)
+        self.assertNotIn("search.js", lawn)
+
+    def test_neighbours_are_a_to_z_in_the_same_category(self):
+        by_cat = {}
+        for b in sorted(self.data["businesses"], key=site.name_key):
+            by_cat.setdefault(b["category"], []).append(b)
+        for b in self.data["businesses"]:
+            page = self.pages[f"{b['slug']}/index.html"]
+            members = by_cat[b["category"]]
+            band = re.search(r'<ul class="links near">(.*?)</ul>', page)
+            if len(members) < 2:
+                self.assertIsNone(band, b["slug"])
+                continue
+            self.assertIn(", A to Z</h2>", page)
+            self.assertIn("Neighbours in A to Z order. Not ranked, not recommendations.", page)
+            hrefs = re.findall(r'href="([^"]+)"', band.group(1))
+            self.assertLessEqual(len(hrefs), 4)
+            same = {BASE + m["slug"] + "/" for m in members if m["slug"] != b["slug"]}
+            for href in hrefs:
+                self.assertIn(href, same)
+                self.assertIn(href[len(BASE):] + "index.html", self.pages)
+
+
 # ---------------------------------------------------------------- the pages
 
 class SitePages(SiteTestBase):
@@ -202,7 +318,7 @@ class SitePages(SiteTestBase):
         section = re.search(r'<section class="band" id="search" hidden[^>]*>', text)
         self.assertIsNotNone(section)
         labels = {a.get("for") for a in parsed.attrs("label")}
-        self.assertEqual(labels, {"search-q", "search-open"})
+        self.assertEqual(labels, {"search-q", "search-open", "search-web", "search-hrs", "search-hire", "search-new", "search-cat"})
         data = json.loads(self.read("search.json"))
         self.assertEqual(len(data["businesses"]), n)
         row = next(r for r in data["businesses"] if r["slug"] == "example-taqueria")
@@ -226,8 +342,23 @@ class SitePages(SiteTestBase):
         text = self.pages["example-tire-and-lube/index.html"]
         parsed = Page(text)
         b = by_slug(self.data, "example-tire-and-lube")
-        self.assertIn('<svg class="cover"', text)
-        self.assertRegex(text, r'<svg class="cover"[^>]*aria-hidden="true"')
+        self.assertNotIn('class="cover"', text)
+        self.assertIn('<span class="mono mono-lg cat-auto" aria-hidden="true">', text)
+        # Action bar: call, website, directions, each a button with an icon from the page's own sprite.
+        actions = re.search(r'<nav class="actions"[^>]*>(.*?)</nav>', text).group(1)
+        self.assertIn('href="tel:+19035550110"', actions)
+        self.assertIn(f'href="{b["website"]["url"]}" rel="nofollow noopener noreferrer"', actions)
+        self.assertIn(">Directions</a>", actions)
+        for name in re.findall(r'<use href="#i-([a-z]+)"/>', text):
+            self.assertIn(f'<symbol id="i-{name}"', text)
+        # Fact chips: each links to its own row in Sources and checks, and only for a shown field.
+        self.assertIn("Sales-tax permit on file since February 2015 (11 years)", parsed.text)
+        chips = re.findall(r'<a class="fact" href="#src-([A-Za-z]+)">', text)
+        self.assertTrue(chips)
+        self.assertLessEqual(len(chips), 4)
+        for field in chips:
+            self.assertIn(f'id="src-{field}"', text)
+            self.assertIn(field, validate.shown_fields(b))
         self.assertIn("Auto", parsed.text)
         self.assertIn("500 Example St, Longview, TX 75602", parsed.text)
         links = {a.get("href"): a for a in parsed.attrs("a")}
@@ -279,6 +410,15 @@ class SitePages(SiteTestBase):
             self.assertIn(line, parsed.text)
         self.assertNotIn("mailto:info@", self.pages["example-lawn-care/index.html"])
         self.assertIn("Directions", parsed.text)
+        text = self.pages["example-lawn-care/index.html"]
+        # A hidden street: Directions stays a plain link by the town, never a button.
+        self.assertIn('<p class="where"><span>Longview, TX</span><a href="https://www.google.com/maps/', text)
+        self.assertNotRegex(text, r'class="btn[^"]*" href="https://www.google.com/maps')
+        for line in ("No website found yet.", "No phone number listed on a website we could verify.",
+                     "Hours not listed."):
+            self.assertIn(f'<span class="missing">{line}</span>', text)
+        for field in ("website", "hours", "careers", "services"):
+            self.assertNotIn(f'href="#src-{field}"', text)
         self.assertIn(site.DISCLAIMER, parsed.text)
         for field in ("Business name", "Category", "Sales-tax permit date"):
             self.assertIn(field, parsed.text)

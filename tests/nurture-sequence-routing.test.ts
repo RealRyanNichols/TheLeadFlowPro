@@ -11,6 +11,8 @@ import * as nurtureHtml from "../lib/nurtureHtml";
 import * as nurtureRentReceipt from "../lib/nurtureRentReceipt";
 import * as nurtureDelivery from "../lib/nurtureDelivery";
 import * as guard from "../lib/metaCampaignGuard";
+import * as contractorSeries from "../lib/contractorSeries";
+import * as contractorEmailHtml from "../lib/contractorEmailHtml";
 import { bookingPage } from "../lib/site/external-links";
 
 // Runs the actual cron route against an in-memory leads and lead_emails
@@ -81,7 +83,7 @@ function makeDb(leads: Row[], emails: Row[]) {
   return { db: { from: builder }, activity };
 }
 
-async function runRoute(leads: Row[], emails: Row[], nowMs: number) {
+async function runRoute(leads: Row[], emails: Row[], nowMs: number, sendWindow = "off") {
   const { db, activity } = makeDb(leads, emails);
   const sends: { key: string; payload: Record<string, unknown> }[] = [];
   const code = ts.transpileModule(
@@ -98,7 +100,7 @@ async function runRoute(leads: Row[], emails: Row[], nowMs: number) {
     Date: Clock,
     console: { error() {} },
     process: {
-      env: { CRON_SECRET: "fixture-cron", SUPABASE_SERVICE_ROLE_KEY: "fixture-db", RESEND_API_KEY: "fixture-email" },
+      env: { CRON_SECRET: "fixture-cron", SUPABASE_SERVICE_ROLE_KEY: "fixture-db", RESEND_API_KEY: "fixture-email", NURTURE_SEND_WINDOW: sendWindow },
     },
   });
   run(
@@ -112,6 +114,8 @@ async function runRoute(leads: Row[], emails: Row[], nowMs: number) {
       if (name === "@/lib/nurtureHtml") return nurtureHtml;
       if (name === "@/lib/nurtureRentReceipt") return nurtureRentReceipt;
       if (name === "@/lib/metaCampaignGuard") return guard;
+      if (name === "@/lib/contractorSeries") return contractorSeries;
+      if (name === "@/lib/contractorEmailHtml") return contractorEmailHtml;
       if (name === "@/lib/site/business") return business;
       if (name === "@/lib/unsubscribe")
         return {
@@ -193,6 +197,7 @@ test("a new Rent Receipt lead gets step 501 on its pain track with the HTML part
       { name: "campaign", value: "rent_receipt" },
       { name: "day", value: "01" },
       { name: "track", value: "missed_calls_hot" },
+      { name: "lead_id", value: "rent-new" },
     ]),
   );
   const claim = result.emails.find((r) => r.lead_id === "rent-new");
@@ -301,4 +306,135 @@ test("one email per lead per day holds across sequences", async () => {
   const result = await runRoute(leads, emails, now);
   assert.equal(result.sends.length, 0);
   assert.equal(result.body.throttled, 1);
+});
+
+const contractorForm = () => ({
+  form_id: contractorSeries.CONTRACTOR_META_FORM_ID,
+  source: "contractor_owner",
+  fields: {},
+});
+
+test("a lead from Pat's v2 form gets the same contractor day 1", async () => {
+  const now = START + 40 * DAY;
+  const leads: Row[] = [
+    {
+      ...base,
+      id: "dirt-v2",
+      full_name: "mike smith",
+      email: "mike@example.com",
+      created_at: new Date(now - DAY - HOUR).toISOString(),
+      diagnostic: { ...contractorForm(), form_id: contractorSeries.CONTRACTOR_META_FORM_ID_V2 },
+    },
+  ];
+  const result = await runRoute(leads, [], now);
+  assert.equal(result.status, 200);
+  assert.equal(result.sends.length, 1);
+  assert.equal(
+    result.sends[0].key,
+    `nurture-contractor_owner-${nurtureDelivery.NURTURE_SEQUENCE_VERSION}-dirt-v2-601`,
+  );
+});
+
+test("a Scott video lead gets contractor day 1, designed and tagged, never Rent Receipt", async () => {
+  const now = START + 40 * DAY;
+  const leads: Row[] = [
+    {
+      ...base,
+      id: "dirt-new",
+      full_name: "mike smith",
+      email: "mike@example.com",
+      created_at: new Date(now - DAY - HOUR).toISOString(),
+      diagnostic: contractorForm(),
+    },
+  ];
+  const result = await runRoute(leads, [], now);
+  assert.equal(result.status, 200);
+  assert.equal(result.sends.length, 1);
+  const [send] = result.sends;
+  assert.equal(send.key, `nurture-contractor_owner-${nurtureDelivery.NURTURE_SEQUENCE_VERSION}-dirt-new-601`);
+  assert.equal(send.payload.subject, "🚜 Scott spent $800. Here is what came back.");
+  assert.ok(String(send.payload.text).startsWith("Mike,"));
+  assert.ok(String(send.payload.html).includes("Not a promise of what yours will do."));
+  assert.equal(
+    JSON.stringify(send.payload.tags),
+    JSON.stringify([
+      { name: "campaign", value: "contractor_owner" },
+      { name: "day", value: "01" },
+      { name: "track", value: "contractor" },
+      { name: "lead_id", value: "dirt-new" },
+    ]),
+  );
+  assert.equal(result.emails.find((r) => r.lead_id === "dirt-new")?.step, 601);
+});
+
+test("contractor leads stop at the last cleared day and are read back past 45 days", async () => {
+  const now = START + 120 * DAY;
+  const sentRow = (lead: string, step: number, daysAgo: number): Row => ({
+    id: `${lead}-${step}`,
+    lead_id: lead,
+    step,
+    delivery_status: "sent",
+    sent_at: new Date(now - daysAgo * DAY).toISOString(),
+    first_attempt_at: new Date(now - daysAgo * DAY).toISOString(),
+    last_attempt_at: new Date(now - daysAgo * DAY).toISOString(),
+    attempt_count: 1,
+  });
+  const leads: Row[] = [
+    {
+      ...base,
+      id: "dirt-done",
+      full_name: "Done",
+      email: "done@example.com",
+      created_at: new Date(now - 30 * DAY).toISOString(),
+      diagnostic: contractorForm(),
+    },
+    {
+      ...base,
+      id: "dirt-old",
+      full_name: "Old",
+      email: "old@example.com",
+      created_at: new Date(now - 100 * DAY).toISOString(),
+      diagnostic: contractorForm(),
+    },
+    {
+      ...base,
+      id: "rent-old",
+      full_name: "Rent Old",
+      email: "rentold@example.com",
+      created_at: new Date(now - 50 * DAY).toISOString(),
+      diagnostic: rentForm({}),
+    },
+  ];
+  // dirt-done already has every cleared day.
+  const emails: Row[] = contractorSeries.CONTRACTOR_STEPS.map((step, i) =>
+    sentRow("dirt-done", step.step, 8 - i * 0.5),
+  );
+  const result = await runRoute(leads, emails, now);
+  // dirt-done has every cleared day; dirt-old (100 days) is caught up one at a
+  // time; the 50 day old Rent Receipt lead stays outside its 45 day window.
+  assert.deepEqual(
+    result.sends.map((s) => s.key.split("-").slice(-1)[0]),
+    ["601"],
+  );
+  assert.ok(result.sends[0].key.includes("-dirt-old-"));
+});
+
+test("new follow ups wait for 7 AM to 8 PM Central", async () => {
+  // 2026-10-02 08:00 UTC is 3 AM Central; 14:00 UTC is 9 AM Central.
+  const night = Date.parse("2026-10-02T08:00:00Z");
+  const morning = Date.parse("2026-10-02T14:00:00Z");
+  const lead = (): Row => ({
+    ...base,
+    id: "dirt-window",
+    full_name: "Window Test",
+    email: "window@example.com",
+    created_at: new Date(night - 2 * DAY).toISOString(),
+    diagnostic: contractorForm(),
+  });
+  const held = await runRoute([lead()], [], night, "7-20");
+  assert.equal(held.sends.length, 0);
+  assert.equal(held.body.held_for_window, 1);
+  const open = await runRoute([lead()], [], morning, "7-20");
+  assert.equal(open.sends.length, 1);
+  assert.equal(open.body.held_for_window, 0);
 });

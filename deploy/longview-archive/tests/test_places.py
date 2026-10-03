@@ -80,14 +80,19 @@ class Registry(unittest.TestCase):
         self.assertEqual(config.Settings().places, ("longview",))
         self.assertEqual(config.Settings().site_dir, config.Settings().place_site_dir("longview"))
 
-    def test_first_and_second_rings_are_seeded(self):
+    def test_three_rings_are_seeded(self):
         self.assertEqual(
             [p.slug for p in places.PLACES],
             ["longview", "marshall", "kilgore", "white-oak", "hallsville", "diana", "harleton", "gladewater",
              "clarksville-city", "easton", "scottsville", "elysian-fields", "waskom", "ore-city", "gilmer",
              "karnack", "jefferson", "tatum", "henderson", "carthage",
              "tyler", "big-sandy", "hawkins", "winona", "arp", "overton", "new-london", "beckville",
-             "pittsburg", "daingerfield", "lone-star", "hughes-springs", "linden"])
+             "pittsburg", "daingerfield", "lone-star", "hughes-springs", "linden",
+             "mount-pleasant", "nacogdoches", "palestine", "jacksonville", "athens", "mineola", "quitman",
+             "winnsboro", "mount-vernon", "atlanta", "queen-city", "naples", "omaha", "avinger", "lindale",
+             "whitehouse", "bullard", "troup", "rusk", "mount-enterprise", "center", "timpson", "tenaha",
+             "chandler", "brownsboro", "van", "edgewood", "grand-saline", "canton", "wills-point", "frankston",
+             "alba", "yantis", "leesburg", "laneville", "cushing", "garrison", "chireno", "joaquin"])
         for p in places.PLACES:
             with self.subTest(place=p.slug):
                 self.assertEqual(p.state, "TX")
@@ -508,6 +513,17 @@ class Pages(unittest.TestCase):
             self.assertIn(n, hub)
         self.assertTrue((self.www / "places" / "directory.css").is_file())
         self.assertIn('<meta name="robots" content="noindex,nofollow">', hub)
+        # Town tiles, grouped under county headings; the page frame is complete.
+        self.assertNotIn('<li class="card"', hub)
+        self.assertEqual(hub.count('<li class="town-card">'), 3)
+        for county in ("Gregg County", "Harrison County", "Upshur County"):
+            self.assertIn(f'<h3 class="county">{county}</h3>', hub)
+        self.assertLess(hub.index("Gregg County"), hub.index("Harrison County"))
+        self.assertIn("6 businesses listed in 3 towns", hub)
+        self.assertEqual(hub.count("<h1>"), 1)
+        self.assertIn('<a class="skip" href="#main">', hub)
+        self.assertIn('<link rel="canonical" href="', hub)
+        self.assertIn(site.FOOTER_RESOURCE, hub)
 
     def test_an_address_without_a_street_says_the_town(self):
         data = ring_export()

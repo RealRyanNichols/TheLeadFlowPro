@@ -30,6 +30,7 @@ it in one rename. A build that fails leaves the previous site exactly as it was.
 
 from __future__ import annotations
 
+import hashlib
 import html
 import json
 import logging
@@ -74,7 +75,7 @@ CATEGORY_LEAD = "Every one we could verify, listed A to Z. Not ranked."
 # Bump whenever the pages' wording or markup changes: a site built with another
 # version is rebuilt at the next service start (``build_key``), so an upgrade
 # never leaves the old copy public until the next approval.
-COPY_VERSION = "5"
+COPY_VERSION = "11"
 
 SOURCE_LABELS = {
     "tx_sales_tax": "Texas Comptroller open data",
@@ -308,7 +309,19 @@ class Directory:
         return self.indexable and any(f["source"] == "website" for f in b["facts"])
 
     def in_category(self, slug: str) -> List[dict]:
-        return [b for b in self.businesses if b["category"] == slug]
+        if not hasattr(self, "_by_category"):
+            self._by_category: Dict[str, List[dict]] = {}
+            self._category_pos: Dict[str, int] = {}
+            for b in self.businesses:
+                group = self._by_category.setdefault(b["category"], [])
+                self._category_pos[b["slug"]] = len(group)
+                group.append(b)
+        return self._by_category.get(slug, [])
+
+    def category_position(self, b: Mapping) -> Optional[int]:
+        """Where a business sits in its category's A to Z list."""
+        self.in_category(b["category"])
+        return self._category_pos.get(b["slug"])
 
     def new_in_longview(self) -> List[dict]:
         if not self.batch_date:
@@ -338,7 +351,7 @@ def render_page(d: Directory, *, title: str, description: str, site_path: str, h
                 eyebrow: str = "", lead: str = "", crumbs: Sequence[Tuple[str, Optional[str]]] = (),
                 art: str = "", hero_extra: str = "", body: str = "", index: bool = False,
                 paged: bool = False, script: bool = False, disclaimer_in_footer: bool = True,
-                hero_class: str = "") -> str:
+                hero_class: str = "", sprite: str = "") -> str:
     """The frame every page shares. ``lead``, ``art``, ``hero_extra``, and ``body`` are HTML already escaped."""
     crumb_html = ""
     if crumbs:
@@ -369,10 +382,13 @@ def render_page(d: Directory, *, title: str, description: str, site_path: str, h
         f'<link rel="stylesheet" href="{base()}{CSS_NAME}">\n'
         f"{script_tag}"
         "</head>\n<body>\n"
+        f"{sprite}"
         '<a class="skip" href="#main">Skip to the content</a>\n'
         f"{sample}"
         f'<header class="brand"><div class="shell"><a href="{base()}">{e(d.town)} businesses</a>'
-        '<span> · The LeadFlow Pro</span></div></header>\n'
+        '<span> · The LeadFlow Pro</span>'
+        + (f'<a class="brand-search" href="{path("search")}">Search</a>' if d.businesses else "")
+        + "</div></header>\n"
         '<main id="main">\n'
         f'<section class="{hero_cls}"><div class="shell">{crumb_html}{art}'
         + (f'<p class="eyebrow">{e(eyebrow)}</p>' if eyebrow else "")
@@ -399,18 +415,114 @@ def monogram(b: Mapping) -> str:
             f"{e(monogram_initials(b['name']))}</text></svg>")
 
 
-def cover(b: Mapping) -> str:
-    return ('<svg class="cover" viewBox="0 0 960 300" preserveAspectRatio="xMinYMid slice" aria-hidden="true"'
-            ' focusable="false"><defs><pattern id="cover-grid" width="40" height="40"'
-            ' patternUnits="userSpaceOnUse"><path class="cover-line" d="M40 0H0V40"/></pattern></defs>'
-            f'<rect class="{category_class(b["category"])}" width="960" height="300"/>'
-            '<rect width="960" height="300" fill="url(#cover-grid)"/>'
-            '<circle class="cover-dot" cx="840" cy="40" r="200"/><circle class="cover-dot" cx="840" cy="40" r="120"/>'
-            f'<text class="cover-text" x="60" y="154" dominant-baseline="central">{e(monogram_initials(b["name"]))}'
-            "</text></svg>")
+def mono_span(b: Mapping) -> str:
+    """The card's monogram: the category colour and initials, as a CSS box (smaller than the SVG)."""
+    return (f'<span class="mono {category_class(b["category"])}" aria-hidden="true">'
+            f"{e(monogram_initials(b['name']))}</span>")
 
 
-def card(d: Directory, b: Mapping, extra: str = "") -> str:
+def since_line(b: Mapping) -> Optional[str]:
+    """One true, dated line for a card: the year a public record started. Never 'founded' or 'opened'."""
+    if b.get("permitSince"):
+        return f"Permit on file since {b['permitSince'][:4]}"
+    if b.get("registeredSince"):
+        return f"Registered since {b['registeredSince'][:4]}"
+    return None
+
+
+# Single-path 24x24 icons, drawn in currentColor by the CSS. A page carries only the ones it uses.
+ICONS = {
+    "phone": "M6.6 10.8a15 15 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25c1.1.37 2.3.57 3.6.57a1 1 0 0 1 1 1V20a1 1 0 0"
+             " 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1z",
+    "globe": "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 2c.9 0 2.3 1.8 2.9 5H9.1C9.7 5.8 11.1 4 12 4zM4.3 11h2.8"
+             "a17 17 0 0 0 0 2H4.3a8 8 0 0 1 0-2zm4.8 2a15 15 0 0 1 0-2h5.8a15 15 0 0 1 0 2zm7.8 0a17 17 0 0 0"
+             " 0-2h2.8a8 8 0 0 1 0 2zM12 20c-.9 0-2.3-1.8-2.9-5h5.8c-.6 3.2-2 5-2.9 5z",
+    "pin": "M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z",
+}
+
+
+def sprite(names: Iterable[str]) -> str:
+    """One hidden SVG holding the icons a page uses (``<use href>`` draws them; no script, no request)."""
+    used = [n for n in ICONS if n in set(names)]
+    if not used:
+        return ""
+    symbols = "".join(f'<symbol id="i-{n}" viewBox="0 0 24 24"><path d="{ICONS[n]}"/></symbol>' for n in used)
+    return f'<svg class="sprite" aria-hidden="true" focusable="false" hidden>{symbols}</svg>\n'
+
+
+def icon(name: str) -> str:
+    return f'<svg class="ic" aria-hidden="true" focusable="false"><use href="#i-{name}"/></svg>'
+
+
+def identity(b: Mapping) -> str:
+    """The profile's large monogram (category colour and initials)."""
+    return (f'<span class="mono mono-lg {category_class(b["category"])}" aria-hidden="true">'
+            f"{e(monogram_initials(b['name']))}</span>")
+
+
+def whole_years(since: str, until: Optional[str]) -> int:
+    """Whole years from one YYYY-MM-DD date to another (0 when either is missing)."""
+    if not since or not until:
+        return 0
+    y = int(until[:4]) - int(since[:4])
+    if until[5:10] < since[5:10]:
+        y -= 1
+    return max(y, 0)
+
+
+def fact_chips(d: "Directory", b: Mapping) -> List[Tuple[str, str]]:
+    """(field, text) for the profile's 'On record' chips: true, sourced, at most four, fixed order."""
+    shown = set(shown_fields(b))
+    chips: List[Tuple[str, str]] = []
+    if "permitSince" in shown and b["permitSince"]:
+        years = whole_years(b["permitSince"], d.batch_date)
+        text = f"Sales-tax permit on file since {format_month_year(b['permitSince'])}"
+        chips.append(("permitSince", text + (f" ({plural(years, 'year', 'years')})" if years >= 1 else "")))
+    if "registeredSince" in shown and b.get("registeredSince"):
+        chips.append(("registeredSince", f"Franchise-tax registration since {b['registeredSince'][:4]}"))
+    if "hours" in shown and b["hours"]:
+        chips.append(("hours", "Hours on its own website"))
+    if "website" in shown and b["website"] and safe_url(b["website"]["url"]):
+        chips.append(("website", "Own website"))
+    if "careers" in shown and b["careersUrl"]:
+        chips.append(("careers", "Hiring: careers page"))
+    if "services" in shown and b["services"]:
+        chips.append(("services", f"{plural(len(b['services']), 'service', 'services')} listed on its website"))
+    return chips[:4]
+
+
+def fact_strip(d: "Directory", b: Mapping) -> str:
+    chips = fact_chips(d, b)
+    if not chips:
+        return ""
+    items = "".join(f'<li><a class="fact" href="#src-{field}">{e(text)}</a></li>' for field, text in chips)
+    return f'<ul class="facts grid-wide" aria-label="On record">{items}</ul>'
+
+
+def action_bar(b: Mapping) -> Tuple[str, List[str]]:
+    """Call, Visit website, Directions: each only when its value exists. Returns (html, icons used).
+
+    Directions is a button only for a listing with a shown street; a listing whose
+    street is hidden keeps the plain Directions link beside its town (no prominent
+    map button that could point at a home)."""
+    buttons, used = [], []
+    if b["phone"]:
+        buttons.append(f'<a class="btn btn-primary" href="tel:{e(b["phone"]["e164"])}">{icon("phone")}'
+                       f'Call {e(b["phone"]["display"])}</a>')
+        used.append("phone")
+    site_url = safe_url(b["website"]["url"]) if b["website"] else None
+    if site_url and b["website"]["status"] != "dead":
+        buttons.append(f'<a class="btn btn-ghost" href="{e(site_url)}" rel="{REL}">{icon("globe")}Visit website</a>')
+        used.append("globe")
+    if has_premises(b) and b["address"]["street"]:
+        buttons.append(f'<a class="btn btn-ghost" href="{e(maps_url(b))}" rel="{REL}">{icon("pin")}Directions</a>')
+        used.append("pin")
+    if not buttons:
+        return "", []
+    return f'<nav class="actions" aria-label="Contact {e(b["name"])}">{"".join(buttons)}</nav>', used
+
+
+def card(d: Directory, b: Mapping, extra: str = "", since: bool = True, anchor: str = "") -> str:
     badges = []
     if b["website"] and b["website"]["status"] != "dead":
         badges.append('<li class="badge">Website</li>')
@@ -419,10 +531,65 @@ def card(d: Directory, b: Mapping, extra: str = "") -> str:
     if b["careersUrl"]:
         badges.append('<li class="badge badge-hiring">Hiring</li>')
     badge_html = f'<ul class="badges" aria-label="Listed on this profile">{"".join(badges)}</ul>' if badges else ""
-    return (f'<li class="card">{monogram(b)}<div>'
+    line = since_line(b) if since else None
+    since_html = f'<p class="card-since">{e(line)}</p>' if line else ""
+    ident = f' id="{e(anchor)}"' if anchor else ""
+    return (f'<li class="card"{ident}>{mono_span(b)}<div>'
             f'<h3 class="card-name"><a href="{e(path(b["slug"]))}">{e(b["name"])}</a></h3>'
             f'<p class="card-meta">{e(b["categoryLabel"] or d.category_name(b["category"]))}</p>'
-            f'<p class="card-addr">{e(address_line(b))}</p>{badge_html}{extra}</div></li>')
+            f'<p class="card-addr">{e(address_line(b))}</p>{since_html}{badge_html}{extra}</div></li>')
+
+
+LETTERS = tuple("abcdefghijklmnopqrstuvwxyz")
+NUMERAL_ANCHOR = "0"  # the '#' group: names that start with a digit or a sign
+
+
+def letter_of(b: Mapping) -> str:
+    """The A to Z group a name falls in: a to z, or '#' for anything else."""
+    first = _fold(b["name"]).casefold().lstrip()[:1]
+    return first if first in LETTERS else "#"
+
+
+def letter_map(items: Sequence[Mapping], size: int = PAGE_SIZE) -> Dict[str, Tuple[int, str]]:
+    """Each letter's first business in an A to Z list: letter -> (page, slug)."""
+    out: Dict[str, Tuple[int, str]] = {}
+    for i, b in enumerate(items):
+        out.setdefault(letter_of(b), (i // size + 1, b["slug"]))
+    return out
+
+
+def letter_anchor(letter: str) -> str:
+    return f"l-{NUMERAL_ANCHOR if letter == '#' else letter}"
+
+
+def letter_bar(lmap: Mapping[str, Tuple[int, str]], href: Callable[[int], str], page: int) -> str:
+    """Jump to a letter: 27 targets, a link where the letter has businesses. No script."""
+    items = []
+    for letter in ("#",) + LETTERS:
+        label = letter.upper()
+        if letter in lmap:
+            target_page = lmap[letter][0]
+            url = ("" if target_page == page else href(target_page)) + "#" + letter_anchor(letter)
+            items.append(f'<a href="{e(url)}">{e(label)}</a>')
+        else:
+            items.append(f'<span aria-disabled="true">{e(label)}</span>')
+    return f'<nav class="letters" aria-label="Jump to letter">{"".join(items)}</nav>'
+
+
+def anchors_on_page(lmap: Mapping[str, Tuple[int, str]], page: int) -> Dict[str, str]:
+    """slug -> anchor id for the first business of each letter that starts on this page."""
+    return {slug: letter_anchor(letter) for letter, (p, slug) in lmap.items() if p == page}
+
+
+def page_window(page: int, pages: int) -> List[Optional[int]]:
+    """1, a gap, page-1..page+1, a gap, last. None marks a gap."""
+    wanted = sorted({1, pages, page - 1, page, page + 1} & set(range(1, pages + 1)))
+    out: List[Optional[int]] = []
+    for n in wanted:
+        if out and n - out[-1] > 1:
+            out.append(None)
+        out.append(n)
+    return out
 
 
 def pagination(page: int, pages: int, href: Callable[[int], str]) -> str:
@@ -431,7 +598,16 @@ def pagination(page: int, pages: int, href: Callable[[int], str]) -> str:
     prev = (f'<a href="{e(href(page - 1))}" rel="prev">Previous</a>' if page > 1
             else '<span class="pages-off"></span>')
     nxt = f'<a href="{e(href(page + 1))}" rel="next">Next</a>' if page < pages else '<span class="pages-off"></span>'
-    return f'<nav class="pages" aria-label="Pages">{prev}<span>Page {page} of {pages}</span>{nxt}</nav>'
+    numbers = []
+    for n in page_window(page, pages):
+        if n is None:
+            numbers.append('<span class="pages-gap" aria-hidden="true">…</span>')
+        elif n == page:
+            numbers.append(f'<span class="pages-now" aria-current="page">{n}</span>')
+        else:
+            numbers.append(f'<a class="pages-n" href="{e(href(n))}" aria-label="Page {n}">{n}</a>')
+    return (f'<nav class="pages" aria-label="Pages">{prev}<span class="pages-list">{"".join(numbers)}</span>{nxt}'
+            f'<span class="pages-of">Page {page} of {pages}</span></nav>')
 
 
 def category_chips(d: Directory, current: Optional[str] = None) -> str:
@@ -470,7 +646,7 @@ def count_line(page: int, shown: int, total: int, pages: int) -> str:
 
 def list_section(d: Directory, heading: str, items: List[dict], page: int, pages: int,
                  href: Callable[[int], str], total: int, extra: Callable[[dict], str] = lambda b: "",
-                 note: str = "", empty: str = "", ident: str = "list") -> str:
+                 note: str = "", empty: str = "", ident: str = "list", since: bool = True) -> str:
     body = f'<h2 id="{ident}-title">{e(heading)}</h2>'
     if note:
         body += f'<p class="note">{e(note)}</p>'
@@ -478,7 +654,7 @@ def list_section(d: Directory, heading: str, items: List[dict], page: int, pages
         body += f'<div class="empty"><p>{e(empty)}</p></div>'
     else:
         body += count_line(page, len(items), total, pages)
-        body += f'<ul class="cards">{"".join(card(d, b, extra(b)) for b in items)}</ul>'
+        body += f'<ul class="cards">{"".join(card(d, b, extra(b), since) for b in items)}</ul>'
         body += pagination(page, pages, href)
     return (f'<section class="band band-tint" id="{ident}" aria-labelledby="{ident}-title">'
             f'<div class="shell">{body}</div></section>')
@@ -508,6 +684,63 @@ def where_short(d: "Directory") -> str:
 
 # ---------------------------------------------------------------- the pages
 
+def search_band(d: Optional["Directory"] = None, towns: Sequence[places.Place] = (), heading: str = "Find a business",
+                fallback: str = "") -> str:
+    """The search form and its results list. Hidden until search.js shows it; ``fallback`` is
+    what a visitor without the script sees instead (search.js hides it). ``towns``: the hub's."""
+    hub = bool(towns)
+    where = places.HUB_PATH if hub else base()
+    attrs = f' data-base="{where}"' + (' data-hub="1"' if hub else "")
+    if d is not None and d.place is not places.LONGVIEW:
+        attrs += f' data-town="{e(d.town)}"'
+    checks = [("search-web", "web", "Has a website"), ("search-hrs", "hrs", "Hours listed"),
+              ("search-hire", "hire", "Hiring"), ("search-new", "new", "New permit")]
+    if not hub:
+        checks.insert(0, ("search-open", "open", "Open now"))
+    boxes = "".join(f'<div class="check"><input id="{i}" name="{n}" type="checkbox" value="1">'
+                    f'<label for="{i}">{e(label)}</label></div>' for i, n, label in checks)
+    town_select = ""
+    if hub:
+        town_select = ('<div class="field field-cat"><label for="search-town">Town</label>'
+                       '<select id="search-town" name="town"><option value="">Every town</option>'
+                       + "".join(f'<option value="{e(p.slug)}">{e(p.name)}</option>' for p in towns)
+                       + "</select></div>")
+    note = ("Open now is on each town's own search, where the hours are." if hub else
+            "Open now reads the hours each business lists on its own website, in Central time. Businesses"
+            " without listed hours are left out of it.")
+    return (
+        f'{fallback}<section class="band" id="search" hidden aria-labelledby="search-title"{attrs}>'
+        f'<div class="shell"><h2 id="search-title">{e(heading)}</h2>'
+        '<form class="search" id="search-form" role="search">'
+        '<div class="field field-q"><label for="search-q">Search businesses</label>'
+        '<input id="search-q" name="q" type="search" maxlength="100" autocomplete="off"'
+        ' placeholder="Name, service, or kind of business"></div>'
+        '<button type="submit" class="btn btn-primary">Search</button>'
+        f'<fieldset class="filters"><legend>Only show</legend>{boxes}{town_select}'
+        '<div class="field field-cat"><label for="search-cat">Category</label>'
+        '<select id="search-cat" name="cat"><option value="">Any category</option></select></div>'
+        "</fieldset></form>"
+        f'<p class="note">{e(note)}</p>'
+        '<div id="search-results" hidden><p class="count" id="search-count" role="status"'
+        ' aria-live="polite"></p><ul class="cards" id="search-list"></ul>'
+        '<button type="button" class="btn btn-ghost more" id="search-more" hidden>Show more</button>'
+        "</div></div></section>")
+
+
+def search_page(d: "Directory") -> str:
+    """<town>/businesses/search/: search alone, with filters. Never indexed (its results are not pages)."""
+    fallback = ('<section class="band" id="search-fallback"><div class="shell">'
+                "<p>Search needs JavaScript. Browse A to Z or by category:</p>"
+                f'<p><a href="{base()}">All {e(d.town)} businesses, A to Z</a></p>{category_chips(d)}</div></section>')
+    return render_page(
+        d, title=f"Search {d.town} businesses | The LeadFlow Pro",
+        description=f"Search businesses {where_long(d)} by name, kind of business or service.",
+        site_path=path("search"), h1=f"Search {d.town} businesses", eyebrow=f"{d.town}, Texas",
+        lead=e("Type a name, a kind of business or a service. Results are A to Z, never ranked."),
+        crumbs=((f"{d.town} businesses", base()), ("Search", None)),
+        body=search_band(d, heading="Search and filter", fallback=fallback), index=False, script=True)
+
+
 def index_pages(d: Directory) -> Dict[str, str]:
     """The A to Z index, 50 per page: index.html, page-2/index.html, ..."""
     out: Dict[str, str] = {}
@@ -532,33 +765,22 @@ def index_pages(d: Directory) -> Dict[str, str]:
     lead = e(f"{plural(count, 'business', 'businesses')} {where_short(d)}, each listed with the source"
              " and check date for every fact. A to Z, not ranked.")
     all_pages = paginate(d.businesses, 1)[1]
+    lmap = letter_map(d.businesses)
     for page in range(1, all_pages + 1):
         items, pages = paginate(d.businesses, page)
         start = (page - 1) * PAGE_SIZE + 1
+        marks = anchors_on_page(lmap, page) if all_pages > 1 else {}
         parts = []
         if page == 1:
-            parts.append(
-                f'<section class="band" id="search" hidden aria-labelledby="search-title" data-base="{base()}"'
-                + (f' data-town="{e(d.town)}"' if d.place is not places.LONGVIEW else "") + ">"
-                '<div class="shell"><h2 id="search-title">Find a business</h2>'
-                '<form class="search" id="search-form" role="search">'
-                '<div class="field field-q"><label for="search-q">Search businesses</label>'
-                '<input id="search-q" name="q" type="search" maxlength="100" autocomplete="off"'
-                ' placeholder="Name, service, or kind of business"></div>'
-                '<div class="check"><input id="search-open" name="open" type="checkbox" value="1">'
-                '<label for="search-open">Open now</label></div>'
-                '<button type="submit" class="btn btn-primary">Search</button></form>'
-                '<p class="note">Open now reads the hours each business lists on its own website, in Central'
-                " time. Businesses without listed hours are left out of it.</p>"
-                '<div id="search-results" hidden><p class="count" id="search-count" role="status"'
-                ' aria-live="polite"></p><ul class="cards" id="search-list"></ul></div></div></section>')
+            parts.append(search_band(d))
             parts.append('<section class="band" aria-labelledby="browse-title"><div class="shell">'
                          f'<h2 id="browse-title">Browse by category</h2>{category_chips(d)}</div></section>')
         showing = f'<p class="count">Showing {start:,} to {start + len(items) - 1:,} of {count:,}.</p>'
         parts.append(
             f'<section class="band band-tint" id="az" aria-labelledby="az-title"><div class="shell">'
             f'<h2 id="az-title">All businesses, A to Z</h2>{showing}'
-            f'<ul class="cards">{"".join(card(d, b) for b in items)}</ul>'
+            + (letter_bar(lmap, lambda p: page_path((), p), page) if all_pages > 1 else "")
+            + f'<ul class="cards">{"".join(card(d, b, anchor=marks.get(b["slug"], "")) for b in items)}</ul>'
             f"{pagination(page, pages, lambda p: page_path((), p))}</div></section>")
         if page > 1:
             parts.append(browse_band(d, current=None))
@@ -578,12 +800,16 @@ def category_pages(d: Directory) -> Dict[str, str]:
         if not members:
             continue
         total_pages = paginate(members, 1)[1]
+        lmap = letter_map(members)
         for page in range(1, total_pages + 1):
             items, pages = paginate(members, page)
+            marks = anchors_on_page(lmap, page) if pages > 1 else {}
+            bar = (letter_bar(lmap, lambda p, s=c['slug']: page_path(('category', s), p), page)
+                   if pages > 1 else "")
             body = (f'<section class="band band-tint" id="list" aria-labelledby="list-title"><div class="shell">'
                     f'<h2 id="list-title">{e(plural(len(members), "business", "businesses"))}</h2>'
-                    f"{count_line(page, len(items), len(members), pages)}"
-                    f'<ul class="cards">{"".join(card(d, b) for b in items)}</ul>'
+                    f"{count_line(page, len(items), len(members), pages)}{bar}"
+                    f'<ul class="cards">{"".join(card(d, b, anchor=marks.get(b["slug"], "")) for b in items)}</ul>'
                     f"{pagination(page, pages, lambda p, s=c['slug']: page_path(('category', s), p))}"
                     "</div></section>" + browse_band(d, category=c["slug"]))
             rel = f"category/{c['slug']}/" + ("" if page == 1 else f"page-{page}/") + "index.html"
@@ -611,7 +837,7 @@ def new_pages(d: Directory) -> Dict[str, str]:
             extra=lambda b: f'<p class="card-extra">Permit on file since {e(format_day(b["permitSince"]))}</p>',
             note="A new sales-tax permit can also mean a new owner, a move, or a new location, not only a"
                  " brand-new business.",
-            empty="No new sales-tax permits in this window in the current batch.")
+            empty="No new sales-tax permits in this window in the current batch.", since=False)
         out[("new/" if page == 1 else f"new/page-{page}/") + "index.html"] = render_page(
             d, title=f"New in {d.town}, TX | {d.town} businesses",
             description=f"{d.town} businesses whose Texas sales-tax permit started in the {NEW_WINDOW_DAYS} days"
@@ -675,8 +901,26 @@ def _dl_row(term: str, value: str) -> str:
     return f"<div><dt>{e(term)}</dt><dd>{value}</dd></div>"
 
 
+def neighbour_band(d: "Directory", b: Mapping, category_name: str) -> str:
+    """The two businesses before and after this one in its category, A to Z. Not a recommendation."""
+    members = d.in_category(b["category"])
+    if len(members) < 2:
+        return ""
+    at = d.category_position(b)
+    if at is None or members[at]["slug"] != b["slug"]:
+        return ""
+    near = members[max(0, at - 2):at] + members[at + 1:at + 3]
+    links = "".join(f'<li><a href="{e(path(m["slug"]))}">{e(m["name"])}</a></li>' for m in near)
+    return ('<section class="band" aria-labelledby="near-title"><div class="shell">'
+            f'<h2 id="near-title">More {e(category_name)} in {e(d.town)}, A to Z</h2>'
+            f'<ul class="links near">{links}</ul>'
+            f'<p><a href="{e(path("category", b["category"]))}">See all {len(members):,}</a></p>'
+            '<p class="note">Neighbours in A to Z order. Not ranked, not recommendations.</p></div></section>')
+
+
 def profile_page(d: Directory, b: Mapping) -> str:
     category_name = d.category_name(b["category"])
+    neighbours = neighbour_band(d, b, category_name)
     rows = []
     if b["categoryLabel"]:
         rows.append(_dl_row("Kind of business", e(b["categoryLabel"])))
@@ -685,11 +929,11 @@ def profile_page(d: Directory, b: Mapping) -> str:
         rows.append(_dl_row("Website", ext_link(b["website"]["url"], website_host(b["website"]["url"]))
                             + (f"<small>{e(note)}</small>" if note else "")))
     else:
-        rows.append(_dl_row("Website", '<span class="fallback">No website found yet.</span>'))
+        rows.append(_dl_row("Website", '<span class="missing">No website found yet.</span>'))
     if b["phone"]:
         rows.append(_dl_row("Phone", f'<a href="tel:{e(b["phone"]["e164"])}">{e(b["phone"]["display"])}</a>'))
     else:
-        rows.append(_dl_row("Phone", '<span class="fallback">No phone number listed on a website we could'
+        rows.append(_dl_row("Phone", '<span class="missing">No phone number listed on a website we could'
                                      " verify.</span>"))
     if b["email"]:
         rows.append(_dl_row("Email", f'<a href="mailto:{e(b["email"])}">{e(b["email"])}</a>'))
@@ -701,14 +945,21 @@ def profile_page(d: Directory, b: Mapping) -> str:
 
     if b["hours"]:
         table_rows, missing = hours_rows(b["hours"])
-        hours_html = ('<table class="hours"><caption class="sr-only">Hours as the business lists them</caption>'
-                      "<tbody>" + "".join(f'<tr><th scope="row">{e(day)}</th><td>{e(text)}</td></tr>'
-                                          for day, text in table_rows) + "</tbody></table>")
+        checked = next((f["checkedAt"] for f in b["facts"] if f["field"] == "hours"), "")
+        stated = [(key, label) for key, label in DAY_NAMES if key in b["hours"]]
+        # data-h carries the stated ranges for search.js's "Open now" line ('-': stated closed).
+        hours_html = ('<p class="now" role="status" hidden></p>'
+                      f'<table class="hours" data-hours="1" data-checked="{e(format_day(checked) if checked else "")}">'
+                      '<caption class="sr-only">Hours as the business lists them</caption>'
+                      "<tbody>" + "".join(
+                          f'<tr data-d="{key}" data-h="{e(hours_code({key: b["hours"][key]})[3:])}">'
+                          f'<th scope="row">{e(day)}</th><td>{e(text)}</td></tr>'
+                          for (key, day), (_, text) in zip(stated, table_rows)) + "</tbody></table>")
         if missing:
-            hours_html += '<p class="fallback">Hours not listed for other days.</p>'
+            hours_html += '<p class="fallback"><span class="missing">Hours not listed for other days.</span></p>'
         hours_html += '<p class="fallback">As listed on the business\'s own website. Times are Central.</p>'
     else:
-        hours_html = '<p class="fallback">Hours not listed.</p>'
+        hours_html = '<p class="fallback"><span class="missing">Hours not listed.</span></p>'
     panels.append(f'<div class="panel"><h2>Hours</h2>{hours_html}</div>')
 
     if b["careersUrl"] and safe_url(b["careersUrl"]):
@@ -733,39 +984,49 @@ def profile_page(d: Directory, b: Mapping) -> str:
 
     shown = set(shown_fields(b))
     source_items = []
+    anchored = set()
     for fact in b["facts"]:
         if fact["field"] not in shown:
             continue
         label = SOURCE_LABELS[fact["source"]]
         source = ext_link(fact["url"], label) if fact["url"] else e(label)
-        source_items.append(f"<li><strong>{e(FIELD_LABELS[fact['field']])}</strong><span>{source}</span>"
+        anchor = "" if fact["field"] in anchored else f' id="src-{fact["field"]}"'
+        anchored.add(fact["field"])
+        source_items.append(f"<li{anchor}><strong>{e(FIELD_LABELS[fact['field']])}</strong><span>{source}</span>"
                             f"<span>checked {e(format_day(fact['checkedAt']))}</span></li>")
     panels.append('<div class="panel grid-wide"><h2>Sources and checks</h2>'
                   f'<ul class="sources">{"".join(source_items)}</ul></div>')
 
-    body = (f'<section class="band" aria-label="Listing details"><div class="shell grid">{"".join(panels)}</div>'
-            "</section>"
-            '<section class="band band-tint" aria-labelledby="claim-title"><div class="shell claim">'
-            '<h2 id="claim-title">Something wrong or missing?</h2>'
+    body = (f'<section class="band" aria-label="Listing details"><div class="shell grid">{fact_strip(d, b)}'
+            f'{"".join(panels)}</div></section>{neighbours}'
+            '<section class="band band-tint" aria-labelledby="claim-title"><div class="shell claim-wrap">'
+            '<div class="claim"><h2 id="claim-title">Is this your business?</h2>'
             f'<p class="disclaimer">{e(DISCLAIMER)}</p>'
             '<p class="note">A business can ask us to correct a fact, add one from its own website, or remove the'
             " listing. The button opens an email to The LeadFlow Pro.</p>"
             f'<a class="btn btn-primary" href="{e(claim_mailto(d, b))}">Claim, correct, or remove this listing</a>'
+            "</div>"
+            '<aside class="pitch" aria-labelledby="pitch-title"><h2 id="pitch-title">From The LeadFlow Pro</h2>'
             f'<p class="own">Own this business? <a href="{e(LEADFLOW_LONGVIEW)}">See what The LeadFlow Pro does for'
-            f" {'Longview' if d.place is places.LONGVIEW else 'local'} businesses</a>.</p></div></section>")
+            f" {'Longview' if d.place is places.LONGVIEW else 'local'} businesses</a>.</p></aside>"
+            "</div></section>")
     # No Directions link without a place to visit: a listing with no street and no
     # record that places it anywhere (known only from the franchise-tax list, whose
     # address is a mailing address) could send a visitor to a home or an accountant.
-    directions = (f'<a href="{e(maps_url(b))}" rel="{REL}">Directions</a>' if has_premises(b) else "")
-    hero_extra = f'<p class="where"><span>{e(address_line(b))}</span>{directions}</p>'
+    # With a shown street it is a button in the action bar; with a hidden street it
+    # stays a plain link beside the town. Never both.
+    actions, used = action_bar(b)
+    directions = (f'<a href="{e(maps_url(b))}" rel="{REL}">Directions</a>'
+                  if has_premises(b) and not b["address"]["street"] else "")
+    hero_extra = f'<p class="where"><span>{e(address_line(b))}</span>{directions}</p>{actions}'
     return render_page(
         d, title=f"{b['name']} in {d.town}, TX | {d.town} businesses",
         description=_profile_description(b, category_name), site_path=path(b["slug"]), h1=b["name"],
         eyebrow=category_name,
         crumbs=((f"{d.town} businesses", base()), (category_name, path("category", b["category"])),
                 (b["name"], None)),
-        art=cover(b), hero_extra=hero_extra, body=body, index=d.profile_indexable(b),
-        disclaimer_in_footer=False, hero_class="hero-profile")
+        art=identity(b), hero_extra=hero_extra, body=body, index=d.profile_indexable(b),
+        disclaimer_in_footer=False, hero_class="hero-profile", sprite=sprite(used), script=bool(b["hours"]))
 
 
 def about_page(d: Directory) -> str:
@@ -903,6 +1164,178 @@ def search_json(d: Directory) -> str:
                       ensure_ascii=False, separators=(",", ":")) + "\n"
 
 
+# ---------------------------------------------------------------- the search index (idx/)
+#
+# Small same-origin files, fetched only as a visitor searches (search.js):
+#   idx/manifest.json        the town, the categories, the word keys, the file names
+#   idx/t-<n>.<h>.json       {word: [business numbers, delta-coded]}, for a run of word keys
+#                            (a key is a word's first two letters; the manifest says which file)
+#   idx/r-<n>.<h>.json       rows ROW_CHUNK at a time: [name, slug, cat, label, flags, since, zip]
+#   idx/f.<h>.json           [cat, flags] per business, for the filters
+#   idx/o.<h>.json           weekly hours patterns, for Open now
+# A business number is its place in the A to Z list, never its id. A row holds only
+# what the business's card already shows; the ZIP only when the street is shown.
+
+ROW_CHUNK = 400
+WORD_FILE_TARGET = 24_000  # word keys are packed into files of about this size
+INDEX_STOPWORDS = frozenset({"the", "and", "of", "a", "an", "at", "in", "on", "for", "llc", "inc", "co"})
+FLAG_WEBSITE, FLAG_HOURS, FLAG_HIRING, FLAG_NEW = 1, 2, 4, 8
+DAY_KEYS = ("mon", "tue", "wed", "thu", "fri", "sat", "sun")
+
+
+def norm_py(text: Any) -> str:
+    """The same folding as norm() in search.js: accents off, lower case, '&' as 'and', words only."""
+    t = unicodedata.normalize("NFKD", str(text or ""))
+    t = "".join(ch for ch in t if not unicodedata.combining(ch)).lower()
+    t = t.replace("&", " and ")
+    t = re.sub(r"['\u2019]", "", t)
+    return re.sub(r"[^a-z0-9]+", " ", t).strip()
+
+
+def index_tokens(d: "Directory", b: Mapping) -> List[str]:
+    """The words a business can be found by: its name, kind, category and service tags."""
+    words = norm_py(b["name"]).split()
+    words = [w for w in words if w not in INDEX_STOPWORDS]
+    extra = " ".join([b["categoryLabel"] or "", d.category_name(b["category"])] + list(b["services"] or []))
+    out: List[str] = []
+    for w in words + norm_py(extra).split():
+        if len(w) >= 2 and w not in out:
+            out.append(w)
+    return out
+
+
+def _flags(d: "Directory", b: Mapping, new_ids: set) -> int:
+    f = 0
+    if b["website"] and b["website"]["status"] != "dead":
+        f |= FLAG_WEBSITE
+    if b["hours"]:
+        f |= FLAG_HOURS
+    if b["careersUrl"]:
+        f |= FLAG_HIRING
+    if b["id"] in new_ids:
+        f |= FLAG_NEW
+    return f
+
+
+def hours_code(hours: Mapping) -> str:
+    """'mon0730-1800;sun-': stated days only ('-' is a day stated closed); an unstated day is left out."""
+    parts = []
+    for day in DAY_KEYS:
+        if day not in hours:
+            continue
+        ranges = hours[day]
+        parts.append(day + (",".join(o.replace(":", "") + "-" + c.replace(":", "") for o, c in ranges) or "-"))
+    return ";".join(parts)
+
+
+def _delta(numbers: Sequence[int]) -> List[int]:
+    out, last = [], 0
+    for n in numbers:
+        out.append(n - last)
+        last = n
+    return out
+
+
+def _dump(value: Any) -> str:
+    return json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+
+
+def _index_files(entries: Sequence[Tuple[List[str], list, list, Optional[Mapping]]],
+                 manifest: Dict[str, Any], stride: int) -> Dict[str, str]:
+    """The idx/ files from (words, row, facets, hours) per business, in A to Z order."""
+    words: Dict[str, Dict[str, List[int]]] = {}
+    rows, facets, patterns, hour_rows = [], [], {}, {}
+    for i, (tokens, row, facet, hours) in enumerate(entries):
+        for w in tokens:
+            words.setdefault(w[:2], {}).setdefault(w, []).append(i)
+        rows.append(row)
+        facets.extend(facet)
+        if hours:
+            hour_rows[i] = patterns.setdefault(hours_code(hours), len(patterns))
+    body: Dict[str, str] = {}
+    keys = sorted(words)
+    key_file: List[int] = []
+    pack: Dict[str, List[int]] = {}
+    size = 0
+    for key in keys:
+        part = {w: _delta(nums) for w, nums in sorted(words[key].items())}
+        part_size = len(_dump(part))
+        if pack and size + part_size > WORD_FILE_TARGET:
+            body[f"t-{len(body)}"] = _dump(pack)
+            pack, size = {}, 0
+        pack.update(part)
+        size += part_size
+        key_file.append(len(body))
+    if pack:
+        body[f"t-{len(body)}"] = _dump(pack)
+    for n in range(0, len(rows), ROW_CHUNK):
+        body[f"r-{n // ROW_CHUNK}"] = _dump(rows[n:n + ROW_CHUNK])
+    body["f"] = _dump(facets)
+    if patterns:
+        body["o"] = _dump({"pats": list(patterns), "rows": hour_rows})
+    # One build hash in every file name: a new build never mixes with a cached old file.
+    digest = hashlib.sha256("\n".join(f"{k}={v}" for k, v in sorted(body.items())).encode("utf-8")).hexdigest()[:8]
+    files = {f"idx/{name}.{digest}.json": text + "\n" for name, text in body.items()}
+    full = {"v": 2, "h": digest, **manifest, "n": len(rows), "keys": keys, "kf": key_file,
+            "chunk": ROW_CHUNK, "stride": stride, "hours": bool(patterns)}
+    files["idx/manifest.json"] = _dump(full) + "\n"
+    return files
+
+
+def _row_fields(b: Mapping) -> Tuple[Any, Any]:
+    since = (f"P{b['permitSince'][:4]}" if b.get("permitSince")
+             else f"R{b['registeredSince'][:4]}" if b.get("registeredSince") else 0)
+    zip_code = b["address"]["zip"] if b["address"]["street"] and b["address"]["zip"] else 0
+    return since, zip_code
+
+
+def search_index(d: "Directory") -> Dict[str, str]:
+    """The idx/ files for one town (paths relative to the town's folder)."""
+    cat_slugs = [c["slug"] for c in d.categories]
+    cat_pos = {slug: i for i, slug in enumerate(cat_slugs)}
+    new_ids = {b["id"] for b in d.new_in_longview()}
+    entries = []
+    for b in d.businesses:
+        since, zip_code = _row_fields(b)
+        flags = _flags(d, b, new_ids)
+        cat = cat_pos.get(b["category"], -1)
+        entries.append((index_tokens(d, b), [b["name"], b["slug"], cat, b["categoryLabel"] or "", flags, since, zip_code],
+                        [cat, flags], b["hours"]))
+    return _index_files(entries, {"base": base(), "town": d.town,
+                                  "cats": [[slug, d.category_name(slug)] for slug in cat_slugs],
+                                  "batchDate": d.batch_date}, stride=2)
+
+
+def hub_search_index(data: dict, settings, active: Sequence[places.Place]) -> Dict[str, str]:
+    """places/idx/: every town that is on, in one A to Z list. No hours and no ZIPs (a town's own
+    search has those); each row names its town, and links go to that town's section."""
+    everyone = []
+    for t, place in enumerate(active):
+        token = _PLACE.set(place)
+        try:
+            d = Directory(place_directory(data, place), settings, place, True)
+            new_ids = {b["id"] for b in d.new_in_longview()}
+            for b in d.businesses:
+                everyone.append((t, d, b, _flags(d, b, new_ids), index_tokens(d, b)))
+        finally:
+            _PLACE.reset(token)
+    names = {c["slug"]: c["name"] for c in data["categories"]}
+    cat_slugs = [c["slug"] for c in data["categories"]]
+    cat_pos = {slug: i for i, slug in enumerate(cat_slugs)}
+    everyone.sort(key=lambda x: (name_key(x[2]), x[0]))
+    entries = []
+    for t, d, b, flags, tokens in everyone:
+        since, _ = _row_fields(b)
+        cat = cat_pos.get(b["category"], -1)
+        entries.append((tokens, [b["name"], b["slug"], cat, b["categoryLabel"] or "", flags, since, 0, t],
+                        [cat, flags, t], None))
+    towns = [[p.slug, p.name, p.base] for p in active]
+    return _index_files(entries, {"base": places.HUB_PATH, "town": "", "towns": towns,
+                                  "cats": [[slug, names[slug]] for slug in cat_slugs],
+                                  "batchDate": local_date(data["generatedAt"]) if data.get("generatedAt") else None},
+                         stride=3)
+
+
 def sitemap_xml(d: Directory) -> str:
     urls: List[Tuple[str, Optional[str]]] = [(base(), None)]
     urls += [(path("category", c["slug"]), None) for c in d.categories]
@@ -954,7 +1387,9 @@ def render_site(data: dict, settings, place: places.Place = places.LONGVIEW, hub
         files["about/index.html"] = about_page(d)
         if d.businesses:
             files[JS_NAME] = SEARCH_JS
-            files[JSON_NAME] = search_json(d)
+            files[JSON_NAME] = search_json(d)  # kept for one release after idx/, so it can be rolled back
+            files.update(search_index(d))
+            files["search/index.html"] = search_page(d)
             files.update(category_pages(d))
             files.update(new_pages(d))
             files.update(hiring_pages(d))
@@ -973,12 +1408,26 @@ def hub_page(data: dict, settings, active: Sequence[places.Place]) -> str:
         places.LONGVIEW.slug: len(data["businesses"])}
     sample = bool(data.get("sample"))
     index = bool(settings.indexable) and not sample and bool(data["businesses"])
-    items = "".join(
-        f'<li class="card"><div><h3 class="card-name"><a href="{e(p.base)}">{e(p.name)}, TX</a></h3>'
-        f'<p class="card-meta">{e(plural(per.get(p.slug, 0), "business", "businesses"))} listed</p>'
-        + ("" if p.incorporated else '<p class="card-addr">Not an incorporated city: every business whose'
-           " address says this town.</p>")
-        + "</div></li>" for p in active)
+    def town(p: places.Place) -> str:
+        return (f'<li class="town-card"><h4 class="card-name"><a href="{e(p.base)}">{e(p.name)}, TX</a></h4>'
+                f'<p class="card-meta">{e(plural(per.get(p.slug, 0), "business", "businesses"))} listed</p>'
+                + ("" if p.incorporated else '<p class="card-addr">Not an incorporated city: every business'
+                   " whose address says this town.</p>")
+                + "</li>")
+
+    # Grouped by county, counties A to Z and towns A to Z within each; a town with no county last.
+    counties: Dict[str, List[places.Place]] = {}
+    for p in active:
+        counties.setdefault(p.county or "", []).append(p)
+    groups = []
+    for county in sorted(counties, key=lambda c: (c == "", c)):
+        heading = f"{county} County" if county else "Other towns"
+        towns = sorted(counties[county], key=lambda p: p.name)
+        groups.append(f'<h3 class="county">{e(heading)}</h3><ul class="cards">{"".join(town(p) for p in towns)}</ul>')
+    listed = sum(per.get(p.slug, 0) for p in active)
+    summary = (f'<p class="count">{e(plural(listed, "business", "businesses"))} listed in'
+               f' {e(plural(len(active), "town", "towns"))}</p>')
+    items = "".join(groups)
     base_url = str(settings.public_base_url).rstrip("/")
     return (
         "<!doctype html>\n"
@@ -992,7 +1441,8 @@ def hub_page(data: dict, settings, active: Sequence[places.Place]) -> str:
         f'<link rel="canonical" href="{e(base_url + places.HUB_PATH)}">\n'
         '<link rel="icon" href="data:,">\n'
         f'<link rel="stylesheet" href="{places.HUB_PATH}{CSS_NAME}">\n'
-        "</head>\n<body>\n"
+        + (f'<script src="{places.HUB_PATH}{JS_NAME}" defer></script>\n' if data["businesses"] else "")
+        + "</head>\n<body>\n"
         '<a class="skip" href="#main">Skip to the content</a>\n'
         + (f'<p class="sample" role="note">{e(SAMPLE_BANNER)}</p>\n' if sample else "")
         + f'<header class="brand"><div class="shell"><a href="{places.HUB_PATH}">Businesses by town</a>'
@@ -1001,8 +1451,9 @@ def hub_page(data: dict, settings, active: Sequence[places.Place]) -> str:
         '<section class="hero"><div class="shell"><p class="eyebrow">East Texas</p><h1>Businesses by town</h1>'
         '<p class="lead">Each town has its own list: businesses with an address in that town, A to Z, with the'
         " source and check date for every fact. Not ranked, no reviews.</p></div></section>\n"
-        '<section class="band band-tint" aria-labelledby="towns-title"><div class="shell">'
-        f'<h2 id="towns-title">Towns</h2><ul class="cards">{items}</ul></div></section>\n'
+        + (search_band(towns=active, heading="Find a business in any town") if data["businesses"] else "")
+        + '<section class="band band-tint" aria-labelledby="towns-title"><div class="shell">'
+        f'<h2 id="towns-title">Towns</h2>{summary}{items}</div></section>\n'
         "</main>\n"
         '<footer class="foot"><div class="shell">'
         f'<p class="disclaimer">{e(DISCLAIMER)}</p><p>{e(FOOTER_RESOURCE)}</p>'
@@ -1114,8 +1565,11 @@ def build_site(settings, export: Optional[dict], now: Any = None) -> Dict[str, A
         if place not in active:
             _take_down(place_root(settings, place), ".builds", "businesses")
     if hub:
-        _publish(Path(settings.www_dir), ".places-builds", HUB_DIR,
-                 {"index.html": hub_page(result.directory, settings, active), CSS_NAME: SITE_CSS}, now)
+        hub_files = {"index.html": hub_page(result.directory, settings, active), CSS_NAME: SITE_CSS}
+        if result.directory["businesses"]:
+            hub_files[JS_NAME] = SEARCH_JS
+            hub_files.update(hub_search_index(result.directory, settings, active))
+        _publish(Path(settings.www_dir), ".places-builds", HUB_DIR, hub_files, now)
         pages += 1
     else:
         _take_down(Path(settings.www_dir), ".places-builds", HUB_DIR)
@@ -1180,8 +1634,45 @@ SITE_CSS = """\
   --mint-soft: #E5EEE3;
   --warn: #92400E;
   --warn-soft: #FAE8C7;
+  --open: #0F766E;
+  --open-soft: #E0F2EF;
+  --btn: #1240E8;
+  --btn-hover: #0B2CA8;
+  --hero-a: #EDE6F3;
+  --hero-b: #F6E9DC;
+  --sample-line: #E9C98F;
+  --empty-line: #8C7F90;
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px;
+  --r-sm: 10px; --r: 14px; --r-lg: 20px;
+  --lift: 0 1px 2px rgb(10 18 32 / 0.06), 0 6px 20px rgb(10 18 32 / 0.06);
   --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #F3F1EC;
+    --body: #C9CFDA;
+    --muted: #A3ACBB;
+    --canvas: #0E131C;
+    --panel: #161D29;
+    --tint: #1B2331;
+    --line: #2A3444;
+    --cobalt: #8FA8FF;
+    --cobalt-deep: #B7C6FF;
+    --mint: #6FCF97;
+    --mint-soft: #12301F;
+    --warn: #F5B971;
+    --warn-soft: #3A2A12;
+    --open: #5EEAD4;
+    --open-soft: #0F2E2B;
+    --hero-a: #1A1830;
+    --hero-b: #2A1F16;
+    --sample-line: #6B5324;
+    --empty-line: #6C7688;
+    --lift: 0 1px 2px rgb(0 0 0 / 0.4), 0 6px 20px rgb(0 0 0 / 0.35);
+  }
+  .mono { box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.18); }
 }
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
@@ -1195,7 +1686,7 @@ body {
   overflow-wrap: break-word;
 }
 [hidden] { display: none !important; }
-h1, h2, h3, p, ul, ol, dl, figure { margin: 0; }
+h1, h2, h3, h4, p, ul, ol, dl, figure { margin: 0; }
 a { color: var(--cobalt); text-decoration: underline; text-underline-offset: 3px; }
 a:hover { color: var(--cobalt-deep); }
 a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visible {
@@ -1210,7 +1701,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
 .skip {
   position: absolute; left: 8px; top: -60px; z-index: 10;
   padding: 10px 14px; border-radius: 8px;
-  background: var(--ink); color: #FFFFFF; font-weight: 700;
+  background: #0A1220; color: #FFFFFF; font-weight: 700;
 }
 .skip:focus { top: 8px; color: #FFFFFF; }
 .shell { width: 100%; max-width: 72rem; margin: 0 auto; padding: 0 16px; }
@@ -1218,7 +1709,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
 .sample {
   padding: 10px 16px;
   background: var(--warn-soft);
-  border-bottom: 1px solid #E9C98F;
+  border-bottom: 1px solid var(--sample-line);
   color: var(--warn);
   font-size: 15px;
   font-weight: 800;
@@ -1229,17 +1720,18 @@ a:focus-visible, button:focus-visible, input:focus-visible, summary:focus-visibl
 .brand a { color: var(--ink); font-weight: 800; text-decoration: none; }
 .brand a:hover { color: var(--cobalt); text-decoration: underline; }
 .brand span { color: var(--muted); }
+.brand .brand-search { margin-left: auto; color: var(--cobalt); text-decoration: underline; }
 
 /* hero */
 .hero {
-  padding: 20px 0 28px;
-  background: linear-gradient(120deg, #EDE6F3, var(--canvas) 52%, #F6E9DC);
+  padding: 14px 0 20px;
+  background: linear-gradient(120deg, var(--hero-a), var(--canvas) 52%, var(--hero-b));
   border-bottom: 1px solid var(--line);
 }
 .eyebrow {
   margin-bottom: 10px;
-  font-size: 13px;
-  font-weight: 800;
+  font-size: 12.5px;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted);
@@ -1265,11 +1757,11 @@ h1 {
 .band { padding: 28px 0; }
 .band-tint { background: var(--tint); }
 .band + .band:not(.band-tint) { border-top: 1px solid var(--line); }
-h2 { font-size: 23px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; }
+h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
 h3 { font-size: 18px; font-weight: 800; line-height: 1.25; }
 .subhead { margin-top: 28px; }
 .note { margin-top: 12px; max-width: 70ch; font-size: 15px; line-height: 1.55; color: var(--muted); }
-.count { margin-top: 8px; font-size: 15px; color: var(--muted); }
+.count { margin-top: 8px; font-size: 15px; font-weight: 500; color: var(--muted); font-variant-numeric: tabular-nums; }
 
 /* search (shown by search.js only) */
 .search { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 16px; }
@@ -1282,6 +1774,16 @@ h3 { font-size: 18px; font-weight: 800; line-height: 1.25; }
 }
 .check { display: flex; align-items: center; gap: 10px; min-height: 44px; }
 .check input { width: 22px; height: 22px; margin: 0; accent-color: var(--cobalt); }
+.filters {
+  display: flex; flex-wrap: wrap; align-items: end; gap: 4px 18px; grid-column: 1 / -1;
+  margin: 0; padding: 0; border: 0; min-width: 0;
+}
+.filters legend { padding: 0; margin-bottom: 4px; font-size: 13px; font-weight: 700; color: var(--muted); }
+.field select {
+  min-height: 44px; padding: 0 12px; border: 1.5px solid var(--muted); border-radius: 12px;
+  background: var(--panel); color: var(--ink); font: inherit; font-size: 16px;
+}
+.more { margin-top: var(--s4); }
 
 /* buttons */
 .btn {
@@ -1290,9 +1792,9 @@ h3 { font-size: 18px; font-weight: 800; line-height: 1.25; }
   font: inherit; font-size: 16px; font-weight: 800; text-align: center; line-height: 1.2;
   cursor: pointer; text-decoration: none;
 }
-.btn-primary { background: var(--cobalt); color: #FFFFFF; }
+.btn-primary { background: var(--btn); color: #FFFFFF; }
 a.btn-primary { color: #FFFFFF; text-decoration: none; }
-.btn-primary:hover, a.btn-primary:hover { background: var(--cobalt-deep); color: #FFFFFF; }
+.btn-primary:hover, a.btn-primary:hover { background: var(--btn-hover); color: #FFFFFF; }
 
 /* browse */
 .chips, .links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; padding: 0; list-style: none; }
@@ -1304,21 +1806,47 @@ a.btn-primary { color: #FFFFFF; text-decoration: none; }
   font-size: 15px; font-weight: 700; text-decoration: none;
 }
 .chips a:hover, .chips a[aria-current="page"] { border-color: var(--cobalt); color: var(--cobalt); }
-.chips small { color: var(--muted); font-size: 13px; font-weight: 700; }
+.chips small { color: var(--muted); font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .links a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 800; }
 .hero .links { margin-top: 12px; gap: 4px 18px; }
 
 /* cards */
 .cards { display: grid; gap: 12px; margin-top: 16px; padding: 0; list-style: none; }
 .card {
-  display: grid; grid-template-columns: 56px minmax(0, 1fr); gap: 14px; align-items: start;
-  padding: 16px; border: 1px solid var(--line); border-radius: 18px; background: var(--panel);
+  position: relative;
+  display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 14px; align-items: start;
+  padding: var(--s4); border: 1px solid var(--line); border-radius: var(--r); background: var(--panel);
+  transition: box-shadow 120ms ease, border-color 120ms ease;
 }
-.mono { display: block; width: 56px; height: 56px; }
-.mono-text, .cover-text { fill: #FFFFFF; font-family: var(--font); font-weight: 800; letter-spacing: -0.02em; }
-.mono-text { font-size: 22px; }
-.cover-text { font-size: 150px; }
-.card-name { font-size: 19px; line-height: 1.2; letter-spacing: -0.01em; }
+.card:hover, .card:focus-within { box-shadow: var(--lift); border-color: var(--cobalt); }
+.card:focus-within { outline: 3px solid var(--cobalt); outline-offset: 2px; }
+.card-name a::after { content: ""; position: absolute; inset: 0; border-radius: var(--r); }
+.card-name a:focus-visible { outline: none; }
+.card-extra a { position: relative; z-index: 1; }
+.mono {
+  display: grid; place-items: center; width: 48px; height: 48px; border-radius: var(--r);
+  background: var(--c); color: #FFFFFF; font-weight: 800; font-size: 18px; letter-spacing: -0.02em;
+}
+svg.mono { display: block; width: 48px; height: 48px; background: none; }
+.town-card {
+  display: block; padding: var(--s4); border: 1px solid var(--line); border-radius: var(--r);
+  background: var(--panel);
+}
+.county { margin-top: var(--s5); font-size: 16px; font-weight: 700; color: var(--muted); }
+.card-since { margin-top: 4px; font-size: 14px; font-weight: 500; color: var(--muted); }
+.missing {
+  display: inline-block; padding: var(--s1) var(--s2); border: 1px dashed var(--empty-line);
+  border-radius: var(--r-sm); color: var(--muted); font-style: italic;
+}
+.fact {
+  display: inline-flex; align-items: center; min-height: 28px; padding: 0 10px;
+  border: 1px solid var(--line); border-radius: 999px; background: var(--panel);
+  color: var(--ink); font-size: 14px; font-weight: 600;
+}
+.badge-open { background: var(--open-soft); color: var(--open); }
+.mono-text { fill: #FFFFFF; font-family: var(--font); font-weight: 800; font-size: 22px; }
+.mono-lg { width: 64px; height: 64px; margin-bottom: 14px; font-size: 24px; border-radius: var(--r-lg); }
+.card-name { font-size: 18px; font-weight: 650; line-height: 1.2; letter-spacing: -0.01em; }
 .card-name a { color: var(--ink); text-decoration: none; }
 .card-name a:hover { color: var(--cobalt); text-decoration: underline; }
 .card-meta, .card-addr, .card-extra { margin-top: 4px; font-size: 15px; line-height: 1.45; color: var(--muted); }
@@ -1339,23 +1867,43 @@ a.btn-primary { color: #FFFFFF; text-decoration: none; }
   border: 1.5px solid var(--ink); border-radius: 12px; color: var(--ink); font-weight: 800; text-decoration: none;
 }
 .pages-off { min-width: 90px; }
-.empty { margin-top: 16px; padding: 20px; border: 1px dashed #8C7F90; border-radius: 18px; background: var(--panel); }
+.pages-list { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.pages .pages-n, .pages-now { min-width: 44px; justify-content: center; padding: 0 10px; }
+.pages .pages-n { border-color: var(--line); background: var(--panel); }
+.pages-now {
+  display: inline-flex; align-items: center; min-height: 44px; border-radius: 12px;
+  background: var(--ink); color: var(--canvas); font-weight: 800;
+}
+.pages-gap { color: var(--muted); }
+.pages-of { flex-basis: 100%; color: var(--muted); font-variant-numeric: tabular-nums; }
+.letters {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 6px;
+  margin-top: var(--s4);
+}
+.letters a, .letters span {
+  display: grid; place-items: center; min-height: 44px; border-radius: var(--r-sm);
+  font-weight: 800; text-decoration: none;
+}
+.letters a { background: var(--panel); border: 1px solid var(--line); color: var(--ink); }
+.letters a:hover { border-color: var(--cobalt); color: var(--cobalt); }
+.letters span { color: var(--muted); opacity: 0.5; }
+.card[id] { scroll-margin-top: 16px; }
+.empty { margin-top: 16px; padding: 20px; border: 1px dashed var(--empty-line); border-radius: 18px; background: var(--panel); }
 
 /* category colours: white initials clear 4.5:1 on each */
-.cat-restaurants { fill: #9A3412; }
-.cat-auto { fill: #1240E8; }
-.cat-health-dental { fill: #146C34; }
-.cat-beauty { fill: #9D174D; }
-.cat-home-services { fill: #92400E; }
-.cat-retail { fill: #5135E5; }
-.cat-professional { fill: #0A1220; }
-.cat-faith-community { fill: #6B21A8; }
-.cat-lodging-recreation { fill: #0F766E; }
-.cat-education-childcare { fill: #3730A3; }
-.cat-industrial { fill: #374151; }
-.cat-other { fill: #4E5866; }
-.cover-line { fill: none; stroke: #FFFFFF; stroke-opacity: 0.14; stroke-width: 1; }
-.cover-dot { fill: #FFFFFF; fill-opacity: 0.07; }
+.cat-restaurants { --c: #9A3412; }
+.cat-auto { --c: #1240E8; }
+.cat-health-dental { --c: #146C34; }
+.cat-beauty { --c: #9D174D; }
+.cat-home-services { --c: #92400E; }
+.cat-retail { --c: #5135E5; }
+.cat-professional { --c: #0A1220; }
+.cat-faith-community { --c: #6B21A8; }
+.cat-lodging-recreation { --c: #0F766E; }
+.cat-education-childcare { --c: #3730A3; }
+.cat-industrial { --c: #374151; }
+.cat-other { --c: #4E5866; }
+svg [class^="cat-"] { fill: var(--c); }
 
 /* footer */
 .foot { padding: 28px 0 40px; border-top: 1px solid var(--line); font-size: 15px; color: var(--muted); }
@@ -1364,7 +1912,6 @@ a.btn-primary { color: #FFFFFF; text-decoration: none; }
 .disclaimer { font-weight: 800; color: var(--ink); }
 
 /* profile */
-.cover { display: block; width: 100%; height: 120px; margin-bottom: 18px; border-radius: 20px; }
 .where { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; margin-top: 12px; font-size: 17px; color: var(--body); }
 .where a { display: inline-flex; align-items: center; min-height: 44px; font-weight: 800; }
 .grid { display: grid; gap: 16px; }
@@ -1380,6 +1927,10 @@ a.btn-primary { color: #FFFFFF; text-decoration: none; }
 .hours th, .hours td { padding: 8px 0; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
 .hours th { width: 42%; font-weight: 700; color: var(--ink); }
 .hours td { color: var(--body); }
+.hours tr.today th, .hours tr.today td { color: var(--ink); font-weight: 800; }
+.now { padding: var(--s2) var(--s3); border-radius: var(--r-sm); background: var(--tint); font-weight: 700; }
+.now.is-open { background: var(--open-soft); color: var(--open); }
+.near { flex-direction: column; gap: 0; }
 .tags { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; list-style: none; }
 .tags li {
   padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px;
@@ -1392,8 +1943,21 @@ a.btn-primary { color: #FFFFFF; text-decoration: none; }
 }
 .sources li:last-child { border-bottom: 0; }
 .sources strong { color: var(--ink); font-size: 16px; }
+.claim-wrap { display: grid; gap: var(--s5); }
 .claim { display: grid; gap: 14px; justify-items: start; }
 .claim .btn { width: 100%; }
+.pitch { padding: var(--s5); border: 1px solid var(--line); border-radius: var(--r-lg); background: var(--panel); }
+.pitch > * + * { margin-top: var(--s2); }
+.pitch h2 { font-size: 17px; color: var(--muted); }
+.actions { display: flex; flex-wrap: wrap; gap: var(--s2); margin-top: var(--s4); }
+.btn { gap: 8px; }
+.btn-ghost { background: var(--panel); color: var(--ink); border: 1.5px solid var(--line); text-decoration: none; }
+a.btn-ghost:hover { border-color: var(--cobalt); color: var(--cobalt); }
+.ic { width: 16px; height: 16px; flex: none; fill: currentColor; }
+.facts { display: flex; flex-wrap: wrap; gap: var(--s2); padding: 0; list-style: none; }
+a.fact { text-decoration: none; }
+a.fact:hover { border-color: var(--cobalt); color: var(--cobalt); }
+.sources li:target { background: var(--tint); }
 .own { color: var(--body); font-size: 15px; }
 
 /* about */
@@ -1416,16 +1980,17 @@ a.btn-primary { color: #FFFFFF; text-decoration: none; }
 
 @media (min-width: 640px) {
   .shell { padding: 0 24px; }
-  .search { grid-template-columns: minmax(0, 1fr) auto auto; align-items: end; }
+  .search { grid-template-columns: minmax(0, 1fr) auto; align-items: end; }
   .check { min-height: 48px; }
   .claim .btn { width: auto; }
-  .cover { height: 180px; }
-  h2 { font-size: 27px; }
+  .claim-wrap { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); align-items: start; }
+  h2 { font-size: 24px; }
 }
 @media (min-width: 760px) {
-  .hero { padding: 32px 0 40px; }
+  .hero { padding: 24px 0 30px; }
   .band { padding: 44px 0; }
   .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  h2 { font-size: 26px; }
   .panel { padding: 26px; }
   .sources li { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) auto; align-items: baseline; gap: 16px; }
 }
@@ -1433,50 +1998,89 @@ a.btn-primary { color: #FFFFFF; text-decoration: none; }
   .cards { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .grid { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); align-items: start; }
   .grid-wide { grid-column: 1 / -1; }
-  .cover { height: 220px; }
 }
-@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
 """
 
 SEARCH_JS = """\
-/* Business directory (one town's section): search and "Open now" over search.json.
-   Optional: without this script the A to Z pages and the category pages are
-   plain links. Builds every node with createElement and textContent (never
-   parsed markup) and asks only this site for search.json. */
+/* Business directory search (one town): word-start search and filters over the small
+   files in idx/. Optional: without it the A to Z and category pages are plain links.
+   Builds every node with createElement and textContent (never parsed markup) and
+   asks only this site for base + "idx/" files. */
 (function () {
   "use strict";
-  var root = document.getElementById("search");
-  if (!root || !window.fetch || !window.Intl || !("hidden" in root)) { return; }
-  var form = document.getElementById("search-form");
-  var input = document.getElementById("search-q");
-  var openBox = document.getElementById("search-open");
-  var results = document.getElementById("search-results");
-  var countLine = document.getElementById("search-count");
-  var list = document.getElementById("search-list");
-  var az = document.getElementById("az");
-  var base = root.getAttribute("data-base") || "/longview/businesses/";
-  var town = root.getAttribute("data-town") || "Longview";
-  var MAX = 50;
   var DAYS = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
-  var SVG = "http://www.w3.org/2000/svg";
-  var data = null;
-  var loading = null;
+  if (window.Intl) { profileNow(); }
+  var root = document.getElementById("search");
+  if (!root || !window.fetch || !window.Intl || !window.Set || !("hidden" in root)) { return; }
+  function $(id) { return document.getElementById(id); }
+  var form = $("search-form"), input = $("search-q"), results = $("search-results");
+  var countLine = $("search-count"), list = $("search-list"), more = $("search-more"), az = $("az");
+  var boxes = { open: $("search-open"), web: $("search-web"), hrs: $("search-hrs"), hire: $("search-hire"),
+                fresh: $("search-new") };
+  var catSel = $("search-cat"), townSel = $("search-town"), fallback = $("search-fallback");
+  var PARAM = { q: input, cat: catSel, town: townSel };
+  var base = root.getAttribute("data-base") || "/longview/businesses/";
+  var PAGE = 50, CAP = 500, FLAG = { web: 1, hrs: 2, hire: 4, fresh: 8 };
+  var STOP = ["the", "and", "of", "a", "an", "at", "in", "on", "for", "llc", "inc", "co"];
+  var man = null, manP = null, cache = {}, found = [], shown = 0, seq = 0;
 
   function norm(text) {
     return String(text || "").normalize("NFKD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase()
       .replace(/&/g, " and ").replace(/['\\u2019]/g, "").replace(/[^a-z0-9]+/g, " ").trim();
   }
-  function minutes(t) { var p = t.split(":"); return parseInt(p[0], 10) * 60 + parseInt(p[1], 10); }
+  function get(name) {
+    if (!cache[name]) {
+      cache[name] = fetch(base + "idx/" + name, { credentials: "same-origin" })
+        .then(function (r) { if (!r.ok) { throw new Error("status " + r.status); } return r.json(); });
+      cache[name].catch(function () { delete cache[name]; });
+    }
+    return cache[name];
+  }
+  function file(stem) { return stem + "." + man.h + ".json"; }
+  function manifest() {
+    if (!manP) {
+      manP = get("manifest.json").then(function (m) {
+        man = m;
+        if (catSel && catSel.options.length < 2) {
+          m.cats.forEach(function (c) { var o = el("option", null, c[1]); o.value = c[0]; catSel.appendChild(o); });
+          if (wantCat) { catSel.value = wantCat; }
+        }
+        return m;
+      });
+      manP.catch(function () { manP = null; });
+    }
+    return manP;
+  }
+  function openOn() { return Boolean(boxes.open && boxes.open.checked); }
+  function undelta(a) { var out = [], n = 0; for (var i = 0; i < a.length; i++) { n += a[i]; out.push(n); } return out; }
+  function matches(token) {
+    var k = man.keys.indexOf(token.slice(0, 2));
+    if (k < 0) { return Promise.resolve(new Set()); }
+    return get(file("t-" + man.kf[k])).then(function (words) {
+      var got = new Set();
+      Object.keys(words).forEach(function (w) {
+        if (w.indexOf(token) === 0) { undelta(words[w]).forEach(function (n) { got.add(n); }); }
+      });
+      return got;
+    });
+  }
+  function minutes(t) { return parseInt(t.slice(0, 2), 10) * 60 + parseInt(t.slice(2), 10); }
   function clock() {
     var parts = new Intl.DateTimeFormat("en-US", {
       timeZone: "America/Chicago", weekday: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23"
     }).formatToParts(new Date());
     var got = {};
     parts.forEach(function (p) { got[p.type] = p.value; });
-    return {
-      day: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(got.weekday),
-      at: (parseInt(got.hour, 10) % 24) * 60 + parseInt(got.minute, 10)
-    };
+    return { day: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].indexOf(got.weekday),
+             at: (parseInt(got.hour, 10) % 24) * 60 + parseInt(got.minute, 10) };
+  }
+  function week(code) {
+    var h = {};
+    code.split(";").forEach(function (d) {
+      h[d.slice(0, 3)] = d.length > 4 ? d.slice(3).split(",").map(function (r) { return r.split("-"); }) : [];
+    });
+    return h;
   }
   /* true: a stated range covers now; false: today is stated and none does; null: cannot tell. */
   function openNow(hours, c) {
@@ -1493,6 +2097,47 @@ SEARCH_JS = """\
     }
     return today === undefined ? null : false;
   }
+  function hhmm(t) {
+    var m = minutes(t) % 1440, h = Math.floor(m / 60), ap = h < 12 ? " AM" : " PM";
+    return ((h + 11) % 12 + 1) + ":" + ("0" + (m % 60)).slice(-2) + ap;
+  }
+  /* A profile's hours table: "Open now · closes 6:00 PM", or when it opens next. */
+  function profileNow() {
+    var table = document.querySelector("table[data-hours]"), line = document.querySelector("p.now");
+    if (!table || !line) { return; }
+    var h = {}, c = clock(), text, i, d, r, o, cl;
+    Array.prototype.forEach.call(table.querySelectorAll("tr[data-d]"), function (tr) {
+      var v = tr.getAttribute("data-h") || "-";
+      h[tr.getAttribute("data-d")] = v === "-" ? [] : v.split(",").map(function (x) { return x.split("-"); });
+      if (tr.getAttribute("data-d") === DAYS[c.day]) { tr.className = "today"; }
+    });
+    var now = openNow(h, c);
+    if (now === null) {
+      text = "Today\u2019s hours are not listed";
+    } else if (now) {
+      text = "Open now";
+      (h[DAYS[c.day]] || []).concat(h[DAYS[(c.day + 6) % 7]] || []).forEach(function (x) {
+        o = minutes(x[0]); cl = minutes(x[1]);
+        if ((cl > o && c.at >= o && c.at < cl) || (cl <= o && (c.at >= o || c.at < cl))) { text = "Open now \u00b7 closes " + hhmm(x[1]); }
+      });
+    } else {
+      text = "Closed now";
+      for (i = 0; i < 7 && text === "Closed now"; i++) {
+        d = DAYS[(c.day + i) % 7];
+        for (r = 0; h[d] && r < h[d].length; r++) {
+          if (i > 0 || minutes(h[d][r][0]) > c.at) {
+            text = "Closed now \u00b7 opens " + (i ? d.charAt(0).toUpperCase() + d.slice(1) + " " : "") + hhmm(h[d][r][0]);
+            break;
+          }
+        }
+      }
+    }
+    var checked = table.getAttribute("data-checked");
+    line.textContent = text + " (by the hours on its own website" + (checked ? ", checked " + checked : "") +
+      "; holidays may differ)";
+    line.className = now ? "now is-open" : "now";
+    line.hidden = false;
+  }
   function el(name, cls, text) {
     var node = document.createElement(name);
     if (cls) { node.className = cls; }
@@ -1500,100 +2145,180 @@ SEARCH_JS = """\
     return node;
   }
   function initials(name) {
-    var skip = ["the", "and", "of", "a", "an", "at", "in", "on", "for", "llc", "inc", "co"];
     var words = String(name).normalize("NFKD").replace(/[\\u0300-\\u036f]/g, "").split(/[^A-Za-z0-9]+/)
-      .filter(function (w) { return w && skip.indexOf(w.toLowerCase()) < 0; });
+      .filter(function (w) { return w && STOP.indexOf(w.toLowerCase()) < 0; });
     return words.slice(0, 2).map(function (w) { return w.charAt(0).toUpperCase(); }).join("") || "#";
   }
-  function monogram(b) {
-    var svg = document.createElementNS(SVG, "svg");
-    svg.setAttribute("class", "mono");
-    svg.setAttribute("viewBox", "0 0 56 56");
-    svg.setAttribute("aria-hidden", "true");
-    svg.setAttribute("focusable", "false");
-    var rect = document.createElementNS(SVG, "rect");
-    rect.setAttribute("class", "cat-" + (/^[a-z-]+$/.test(b.category) ? b.category : "other"));
-    rect.setAttribute("width", "56"); rect.setAttribute("height", "56"); rect.setAttribute("rx", "14");
-    var text = document.createElementNS(SVG, "text");
-    text.setAttribute("class", "mono-text");
-    text.setAttribute("x", "28"); text.setAttribute("y", "29");
-    text.setAttribute("text-anchor", "middle"); text.setAttribute("dominant-baseline", "central");
-    text.textContent = initials(b.name);
-    svg.appendChild(rect); svg.appendChild(text);
-    return svg;
-  }
-  function card(b, open) {
-    var li = el("li", "card");
-    var box = el("div");
-    var h = el("h3", "card-name");
-    var a = el("a", null, b.name);
-    a.setAttribute("href", base + (/^[a-z0-9-]+$/.test(b.slug) ? b.slug : "") + "/");
-    h.appendChild(a);
-    box.appendChild(h);
-    box.appendChild(el("p", "card-meta", b.categoryLabel || (data.categories[b.category] || "")));
-    box.appendChild(el("p", "card-addr", b.zip ? town + ", TX " + b.zip : town + ", TX"));
-    if (open) {
-      var badges = el("ul", "badges");
-      badges.appendChild(el("li", "badge badge-hiring", "Open now"));
-      box.appendChild(badges);
+  function card(row, open) {
+    var slug = man.cats[row[2]] ? man.cats[row[2]][0] : "other";
+    var li = el("li", "card"), box = el("div"), h = el("h3", "card-name");
+    var a = el("a", null, row[0]);
+    var t = man.towns ? man.towns[row[7]] : null;
+    a.setAttribute("href", (t ? t[2] : base) + (/^[a-z0-9-]+$/.test(row[1]) ? row[1] + "/" : ""));
+    h.appendChild(a); box.appendChild(h);
+    box.appendChild(el("p", "card-meta", row[3] || (man.cats[row[2]] ? man.cats[row[2]][1] : "")));
+    box.appendChild(el("p", "card-addr", (t ? t[1] : man.town) + ", TX" + (/^[0-9]{5}$/.test(row[6]) ? " " + row[6] : "")));
+    if (row[5]) {
+      box.appendChild(el("p", "card-since", (row[5].charAt(0) === "P" ? "Permit on file since " :
+        "Registered since ") + row[5].slice(1)));
     }
-    li.appendChild(monogram(b));
-    li.appendChild(box);
+    var badges = el("ul", "badges");
+    [[1, "badge", "Website"], [2, "badge", "Hours listed"], [4, "badge badge-hiring", "Hiring"]].forEach(function (b) {
+      if (row[4] & b[0]) { badges.appendChild(el("li", b[1], b[2])); }
+    });
+    if (open) { badges.appendChild(el("li", "badge badge-open", "Open now")); }
+    if (badges.firstChild) { badges.setAttribute("aria-label", "Listed on this profile"); box.appendChild(badges); }
+    var mono = el("span", "mono cat-" + (/^[a-z-]+$/.test(slug) ? slug : "other"), initials(row[0]));
+    mono.setAttribute("aria-hidden", "true");
+    li.appendChild(mono); li.appendChild(box);
     return li;
   }
-  function load() {
-    if (!loading) {
-      loading = fetch(base + "search.json", { credentials: "same-origin" })
-        .then(function (r) { if (!r.ok) { throw new Error("status " + r.status); } return r.json(); })
-        .then(function (json) {
-          data = json;
-          data.businesses.forEach(function (b) {
-            b._text = " " + norm([b.name, b.categoryLabel || "", data.categories[b.category] || ""]
-              .concat(b.services || []).join(" ")) + " ";
-          });
-          return data;
-        });
+  function row(n) {
+    return get(file("r-" + Math.floor(n / man.chunk))).then(function (rows) { return rows[n % man.chunk]; });
+  }
+  function say(text, link, href) {
+    countLine.textContent = text;
+    if (link) {
+      var a = el("a", null, link);
+      a.setAttribute("href", href);
+      countLine.appendChild(document.createTextNode(" "));
+      countLine.appendChild(a);
     }
-    return loading;
+  }
+  function showMore(first) {
+    var batch = found.slice(shown, shown + PAGE), c = openOn(), mine = seq;
+    shown += batch.length;
+    return Promise.all(batch.map(row)).then(function (rows) {
+      if (mine !== seq) { return; }  /* a newer search started: its list, not this one */
+      var firstNew = null;
+      rows.forEach(function (r) { var li = card(r, c); list.appendChild(li); firstNew = firstNew || li; });
+      var left = Math.min(found.length, CAP) - shown;
+      more.hidden = left <= 0;
+      more.textContent = "Show " + Math.min(PAGE, left) + " more (" + left.toLocaleString("en-US") + " left)";
+      if (!first && firstNew) { var a = firstNew.querySelector("a"); if (a) { a.focus(); } }
+    });
+  }
+  function reset() {
+    results.hidden = true; more.hidden = true;
+    if (az) { az.hidden = false; }
   }
   function run() {
-    var tokens = norm(input.value.slice(0, 100)).split(" ").filter(Boolean).slice(0, 8);
-    var onlyOpen = openBox.checked;
-    if (!tokens.length && !onlyOpen) {
-      results.hidden = true;
-      if (az) { az.hidden = false; }
-      return;
-    }
+    var mine = ++seq;
+    var raw = norm(input.value.slice(0, 100)).split(" ").filter(Boolean);
+    var words = raw.filter(function (t) { return STOP.indexOf(t) < 0; });
+    if (!words.length) { words = raw; }
+    words = words.slice(0, 6);
+    var flags = Object.keys(FLAG).filter(function (k) { return boxes[k] && boxes[k].checked; });
+    var cat = catSel ? catSel.value : "", town = townSel ? townSel.value : "";
+    var filtering = flags.length || cat || town || openOn();
+    remember(flags);
+    if (!words.length && !filtering) { reset(); return; }
     results.hidden = false;
     if (az) { az.hidden = true; }
-    if (!data) { countLine.textContent = "Loading the list\\u2026"; }
-    load().then(function () {
-      var c = onlyOpen ? clock() : null;
-      var found = data.businesses.filter(function (b) {
-        if (c && openNow(b.hours, c) !== true) { return false; }
-        return tokens.every(function (t) { return b._text.indexOf(t) >= 0; });
-      });
-      while (list.firstChild) { list.removeChild(list.firstChild); }
-      found.slice(0, MAX).forEach(function (b) { list.appendChild(card(b, Boolean(c))); });
-      if (!found.length) {
-        countLine.textContent = "No businesses match that search. Try fewer words, or leave Open now unchecked.";
-      } else if (found.length > MAX) {
-        countLine.textContent = "Showing the first " + MAX + " of " + found.length.toLocaleString("en-US") +
-          " matching businesses, A to Z. Add a word to narrow it.";
+    while (list.firstChild) { list.removeChild(list.firstChild); }
+    more.hidden = true;
+    if (words.length === 1 && words[0].length < 2 && !filtering) {
+      var letter = /^[a-z]$/.test(words[0]) ? words[0] : "0";
+      say("Type one more letter, or", "jump to names starting with " + words[0].toUpperCase(), "#l-" + letter);
+      return;
+    }
+    say("Searching\\u2026");
+    manifest().then(function () {
+      var terms = words.filter(function (t) { return t.length >= 2; });
+      return Promise.all([
+        Promise.all(terms.map(matches)),
+        flags.length || cat || town ? get(file("f")) : null,
+        openOn() ? get(file("o")) : null
+      ]);
+    }).then(function (got) {
+      if (mine !== seq) { return; }
+      var sets = got[0], facets = got[1], hours = got[2];
+      var c = hours ? clock() : null, weeks = {}, noHours = 0, catIx = -1, townIx = -1, k = man.stride || 2;
+      man.cats.forEach(function (x, i) { if (x[0] === cat) { catIx = i; } });
+      (man.towns || []).forEach(function (x, i) { if (x[0] === town) { townIx = i; } });
+      var pool = [];
+      if (sets.length) {
+        sets.sort(function (x, y) { return x.size - y.size; });
+        sets[0].forEach(function (n) { if (sets.every(function (s) { return s.has(n); })) { pool.push(n); } });
       } else {
-        countLine.textContent = found.length.toLocaleString("en-US") +
-          (found.length === 1 ? " matching business, A to Z." : " matching businesses, A to Z.");
+        for (var n = 0; n < man.n; n++) { pool.push(n); }
       }
+      found = pool.sort(function (x, y) { return x - y; }).filter(function (n) {
+        if (facets) {
+          if (cat && facets[k * n] !== catIx) { return false; }
+          if (town && facets[k * n + 2] !== townIx) { return false; }
+          for (var i = 0; i < flags.length; i++) { if (!(facets[k * n + 1] & FLAG[flags[i]])) { return false; } }
+        }
+        if (c) {
+          var p = hours.rows[n];
+          if (p === undefined) { noHours++; return false; }
+          weeks[p] = weeks[p] || week(hours.pats[p]);
+          var o = openNow(weeks[p], c);
+          if (o !== true) { if (o === null) { noHours++; } return false; }
+        }
+        return true;
+      });
+      shown = 0;
+      if (!found.length) {
+        say(words.length ? "No business name, kind or service in " + (man.town || "these towns") +
+          " starts with \\u201c" +
+          words.join(" ") + "\\u201d" + (filtering ? " with these filters." : ".") :
+          "No business matches these filters.",
+          "Browse A to Z", base);
+        return;
+      }
+      var total = found.length.toLocaleString("en-US");
+      say((found.length === 1 ? "1 business" : total + " businesses") + ", sorted A to Z. Nothing is ranked." +
+        (c && noHours ? " " + noHours.toLocaleString("en-US") + " did not list hours for today." : "") +
+        (found.length > CAP ? " Showing the first " + CAP + "; add a word to narrow it." : ""));
+      return showMore(true);
     }).catch(function () {
-      countLine.textContent = "Search is not available right now. Browse the A to Z list or a category instead.";
+      if (mine !== seq) { return; }
+      say("Search is not available right now. Browse the A to Z list or a category instead.");
       if (az) { az.hidden = false; }
     });
+  }
+  /* The search is kept in the address (?q=...&cat=...&web=1), so it can be shared or bookmarked. */
+  var wantCat = "";
+  function remember(flags) {
+    if (!window.history || !history.replaceState || !window.URLSearchParams) { return; }
+    var u = new URLSearchParams();
+    Object.keys(PARAM).forEach(function (k) { if (PARAM[k] && PARAM[k].value) { u.set(k, PARAM[k].value.slice(0, 100)); } });
+    flags.forEach(function (f) { u.set(f === "fresh" ? "new" : f, "1"); });
+    if (openOn()) { u.set("open", "1"); }
+    var qs = u.toString();
+    history.replaceState(null, "", location.pathname + (qs ? "?" + qs : ""));
+  }
+  function restore() {
+    if (!window.URLSearchParams) { return false; }
+    var u = new URLSearchParams(location.search), any = false;
+    if (u.get("q")) { input.value = u.get("q").slice(0, 100); any = true; }
+    if (u.get("cat") && /^[a-z-]+$/.test(u.get("cat"))) { wantCat = u.get("cat"); any = true; }
+    if (townSel && u.get("town")) { townSel.value = u.get("town"); any = any || Boolean(townSel.value); }
+    Object.keys(boxes).forEach(function (k) {
+      var name = k === "fresh" ? "new" : k;
+      if (boxes[k] && u.get(name) === "1") { boxes[k].checked = true; any = true; }
+    });
+    return any;
   }
   var timer = null;
   form.addEventListener("submit", function (event) { event.preventDefault(); run(); });
   input.addEventListener("input", function () { clearTimeout(timer); timer = setTimeout(run, 150); });
-  input.addEventListener("focus", function () { load().catch(function () {}); }, { once: true });
-  openBox.addEventListener("change", run);
+  input.addEventListener("focus", function () { manifest().catch(function () {}); });
+  Object.keys(boxes).forEach(function (k) { if (boxes[k]) { boxes[k].addEventListener("change", run); } });
+  if (townSel) { townSel.addEventListener("change", run); }
+  if (catSel) { catSel.addEventListener("change", run); catSel.addEventListener("focus", function () { manifest().catch(function () {}); }); }
+  more.addEventListener("click", function () { showMore(false); });
+  document.addEventListener("keydown", function (event) {
+    var t = event.target, typing = t && /^(INPUT|SELECT|TEXTAREA)$/.test(t.tagName);
+    if (event.key === "/" && !typing && !event.ctrlKey && !event.metaKey && !event.altKey) {
+      event.preventDefault(); input.focus();
+    } else if (event.key === "Escape" && t === input) {
+      input.value = ""; run();
+    }
+  });
   root.hidden = false;
+  if (fallback) { fallback.hidden = true; }
+  if (restore()) { manifest().then(function () { if (catSel && wantCat) { catSel.value = wantCat; } run(); }, run); }
 }());
 """

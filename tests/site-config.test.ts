@@ -124,7 +124,8 @@ test("every offer has a name, a status, a URL, terms, and a review date; only TB
     ids.add(o.id);
     assert.ok(o.name.length > 3, o.id);
     assert.ok(["live", "tbd_ryan", "retired"].includes(o.status), o.id);
-    assert.match(o.href, /^\//, o.id);
+    // The catalog includes the existing separate SellerProof subscription destination.
+    assert.match(o.href, /^(?:\/(?!\/)|https:\/\/sellerproof\.vercel\.app\/pricing$)/, o.id);
     assert.ok(o.terms.length > 20, o.id);
     assert.match(o.effectiveDate, /^\d{4}-\d{2}-\d{2}$/, o.id);
     assert.match(o.reviewDate, /^\d{4}-\d{2}-\d{2}$/, o.id);

@@ -34,9 +34,9 @@ export default async function AdminLayout({
   return (
     <section className="min-h-screen bg-[var(--page)] text-[var(--text)]">
       <InternalTrafficMarker />
-      <div className="mx-auto max-w-6xl px-4 pb-20 pt-[22px] sm:pt-8">
+      <div data-admin-frame className="mx-auto max-w-6xl px-4 pb-20 pt-[22px] sm:pt-8">
         {/* From sm up the brand sits above the title. On a phone it gives its row to the page, so the first call card's Call button stays on the first screen. */}
-        <div className="mb-6 hidden sm:block">
+        <div data-admin-nav className="mb-6 hidden sm:block">
           <BrandLockup href="/" />
         </div>
         {/*
@@ -45,7 +45,7 @@ export default async function AdminLayout({
           drops from under it. The menu works without JavaScript; the closer
           only tidies it up after a tap.
         */}
-        <div className="relative mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-line pb-2 sm:mb-8 sm:gap-x-5 sm:pb-3">
+        <div data-admin-nav className="relative mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-line pb-2 sm:mb-8 sm:gap-x-5 sm:pb-3">
           {/* The title sits level with the first line of the nav, so when the nav wraps on a narrow screen the title stays at the top. */}
           <h1 className="self-start pt-2 text-xl font-black text-[var(--heading)] sm:pt-1.5 sm:text-2xl">
             Back Office

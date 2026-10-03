@@ -9,6 +9,16 @@ import { CONSULTATION } from "@/lib/site/consultation";
 import { bookingPage } from "@/lib/site/external-links";
 import { PAST_EVENT_COPY, resolveFeaturedEvent } from "@/lib/site/events";
 import { usd } from "@/lib/site/prices";
+import {
+  CONTRACTOR_CAMPAIGN,
+  CONTRACTOR_FUNNEL,
+  CONTRACTOR_WELCOME,
+  contractorFirstName,
+  contractorPlainText,
+  contractorSubject,
+} from "@/lib/contractorSeries";
+import { renderContractorHtml } from "@/lib/contractorEmailHtml";
+import { unsubscribeSecret, unsubscribeUrl } from "@/lib/unsubscribe";
 
 // Display labels for leads.interest. The database CHECK constraint fixes the
 // set of values (supabase/migrations/20260901234500); these labels are what
@@ -514,7 +524,38 @@ function funnelWelcome(lead: NotifiableLead, first: string) {
   }
 }
 
-export function leadWelcomePayload(lead: NotifiableLead) {
+// The Scott video contractor form (lib/contractorSeries.ts). The designed
+// welcome: HTML so Resend can count the open and the clicks, the same words
+// as plain text, tagged so the series reads as one campaign. The outbox passes
+// the lead id, which is what the one click unsubscribe needs.
+function contractorWelcome(lead: NotifiableLead, context: OwnerAlertContext) {
+  const first = contractorFirstName(lead.full_name);
+  const secret = unsubscribeSecret();
+  const unsubUrl = context.leadId && secret ? unsubscribeUrl(context.leadId, secret) : null;
+  return {
+    from: FROM_RYAN,
+    to: [lead.email],
+    reply_to: BUSINESS.email.hello,
+    subject: contractorSubject(CONTRACTOR_WELCOME, first),
+    text: contractorPlainText(CONTRACTOR_WELCOME, first, unsubUrl),
+    html: renderContractorHtml({ email: CONTRACTOR_WELCOME, firstName: first, unsubUrl }),
+    ...(unsubUrl
+      ? {
+          headers: {
+            "List-Unsubscribe": `<${unsubUrl}>`,
+            "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+          },
+        }
+      : {}),
+    tags: [
+      { name: "campaign", value: CONTRACTOR_CAMPAIGN },
+      { name: "day", value: "00" },
+    ],
+  };
+}
+
+export function leadWelcomePayload(lead: NotifiableLead, context: OwnerAlertContext = {}) {
+  if (lead.funnel === CONTRACTOR_FUNNEL) return contractorWelcome(lead, context);
   const first = String(lead.full_name || "").trim().split(" ")[0] || "there";
   const funnelSpecific = funnelWelcome(lead, first);
   if (funnelSpecific) return funnelSpecific;
@@ -546,6 +587,16 @@ export function leadWelcomePayload(lead: NotifiableLead) {
   };
 }
 
+/**
+ * Tag a lead-facing send with its lead id, so the Resend webhook
+ * (app/api/webhooks/resend) can put opens and clicks on that lead's timeline.
+ */
+export function withLeadTag<T extends object>(payload: T, leadId?: string | null): T {
+  if (!leadId || !/^[0-9a-f-]{36}$/i.test(leadId)) return payload;
+  const existing = (payload as { tags?: { name: string; value: string }[] }).tags ?? [];
+  return { ...payload, tags: [...existing.filter((t) => t.name !== "lead_id"), { name: "lead_id", value: leadId }] };
+}
+
 export async function sendLeadEmailNotification(
   lead: NotifiableLead,
   notificationType: LeadEmailNotificationType,
@@ -556,7 +607,9 @@ export async function sendLeadEmailNotification(
     return { ok: true, providerMessageId: null };
   }
   return sendDetailed(
-    notificationType === "owner_alert" ? ownerAlertPayload(lead, context) : leadWelcomePayload(lead),
+    notificationType === "owner_alert"
+      ? ownerAlertPayload(lead, context)
+      : withLeadTag(leadWelcomePayload(lead, context), context.leadId),
     idempotencyKey,
   );
 }

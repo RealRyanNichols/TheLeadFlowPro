@@ -44,6 +44,8 @@ export const LEADFLOW_META = {
     "120253913145080154", // PDA video callback ad; LeadFlow account only.
     "120253128015470154", // Existing LeadFlow mall-video ad.
     "120253551492760154", // Sep 1 Free Website v2 draft; keep off until creative QA.
+    "120253999623340154", // Oct 2026 Scott contractor video, long text (Ad 1).
+    "120254001470770154", // Oct 2026 Scott contractor video, short text (Ad 2).
   ],
 } as const;
 
@@ -79,6 +81,19 @@ export type MetaFormRegistration = {
    * can speak to what the person actually asked for.
    */
   funnel?: string;
+  /**
+   * Plain English for a form built through the Graph API with short keys.
+   * Meta hands back the question key and the option key, so without this the
+   * alert reads "prepared to invest 7000: yes_7000". With it, Ryan and Pat
+   * read the question and the answer the person actually saw. The raw keys
+   * stay in diagnostic.fields either way (lib/metaLeadAnswers.ts).
+   */
+  answerLabels?: Readonly<Record<string, MetaAnswerLabel>>;
+};
+
+export type MetaAnswerLabel = {
+  question: string;
+  options: Readonly<Record<string, string>>;
 };
 
 /**
@@ -86,6 +101,48 @@ export type MetaFormRegistration = {
  * admission. Adding a form in one place prevents the old failure mode where a
  * form was live in Meta but absent from one of several independent maps.
  */
+/**
+ * Pat's four questions, in the exact words on the form (his Oct 2 2026 email),
+ * shared by every form that asks them (v2 and v3).
+ */
+const PAT_CONTRACTOR_ANSWER_LABELS: Readonly<Record<string, MetaAnswerLabel>> = {
+  role_in_business: {
+    question: "Role in the business:",
+    options: {
+      owner_partner: "Owner / partner",
+      authorized_manager: "Manager authorized to make growth decisions",
+      employee_sales_rep: "Employee / sales representative",
+      hiring_a_contractor: "I'm looking to hire a contractor",
+    },
+  },
+  primary_service: {
+    question: "Primary service:",
+    options: {
+      dirt_work_excavation_grading: "Dirt work / excavation / grading",
+      land_clearing_brush_mulching: "Land clearing / brush removal / forestry mulching",
+      pond_building_cleanouts_expansion: "Pond building / cleanouts / expansion",
+      farm_ranch_custom_ag: "Farm / ranch services and custom agricultural work",
+      other_land_improvement: "Other land improvement services",
+    },
+  },
+  prepared_to_invest_7000: {
+    question: "Prepared to invest at least $7,000:",
+    options: {
+      yes_7000: "Yes, I'm prepared to invest at least $7,000.",
+      need_funding: "I'd need funding and would be willing to explore options.",
+      not_ready: "I'm not ready to invest at that level right now.",
+    },
+  },
+  how_soon_more_jobs: {
+    question: "How soon they want more jobs:",
+    options: {
+      now_30_days: "Now / within 30 days",
+      one_to_three_months: "In 1 to 3 months",
+      exploring_later: "I'm exploring for later",
+    },
+  },
+};
+
 export const META_FORM_REGISTRY: Readonly<Record<string, MetaFormRegistration>> = {
   "1319841020086334": {
     // PDA video: schools, coaching and events; personal callback request.
@@ -151,6 +208,42 @@ export const META_FORM_REGISTRY: Readonly<Record<string, MetaFormRegistration>> 
     campaign: "mall_video_rent_receipt_2026_09",
     inquiryOptIn: true,
     textOnSubmit: true,
+  },
+  "1410074817946865": {
+    // LFP | Contractor Owner, Scott video (Oct 2026, Texas). Dirt work, land
+    // clearing and pond owners apply for a strategy session. No checkboxes:
+    // submitting is the request to hear about this offer. The form promises a
+    // call, not a text, so no textOnSubmit. The funnel sends the contractor
+    // welcome and the contractor series (lib/contractorSeries.ts).
+    campaign: "scott_contractor_tx_2026_10",
+    inquiryOptIn: true,
+    textOnSubmit: false,
+    funnel: "contractor_owner",
+  },
+  "1149268527613297": {
+    // LFP | Contractor Owner | Scott Video | v2 Pat questions (Oct 2 2026).
+    // Pat's four questions: role in the business, primary service, ready to
+    // invest at least $7,000, how soon. Same offer, same promise of a call,
+    // same contractor welcome and 180 day series as v1. Created through the
+    // Graph API and read back before it went on the ads. The labels below are
+    // the exact words on the form.
+    campaign: "scott_contractor_tx_2026_10",
+    inquiryOptIn: true,
+    textOnSubmit: false,
+    funnel: "contractor_owner",
+    answerLabels: PAT_CONTRACTOR_ANSWER_LABELS,
+  },
+  "2084381329108926": {
+    // LFP | Contractor Owner | Scott Video | v3 (Oct 2 2026). v2 plus the
+    // contact line on the question page ("We use this only to follow up on
+    // your request. Our team will call or email you."), per Pat's email: use
+    // the approved contact and consent wording. Same campaign, same welcome,
+    // same 180 day series, same follow up groups.
+    campaign: "scott_contractor_tx_2026_10",
+    inquiryOptIn: true,
+    textOnSubmit: false,
+    funnel: "contractor_owner",
+    answerLabels: PAT_CONTRACTOR_ANSWER_LABELS,
   },
   "2349934135833664": {
     // LFP Enrollment Gap Timeline v1. Built Sep 15 for the schools and

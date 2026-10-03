@@ -654,7 +654,11 @@ test("call sheet rows: Email only for a real address, the call card's rule; othe
  * data are the real thing, on the page at `pathname`.
  */
 async function adminLayout(db: Db = {}, pathname = "/admin/call-sheet") {
-  const icon = (name: string) => (props: Record<string, unknown>) => createElement("svg", { ...props, "data-icon": name });
+  const icon = (name: string) => {
+    const Icon = (props: Record<string, unknown>) => createElement("svg", { ...props, "data-icon": name });
+    Icon.displayName = `Icon(${name})`;
+    return Icon;
+  };
   const stubs = {
     "@/lib/publicPageMetadata": { PRIVATE_PAGE_METADATA: {} },
     "next/navigation": {
@@ -742,6 +746,7 @@ test("the back office nav: Today's calls and the four daily pages in one row; Me
     assert.equal(/target="_blank" rel="noreferrer"/.test(a.tag), link.external === true, a.tag);
   }
   assert.ok(!menu.some((a) => a.href === "/admin/call-sheet"), "Today's calls stays in the row, once");
+  assert.ok(menu.some((a) => a.href === "/admin/idea-lab" && a.text.startsWith("Idea Lab ")), "Idea Lab is in the menu");
 
   // Six headings, each with its line. From sm up a heading sits over its links, which always show; below sm the
   // heading is a 44px row that opens the group (a nested <details>), the first open and the rest closed.
@@ -771,7 +776,7 @@ test("the back office nav: Today's calls and the four daily pages in one row; Me
   assert.ok(nav.slice(menuEnd).startsWith("<div class=") && wrapper(nav.slice(menuEnd)).includes("max-sm:hidden"), "the row's Sign out is for sm up");
 
   // The brand gives its row to the page on a phone and is back from sm up.
-  assert.match(header, /<div class="mb-6 hidden sm:block"><a href="\/" data-brand="">/);
+  assert.match(header, /<div[^>]* class="mb-6 hidden sm:block"><a href="\/" data-brand="">/);
   assert.match(header, /<h1 class="[^"]*sm:text-2xl[^"]*">Back Office<\/h1>/);
   assert.deepEqual(copyProblems(textOf(header)), []);
 

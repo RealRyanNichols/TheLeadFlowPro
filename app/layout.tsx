@@ -1,32 +1,22 @@
 import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
-import { Archivo, Inter } from "next/font/google";
+
 import "./globals.css";
+import "./fonts.css";
 import "./company-builder.css";
 import "./leadflow-theme.css";
 import "./theme-consistency.css";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import TrackingScripts from "@/components/TrackingScripts";
-import { LEADFLOW_META, resolveLeadFlowMetaPixelId } from "@/lib/metaCampaignGuard";
+import {
+  LEADFLOW_META,
+  resolveLeadFlowMetaPixelId,
+} from "@/lib/metaCampaignGuard";
 import { getSettings } from "@/lib/settings";
 
-// Self-hosted through next/font, which also removes the render-blocking Google
-// Fonts @import globals.css used to carry. Archivo is the editorial display
-// face; Inter stays the interface voice.
-const archivo = Archivo({
-  subsets: ["latin"],
-  weight: ["700", "800", "900"],
-  variable: "--font-archivo",
-  display: "swap",
-});
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
+// Keep the exact already-deployed fonts and fallback metrics in source.
+// The production build no longer depends on a Google Fonts CSS response.
 export const metadata: Metadata = withPublicPageMetadata("/", {
   title: "The LeadFlow Pro | Marketing agency in Longview, TX",
   description:
@@ -53,7 +43,8 @@ export const metadata: Metadata = withPublicPageMetadata("/", {
   twitter: {
     card: "summary_large_image",
     title: "The LeadFlow Pro | Marketing agency in Longview, TX",
-    description: "Ads, websites, funnels, and follow-up for Longview and East Texas businesses, in accounts you own.",
+    description:
+      "Ads, websites, funnels, and follow-up for Longview and East Texas businesses, in accounts you own.",
     images: ["/og/home.png"],
   },
 });
@@ -82,7 +73,23 @@ export default async function RootLayout({
     );
   }
   return (
-    <html lang="en" className={`${archivo.variable} ${inter.variable}`}>
+    <html lang="en">
+      <head>
+        <link
+          rel="preload"
+          href="/fonts/leadflow/1a4aa50920b5315c-s.p.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+        <link
+          rel="preload"
+          href="/fonts/leadflow/e4af272ccee01ff0-s.p.woff2"
+          as="font"
+          type="font/woff2"
+          crossOrigin="anonymous"
+        />
+      </head>
       <body>
         <a className="cb-skip" href="#main-content">
           Skip to content
