@@ -265,6 +265,12 @@ export default function PortfolioPage() {
               </a>
             ))}
           </nav>
+          <p className="mt-6">
+            <Link href="/demo" className={styles.textLink}>
+              Explore a fictional sample website and back office
+              <ArrowRight size={18} aria-hidden="true" />
+            </Link>
+          </p>
         </div>
       </section>
       <section

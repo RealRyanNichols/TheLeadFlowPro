@@ -1,5 +1,6 @@
 import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 import { Download, Code2, Zap } from "lucide-react";
 import { TOOLS, TOOL_COUNT, toolIndex, sortTools } from "@/lib/tools";
@@ -150,6 +151,12 @@ export default function ToolsPage() {
             </div>
           ))}
         </div>
+        <p className="mt-6 text-sm leading-relaxed text-[var(--muted)]">
+          Need a calculator, quiz, or lead funnel built for your business?{" "}
+          <Link href="/go/tools" className="font-bold text-[var(--blue)] underline underline-offset-4">
+            Explore Tool Studio.
+          </Link>
+        </p>
 
         </div>
       </section>

@@ -7,8 +7,8 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "npm run validate:calculations && npm run validate:facts && npm run validate:tools && npm run validate:visuals && npm run validate:social && next build",
-    "build:only": "npm run validate:calculations && npm run validate:facts && next build",
+    "build": "npm run validate:calculations && npm run validate:facts && npm run validate:tools && npm run validate:visuals && npm run validate:social && npm run check:links && next build && npm run check:orphans",
+    "build:only": "npm run validate:calculations && npm run validate:facts && npm run check:links && next build && npm run check:orphans",
     "validate:facts": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/validate-facts.ts",
     "check:links": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/check-links.ts",
     "start": "next start",
@@ -35,7 +35,8 @@
     "plugin:packs": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/plugin-packs.ts",
     "call-closer:demo": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/call-closer-demo.ts",
     "sellerproof:demo": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/sellerproof-demo.ts",
-    "chasesheet:stripe": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/chase-sheet-stripe.ts"
+    "chasesheet:stripe": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/chase-sheet-stripe.ts",
+    "check:orphans": "node --experimental-strip-types --no-warnings --import ./scripts/register-ts.mjs scripts/check-orphans.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.128.0",
@@ -59,6 +60,7 @@
     "braces": "file:./vendor/braces-guard",
     "eslint": "^8.57.1",
     "eslint-config-next": "15.5.26",
+    "parse5": "8.0.1",
     "playwright": "^1.62.1",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
