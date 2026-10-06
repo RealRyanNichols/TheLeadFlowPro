@@ -10,6 +10,57 @@ branch `claude/dazzling-fermi-svd28t`. Nothing was deployed, sent, spent,
 or changed on the droplet: this session has no SSH key, so the deploy
 steps below are for Ryan or Pat to run in the console.
 
+## Stop. The database is paused.
+
+Checked October 5 at about 8 PM Central, three ways, read only:
+
+- FACT (Supabase management API, project `hpzpwfymwfgwspaixrxi`, "The
+  LeadFlow Pro"): status `INACTIVE`. Premier Dental Academy's project, same
+  account, reads `ACTIVE_HEALTHY`. In Supabase's vocabulary `INACTIVE` is a
+  paused project.
+- FACT (the live site): `/api/live`, the public feed that reads the
+  database with the anonymous key, returns no metrics, an empty feed and no
+  series. `/api/events/availability` answers 503. The public scoreboard for
+  LeadFlow Pro says "this board reads live counts from LeadFlow Pro's own
+  database and that read did not succeed just now", while Premier Dental's
+  board on the same server reports every number.
+- FACT (`lib/config.ts:6`, Pat's Sep 26 handoff): the site on the droplet
+  still points at that hosted project for its database, logins and storage.
+  The Postgres container on the droplet (phase A) was never set up.
+
+What that means today: nobody can sign in to the back office (logins live
+in that database), the call sheet and the sales desk cannot load, a lead
+from the Scott ad cannot be written to the CRM, no welcome email goes out,
+and the new board on this branch shows its recovery view ("could not be
+loaded"), which is the correct behaviour and not a bug.
+
+When it happened is not pinned down. The Oct 2 Scott-ad leads were written
+and emailed at about 4 PM Central that day, so the database was alive then.
+It was dark by Oct 5 evening. RYAN STATEMENT (Oct 3, 02:16Z, raw archive):
+"We are gonna keep Supabase as is." So this was not a decision. Pat's Sep 26
+handoff recorded fourteen projects in the Supabase account against a Free
+plan allowance of two, and thirteen of the fourteen now read `INACTIVE`,
+which fits a plan or billing change pausing projects. DOCUMENTED INFERENCE,
+not proven from here.
+
+The fix is yours to approve, not mine to run:
+
+1. Restore the project in the Supabase dashboard (Project, Restore). It
+   needs an active plan that allows it. The site needs no change; the env
+   still points at it. Nothing I did touches this; the restore tool exists
+   on this session's connector and was deliberately not used.
+2. Then recover the leads that arrived while it was down. Meta keeps lead
+   form submissions for 90 days and retries a failed webhook for hours, not
+   days; the poll in `app/api/meta-leads/route.ts` only runs if the
+   `leadflow-cron-*` timers are on (see the timer check below). Pull the
+   Scott-ad form's leads from Ads Manager and check each against the CRM.
+3. The permanent answer is the one already decided on Sep 28: the site's
+   own Postgres on the droplet (`docs/infrastructure/database.md`), phases
+   A to F, each with your approval. That is days, not tonight.
+
+Until the database is back, every number below the Oct 2 report is a
+transcript, not a count.
+
 ## What you are missing
 
 You are not short on leads. You are short on a loop.
