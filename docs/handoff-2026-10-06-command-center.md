@@ -10,7 +10,17 @@ branch `claude/dazzling-fermi-svd28t`. Nothing was deployed, sent, spent,
 or changed on the droplet: this session has no SSH key, so the deploy
 steps below are for Ryan or Pat to run in the console.
 
-## Stop. The database is paused.
+## The database was paused, and is back
+
+Update, October 6 at about 10 AM Central (read only): the project reads
+`ACTIVE_HEALTHY` again, `/api/live` returns metrics and a feed, and the
+availability check answers 200. Somebody restored it between the Oct 5
+evening check and then; this session did not (the restore tool on this
+connector was never used). The live site's health check now reports commit
+`232976c`, which is not on `origin/main`, so a deploy was also run from
+somewhere other than `main` in that window. The section below is kept as
+the record of the outage. Step 2 (recover the leads that arrived while it
+was down) still stands; step 1 is done.
 
 Checked October 5 at about 8 PM Central, three ways, read only:
 
@@ -302,12 +312,41 @@ read with his own login. What his role cannot read (owner notes) is marked
 Gone: the flow score, the eight imaginary agents, the mission game, the
 proof snapshot. Every number left is a row that exists.
 
+Second increment, same day, for the problems nobody reports:
+
+- The pulse: when each lane last moved (last lead from any source, last
+  Meta lead, last website or phone lead, last call somebody had, last text
+  from a lead, last payment recorded), each with a clock and a plain note.
+  A lane warns when the gap is longer than the business can afford: no lead
+  in three days, no logged call in three days, a Meta campaign delivering
+  with no Meta lead in two days (the form, the webhook or the five-minute
+  poll is off), a lead's text with no human text after it for two hours, no
+  paid checkout in 28 days. This is the Oct 1 "LeadFlow's not even running"
+  and the Oct 2 "no leads today" turned into an alarm on the board. Pat's
+  board carries the same pulse on his own reads.
+- Plan and call: the sheet Ryan asked for on Oct 3. Every industry's
+  planning rate from the pricing page, what the base campaign covers, what
+  five more add; then the second-call arithmetic (jobs they want, the rate,
+  their profit per job if they say it) with the investment to plan for,
+  the contribution at target, and the sentence to say. The disclaimer
+  under it says planning rate, not promise, and what a counted job is.
+- Snapshot: a 1200 by 630 card of the board's counts and percentages at
+  `/admin/command-center/snapshot?window=7|28`, admin only, no caching,
+  nothing typed on a lead can reach it (a test proves it). Ryan's Oct 3
+  "take snapshots from outside of here and show 'em".
+- Home-screen app: the board declares a manifest, so Chrome offers "add to
+  home screen" and it opens straight on the board (Pat's Oct 3 ask).
+
 Files: `lib/commandCenter.ts` (the arithmetic, pure), `lib/commandCenterServer.ts`
 (the reads), `lib/metaInsights.ts` (Meta, shared with the Ads Brain pull),
 `lib/commandCenterSwitches.ts`, `lib/operatorLinks.ts`,
-`app/admin/command-center/*`, `app/sales/board/page.tsx`. Tests:
-`tests/command-center-board.test.ts`, `tests/command-center-access.test.ts`,
-`tests/command-center-switches.test.ts`.
+`lib/commandCenterPulse.ts`, `lib/commandCenterPlan.ts`,
+`lib/commandCenterSnapshot.ts`, `app/admin/command-center/*` (including
+`snapshot/route.tsx` and `manifest.webmanifest/route.ts`),
+`app/sales/board/page.tsx`. Tests: `tests/command-center-board.test.ts`,
+`tests/command-center-access.test.ts`, `tests/command-center-switches.test.ts`,
+`tests/command-center-pulse.test.ts`, `tests/command-center-plan.test.ts`,
+`tests/command-center-snapshot.test.ts`.
 
 ## What it reads, and what it never does
 
@@ -345,6 +384,20 @@ commit and switches only after a check on port 3129; its guard needs
 5.5 GiB of memory and 12 GiB of disk free, which the 8 GB droplet did not
 have on Sep 28 to 29; `leadflow-release` fetches only `main`, so a branch
 must be fetched first.
+
+A second check, added Oct 6 at 10 AM Central: the live site's health route
+reports commit `232976c`, and that commit is on no branch or tag on GitHub
+(all 219 refs checked). Somebody built it from a local commit in
+`/srv/sites/leadflow`. Any `leadflow-release` (of `main` or of this branch)
+replaces it, so find out what it carries before releasing on top of it,
+and push it to GitHub if it is work worth keeping:
+
+```bash
+cd /srv/sites/leadflow
+git log --oneline -3 232976c0dad67c71eaaf320fc33f35a8614e38ef
+git branch --contains 232976c0dad67c71eaaf320fc33f35a8614e38ef
+git diff --stat origin/main 232976c0dad67c71eaaf320fc33f35a8614e38ef
+```
 
 ```bash
 # 1. Bring the branch in where leadflow-release can see it.

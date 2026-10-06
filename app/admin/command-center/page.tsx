@@ -11,14 +11,18 @@ import { fetchLeadFlowAdInsights } from "@/lib/metaInsights";
 import { centralDate, formatCentral } from "@/lib/businessTime";
 import { operatorLinks } from "@/lib/operatorLinks";
 import { commandCenterSwitches } from "@/lib/commandCenterSwitches";
+import { pulse } from "@/lib/commandCenterPulse";
+import { jobsMath, parseCount, parseDollars, planRows } from "@/lib/commandCenterPlan";
 import { EXTERNAL_LINKS } from "@/lib/site/external-links";
 import TodaysCallsBanner from "../TodaysCallsBanner";
 import LiveRefresh from "./LiveRefresh";
 import Rn1DeskPanel from "./Rn1DeskPanel";
 import CallNowList, { CALL_NOW_LIMIT } from "./CallNowList";
 import { AdsPanelView, BreakEvenPanel, MoneyLine, PeopleLine, PromisesPanel, ProposalsPanel, WindowToggle, adsPanelFrom, type AdsPanel } from "./MoneyBoardView";
+import { PlanPanel, PulsePanel, SnapshotLink } from "./PulsePlanView";
 
-export const metadata = { title: "Command Center | The LeadFlow Pro" };
+// The board installs as a home-screen app from this manifest (static text, no data).
+export const metadata = { title: "Command Center | The LeadFlow Pro", manifest: "/admin/command-center/manifest.webmanifest" };
 export const dynamic = "force-dynamic";
 
 // The command center: lead to cash on one screen, for a phone first.
@@ -55,7 +59,8 @@ export default async function CommandCenter({ searchParams }: { searchParams: Pr
   // Verify the signed-in admin before touching anything private.
   const { supabase, user } = await requireOperatorAdmin();
   const now = new Date();
-  const days = parseWindow(((await searchParams) ?? {}).window);
+  const query = (await searchParams) ?? {};
+  const days = parseWindow(query.window);
   const since24h = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
 
   const [boardLoad, sheetLoad, activityResult, purchaseResult, approvalResult, clientsLoad, insights] = await Promise.all([
@@ -179,6 +184,28 @@ export default async function CommandCenter({ searchParams }: { searchParams: Pr
   const monthlyCostsCents = parseUsd(process.env.COMMAND_CENTER_MONTHLY_COSTS_USD);
   const counter = monthlyCostsCents === null ? null : breakEven({ monthlyCostsCents, paidCents: paid28Cents, pricePerClientCents: MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd * 100 });
 
+  // The pulse: when each lane last moved. Meta's live campaign status decides
+  // whether a quiet Meta lane is a problem or just no ad running.
+  const pulseRows = pulse({
+    leads: boardLoad.leads,
+    calls: boardLoad.calls,
+    messages: boardLoad.messages,
+    purchases: boardLoad.purchases,
+    now,
+    metaCampaignActive: insights.ok ? insights.campaigns.some((c) => c.effective_status.toUpperCase() === "ACTIVE") : null,
+  });
+
+  // Plan and call: planning rates from the pricing page; the jobs arithmetic
+  // from what was typed into the form (query string, so nothing is stored).
+  const plans = planRows();
+  const rateUsd = parseDollars(query.rate, 1, 1_000_000) ?? plans[0]?.rateUsd ?? MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd;
+  const math = jobsMath({
+    jobs: parseCount(query.jobs, Math.max(1, Math.floor(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd / rateUsd)), 1, 500),
+    rateUsd,
+    profitPerJobUsd: parseDollars(query.profit, 1, 10_000_000),
+  });
+  const profitTyped = math.profitPerJobUsd === null ? "" : String(math.profitPerJobUsd);
+
   return (
     <div className="space-y-6">
       <TodaysCallsBanner supabase={supabase} className="" />
@@ -193,6 +220,7 @@ export default async function CommandCenter({ searchParams }: { searchParams: Pr
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <WindowToggle days={days} basePath="/admin/command-center" />
+          <SnapshotLink days={days} />
           <LiveRefresh />
         </div>
       </section>
@@ -204,6 +232,8 @@ export default async function CommandCenter({ searchParams }: { searchParams: Pr
           <PeopleLine board={board} />
         </div>
       </section>
+
+      <PulsePanel rows={pulseRows} metaRead={insights.ok} />
 
       <section className={PANEL} aria-labelledby="call-now">
         <div className="flex flex-wrap items-center justify-between gap-2">
@@ -224,6 +254,8 @@ export default async function CommandCenter({ searchParams }: { searchParams: Pr
       </div>
 
       <BreakEvenPanel counter={counter} paid28Cents={paid28Cents} />
+
+      <PlanPanel rows={plans} math={math} basePath="/admin/command-center" days={days} profitTyped={profitTyped} />
 
       <AdsPanelView ads={ads} days={days} adsManagerHref={adsManager} />
 

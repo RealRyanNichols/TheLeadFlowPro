@@ -2,7 +2,7 @@
 
 Written Oct 6, 2026 from the repo (`CLAUDE.md`, `docs/infrastructure/*`, `deploy/*`), Pat's Sep 26 handoff doc, and the facts handed to this task. This session has no SSH key and has not touched the droplet; every command below is for Ryan (DigitalOcean web console) or Pat (root SSH) to run **as root** on the droplet `leadflow-web` (165.227.248.110). Paste the output of any step that looks different from "expected" to Claude before going on.
 
-**What this deploy is:** the live site is the systemd service `site@leadflow` (Next.js, `127.0.0.1:3109`, running as `leadflowsite` on Node 22.23.2 from `/var/lib/leadflow-releases/current`, settings in `/srv/site-env/leadflow.env`). Caddy sends `www.theleadflowpro.com` to it. Live today is `9c701b2` (origin/main, Oct 3). The branch is main plus the rebuilt `/admin/command-center` board, a new `/sales/board` page for the sales login, `lib/commandCenter*.ts`, `lib/metaInsights.ts`, `lib/operatorLinks.ts`, a read-only change to `app/api/ads-brain/pull/route.ts`, four optional env names in `web.env.example`, and tests. **No database migration, no new timer, no Caddy or DNS change, no sends.** The branch is on GitHub as draft PR RealRyanNichols/TheLeadFlowPro#121; its tip may still gain commits, so step 2 reads the tip from GitHub instead of hard-coding it.
+**What this deploy is:** the live site is the systemd service `site@leadflow` (Next.js, `127.0.0.1:3109`, running as `leadflowsite` on Node 22.23.2 from `/var/lib/leadflow-releases/current`, settings in `/srv/site-env/leadflow.env`). Caddy sends `www.theleadflowpro.com` to it. Live on Oct 3 was `9c701b2` (origin/main). On Oct 6 at 10 AM Central the health route reported `232976c`, a commit that is on no branch or tag on GitHub (all 219 refs checked), so somebody released a local commit from `/srv/sites/leadflow`; step 0 item 3 says what to do about that before anything else is released. The branch is main plus the rebuilt `/admin/command-center` board, a new `/sales/board` page for the sales login, `lib/commandCenter*.ts`, `lib/metaInsights.ts`, `lib/operatorLinks.ts`, a read-only change to `app/api/ads-brain/pull/route.ts`, four optional env names in `web.env.example`, and tests. **No database migration, no new timer, no Caddy or DNS change, no sends.** The branch is on GitHub as draft PR RealRyanNichols/TheLeadFlowPro#121; its tip may still gain commits, so step 2 reads the tip from GitHub instead of hard-coding it.
 
 **Rules that apply:** this is a production deploy, so it needs the owner's explicit OK for this action. `leadflow-release` and its guard belong to another session's pipeline: do not edit `/usr/local/bin/leadflow-release` or `/usr/local/lib/leadflow-build-guard.sh`, do not bypass the guard, and **do not run `deploy/droplet/deploy.sh`** on this droplet (it builds in Docker with no memory guard; the Docker setup is not installed here anyway). Never paste a value from `leadflow.env` into chat, GitHub, or a doc; the repo is public.
 
@@ -10,7 +10,17 @@ Written Oct 6, 2026 from the repo (`CLAUDE.md`, `docs/infrastructure/*`, `deploy
 
 1. The branch is on GitHub (`claude/dazzling-fermi-svd28t`, draft PR #121). The runbook fetches by branch name, so nothing else needs to change.
 2. The build session has run `npm run build` (the same gate `leadflow-release` runs: `validate:calculations`, `validate:facts`, `validate:tools`, `validate:visuals`, `validate:social`, then `next build`) and the tests on the branch, and says so in the PR.
-3. The owner has said "deploy it" for this branch. Pat deploying on Ryan's say-so is fine; nobody deploys without it.
+3. Find out what the live `232976c` is before releasing anything on top of it. It is on no GitHub ref, so it was built from a local commit in `/srv/sites/leadflow`; any `leadflow-release` replaces it and `--rollback` brings it back only one step. As root:
+
+   ```bash
+   cd /srv/sites/leadflow
+   git log --oneline -3 232976c0dad67c71eaaf320fc33f35a8614e38ef
+   git branch --contains 232976c0dad67c71eaaf320fc33f35a8614e38ef
+   git diff --stat origin/main 232976c0dad67c71eaaf320fc33f35a8614e38ef
+   ```
+
+   If the diff is work worth keeping, push that branch to GitHub first (or paste the `log` and `diff --stat` lines to the build session) so it can be merged into `main` rather than lost. If it is `main` plus nothing, or an old hotfix already on `main`, carry on.
+4. The owner has said "deploy it" for this branch. Pat deploying on Ryan's say-so is fine; nobody deploys without it.
 
 ## 1. Read-only check (changes nothing)
 

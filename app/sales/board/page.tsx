@@ -5,7 +5,9 @@ import { loadMoneyBoard } from "@/lib/commandCenterServer";
 import { parseWindow } from "@/lib/commandCenter";
 import { formatCentral } from "@/lib/businessTime";
 import { operatorLinks } from "@/lib/operatorLinks";
+import { pulse } from "@/lib/commandCenterPulse";
 import { MoneyLine, PeopleLine, PromisesPanel, ProposalsPanel, WindowToggle } from "@/app/admin/command-center/MoneyBoardView";
+import { PulsePanel } from "@/app/admin/command-center/PulsePlanView";
 
 // The board, for the sales desk: the same money line Ryan sees, read with the
 // signed-in person's own client. The layout has already required the sales or
@@ -39,6 +41,8 @@ export default async function SalesBoard({ searchParams }: { searchParams: Promi
 
   // Pat's board reads only what the sales role can read; Meta spend stays on Ryan's board.
   const links = operatorLinks().filter((l) => !l.ownerOnly && ["uncalled", "hub", "calldesk"].includes(l.key));
+  // The pulse on our own records; Meta's campaign status is read on the owner's board only.
+  const pulseRows = pulse({ leads: load.leads, calls: load.calls, messages: load.messages, purchases: load.purchases, now, metaCampaignActive: null });
 
   return (
     <div className="space-y-6">
@@ -60,6 +64,8 @@ export default async function SalesBoard({ searchParams }: { searchParams: Promi
           <Phone className="h-4 w-4" aria-hidden="true" /> Who to touch now
         </Link>
       </section>
+
+      <PulsePanel rows={pulseRows} metaRead={false} />
 
       <div className="grid gap-6 xl:grid-cols-2">
         <PromisesPanel promises={load.promises} now={now} />

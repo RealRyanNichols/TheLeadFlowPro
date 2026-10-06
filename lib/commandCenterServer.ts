@@ -54,6 +54,9 @@ export type BoardLoad =
       touches: CallSheetTouch[];
       /** Paid purchase rows from the last 28 days, so the page can count a different window. */
       purchases: BoardPurchase[];
+      /** The raw call and text rows behind the touches, for the pulse (when each lane last moved). */
+      calls: CallSheetCallRow[];
+      messages: CallSheetMessageRow[];
       /** Meta leads created in the board's window, for cost per lead on our own records. */
       crmMetaLeads: number;
       /** Some history did not load in full (a read hit its row cap). */
@@ -158,6 +161,8 @@ export async function loadMoneyBoard(supabase: SupabaseClient, now: Date, days: 
     leads,
     touches,
     purchases,
+    calls,
+    messages,
     crmMetaLeads,
     partial,
     unavailable,

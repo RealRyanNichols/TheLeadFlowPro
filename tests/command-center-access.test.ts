@@ -13,6 +13,8 @@ import * as businessTime from "../lib/businessTime.ts";
 import * as commandCenter from "../lib/commandCenter.ts";
 import * as operatorLinks from "../lib/operatorLinks.ts";
 import * as commandCenterSwitches from "../lib/commandCenterSwitches.ts";
+import * as commandCenterPulse from "../lib/commandCenterPulse.ts";
+import * as commandCenterPlan from "../lib/commandCenterPlan.ts";
 import * as externalLinks from "../lib/site/external-links.ts";
 import * as managedPlans from "../lib/site/managedPlans.ts";
 
@@ -100,6 +102,8 @@ function harness({ admin = true, failed = [], rows = {}, insights, sheetLeads = 
     "@/lib/commandCenter": commandCenter,
     "@/lib/operatorLinks": operatorLinks,
     "@/lib/commandCenterSwitches": commandCenterSwitches,
+    "@/lib/commandCenterPulse": commandCenterPulse,
+    "@/lib/commandCenterPlan": commandCenterPlan,
     "@/lib/site/external-links": externalLinks,
     "@/lib/site/managedPlans": managedPlans,
     "@/lib/metaInsights": {
@@ -133,6 +137,7 @@ function harness({ admin = true, failed = [], rows = {}, insights, sheetLeads = 
     if (name === "@/lib/commandCenterServer") return evalModule("lib/commandCenterServer.ts", resolve);
     if (name === "./CallNowList") return evalModule("app/admin/command-center/CallNowList.tsx", resolve);
     if (name === "./MoneyBoardView" || name === "@/app/admin/command-center/MoneyBoardView") return evalModule("app/admin/command-center/MoneyBoardView.tsx", resolve);
+    if (name === "./PulsePlanView" || name === "@/app/admin/command-center/PulsePlanView") return evalModule("app/admin/command-center/PulsePlanView.tsx", resolve);
     throw new Error(`harness does not expect ${name}`);
   };
   return { resolve, reads, userClient: () => userClient };
@@ -346,6 +351,30 @@ test("Pat's board reads with the signed-in client, marks what the role cannot re
   assert.ok(html.includes('href="/admin/sales/uncalled"'));
   assert.ok(!html.includes("/fieldy"), "the Fieldy archive is owner only");
   assert.ok(!html.includes("adsmanager.facebook.com"));
+});
+
+test("the pulse, the plan sheet and the snapshot door are on the owner's board; Pat's board gets the pulse only", async () => {
+  const { html } = await commandCenterPage({ rows: fixture() }, { jobs: "20", rate: "500", profit: "$2,000" });
+  const text = textOf(html);
+  // The pulse: the fixture's newest lead is three hours old, the payment five; nobody has logged a call, the one lane that warns.
+  assert.match(text, /Pulse 1 lane needs a look/);
+  assert.match(text, /Last lead, any source 3 hours ago/);
+  assert.match(text, /Last payment recorded 5 hours ago/);
+  assert.match(text, /Last call somebody had never in the rows read .* No logged call in three days/);
+  assert.match(text, /Meta was not read this time/);
+  // The plan sheet runs the typed numbers: 20 jobs at $500 is $10,000; at $2,000 profit a job that is +$30,000 at target.
+  assert.match(text, /Plan and call/);
+  assert.match(text, /Investment to plan for \$10,000 20 jobs at \$500/);
+  assert.match(text, /If every target lands \+\$30,000 20 × \$2,000 minus \$10,000/);
+  assert.match(text, /Planning rates from the pricing page, not measured results and not a promise/);
+  assert.ok(html.includes('action="/admin/command-center#plan"'));
+  assert.ok(html.includes('href="/admin/command-center/snapshot?window=7"'), "the snapshot door carries the window");
+  // Pat's board: the pulse on his own reads, no plan sheet, no snapshot door.
+  const pat = await salesBoardPage({ rows: fixture() });
+  const patText = textOf(pat.html);
+  assert.match(patText, /Pulse .* Last lead, any source 3 hours ago/);
+  assert.doesNotMatch(patText, /Plan and call/);
+  assert.ok(!pat.html.includes("/admin/command-center/snapshot"));
 });
 
 test("a failed lead read on Pat's board is an error, not an empty board", async () => {
