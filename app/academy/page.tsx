@@ -65,7 +65,11 @@ export default function AcademyPage() {
                   <Image src={`/images/academy/cards/${course.slug}.svg`} alt="" aria-hidden="true" width={640} height={360} sizes="(max-width: 850px) calc(100vw - 76px), 520px" />
                 </div>
                 <p className={styles.level}>{course.level}</p>
-                <h3>{course.shortTitle}</h3>
+                <h3>{course.slug === "chatgpt-operator" ? (
+                  <Link href="/chatgpt" className="underline underline-offset-4">
+                    {course.shortTitle}
+                  </Link>
+                ) : course.shortTitle}</h3>
                 <p>{course.description}</p>
                 <div className={styles.cardBottom}>
                   <span>{course.lessons.length || 12} lessons</span>
@@ -122,7 +126,10 @@ export default function AcademyPage() {
           <div className={styles.standardGrid}>
             {["Written lesson and real example", "Exact prompt or operator template", "Step-by-step written instruction", "Practice task and downloadable workbook", "Objective lesson check at 80 percent", "Final assessment and capstone", "Submission and review for major builds", "Private progress and completion record"].map((item) => <div key={item}><BookOpenCheck aria-hidden="true" /><span>{item}</span></div>)}
           </div>
-          <p className={styles.finalLink}>Already enrolled? <Link href="/login?next=/training">Log in and continue training <ArrowRight aria-hidden="true" /></Link></p>
+          <p className={styles.finalLink}>
+            <Link href="/training">Browse the training library</Link>.{" "}
+            Already enrolled? <Link href="/login?next=/training">Log in and continue training <ArrowRight aria-hidden="true" /></Link>
+          </p>
         </div>
       </section>
     </main>
