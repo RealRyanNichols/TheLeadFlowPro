@@ -107,6 +107,21 @@ financial-identifier material from the recordings is reproduced.
   calls, never by clicking through a web page.
 - RYAN STATEMENT to Amanda (Sep 21, 21:28Z): PDA calls each lead once and
   stops; about 400 September signups should get ten touches each.
+- RYAN STATEMENT (Sep 20, 20:03Z): "on the follow-up is where I'm really
+  lacking right now. I've got emails going out, but personalized follow-up
+  is what I've got to really do."
+- PAT STATEMENT (Sep 20, 01:18Z and 20:06Z): "are you seeing them on your
+  side come through?" Pat could see one lead; a one-off run that afternoon
+  emailed the rest to his address. FACT: `lib/leadNotify.ts` now sends the
+  NEW LEAD email to both addresses on every lead.
+- RYAN STATEMENT (Sep 19, 22:49Z): the dashboard called leads uncontacted
+  that Amanda had reached on Messenger, Quo or email; nothing wrote those
+  touches back. The board counts only touches the system can see (a note,
+  a logged call, a text on the thread). A touch made outside the system
+  still has to be logged on the lead, or it does not exist on any board.
+- RYAN STATEMENT (Sep 19, 23:03Z): about $12,000 a month to run both
+  businesses, old loans included. That is the kind of number the break-even
+  counter is for; it is a spoken estimate, so type the real one.
 - PAT STATEMENT (Sep 18, Notion ledger): sales slowed because nobody called.
 - RYAN STATEMENT (Oct 1, raw archive, 23:15Z): "the LeadFlow's not even
   running... over a week." (Oct 2, 04:00Z): "I haven't had an ad during
