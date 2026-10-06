@@ -7,6 +7,8 @@ import { createElement, type ReactNode } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import ts from "typescript";
 import * as backOfficeNav from "../app/admin/backOfficeNav.ts";
+import * as adminNavigation from "../app/admin/adminNavigation.ts";
+import { ownerDashboardLoginFor } from "../lib/adminOwnerAccess.ts";
 import * as callQueue from "../lib/callQueue.ts";
 import * as callSheet from "../lib/callSheet.ts";
 import * as contactGaps from "../lib/contactGaps.ts";
@@ -650,24 +652,26 @@ test("call sheet rows: Email only for a real address, the call card's rule; othe
 
 /**
  * The admin layout, run for real: auth, then the header. Next and the page's
- * own components are stubbed; the nav (app/admin/BackOfficeNav.tsx) and its
- * data are the real thing, on the page at `pathname`.
+ * own components are stubbed; the unified AdminShell and navigation data
+ * are the real thing, on the page at `pathname`.
  */
-async function adminLayout(db: Db = {}, pathname = "/admin/call-sheet") {
+async function adminLayout(db: Db = {}, pathname = "/admin/call-sheet", ownerAccess = false, view = "today") {
   const icon = (name: string) => {
     const Icon = (props: Record<string, unknown>) => createElement("svg", { ...props, "data-icon": name });
     Icon.displayName = `Icon(${name})`;
     return Icon;
   };
   const stubs = {
+    "react": requireReal("react"),
     "@/lib/publicPageMetadata": { PRIVATE_PAGE_METADATA: {} },
     "next/navigation": {
       redirect: (url: string) => {
         throw new Redirect(url);
       },
       usePathname: () => pathname,
+      useSearchParams: () => new URLSearchParams({ view }),
     },
-    "lucide-react": { ArrowUpRight: icon("external"), ChevronDown: icon("chevron"), Menu: icon("menu"), X: icon("close") },
+    "lucide-react": Object.fromEntries(["ArrowUpRight", "ChevronDown", "LayoutDashboard", "Menu", "Moon", "Phone", "Search", "Sun", "X"].map((name) => [name, icon(name)])),
     "@/components/BrandLockup": { __esModule: true, default: ({ href }: { href: string }) => createElement("a", { href, "data-brand": "" }, "The LeadFlow Pro") },
     "@/components/InternalTrafficMarker": { __esModule: true, default: () => null },
     // The real SignOutButton's markup: a form that posts to /auth/signout with one submit button.
@@ -678,9 +682,14 @@ async function adminLayout(db: Db = {}, pathname = "/admin/call-sheet") {
     },
     "./AdminMenuCloser": { __esModule: true, default: () => null },
     "./backOfficeNav": backOfficeNav,
+    "./adminNavigation": adminNavigation,
+    "./admin-workspace.css": {},
+    "@/lib/adminOwnerAccess": {
+      ownerDashboardLoginFor: (email: string | null | undefined) => ownerDashboardLoginFor(email, ownerAccess ? "owner@example.test:ryan" : ""),
+    },
   };
-  const nav = load("app/admin/BackOfficeNav.tsx", db, stubs);
-  const { run, reads } = load("app/admin/layout.tsx", db, { ...stubs, "./BackOfficeNav": { __esModule: true, default: nav.run } });
+  const shell = load("app/admin/AdminShell.tsx", db, stubs);
+  const { run, reads } = load("app/admin/layout.tsx", db, { ...stubs, "./AdminShell": { __esModule: true, default: shell.run } });
   try {
     const element = await run({ children: createElement("main", null, "PAGE") });
     return { html: renderToStaticMarkup(element as never), reads, redirect: null as string | null };
@@ -690,116 +699,77 @@ async function adminLayout(db: Db = {}, pathname = "/admin/call-sheet") {
   }
 }
 
-test("the back office nav: Today's calls and the four daily pages in one row; Menu holds every page under six headings", async () => {
+test("the unified admin shell retains calls, every daily destination, active pages and role boundaries", async () => {
   const out = await adminLayout();
   assert.equal(out.redirect, null);
-  const html = out.html;
-  const header = html.slice(0, html.indexOf("<main>PAGE</main>"));
-  const nav = html.slice(html.indexOf("<nav"), html.indexOf("</nav>") + "</nav>".length);
-  const anchors = (part: string) => [...part.matchAll(/<a href="([^"]+)"[^>]*>([\s\S]*?)<\/a>/g)].map((m) => ({ href: m[1], text: textOf(m[2]), tag: m[0] }));
-  const target = (tag: string) => /min-h-\[44px\]/.test(tag) && /focus-visible:outline/.test(tag);
-
-  // Today's calls: the first link in the nav, the only link to the call sheet anywhere in the header, under that
-  // name, a 44px target at every width, and marked as the page you are on when you are on it.
-  const all = anchors(nav);
-  assert.deepEqual({ href: all[0].href, text: all[0].text }, { href: "/admin/call-sheet", text: "Today's calls" });
-  assert.equal(all.filter((a) => a.href === "/admin/call-sheet").length, 1);
-  assert.equal((header.match(/href="\/admin\/call-sheet"/g) ?? []).length, 1);
-  assert.ok(!textOf(nav).includes("Call sheet"));
-  assert.ok(target(all[0].tag) && /font-black/.test(all[0].tag) && /aria-current="page"/.test(all[0].tag), all[0].tag);
-
-  // From sm up: the four daily pages, in the data file's order, as 44px pills. The wrapper only hides below sm.
-  const rowStart = nav.indexOf('<div class="contents max-sm:hidden">');
-  const menuStart = nav.indexOf('<details id="back-office-menu"');
-  assert.ok(rowStart > nav.indexOf("Today&#x27;s calls") && menuStart > rowStart, "Today's calls, then the row, then Menu");
-  const row = anchors(nav.slice(rowStart, menuStart));
-  assert.deepEqual(row.map((a) => [a.href, a.text]), backOfficeNav.BAR_LINKS.map((l) => [l.href, l.label]));
-  assert.deepEqual(row.map((a) => a.href), ["/admin", "/admin/sales", "/admin/messages", "/admin/purchases"]);
-  for (const a of row) assert.ok(target(a.tag) && !/aria-current/.test(a.tag), a.tag);
-  // The Sales Desk is "Sales desk" in the nav, never "Today queue" beside "Today's calls".
-  assert.ok(row.some((a) => a.href === "/admin/sales" && a.text === "Sales desk"));
-  assert.ok(!header.includes("Today queue"));
-
-  // Menu: one <details> at every width that works without JavaScript, closed until tapped, a 44px button with a
-  // focus ring and decorative icons. It reads Menu on a phone and All pages from sm up.
-  const menuEnd = nav.lastIndexOf("</details>") + "</details>".length;
-  const details = nav.slice(menuStart, menuEnd);
-  const opening = details.slice(0, details.indexOf(">"));
-  assert.ok(!/\sopen=""/.test(opening), "closed until tapped");
-  assert.ok(!/sm:hidden/.test(opening), "the same menu at every width");
-  const summary = /<summary class="([^"]*)">([\s\S]*?)<\/summary>/.exec(details);
-  assert.ok(summary);
-  assert.ok(summary[1].includes("min-h-[44px]") && summary[1].includes("focus-visible:outline"), summary[1]);
-  const words = [...summary[2].matchAll(/<span class="([^"]*)">([^<]+)<\/span>/g)].map((m) => [m[2], m[1].split(" ")] as const);
-  assert.deepEqual(words.map(([w]) => w), ["Menu", "All pages"]);
-  assert.ok(words[0][1].includes("sm:hidden") && words[1][1].includes("max-sm:hidden"), summary[2]);
-  assert.ok(/<svg[^>]*aria-hidden="true"/.test(summary[2]), "the icons are decoration");
-
-  // It holds every Menu link once, in the data file's order, each a 44px target with a focus ring showing its
-  // label and its one plain line. A separate site opens in a new tab.
-  const menu = anchors(details);
-  assert.deepEqual(menu.map((a) => a.href), backOfficeNav.MENU_LINKS.map((l) => l.href));
-  for (const [i, a] of menu.entries()) {
-    const link = backOfficeNav.MENU_LINKS[i];
-    assert.ok(target(a.tag), a.tag);
-    assert.equal(a.text, `${link.label} ${link.description}`);
-    assert.equal(/target="_blank" rel="noreferrer"/.test(a.tag), link.external === true, a.tag);
+  assert.deepEqual(out.reads, ["profiles"], "auth and role are checked without reading lead data");
+  const anchors = (part: string) => [...part.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/g)].map((match) => ({
+    href: /\bhref="([^"]+)"/.exec(match[1])?.[1] ?? "",
+    text: textOf(match[2]),
+    tag: match[0],
+  }));
+  const navGroups = (html: string) => [...html.matchAll(/<nav\b([^>]*)>([\s\S]*?)<\/nav>/g)].map((match) => ({
+    label: /\baria-label="([^"]+)"/.exec(match[1])?.[1] ?? "",
+    links: anchors(match[2]),
+  }));
+  const sidebar = navGroups(out.html);
+  assert.deepEqual(sidebar.map((group) => group.label), backOfficeNav.MENU_GROUPS.map((group) => group.title));
+  const sidebarLinks = sidebar.flatMap((group) => group.links);
+  const expected = adminNavigation.adminGroupsFor(false).flatMap((group) => group.items);
+  assert.deepEqual(sidebarLinks.map((link) => link.href), expected.map((link) => link.href));
+  assert.equal(new Set(sidebarLinks.map((link) => link.href)).size, sidebarLinks.length, "each sidebar destination appears once");
+  for (const link of [...backOfficeNav.BAR_LINKS, ...backOfficeNav.MENU_LINKS]) {
+    assert.equal(sidebarLinks.filter((item) => item.href === link.href).length, 1, "existing page remains reachable: " + link.href);
   }
-  assert.ok(!menu.some((a) => a.href === "/admin/call-sheet"), "Today's calls stays in the row, once");
-  assert.ok(menu.some((a) => a.href === "/admin/idea-lab" && a.text.startsWith("Idea Lab ")), "Idea Lab is in the menu");
-
-  // Six headings, each with its line. From sm up a heading sits over its links, which always show; below sm the
-  // heading is a 44px row that opens the group (a nested <details>), the first open and the rest closed.
-  const headings = [...details.matchAll(/<h2 class="[^"]*">([^<]+)<\/h2>/g)].map((m) => m[1]);
-  assert.deepEqual(headings, backOfficeNav.MENU_GROUPS.map((g) => g.title));
-  for (const g of backOfficeNav.MENU_GROUPS) assert.ok(textOf(details).includes(g.subtitle), g.subtitle);
-  const folds = [...details.matchAll(/<details class="([^"]*)"( open="")?>/g)];
-  assert.equal(folds.length, backOfficeNav.MENU_GROUPS.length);
-  assert.deepEqual(folds.map((f) => Boolean(f[2])), backOfficeNav.MENU_GROUPS.map((_, i) => i === 0));
-  for (const f of folds) {
-    const classes = f[1].split(" ");
-    assert.ok(classes.includes("sm:hidden") && classes.includes("peer"), f[1]);
+  assert.deepEqual({ href: sidebarLinks[0].href, text: sidebarLinks[0].text }, { href: "/admin/call-sheet", text: "Today's calls" });
+  assert.equal(sidebarLinks.filter((link) => /aria-current="page"/.test(link.tag)).length, 1);
+  assert.ok(/aria-current="page"/.test(sidebarLinks[0].tag));
+  for (const [index, item] of sidebarLinks.entries()) {
+    assert.equal(/target="_blank"/.test(item.tag), expected[index].external === true, item.tag);
+    if (expected[index].external) assert.match(item.tag, /rel="noreferrer"/);
   }
-  const foldSummaries = [...details.matchAll(/<summary class="([^"]*)">/g)].slice(1).map((m) => m[1]);
-  assert.equal(foldSummaries.length, backOfficeNav.MENU_GROUPS.length);
-  for (const cls of foldSummaries) assert.ok(cls.includes("min-h-[44px]") && cls.includes("focus-visible:outline"), cls);
-  const lists = [...details.matchAll(/<ul class="([^"]*)">/g)].map((m) => m[1]);
-  assert.equal(lists.length, backOfficeNav.MENU_GROUPS.length);
-  for (const cls of lists) assert.ok(cls.includes("max-sm:hidden") && cls.includes("peer-open:block"), cls);
 
-  // Sign out: in the row from sm up, and the last row of the menu below sm. Both post to /auth/signout.
-  const forms = [...nav.matchAll(/<form action="\/auth\/signout" method="post"><button type="submit" class="([^"]*)">Sign out<\/button><\/form>/g)];
-  assert.equal(forms.length, 2);
-  for (const f of forms) assert.ok(f[1].includes("min-h-[44px]"), f[1]);
-  const wrapper = (part: string) => /<div class="([^"]*)"><form action="\/auth\/signout"/.exec(part)?.[1].split(" ") ?? [];
-  assert.ok(wrapper(details).includes("sm:hidden"), "the menu's Sign out is for phones");
-  assert.ok(nav.slice(menuEnd).startsWith("<div class=") && wrapper(nav.slice(menuEnd)).includes("max-sm:hidden"), "the row's Sign out is for sm up");
+  // The call shortcut remains outside the mobile sidebar, so it takes one click.
+  const topbar = /<header class="lf-admin-topbar"[^>]*>([\s\S]*?)<\/header>/.exec(out.html)?.[1];
+  assert.ok(topbar);
+  assert.deepEqual(anchors(topbar).filter((link) => link.href === "/admin/call-sheet").map((link) => link.text), ["Today's calls"]);
+  assert.match(topbar, /aria-label="Open navigation"[^>]*aria-controls="lf-admin-navigation"[^>]*aria-expanded="false"/);
+  assert.match(out.html, /<aside[^>]*aria-label="Admin navigation"[^>]*id="lf-admin-navigation"/);
+  assert.match(out.html, /<a[^>]*href="#lf-admin-main"[^>]*>Skip to admin content<\/a>/);
+  assert.match(out.html, /<main[^>]*id="lf-admin-main"[^>]*tabindex="-1"/);
+  assert.match(topbar, /aria-label="Search admin destinations, Control or Command K"/);
+  assert.match(out.html, /<dialog[^>]*aria-labelledby="lf-admin-search-title"/);
+  assert.match(out.html, /<input[^>]*aria-label="Search admin destinations"/);
+  assert.equal((out.html.match(/<form action="\/auth\/signout" method="post">/g) ?? []).length, 1);
+  assert.match(out.html, /<button type="submit"[^>]*>Sign out<\/button>/);
 
-  // The brand gives its row to the page on a phone and is back from sm up.
-  assert.match(header, /<div[^>]* class="mb-6 hidden sm:block"><a href="\/" data-brand="">/);
-  assert.match(header, /<h1 class="[^"]*sm:text-2xl[^"]*">Back Office<\/h1>/);
-  assert.deepEqual(copyProblems(textOf(header)), []);
+  // The sidebar keeps the active marker on the most specific page.
+  for (const [pathname, selected] of [
+    ["/admin/purchases", "/admin/purchases"],
+    ["/admin/leads/" + A, "/admin"],
+    ["/admin/sales/uncalled", "/admin/sales/uncalled"],
+    ["/admin/sales/pipeline", "/admin/sales/pipeline"],
+  ]) {
+    const rendered = await adminLayout({}, pathname);
+    assert.deepEqual(navGroups(rendered.html).flatMap((group) => group.links).filter((link) => /aria-current="page"/.test(link.tag)).map((link) => link.href), [selected]);
+  }
 
-  // The page you are on is marked in the row and in the menu, and nothing else is.
-  const onPurchases = (await adminLayout({}, "/admin/purchases")).html;
-  const marked = [...onPurchases.matchAll(/<a href="([^"]+)"[^>]*aria-current="page"/g)].map((m) => m[1]);
-  assert.deepEqual(marked, ["/admin/purchases", "/admin/purchases"]);
-  const onLead = (await adminLayout({}, `/admin/leads/${A}`)).html;
-  assert.deepEqual([...onLead.matchAll(/<a href="([^"]+)"[^>]*aria-current="page"/g)].map((m) => m[1]), ["/admin", "/admin"]);
-
-  // The closer is progressive: it only closes the menu, never opens it, reads, or sends anything. The nav's own
-  // script reads the address to mark the page, and nothing else.
-  const closer = src("app/admin/AdminMenuCloser.tsx");
-  assert.ok(closer.startsWith('"use client";'));
-  assert.ok(!/\.open = true|fetch\(|supabase|sendBeacon/.test(closer), "closes only");
-  assert.match(src("app/admin/layout.tsx"), /<AdminMenuCloser menuId=\{MENU_ID\} \/>/);
-  const navSource = src("app/admin/BackOfficeNav.tsx");
-  assert.ok(navSource.startsWith('"use client";'));
-  assert.ok(!/fetch\(|supabase|sendBeacon|useEffect|useState|localStorage/.test(navSource), "reads the address, nothing else");
-
-  // Signed out or not an admin: nothing renders.
+  // A mapped owner sees the additional workspace; a plain admin never gets it.
+  assert.ok(!sidebarLinks.some((link) => link.href.startsWith("/admin/overview")));
+  const owner = await adminLayout({}, "/admin/overview", true, "plan");
+  const ownerGroups = navGroups(owner.html);
+  assert.deepEqual(ownerGroups.map((group) => group.label), ["Workspace", ...backOfficeNav.MENU_GROUPS.map((group) => group.title)]);
+  assert.deepEqual(ownerGroups.flatMap((group) => group.links).filter((link) => /aria-current="page"/.test(link.tag)).map((link) => link.href), ["/admin/overview?view=plan"]);
+  assert.ok(owner.html.includes("Ryan Nichols"));
   assert.equal((await adminLayout({ signedIn: false })).redirect, "/login?next=/admin");
   assert.equal((await adminLayout({ role: "sales" })).redirect, "/dashboard");
+
+  // Native-shell mobile targets and keyboard focus stay available after the migration.
+  const css = src("app/admin/admin-workspace.css");
+  assert.match(css, /:focus-visible\{outline:3px/);
+  assert.match(css, /@media\(max-width:800px\)[\s\S]*\.lf-admin-menu\{display:grid\}/);
+  assert.match(css, /\.lf-admin-nav-item\{min-height:44px\}/);
+  assert.match(css, /\.lf-admin-call-button\{min-height:44px/);
 });
 
 test("Today's calls is first in the back office nav, and only there", () => {
