@@ -5,7 +5,7 @@ import { usePathname, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { ArrowUpRight, ChevronDown, LayoutDashboard, Menu, Moon, Phone, Search, Sun, X } from "lucide-react";
 import SignOutButton from "@/components/SignOutButton";
-import { adminGroupsFor, destinationActive } from "./adminNavigation";
+import { adminGroupsFor, destinationActive, primaryDestinationsFor } from "./adminNavigation";
 
 export default function AdminShell({ children, ownerAccess, name, ownerLogin, scope = "admin" }: {
   children: React.ReactNode; ownerAccess: boolean; name: string; ownerLogin: string | null; scope?: "admin" | "sales";
@@ -19,7 +19,9 @@ export default function AdminShell({ children, ownerAccess, name, ownerLogin, sc
   const dialog = useRef<HTMLDialogElement>(null);
   const searchInput = useRef<HTMLInputElement>(null);
   const groups = useMemo(() => adminGroupsFor(ownerAccess, scope), [ownerAccess, scope]);
-  const destinations = groups.flatMap(group => group.items.map(item => ({ ...item, group: group.label })));
+  const primary = primaryDestinationsFor(ownerAccess, scope);
+  const additionalGroups = groups.map(group => ({ ...group, items: group.items.filter(item => !primary.some(link => link.href === item.href)) })).filter(group => group.items.length);
+  const destinations = [...primary.map(item => ({ ...item, group: "Workspace" })), ...additionalGroups.flatMap(group => group.items.map(item => ({ ...item, group: group.label })))];
   const current = destinations.find(item => destinationActive(item.href, pathname, view));
   const matches = destinations.filter(item => !query || `${item.label} ${item.hint || ""} ${item.group}`.toLowerCase().includes(query.toLowerCase()));
 
@@ -43,12 +45,13 @@ export default function AdminShell({ children, ownerAccess, name, ownerLogin, sc
         <img src="/admin-workspace/leadflow-logo.webp" width="44" height="44" alt="" />
         <span>LeadFlow<small>BUSINESS WORKSPACE</small></span>
       </Link>
-      <div className="lf-admin-nav-groups">{groups.map(group => <details key={group.label} open className="lf-admin-nav-group">
+      <nav className="lf-admin-primary" aria-label="Main destinations">{primary.map(item=><Link key={item.href} href={item.href} className={`lf-admin-nav-item ${destinationActive(item.href,pathname,view)?"is-active":""}`} aria-current={destinationActive(item.href,pathname,view)?"page":undefined}>{item.label}</Link>)}</nav>
+      <details className="lf-admin-more" key={`${pathname}:${view}`} open={additionalGroups.some(group=>group.items.some(item=>destinationActive(item.href,pathname,view)))}><summary>More tools &amp; reports<ChevronDown size={13} aria-hidden="true" /></summary><div className="lf-admin-nav-groups">{additionalGroups.map(group => <details key={group.label} open={group.items.some(item=>destinationActive(item.href,pathname,view))} className="lf-admin-nav-group">
         <summary>{group.label}<ChevronDown size={13} aria-hidden="true" /></summary>
         <nav aria-label={group.label}>{group.items.map(item => item.external
           ? <a key={item.href} className="lf-admin-nav-item" href={item.href} target="_blank" rel="noreferrer">{item.label}<ArrowUpRight size={13} aria-hidden="true" /></a>
           : <Link key={item.href} className={`lf-admin-nav-item ${destinationActive(item.href, pathname, view) ? "is-active" : ""}`} aria-current={destinationActive(item.href, pathname, view) ? "page" : undefined} href={item.href}>{item.label}</Link>)}</nav>
-      </details>)}</div>
+      </details>)}</div></details>
       <div className="lf-admin-profile"><span className="lf-admin-avatar">{initials}</span><div><strong>{name}</strong><small>{ownerLogin === "ryan" ? "CEO · Direction & relationships" : ownerLogin === "pat" ? "Strategy, creative & systems" : "Admin workspace"}</small></div><SignOutButton className="lf-admin-signout" /></div>
     </aside>
     <div className="lf-admin-body">

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { MENU_LINKS, CALL_SHEET_HREF } from "../app/admin/backOfficeNav.ts";
-import { adminGroupsFor, destinationActive } from "../app/admin/adminNavigation.ts";
+import { adminGroupsFor, destinationActive, primaryDestinationsFor } from "../app/admin/adminNavigation.ts";
 import { ownerDashboardLoginFor } from "../lib/adminOwnerAccess.ts";
 import { safeOwnerView } from "../lib/adminOwnerViews.ts";
 
@@ -42,4 +42,11 @@ test("view inputs and deep active routes stay bounded and unambiguous", () => {
   assert.equal(destinationActive("/admin/sales/pipeline", "/admin/sales/pipeline"), true);
   assert.equal(destinationActive("/admin/overview?view=plan", "/admin/overview", "plan"), true);
   assert.equal(destinationActive("/admin/overview", "/admin/overview", "plan"), false);
+});
+
+test("daily navigation is five destinations while directory and search keep canonical routes", () => {
+ const primary=primaryDestinationsFor(true);assert.equal(primary.length,5);assert.deepEqual(primary.map(x=>x.label),["Today","Sales","Clients","Analytics","Operations"]);
+ const all=adminGroupsFor(true).flatMap(g=>g.items.map(i=>i.href));for(const p of primary)assert(all.includes(p.href));
+ assert(!primaryDestinationsFor(false).some(x=>x.href.startsWith("/admin/overview")));
+ assert(!primaryDestinationsFor(false,"sales").some(x=>x.href==="/admin/settings"));
 });

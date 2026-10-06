@@ -40,3 +40,18 @@ export function destinationActive(href: string, pathname: string, view = "today"
   const selected = extra.find(href => pathname === href || pathname.startsWith(href + "/")) || currentHref(pathname);
   return selected === path;
 }
+
+/** Five daily destinations; remaining routes stay in the expandable directory and search. */
+export function primaryDestinationsFor(ownerAccess: boolean, scope: "admin" | "sales" = "admin"): AdminDestination[] {
+ if (scope === "sales") return [
+  {href:"/admin/sales",label:"Today"},{href:"/admin/sales/pipeline",label:"Sales"},
+  {href:"/admin/sales/follow-ups",label:"Follow-ups"},{href:"/admin/sales/delivery",label:"Delivery"},
+ ];
+ return [
+  {href:ownerAccess?"/admin/overview":"/admin/call-sheet",label:"Today"},
+  {href:"/admin/sales",label:"Sales"},
+  {href:"/admin/clients",label:"Clients"},
+  {href:ownerAccess?"/admin/overview?view=marketing":"/admin/analytics",label:"Analytics"},
+  {href:ownerAccess?"/admin/overview?view=work":"/admin/projects",label:"Operations"},
+ ];
+}
