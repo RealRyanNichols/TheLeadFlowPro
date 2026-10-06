@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
 import { ADS_BRAIN, metaLeadCount, numericMetric, verifyAdsBrainSignature } from "@/lib/adsBrain";
+import { dateDaysAgo, graphObject, graphRows } from "@/lib/metaInsights";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
-
-type GraphPage<T> = { data?: T[]; paging?: { next?: string }; error?: { message?: string; code?: number } };
 
 function signedRequest(request: Request) {
   const url = new URL(request.url);
@@ -16,47 +15,6 @@ function signedRequest(request: Request) {
     timestamp: request.headers.get("x-ads-brain-timestamp"),
     signature: request.headers.get("x-ads-brain-signature"),
   });
-}
-
-async function graphJson<T>(url: URL, token: string): Promise<T> {
-  const response = await fetch(url, {
-    method: "GET",
-    headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
-    cache: "no-store",
-    signal: AbortSignal.timeout(20_000),
-  });
-  const body = (await response.json().catch(() => ({}))) as T & { error?: { message?: string; code?: number } };
-  if (!response.ok || body.error) {
-    const message = String(body.error?.message ?? `Meta returned HTTP ${response.status}`).slice(0, 300);
-    throw new Error(message);
-  }
-  return body;
-}
-
-async function graphObject<T>(path: string, fields: string, token: string): Promise<T> {
-  const url = new URL(`https://graph.facebook.com/${ADS_BRAIN.graphVersion}/${path}`);
-  url.searchParams.set("fields", fields);
-  return graphJson<T>(url, token);
-}
-
-async function graphRows<T>(path: string, fields: string, token: string, extra: Record<string, string> = {}): Promise<T[]> {
-  const first = new URL(`https://graph.facebook.com/${ADS_BRAIN.graphVersion}/${path}`);
-  first.searchParams.set("fields", fields);
-  first.searchParams.set("limit", "500");
-  for (const [key, value] of Object.entries(extra)) first.searchParams.set(key, value);
-
-  const rows: T[] = [];
-  let next: URL | null = first;
-  for (let page = 0; next && page < 20; page += 1) {
-    const body: GraphPage<T> = await graphJson<GraphPage<T>>(next, token);
-    rows.push(...(body.data ?? []));
-    next = body.paging?.next ? new URL(body.paging.next) : null;
-  }
-  return rows;
-}
-
-function dateDaysAgo(days: number): string {
-  return new Date(Date.now() - days * 86_400_000).toISOString().slice(0, 10);
 }
 
 export async function GET(request: Request) {
