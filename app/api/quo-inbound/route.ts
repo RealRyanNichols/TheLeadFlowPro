@@ -12,6 +12,7 @@ import { sendInternalLeadAlert } from "@/lib/leadNotify";
 import { leadFlowSupabaseRuntimeIssues } from "@/lib/metaCampaignGuard";
 import { speedToLeadEnabled } from "@/lib/speedToLeadAlerts";
 import { dispatchSpeedToLeadWithBudget } from "@/lib/speedToLeadAlertsServer";
+import { quoInboundMessage, verifyQuoInboundAuthentication } from "@/lib/quoInboundWebhook";
 
 // Inbound SMS from Quo. This route does NOT create leads, log messages, or
 // decide anything about consent. It authenticates the caller, proves the event
@@ -43,23 +44,29 @@ import { dispatchSpeedToLeadWithBudget } from "@/lib/speedToLeadAlertsServer";
 // stays in force and this route does not touch it. The auto-reply has its own
 // switch, QUO_INBOUND_AUTOREPLY_ENABLED, and its own function in lib/quo.ts.
 //
-// SETUP (one time, in the Quo dashboard):
-//   Webhooks -> new webhook -> event "message.received"
-//   URL: https://www.theleadflowpro.com/api/quo-inbound?secret=<QUO_WEBHOOK_SECRET>
+// SETUP (current Quo API, version 2026-03-30):
+//   Inspect existing app/API webhooks before adding a dedicated message.received receiver.
+//   URL: https://www.theleadflowpro.com/api/quo-inbound (no secret in the URL)
 // Select only The LeadFlow Pro number as the webhook resource. Then set:
-//   QUO_WEBHOOK_SECRET: any long random string
+//   QUO_WEBHOOK_SECRET: the provider's canonical whsec_ signing key
 //   QUO_LEADFLOW_INBOUND_PHONE_NUMBER_ID: the verified PN... id for
 //     The LeadFlow Pro line (+1 903-500-8898)
 // Without the exact PN id, ingestion is disabled by default. The handler also
 // checks the payload's `to` number, so a shared-workspace/PDA event is ignored.
 //
-// Uses the service role key because Quo is unauthenticated to Supabase and
-// log_quo_activity is service-role only. The shared secret is the gate.
+// A whsec_ key requires fresh webhook-* signatures on the exact raw body.
+// Existing non-whsec_ shared tokens retain their legacy query-secret mode.
+// Uses the service role key because log_quo_activity is service-role only.
 
 export async function POST(request: Request) {
-  const secret = process.env.QUO_WEBHOOK_SECRET;
-  const given = new URL(request.url).searchParams.get("secret");
-  if (!secret || given !== secret) {
+  const body = await request.text();
+  if (!verifyQuoInboundAuthentication({
+    secret: process.env.QUO_WEBHOOK_SECRET,
+    querySecret: new URL(request.url).searchParams.get("secret"),
+    headers: request.headers,
+    body,
+    nowMs: Date.now(),
+  })) {
     return NextResponse.json({ ok: false }, { status: 401 });
   }
 
@@ -71,16 +78,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, disabled: true }, { status: 503 });
   }
 
-  const payload = await request.json().catch(() => null);
-  if (!payload) return NextResponse.json({ ok: false }, { status: 400 });
-
-  // Quo wraps the message in data.object for message.* events.
-  const obj = payload?.data?.object ?? payload?.data ?? payload;
+  let payload: unknown;
+  try { payload = JSON.parse(body); } catch {
+    return NextResponse.json({ ok: false }, { status: 400 });
+  }
+  const obj = quoInboundMessage(payload);
+  if (!obj) return NextResponse.json({ ok: false }, { status: 400 });
   const inboundIdentity = verifyLeadFlowQuoInboundIdentity({
-    eventType: payload?.type,
-    direction: obj?.direction,
-    phoneNumberId: obj?.phoneNumberId,
-    to: obj?.to,
+    eventType: obj.eventType,
+    direction: obj.direction,
+    phoneNumberId: obj.phoneNumberId,
+    to: obj.to,
     allowedPhoneNumberId: process.env.QUO_LEADFLOW_INBOUND_PHONE_NUMBER_ID,
   });
   if (!inboundIdentity.ok) {
@@ -101,9 +109,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false }, { status: 500 });
   }
 
-  const text = String(obj?.text ?? obj?.body ?? obj?.content ?? "").trim();
-  const from = obj?.from?.phoneNumber ?? obj?.from ?? "";
-  const providerId = obj?.id ? String(obj.id) : null;
+  const text = obj.text;
+  const from = obj.from;
+  const providerId = obj.id;
 
   // Nothing usable, and nothing to retry. Quo gets a clean acknowledgement.
   if (!text || !from || !providerId) {
@@ -123,12 +131,12 @@ export async function POST(request: Request) {
       kind: "message",
       channel: "sms",
       provider_id: providerId,
-      conversation_id: obj?.conversationId ?? null,
+      conversation_id: obj.conversationId,
       participant_phone: String(from),
       direction: "incoming",
-      occurred_at: obj?.createdAt ?? payload?.createdAt ?? null,
+      occurred_at: obj.createdAt,
       body: text,
-      author: obj?.userId ?? null,
+      author: obj.userId,
       delivered: true,
       source: "quo",
     },

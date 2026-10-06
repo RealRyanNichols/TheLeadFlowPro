@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { createHmac, randomBytes } from "node:crypto";
 import test from "node:test";
 import {
   INBOUND_AUTO_REPLY,
@@ -10,6 +11,7 @@ import {
   sendLeadText,
   verifyLeadFlowQuoInboundIdentity,
 } from "../lib/quo";
+import { quoInboundMessage, verifyQuoInboundAuthentication } from "../lib/quoInboundWebhook";
 
 const LEADFLOW_PHONE_NUMBER_ID = "PNleadflowVerified123";
 
@@ -60,6 +62,89 @@ test("Quo inbound accepts only an incoming message.received event", () => {
     ok: false,
     reason: "not_incoming",
   });
+});
+
+test("current Quo envelopes carry exact resource, sender and destination identity", () => {
+  const event = {
+    apiVersion: "2026-03-30",
+    type: "message.received",
+    data: {
+      resource: { id: "ACsyntheticInbound", direction: "incoming", text: "Controlled test", createdAt: "2026-10-06T16:00:00Z" },
+      context: {
+        phoneNumberId: LEADFLOW_PHONE_NUMBER_ID,
+        conversationId: "CNsynthetic",
+        userId: "USsynthetic",
+        senderIdentifier: "+19035550100",
+        recipientIdentifiers: [LEADFLOW_FROM],
+      },
+    },
+  };
+  const message = quoInboundMessage(event);
+  assert.ok(message);
+  assert.equal(message.id, "ACsyntheticInbound");
+  assert.equal(message.from, "+19035550100");
+  assert.equal(message.text, "Controlled test");
+  assert.equal(message.conversationId, "CNsynthetic");
+  assert.deepEqual(verifyLeadFlowQuoInboundIdentity({ ...message, allowedPhoneNumberId: LEADFLOW_PHONE_NUMBER_ID }), { ok: true });
+  const foreign = quoInboundMessage({ ...event, data: { ...event.data, context: { ...event.data.context, phoneNumberId: "PNpremier", recipientIdentifiers: ["+19039136444"] } } });
+  assert.ok(foreign);
+  assert.equal(verifyLeadFlowQuoInboundIdentity({ ...foreign, allowedPhoneNumberId: LEADFLOW_PHONE_NUMBER_ID }).ok, false);
+  const outbound = quoInboundMessage({ ...event, data: { ...event.data, resource: { ...event.data.resource, direction: "outgoing" } } });
+  assert.ok(outbound);
+  assert.equal(verifyLeadFlowQuoInboundIdentity({ ...outbound, allowedPhoneNumberId: LEADFLOW_PHONE_NUMBER_ID }).ok, false);
+  const internal = quoInboundMessage({ ...event, data: { ...event.data, context: { ...event.data.context, senderIdentifier: "USinternal1234567890" } } });
+  assert.equal(internal?.from, "");
+  assert.equal(quoInboundMessage({ ...event, data: { resource: event.data.resource } }), null);
+});
+
+test("legacy envelopes preserve their provider identity without inventing direction", () => {
+  const message = quoInboundMessage({ type: "message.received", data: { object: {
+    id: "AClegacy", direction: "incoming", from: { phoneNumber: "+19035550100" }, to: LEADFLOW_FROM,
+    phoneNumberId: LEADFLOW_PHONE_NUMBER_ID, text: "Legacy test",
+  } } });
+  assert.ok(message);
+  assert.equal(message.from, "+19035550100");
+  assert.deepEqual(verifyLeadFlowQuoInboundIdentity({ ...message, allowedPhoneNumberId: LEADFLOW_PHONE_NUMBER_ID }), { ok: true });
+  const malformed = quoInboundMessage({ type: "message.received", data: { object: { ...message, direction: undefined } } });
+  assert.equal(malformed?.direction, null);
+});
+
+test("provider signing keys require a fresh signature over the raw body and cannot use a query bypass", () => {
+  const key = randomBytes(24);
+  const secret = `whsec_${key.toString("base64")}`;
+  const body = JSON.stringify({ type: "message.received" });
+  const nowMs = Date.parse("2026-10-06T16:00:00Z");
+  const timestamp = String(nowMs / 1000);
+  const headersFor = (timestamp: string) => new Headers({
+    "webhook-id": "EVsynthetic",
+    "webhook-timestamp": timestamp,
+    "webhook-signature": `v1,${createHmac("sha256", key).update(`EVsynthetic.${timestamp}.${body}`).digest("base64")}`,
+  });
+  const input = { secret, querySecret: null, headers: headersFor(timestamp), body, nowMs };
+  assert.equal(verifyQuoInboundAuthentication(input), true);
+  assert.equal(verifyQuoInboundAuthentication({ ...input, body: `${body} ` }), false);
+  assert.equal(verifyQuoInboundAuthentication({ ...input, headers: headersFor(String(Number(timestamp) - 601)) }), false);
+  assert.equal(verifyQuoInboundAuthentication({ ...input, headers: headersFor(String(Number(timestamp) + 601)) }), false);
+  assert.equal(verifyQuoInboundAuthentication({ ...input, querySecret: secret, headers: new Headers() }), false);
+  assert.equal(verifyQuoInboundAuthentication({ ...input, secret: undefined }), false);
+  assert.equal(verifyQuoInboundAuthentication({ ...input, secret: "legacy-test-token", querySecret: "legacy-test-token", headers: new Headers() }), true);
+  assert.equal(verifyQuoInboundAuthentication({ ...input, secret: "legacy-test-token", querySecret: "wrong" }), false);
+});
+
+test("inbound auto-replies remain off without their existing explicit switch", async () => {
+  const previous = process.env.QUO_INBOUND_AUTOREPLY_ENABLED;
+  const previousFetch = globalThis.fetch;
+  let fetches = 0;
+  delete process.env.QUO_INBOUND_AUTOREPLY_ENABLED;
+  globalThis.fetch = async () => { fetches += 1; return new Response(null, { status: 200 }); };
+  try {
+    assert.equal(await sendInboundAutoReply("+19035550100", "Synthetic test"), false);
+    assert.equal(fetches, 0);
+  } finally {
+    globalThis.fetch = previousFetch;
+    if (previous === undefined) delete process.env.QUO_INBOUND_AUTOREPLY_ENABLED;
+    else process.env.QUO_INBOUND_AUTOREPLY_ENABLED = previous;
+  }
 });
 
 test("Quo outbound identity permits only the exact compiled LeadFlow number", () => {
