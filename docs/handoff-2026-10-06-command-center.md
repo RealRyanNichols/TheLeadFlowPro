@@ -64,6 +64,15 @@ So the five things missing, in money order:
 5. A signed scope before payment. Not built. It is a process and a
    DocuSign template, not a page, and it is the next thing to decide.
 
+One more, and this one I could not check from here. On Sep 28 every one
+of the site's scheduled-job timers on the droplet was off, and the Vercel
+cron that used to run them stopped when the site moved. Those jobs are the
+Meta lead poll every five minutes, the follow-up sends, and the call sheet
+email. If they are still off, a lead can fill out the form on Facebook and
+never land in the CRM at all. The Oct 2 Scott-ad leads did land, so
+something was polling that day. Run the one-line timer check in the deploy
+section before you trust any count, including this board's.
+
 Everything below is the receipt.
 
 ## The record
@@ -137,6 +146,23 @@ financial-identifier material from the recordings is reproduced.
   "true". The board's Switches panel shows whether it is on.
 - RYAN STATEMENT (Oct 3, ACT-330): the admin dashboard is "visually
   overlapping, hard to understand, and incomplete for September revenue."
+- RYAN STATEMENT (Oct 2, 21:17Z): "it's one client... I need one client...
+  I need ten, Lord. But why is it so hard to get one right now?" PAT
+  STATEMENT, same call: "we casted a wide net to begin with, and now... we
+  ain't got a client."
+- PAT STATEMENT (Sep 30 to Oct 2, raw archives), how Pat works a lead: call
+  within minutes of the form, text if no answer, a two-call close (never
+  money on call one), research the prospect's zip code before call two,
+  close the next day at a set time; position "$500 per job", never cost
+  per lead. The board's call-now rows, promises list and proposal list
+  follow that order on purpose.
+- PAT STATEMENT (Oct 2, 21:04Z): "Where does it say on the form about the
+  $7,000?" The live lead form had lost his budget question; both Oct 2
+  leads came in without it. FACT (Oct 2 Scott ad report): the v3 form with
+  all four questions went live at 4:25 PM that day.
+- PAT STATEMENT (Sep 30, 19:56Z to 20:00Z): Ryan is not getting Quo
+  notifications; Pat cannot sign in on the phone and only sees a thread by
+  tapping a notification.
 
 ### The offer and the contract
 
@@ -232,12 +258,27 @@ Supabase table, function or policy, and nothing on Vercel.
 ## Getting it onto the droplet
 
 This session could not reach the droplet (no SSH key here; Pat has root).
+The full runbook, with the read-only checks, the guard, the optional
+settings and the rollback, is `docs/infrastructure/command-center-deploy-2026-10-06.md`.
+The short version, as root in the DigitalOcean console:
+
+One check to run first, whatever else happens. On Sep 28 every
+`leadflow-cron-*` timer on the droplet was off, and Vercel's cron stopped
+when the site left Vercel. Those timers are the Meta lead poll (every five
+minutes), the follow-up sends and the call sheet email. If they are still
+off, leads can arrive in Meta and never reach the CRM, and no board can
+show what never lands:
+
+```bash
+systemctl list-timers --all --no-pager | grep -E 'leadflow-cron|brain-fieldy|ads-brain'
+```
+
 Facts from `CLAUDE.md`: the live site is `site@leadflow` on 127.0.0.1:3109
 from `/var/lib/leadflow-releases/current`; `leadflow-release` builds a
 commit and switches only after a check on port 3129; its guard needs
 5.5 GiB of memory and 12 GiB of disk free, which the 8 GB droplet did not
 have on Sep 28 to 29; `leadflow-release` fetches only `main`, so a branch
-must be fetched first. Run as root in the DigitalOcean console:
+must be fetched first.
 
 ```bash
 # 1. Bring the branch in where leadflow-release can see it.
@@ -299,7 +340,10 @@ Do not run `deploy/droplet/deploy.sh` on this droplet (CLAUDE.md).
 3. Per-client ROI card on the client workspace: spend, leads, quotes, jobs,
    client profit, as Scott's month one was counted on Oct 1.
 4. The daily brief email (ACT-234) from the same board math.
-5. Fieldy and Quo transcripts linked to the lead they concern, in the Hub.
+5. Quo threads on the lead's call card for both logins, and the second
+   call booked straight onto the LeadFlow Google Workspace calendar from
+   the call card (Pat's two asks on Sep 30 and Oct 2).
+6. Fieldy and Quo transcripts linked to the lead they concern, in the Hub.
 
 ## Coverage
 
