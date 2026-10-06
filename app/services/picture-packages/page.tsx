@@ -8,6 +8,8 @@ import { usd } from "@/lib/site/prices";
 import { getPictureStudioReadiness } from "@/lib/pictureStudio/auth";
 import BriefComposer from "./BriefComposer";
 import PackQuantity from "./PackQuantity";
+import PictureGallery from "./PictureGallery";
+import { PICTURE_PORTFOLIO } from "./picturePortfolio";
 import styles from "./pictures.module.css";
 
 export const metadata = withPublicPageMetadata("/services/picture-packages", {
@@ -27,7 +29,7 @@ export default async function PicturePackagesPage() {
         <div><p className={styles.eyebrow}>BUSINESSES · CREATORS · INDIVIDUALS · FAMILIES</p>
           <h1>Your business.<br />Your family.<br /><em>Your story.</em></h1>
           <p className={styles.lead}>Turn the moments that matter into pictures people want to stop and see. Ryan Nichols and The LeadFlow Pro team connect a theme, an emotion, custom pictures, captions, and music placement notes for your organic social presence.</p>
-          <div className={styles.actions}><a href="#packages" className={styles.button}>Choose your picture pack <ArrowRight size={19} aria-hidden="true" /></a><a href="#how-it-works" className={styles.textLink}>See how it works <ArrowRight size={18} aria-hidden="true" /></a></div>
+          <div className={styles.actions}><a href="#packages" className={styles.button}>Choose your picture pack <ArrowRight size={19} aria-hidden="true" /></a><a href={PICTURE_PORTFOLIO.length ? "#portfolio" : "#how-it-works"} className={styles.textLink}>{PICTURE_PORTFOLIO.length ? "See the pictures" : "See how it works"} <ArrowRight size={18} aria-hidden="true" /></a></div>
           <p className={styles.small}>Start with 5 pictures for {usd(PICTURE_PACKAGES[0].priceUsd)}. Pay once. Make something personal.</p>
         </div>
         <div className={styles.themeBoard} aria-label="Ideas for your picture story">
@@ -38,6 +40,7 @@ export default async function PicturePackagesPage() {
         </div>
       </div>
     </div></section>
+    <PictureGallery pictures={PICTURE_PORTFOLIO} />
     <section className={styles.promiseStrip} aria-label="What you receive"><div className={styles.shell + " " + styles.promiseGrid}>
       <p><Camera size={26} aria-hidden="true" /><span><strong>A picture that belongs to your story.</strong>Your people, your business, or an imaginative scene.</span></p>
       <p><MessageSquare size={26} aria-hidden="true" /><span><strong>Words with a purpose.</strong>A matching caption tied to the moment and emotion.</span></p>
