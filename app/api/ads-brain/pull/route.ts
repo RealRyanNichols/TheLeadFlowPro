@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { ADS_BRAIN, metaLeadCount, numericMetric, verifyAdsBrainSignature } from "@/lib/adsBrain";
-import { metaAdsReadToken, metaReportingPageToken } from "@/lib/metaReporting";
+import { metaAdsReadToken, metaReportingPageToken, metaReportingAccount } from "@/lib/metaReporting";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,12 +32,6 @@ async function graphJson<T>(url: URL, token: string): Promise<T> {
     throw new Error(message);
   }
   return body;
-}
-
-async function graphObject<T>(path: string, fields: string, token: string): Promise<T> {
-  const url = new URL(`https://graph.facebook.com/${ADS_BRAIN.graphVersion}/${path}`);
-  url.searchParams.set("fields", fields);
-  return graphJson<T>(url, token);
 }
 
 async function graphRows<T>(path: string, fields: string, token: string, extra: Record<string, string> = {}): Promise<T[]> {
@@ -77,12 +71,13 @@ export async function GET(request: Request) {
 
   const accountPath = `act_${ADS_BRAIN.identity.adAccountId}`;
   try {
-    const [account, campaigns, ads, insightRows] = await Promise.all([
-      graphObject<Record<string, unknown>>(
-        accountPath,
-        "id,account_id,name,account_status,currency,timezone_name,amount_spent,balance,spend_cap,business",
-        adsToken,
-      ),
+    const account = await metaReportingAccount({
+      credential: adsToken,
+      appId: ADS_BRAIN.identity.appId,
+      accountId: ADS_BRAIN.identity.adAccountId,
+      graphVersion: ADS_BRAIN.graphVersion,
+    });
+    const [campaigns, ads, insightRows] = await Promise.all([
       graphRows<Record<string, unknown>>(
         `${accountPath}/campaigns`,
         "id,name,status,effective_status,objective,buying_type,daily_budget,lifetime_budget,budget_remaining,start_time,stop_time,updated_time",
@@ -104,14 +99,6 @@ export async function GET(request: Request) {
         },
       ),
     ]);
-
-    if (String(account.account_id ?? "") !== ADS_BRAIN.identity.adAccountId) {
-      throw new Error("Meta returned a different ad account than the LeadFlow allowlist.");
-    }
-    const returnedBusinessId = String((account.business as { id?: unknown } | undefined)?.id ?? "");
-    if (returnedBusinessId && returnedBusinessId !== ADS_BRAIN.identity.businessPortfolioId) {
-      throw new Error("Meta returned a different business portfolio than the LeadFlow allowlist.");
-    }
 
     let forms: Record<string, unknown>[] = [];
     let formsError: string | null = null;
@@ -163,6 +150,11 @@ export async function GET(request: Request) {
           publish_ads: false,
         },
         identity: ADS_BRAIN.identity,
+        identity_verification: {
+          app_verified: true,
+          ad_account_verified: true,
+          portfolio_ownership_verified: false,
+        },
         account,
         campaigns,
         ads,

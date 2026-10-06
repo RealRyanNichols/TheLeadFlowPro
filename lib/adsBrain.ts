@@ -13,6 +13,7 @@ MCowBQYDK2VwAyEA6fx1fgM/z5cRUUXKsqJPM7xPeDy4hKXC1s+px5+gO8E=
 -----END PUBLIC KEY-----`,
   publicKeySha256: "bd1ae620b843f996cc89187cc61fa19da991dd1fc482b6282a90ddfe20fd54a1",
   identity: {
+    appId: "1595903401874517",
     businessPortfolioId: LEADFLOW_META.businessPortfolioId,
     adAccountId: LEADFLOW_META.adAccountId,
     pageId: LEADFLOW_META.pageId,
