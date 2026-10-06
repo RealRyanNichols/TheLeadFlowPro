@@ -10,6 +10,13 @@ const CAMPAIGN_MINIMUM = usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd);
 // Reviewed canonical public pages. Redirects and private completion URLs are excluded.
 export const PUBLIC_PAGE_CATALOG = [
   {
+    path: "/services/picture-packages",
+    title: "Dealership picture packages",
+    description: "Branded social pictures and matching captions for car dealerships and local businesses. Choose a starter pack, daily content, or a bulk content bank.",
+    eyebrow: "Picture packages",
+    art: "/images/picture-packages/dealership-sample.png",
+  },
+  {
     path: "/events",
     title: "Events and business workshops",
     description:
