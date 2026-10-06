@@ -49,7 +49,7 @@ export function primaryDestinationsFor(ownerAccess: boolean, scope: "admin" | "s
  ];
  return [
   {href:ownerAccess?"/admin/overview":"/admin/call-sheet",label:"Today"},
-  {href:"/admin/sales",label:"Sales"},
+  {href:"/admin/sales/pipeline",label:"Sales",hint:"Prospect status, summaries and next actions"},
   {href:"/admin/clients",label:"Clients"},
   {href:ownerAccess?"/admin/overview?view=marketing":"/admin/analytics",label:"Analytics",hint:ownerAccess?"Campaigns, CPL, acquisition, recurring revenue and Stripe":"Website traffic"},
   {href:ownerAccess?"/admin/overview?view=work":"/admin/projects",label:"Operations"},

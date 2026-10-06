@@ -1,3 +1,4 @@
+import LeadStandingBrief from "@/components/LeadStandingBrief";
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -224,7 +225,7 @@ function QueueRow({
           </div>
         </div>
 
-        <p className="mt-2 text-sm leading-snug text-[var(--muted)]">{whyLine(lead)}</p>
+        {lead.brief?.nextAction ? <LeadStandingBrief brief={lead.brief} /> : <p className="mt-2 text-sm leading-snug text-[var(--muted)]">{whyLine(lead)}</p>}
 
         <div className="mt-2 flex flex-wrap items-center gap-1.5">
           <Chip tint={tone.tint} line={tone.line} text={tone.text}>

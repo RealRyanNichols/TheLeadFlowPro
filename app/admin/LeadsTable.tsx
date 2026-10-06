@@ -2,9 +2,12 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import LeadStandingBrief from "@/components/LeadStandingBrief";
+import type { LeadStanding } from "@/lib/leadStanding";
 import { createClient } from "@/lib/supabase/client";
 
 type Lead = {
+  brief?: LeadStanding;
   id: string;
   created_at: string;
   full_name: string;
@@ -18,7 +21,7 @@ type Lead = {
   timeline: string | null;
   best_contact_method: string | null;
   status: string;
-  notes: string | null;
+  notes?: string | null;
   is_test?: boolean;
 };
 
@@ -162,6 +165,7 @@ export default function LeadsTable({ initialLeads }: { initialLeads: Lead[] }) {
                   </span>
                 )}
               </div>
+              <LeadStandingBrief brief={l.brief} />
             </div>
             <select
               className="input !w-auto !py-1.5 text-sm"

@@ -1,3 +1,4 @@
+import { leadStanding } from "@/lib/leadStanding";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import LeadsTable from "./LeadsTable";
@@ -38,7 +39,7 @@ export default async function AdminLeads() {
         </div>
       </>
     );
-  const all = leads ?? [];
+  const all = (leads ?? []).map(({ notes, ...lead }) => ({ ...lead, brief: leadStanding({ notes, status: lead.status }) }));
   const counts = {
     total: all.length,
     new: all.filter((l) => l.status === "new").length,

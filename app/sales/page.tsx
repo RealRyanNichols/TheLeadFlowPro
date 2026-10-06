@@ -1,3 +1,4 @@
+import { leadStanding } from "@/lib/leadStanding";
 import { createClient } from "@/lib/supabase/server";
 import TodayQueue from "./TodayQueue";
 import { OPEN_STATUSES, type InboundSignals, type QueueLead } from "@/lib/salesQueue";
@@ -19,7 +20,7 @@ export default async function SalesToday() {
     supabase
       .from("leads")
       .select(
-        "id, created_at, full_name, business_name, email, phone, status, priority, timeline, interest, goals, industry, next_follow_up_at, last_contacted_at, expected_value_cents, owner, source, sms_consent, sms_unsubscribed_at",
+        "id, created_at, full_name, business_name, email, phone, status, priority, timeline, interest, goals, industry, next_follow_up_at, last_contacted_at, expected_value_cents, owner, source, sms_consent, sms_unsubscribed_at, notes",
       )
       .is("deleted_at", null)
       .eq("is_test", false)
@@ -80,7 +81,7 @@ export default async function SalesToday() {
     if (!prior || at >= prior.at) signals[leadId] = { at, kind: "call" };
   }
 
-  const leads = (leadsResult.data ?? []) as QueueLead[];
+  const leads = (leadsResult.data ?? []).map(({ notes, ...lead }) => ({ ...lead, brief: leadStanding({ notes, status: lead.status }) })) as QueueLead[];
 
   return <TodayQueue leads={leads} signals={signals} loadedAt={Date.now()} />;
 }

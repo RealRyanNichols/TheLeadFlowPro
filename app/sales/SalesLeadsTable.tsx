@@ -3,9 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import LeadStandingBrief from "@/components/LeadStandingBrief";
+import type { LeadStanding } from "@/lib/leadStanding";
 import { createClient } from "@/lib/supabase/client";
 
 type Lead = {
+  brief?: LeadStanding;
   id: string;
   created_at: string;
   full_name: string;
@@ -160,6 +163,7 @@ export default function SalesLeadsTable({
                   </span>
                 )}
               </div>
+              <LeadStandingBrief brief={lead.brief} />
             </div>
             <select
               className="input !w-auto !py-1.5 text-sm"

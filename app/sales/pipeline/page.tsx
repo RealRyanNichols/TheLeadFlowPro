@@ -1,3 +1,4 @@
+import { leadStanding } from "@/lib/leadStanding";
 import { createClient } from "@/lib/supabase/server";
 import SalesLeadsTable from "../SalesLeadsTable";
 
@@ -12,7 +13,7 @@ export default async function SalesPipeline() {
   const { data: leads, error } = await supabase
     .from("leads")
     .select(
-      "id, created_at, full_name, email, phone, business_name, current_platform, industry, interest, goals, timeline, best_contact_method, status, priority, next_follow_up_at, expected_value_cents, close_probability, owner",
+      "id, created_at, full_name, email, phone, business_name, current_platform, industry, interest, goals, timeline, best_contact_method, status, priority, next_follow_up_at, expected_value_cents, close_probability, owner, notes",
     )
     .is("deleted_at", null)
     .eq("is_test", false)
@@ -35,7 +36,7 @@ export default async function SalesPipeline() {
       </section>
     );
 
-  const all = leads ?? [];
+  const all = (leads ?? []).map(({ notes, ...lead }) => ({ ...lead, brief: leadStanding({ notes, status: lead.status }) }));
   const counts = {
     total: all.length,
     new: all.filter((lead) => lead.status === "new").length,

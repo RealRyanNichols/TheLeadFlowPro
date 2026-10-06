@@ -1,3 +1,4 @@
+import type { LeadStanding } from "./leadStanding";
 // Who to touch right now, in order. This is the ranking behind the Today queue
 // at /admin/sales.
 //
@@ -22,6 +23,7 @@
 // nobody ever logged still surfaces instead of sinking.
 
 export type QueueLead = {
+  brief?: LeadStanding;
   id: string;
   created_at: string;
   full_name: string;
