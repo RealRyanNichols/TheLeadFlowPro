@@ -78,6 +78,32 @@ profiles without a fact from the business's own website keep it) and
 header and a robots.txt that disallows everything; going public means a
 separate approved change to the Caddy file and DNS.
 
+With the switch on, and only then, the pages also carry what search engines
+read (with it off, every page is byte-for-byte what it was without this):
+
+- **Profiles that may be indexed** (a fact from the business's own website)
+  are a schema.org `LocalBusiness` in microdata on the elements already on the
+  page: the name, the address (street and ZIP only when the page shows them),
+  the phone, website, Facebook and Instagram only when they came from the
+  business's own website, and the hours it states, one `openingHours` per range.
+  A day it says it is closed and a day it never stated are both left out. There
+  is never a rating, a review, coordinates, or a `<script>`. `site.ld_dict()` is
+  the one place that decides it, and the tests read the markup back and compare.
+- **Breadcrumbs** on indexable pages are a schema.org `BreadcrumbList`.
+- **Open Graph** (`og:title`, `og:description`, `og:url`, `og:type`) and
+  `theme-color` on indexable pages, so a shared link shows a proper preview.
+- **A favicon**, `icon.svg` (a 260-byte cobalt "LF" tile) in each town's section
+  and the hub, instead of `data:,`.
+- **A sitemap index** at `/places/sitemap.xml` once more than one town is on,
+  listing each town's own `sitemap.xml` (only towns with businesses). Paged
+  lists are never in a sitemap.
+
+To see what it would add before deciding, run
+`lva seo-preview --out /var/lib/longview-archive/seo-preview`. It renders five
+sample profiles and every sitemap from the approved batch (removal requests
+taken out) into a new private folder (0700/0600) outside `www/`. It publishes
+nothing and leaves the switch as it is.
+
 ## Local look with the sample
 
 See `deploy/longview-archive/README.md` ("For engineers"): build the sample

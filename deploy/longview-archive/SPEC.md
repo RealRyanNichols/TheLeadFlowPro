@@ -675,7 +675,9 @@ Field names used in `facts` / `observations` / `review_queue.field`:
 - Other commands: `migrate`, `sync [sales-tax|tabc|npi|franchise|osm|all]`, `match`,
   `crawl-once [--limit N]`, `publish [--out PATH]` (then auto-approve when on),
   `approve [--batch latest|BATCH_ID] [--actor NAME]`, `approve --auto on|off`,
-  `site` (rebuild the directory from `approved.json`), `exports`, `status`,
+  `site` (rebuild the directory from `approved.json`), `seo-preview --out DIR`
+  (what indexing would add, written to a new private folder outside `www/`;
+  publishes nothing), `exports`, `status`,
   `backup`, `suppress --id|--domain|--phone|--name-zip --reason` (also takes
   the business off the directory at once), `review list|accept|reject`,
   `check` (self-test: settings, schema, disk, pause, caps).

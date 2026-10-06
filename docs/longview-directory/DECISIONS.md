@@ -38,7 +38,12 @@ no sitemap.
 
 **How:** turn on the engine's `LVA_INDEXABLE=1` setting; the pages drop noindex
 and a sitemap is written at the next build. The per-profile rule is already
-built. The staging address also tells search engines to stay away in its Caddy
+built, and so is what search engines read once it is on: schema.org business
+details on each indexable profile (only facts from its own website, never a
+rating or review), breadcrumbs, link previews, a favicon, and a sitemap index
+for all towns. To look first, `lva seo-preview --out
+/var/lib/longview-archive/seo-preview` writes five sample profiles and the
+sitemaps to a private folder without publishing anything (`SITE.md`). The staging address also tells search engines to stay away in its Caddy
 file, so real indexing happens together with the move to theleadflowpro.com
 (one approved Caddy change and DNS).
 

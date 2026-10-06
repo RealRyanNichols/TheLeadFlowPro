@@ -143,15 +143,21 @@ def filter_suppressed(conn: sqlite3.Connection, data: dict) -> Tuple[dict, List[
 
 # ---------------------------------------------------------------- the site
 
+def approved_directory(conn: sqlite3.Connection, settings) -> Optional[dict]:
+    """The approved batch as the public site shows it: removal requests taken out (None: nothing approved)."""
+    data = read_json(settings.approved_export_path)
+    if data is not None and not is_export(data):
+        log.warning("approval: approved.json is not a directory export; the site shows no businesses")
+        data = None
+    if data is not None:
+        data, _ = filter_suppressed(conn, data)
+    return data
+
+
 def rebuild_site(conn: sqlite3.Connection, settings, now: Any = None, _locked_already: bool = False) -> dict:
     """Build the public site from the approved batch (nothing approved: the "being checked" page)."""
     def build() -> dict:
-        data = read_json(settings.approved_export_path)
-        if data is not None and not is_export(data):
-            log.warning("approval: approved.json is not a directory export; the site shows no businesses")
-            data = None
-        if data is not None:
-            data, _ = filter_suppressed(conn, data)
+        data = approved_directory(conn, settings)
         counts = site.build_site(settings, data, now)
         stamp = db.now_iso(publish.resolve_now(now))
         db.set_meta(conn, "site_built_at", stamp)

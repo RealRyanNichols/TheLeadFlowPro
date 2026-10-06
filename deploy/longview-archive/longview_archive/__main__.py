@@ -22,7 +22,7 @@ import tempfile
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
-from . import approval, config, db, exports, facts, matching, normalize, privacy, publish, status
+from . import approval, config, db, exports, facts, matching, normalize, privacy, publish, site, status
 from .service import SYNC_BY_NAME, SYNC_JOBS, ArchiveService, bootstrap, run_sync, take_backup, where
 
 log = logging.getLogger("longview_archive")
@@ -339,6 +339,71 @@ def cmd_site(args, settings) -> int:
     if counts.get("dropped"):
         err(f"{counts['dropped']} record(s) failed the site's own checks and are not shown (the log has the"
             " reasons).")
+    return 0
+
+
+def preview_folder_problem(target: Path, settings) -> Optional[str]:
+    """Why ``target`` cannot take an SEO preview, or None. Never inside the served folder,
+    and only a new folder or an empty one (an existing folder is never re-permissioned)."""
+    www = Path(settings.www_dir).resolve()
+    resolved = target.resolve()
+    if resolved == www or www in resolved.parents:
+        return f"{target} is inside the public folder ({www}), where a preview would be served"
+    if target.is_symlink():
+        return f"{target} is a symbolic link"
+    if target.exists():
+        if not target.is_dir():
+            return f"{target} exists and is not a folder"
+        if any(target.iterdir()):
+            return f"{target} is not empty"
+    elif not target.parent.is_dir():
+        return f"{target.parent} does not exist"
+    return None
+
+
+def write_private_tree(target: Path, files: Dict[str, str]) -> None:
+    """Write ``files`` under ``target``: folders 0700, files 0600, nothing followed through a link."""
+    if not target.exists():
+        os.mkdir(target, 0o700)
+    os.chmod(target, 0o700)
+    for rel, text in sorted(files.items()):
+        dest = target
+        for part in Path(rel).parts[:-1]:
+            dest = dest / part
+            if not dest.is_dir():
+                os.mkdir(dest, 0o700)
+            os.chmod(dest, 0o700)
+        fd = os.open(dest / Path(rel).name, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0),
+                     0o600)
+        with os.fdopen(fd, "wb") as fh:
+            os.fchmod(fh.fileno(), 0o600)
+            fh.write(text.encode("utf-8"))
+
+
+def cmd_seo_preview(args, settings) -> int:
+    target = Path(args.out).expanduser().absolute()
+    problem = preview_folder_problem(target, settings)
+    if problem:
+        err(f"SEO preview: {problem}. Nothing was written. Give a new folder, for example"
+            f" {Path(settings.data_dir) / 'seo-preview'}.")
+        return 2
+    conn = bootstrap(settings)
+    try:
+        data = approval.approved_directory(conn, settings)
+    finally:
+        conn.close()
+    if data is None:
+        err("No batch is approved yet, so there is nothing to preview. Nothing was written.")
+        return 1
+    files = site.seo_preview(data, settings)
+    write_private_tree(target, files)
+    profiles = sum(1 for rel in files if rel.endswith("/index.html"))
+    sitemaps = [text for rel, text in files.items() if rel.endswith("/businesses/sitemap.xml")]
+    pages = sum(text.count("<url>") for text in sitemaps)
+    out(f"SEO preview written to {target} (readable by this user only): {profiles} sample profiles,"
+        f" {len(sitemaps)} town sitemaps listing {pages:,} pages"
+        + (", and the sitemap index" if f"{site.HUB_DIR}/sitemap.xml" in files else "") + ".")
+    out(f"Nothing was published. Search-engine indexing is still {'on' if settings.indexable else 'off'}.")
     return 0
 
 
@@ -714,6 +779,11 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--auto", choices=("on", "off"), default=None,
                    help="approve each new batch by itself (a batch removing more than 25%% still waits)")
     add("site", cmd_site, "Rebuild the public directory pages from the approved batch")
+    p = add("seo-preview", cmd_seo_preview,
+            "Write what search-engine indexing would add (sample profiles and the sitemaps) to a private"
+            " folder; publishes nothing")
+    p.add_argument("--out", metavar="DIR", required=True,
+                   help="a new or empty folder outside the public www folder")
     add("exports", cmd_exports, "Write the private CSV lists (never sent anywhere)")
     add("backup", cmd_backup, "Take a database backup now")
 

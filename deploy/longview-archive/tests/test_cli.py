@@ -425,6 +425,66 @@ class RunCommand(CliTestBase):
         self.assertEqual(self.status_json()["state"], "stopping")
 
 
+class SeoPreview(CliTestBase):
+    """lva seo-preview: a private look at what indexing would add; it publishes nothing."""
+
+    def approve_fixture(self):
+        from longview_archive import config, publish
+        from tests import test_site as T
+        settings = config.Settings(data_dir=self.data)
+        settings.ensure_dirs()
+        publish.write_export(settings.approved_export_path, T.fixture_export())
+
+    def test_refuses_the_public_folder_and_a_folder_with_files(self):
+        self.approve_fixture()
+        inside = self.data / "www" / "preview"
+        proc = self.lva("seo-preview", "--out", str(inside))
+        self.assertEqual(proc.returncode, 2, proc.stderr)
+        self.assertIn("inside the public folder", proc.stderr)
+        self.assertFalse(inside.exists())
+        busy = Path(self.tmp.name) / "busy"
+        busy.mkdir()
+        (busy / "keep.txt").write_text("mine")
+        proc = self.lva("seo-preview", "--out", str(busy))
+        self.assertEqual(proc.returncode, 2)
+        self.assertIn("is not empty", proc.stderr)
+        self.assertEqual([p.name for p in busy.iterdir()], ["keep.txt"])
+
+    def test_nothing_approved_writes_nothing(self):
+        target = Path(self.tmp.name) / "preview"
+        proc = self.lva("seo-preview", "--out", str(target))
+        self.assertEqual(proc.returncode, 1)
+        self.assertIn("No batch is approved yet", proc.stderr)
+        self.assertFalse(target.exists())
+
+    def test_private_files_counts_only_and_never_a_removed_business(self):
+        self.approve_fixture()
+        proc = self.lva("suppress", "--domain", "exampletire.example", "--reason", "owner asked")
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        target = Path(self.tmp.name) / "preview"
+        proc = self.lva("seo-preview", "--out", str(target))
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        self.assertRegex(proc.stdout, r"\d+ sample profiles, 1 town sitemaps listing \d+ pages\.")
+        self.assertIn("Search-engine indexing is still off.", proc.stdout)
+        self.assertNotIn("Example", proc.stdout + proc.stderr)  # counts, never a business
+        written = list(target.rglob("*"))
+        self.assertIn(target / "longview" / "businesses" / "sitemap.xml", written)
+        self.assertTrue(any(p.name == "index.html" for p in written))
+        self.assertEqual(stat.S_IMODE(target.stat().st_mode), 0o700)
+        for p in written:
+            mode = stat.S_IMODE(p.stat().st_mode)
+            self.assertEqual(mode, 0o700 if p.is_dir() else 0o600, p)
+            if p.is_file():
+                text = p.read_text(encoding="utf-8")
+                # The removed listing (a second "Example Tire & Lube", with no website, stays listed).
+                self.assertNotIn("exampletire", text)
+                self.assertNotIn("/example-tire-and-lube/", text)
+        # Nothing reached the public folder: no sitemap, no icon, still noindex.
+        www = self.data / "www" / "longview" / "businesses"
+        self.assertFalse((www / "sitemap.xml").exists())
+        self.assertFalse((www / "icon.svg").exists())
+
+
 class Documentation(unittest.TestCase):
     """Every ``lva ...`` command the README shows parses (in process; nothing runs)."""
 

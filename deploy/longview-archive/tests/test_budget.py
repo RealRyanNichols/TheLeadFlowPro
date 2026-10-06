@@ -29,6 +29,11 @@ PROFILE_MAX = 10_000
 PROFILE_AVERAGE_MAX = 7_500
 SPRITE_MAX = 900
 HUB_MAX = 20_000
+# With indexing on, an indexable profile also carries its schema.org microdata, the
+# breadcrumb list, and the share tags (about 1.8 KB on the fullest profile).
+INDEXED_PROFILE_MAX = 12_000
+INDEXED_PROFILE_AVERAGE_MAX = 8_500
+ICON_MAX = 300
 
 CARD_RE = re.compile(r'<li class="card"[^>]*>.*?</li>(?=<li class="card"|</ul>)', re.S)
 
@@ -97,6 +102,19 @@ class PageWeight(unittest.TestCase):
     def test_every_page_has_a_viewport(self):
         for rel, text in self.pages.items():
             self.assertIn('<meta name="viewport" content="width=device-width, initial-scale=1">', text, rel)
+
+
+class IndexedWeight(unittest.TestCase):
+    def test_indexable_profiles_and_the_icon_stay_small(self):
+        data = T.fixture_export()
+        with tempfile.TemporaryDirectory(prefix="lva-budget-idx-") as tmp:
+            settings = config.Settings(data_dir=Path(tmp) / "data", indexable=True)
+            site.build_site(settings, data, T.NOW)
+            root = site.site_dir(settings)
+            sizes = [len((root / b["slug"] / "index.html").read_bytes()) for b in data["businesses"]]
+            self.assertLessEqual(max(sizes), INDEXED_PROFILE_MAX)
+            self.assertLessEqual(sum(sizes) / len(sizes), INDEXED_PROFILE_AVERAGE_MAX)
+            self.assertLessEqual(len((root / site.ICON_NAME).read_bytes()), ICON_MAX)
 
 
 class HubWeight(unittest.TestCase):
