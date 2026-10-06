@@ -50,8 +50,19 @@ It was dark by Oct 5 evening. RYAN STATEMENT (Oct 3, 02:16Z, raw archive):
 "We are gonna keep Supabase as is." So this was not a decision. Pat's Sep 26
 handoff recorded fourteen projects in the Supabase account against a Free
 plan allowance of two, and thirteen of the fourteen now read `INACTIVE`,
-which fits a plan or billing change pausing projects. DOCUMENTED INFERENCE,
-not proven from here.
+which fits a plan or billing change pausing projects.
+
+The cause is on the record now. RYAN STATEMENT (Oct 5, 21:43Z, raw
+archive, to Amanda, about Premier Dental's outage the same evening): "It's
+because Supabase hasn't been paid. And so my credit card thing got all
+backed up... I just need your card so I can pay it and it'll turn back on."
+The same recording has the bank declining a $500 Meta payment and a $160
+card charge that day, on an account two to three weeks old. DOCUMENTED
+INFERENCE: the LeadFlow project was paused for the same unpaid bill and
+came back when it was paid. The lasting fix is the one Ryan named himself
+on that call: enough sales in the bank that a bill never bounces, and the
+site's own Postgres on the droplet so a card problem cannot take the CRM
+down (phases A to F, each with his approval).
 
 The fix is yours to approve, not mine to run:
 
@@ -240,6 +251,113 @@ financial-identifier material from the recordings is reproduced.
   notifications; Pat cannot sign in on the phone and only sees a thread by
   tapping a notification.
 
+### Sep 23 to 29: the month the price was set (raw archives, read in full)
+
+- RYAN STATEMENT (Sep 23): Meta lead ads shut off after $250 a day across
+  both businesses with no close; back on after the first sale. "Leads came
+  in; closing is the gap." The same day to Pat: "we should be charging
+  7500"; close month one at $1,497, then $2,500 to $7,500.
+- PAT STATEMENT (Sep 24): "we gotta be charging based on cost per
+  acquisition." Scott got about ten leads for under $250 and "we basically
+  worked for free"; a job should cost the client at least $500. That is
+  where the $500-a-job planning rate on the pricing page comes from, and
+  why the board's plan sheet is priced per outcome, never per lead.
+- RYAN STATEMENT (Sep 23, after closing Randall at $500): "I'm a brand new
+  business. I don't have anything to prove what I'm doing." Without
+  client-after-client proof he cannot charge what he charged at Wholesale
+  Universe. By Sep 27: "I'm never doing a $500 deal again"; $1,500 floor
+  unless it is a website handed over with no ads.
+- RYAN STATEMENT (Sep 27, 15:00Z area): the business dashboard showed $0
+  collected in September "but that's bullshit": $500 Randall, $500 Holly,
+  $1,000 Scott (check, pending). FACT: the dashboard and this board count
+  `purchases` rows, which Stripe checkout writes; a check or a card taken by
+  hand writes nothing. Every "Paid" tile on this branch says so. The fix
+  is a record-a-payment step (next builds, first item).
+- RYAN STATEMENT (Sep 24): the invoice link reached a client as plain
+  words, "the invoice didn't send"; (Sep 25) a LeadFlow Pro charge went
+  through the wrong LLC's Stripe account. DOCUMENTED INFERENCE: money that
+  did land may sit in a Stripe account this database never sees, which is
+  a second reason "Paid" can read low. NEEDS AUTHENTICATION against both
+  Stripe accounts.
+- PAT STATEMENT (Sep 24): Pat signed in as pat@ and saw an older admin with
+  none of the new desks. RYAN STATEMENT, same call: "I want me and Pat to
+  see the same thing." FACT: `/admin/sales/board` now gives the sales
+  login the same money line, pulse, promises and proposals, read under its
+  own grants; what it cannot read says "not counted".
+- RYAN STATEMENT (Sep 24, 03:35Z): "I don't know what an artifact is, but
+  I know we need one... something I use daily that would change my life as
+  a business owner." (Sep 23 to 24): one dashboard to click into each
+  client's business and its leads, "a world within a world", with PDA as a
+  client and Facebook, Meta ads and the email provider hooked in.
+- RYAN STATEMENT (Sep 25): the Mailgun account was shut down after a blast
+  of about 43,000 emails to past Wholesale Universe buyers went out too
+  fast, before verification; $150 to $200 of usage lost. (Sep 27): if the
+  appeal fails, move on; load the list into Resend at a safe daily rate, or
+  turn it into a Meta retargeting audience. Nothing on this branch sends.
+- RYAN STATEMENT (Sep 26): the Fieldy device was off all day, so the calls
+  with Scott, Pat and Randall that day were never captured. The Sep 27 to
+  29 archive holds nothing dated Sep 28 or 29. Those three days are a gap
+  in the record, not a quiet stretch.
+- NEEDS AUTHENTICATION (Sep 27 dictated social post): "sales grew 300%
+  month over month" and "an employee runs sales without me". The archives
+  show about $2,000 collected in September across three small deals.
+  Do not publish a growth figure the ledger cannot back.
+- RYAN STATEMENT (Sep 27): "a billion dollar company is gonna see us and
+  say I gotta have them." The route there on the record is the Longview
+  business archive going nationwide, proof per client, and a board that
+  never lies about a number.
+
+### Oct 4 to 5: the weekend before this build (raw archive, read in full)
+
+- RYAN STATEMENT (Oct 5, 18:13Z): "I've never had this many calls in one
+  day. But my ads are working. Everybody's seeing me." PAT STATEMENT (Oct 5,
+  20:09Z), the pipeline math: three proposals out (Lawrence, Jalen, a third
+  from the Scott ad), close thirty percent, "that'll put us at twenty-one
+  thousand dollars." Lawrence's proposal is out with a follow-up in a week;
+  whether anything is signed or paid is NEEDS AUTHENTICATION, and the cash
+  ledger read on Oct 6 shows no payment from any of them.
+- RYAN STATEMENT and PAT STATEMENT (Oct 5, 20:00Z to 20:02Z), price
+  discovery: the Scott-ad leads are "willing to spend 30,000 and we just
+  haven't asked for enough money yet"; Pat: start at thirty, come down,
+  "we land on seventy-five"; Ryan: "are we saying 75 and that's why we're
+  not getting it?" Pat: "Yes, sir." Then (21:10Z): run a second ad with a
+  different form to learn whether anyone says yes to thirty thousand before
+  moving the price. The plan sheet on the board prices per outcome so that
+  conversation has numbers under it.
+- RYAN STATEMENT (Oct 5, 03:42Z): Scott paid $850 of the $1,000 for the
+  month, by check; $500 of it is to go to his ads, charged to the LeadFlow
+  card under his account. (21:24Z to 21:34Z): the check had not posted and
+  the bank held a $500 Meta payment. FACT (cash ledger, Oct 6): one $1,000
+  Stripe invoice is the only payment this database holds. Until the $850
+  check is recorded by hand it is on no board.
+- PAT STATEMENT (Oct 5, 02:28Z), the board Pat wants: his reply desk for X
+  and Facebook, every metric, every CPA and CPL, "all synced through the
+  dashboard"; and "when Stripe's hooked up, I'll be able to send out
+  invoices myself with my proposals all plugged in." The next three
+  connections in his order: the Meta app, Quo, Stripe. FACT (Oct 4, 23:09Z
+  to 23:22Z): the Google Workspace for theleadflowpro.com was finally
+  created that night (Business Standard trial), with pat@ and setup@ as
+  super admins; hello@ was not yet moved into it.
+- RYAN STATEMENT (Oct 5, 17:24Z), the AI tool bill: a $500-a-month ChatGPT
+  account, two $200-a-month Claude accounts and a $200-a-month ChatGPT
+  account, about $1,100 a month. That belongs in the known-costs number
+  the break-even counter reads.
+- RYAN STATEMENT (Oct 5, 13:38Z and 21:43Z): Garrison is a no at anything
+  under $10,000; Bison read the message and never answered; Parker, a car
+  dealer, called and wants ads with follow-ups "just like Scott's"; Jalen
+  (dump trucks, no website) and Freddie (paid a lead service and got
+  nothing) are Pat's calls from the Scott ad.
+- RYAN STATEMENT (Oct 4, 21:46Z to 21:50Z): the social engine he wants:
+  post every day on his Facebook and X from the droplet, reply to every
+  comment every day, and read the analytics over one week, four weeks, 90
+  days, 180 days and a year to decide what to post next. (Oct 5, 20:45Z):
+  an AI agent already answers comments on his page in his voice.
+- RYAN STATEMENT (Oct 5, 16:02Z, Premier Dental): no payroll schedule, no
+  rolling average of weekly costs, nothing kept in the bank; "we're not
+  budgeting, and we're just hoping and praying." The same counter the
+  LeadFlow board has (known costs, money in, clients to cover it) is the
+  one PDA needs, with its own numbers.
+
 ### The offer and the contract
 
 - FACT (COMMERCIAL_DECISIONS.md, Oct 3; lib/site/managedPlans.ts): the live
@@ -267,6 +385,9 @@ financial-identifier material from the recordings is reproduced.
 | Scott, O-L Guy Farms | Active client, month 2 started Oct 1; a bet on two jobs over $8,000 by about Oct 31 | $500 month 1 plus ads; $850 check Oct 1 (reported, not reconciled to the bank) | Ads back on under the LeadFlow card; second testimonial clip |
 | Lawrence and Blake | Scott-ad leads, Oct 2, both "ready right away" | $7,500 offer | Pat's second call with the opportunity research |
 | Randall, concrete | Paid $500; site built; $300 ad; text and email only until his first job | $500 paid | Deliver leads; no more hours until he pays |
+| Holly, care home nonprofit | Declined $1,497; paid $500 for a site and Facebook page (Sep 24) | $500 paid | Deliver; step up only after results |
+| Jesse, realtor (Jefferson) | Verbal yes at $5,000 (Sep 25); build to start in three weeks, ads two weeks after; "a deal on Tuesday" (Sep 27) | $5,000 verbal; not on any ledger read | Confirm the decision maker; signed scope and payment before the build |
+| Carrie, Lollipop Designs | Site mock-up reviewed Sep 27; ready to spend $1,000, no ads | $1,000 verbal | Invoice the site-only deal; Google ranking is a 90 to 180 day promise, say so in writing |
 | Garrison, oilfield product | Exploratory $2,500 / $5,000 / $7,500 proposals; nothing accepted | Unpriced product build | Scope the first revenue path in writing before any number |
 | Juan, Revive Bath | Went quiet near signing, voicemail full (Sep 18 to 22) | $7,500 | Follow up or close out |
 | Bison Concrete | Facebook prospecting pilot, LFP-1 (Oct 4) | $7,500 for 90 days proposed | Pat reviews; first batch of local-group prospects |
@@ -337,6 +458,28 @@ Second increment, same day, for the problems nobody reports:
 - Home-screen app: the board declares a manifest, so Chrome offers "add to
   home screen" and it opens straight on the board (Pat's Oct 3 ask).
 
+Third increment, same day: money in is the verified cash ledger.
+
+- FACT: the repo already had a hand-recorded cash ledger
+  (`/admin/operator/cash`, table `operator_manual_cash_events`, admin only)
+  and a view, `operator_verified_cash_entries`, that unions Stripe
+  checkouts, paid Stripe invoices and those hand-recorded checks, cash, ACH
+  and wires. The board, the 24-hour feed and the pulse read Stripe's
+  `purchases` table alone, so a check never counted. That is the Sep 27
+  "$0 collected" complaint, and it would have happened again with Scott's
+  $850 check.
+- Now the board, Pat's board, the 24-hour feed, the pulse and the snapshot
+  read the view. The Paid tile names where the money came from ("1 Stripe
+  checkout · 1 check recorded by hand") and carries the door to record
+  one. The view answers admins only and returns no rows, not an error, to
+  any other role, so Pat's board reads the role first and marks payments
+  "unread, not zero" for the sales login, and leaves the paid lane off his
+  pulse rather than showing it quiet.
+- FACT (read-only, Oct 6): the live ledger holds one payment, a $1,000
+  Stripe invoice. No hand-recorded entry has ever been made. Randall's $500,
+  Holly's $500 and Scott's $850 check are on no board until someone records
+  them at Record a payment. No new table, function or policy was needed.
+
 Files: `lib/commandCenter.ts` (the arithmetic, pure), `lib/commandCenterServer.ts`
 (the reads), `lib/metaInsights.ts` (Meta, shared with the Ads Brain pull),
 `lib/commandCenterSwitches.ts`, `lib/operatorLinks.ts`,
@@ -351,7 +494,8 @@ Files: `lib/commandCenter.ts` (the arithmetic, pure), `lib/commandCenterServer.t
 ## What it reads, and what it never does
 
 Reads, with the signed-in person's own client: `leads`, `lead_notes`,
-`lead_calls`, `lead_messages`, `purchases`, `lead_activity`. With the
+`lead_calls`, `lead_messages`, `operator_verified_cash_entries` (the cash
+ledger view, admins only), `lead_activity`. With the
 service client, after the admin check: `approval_queue` (service only by
 design) and `hq_workspaces` / `hq_leads` (member-read tables, counted for
 the owner). Meta Graph, GET only, with the `ads_read` token.
@@ -452,17 +596,25 @@ Do not run `deploy/droplet/deploy.sh` on this droplet (CLAUDE.md).
 
 ## Next builds, in order
 
-1. Signed scope before payment (DocuSign template, a `scope_signed` note on
+1. Done in the third increment: the board reads the verified cash ledger,
+   so a check recorded at `/admin/operator/cash` counts. Still to do:
+   record the September and October money that landed by hand (Randall,
+   Holly, Scott's $850 check) so the counter is true, and link each ledger
+   entry to its lead (the table has the column; the form does not ask).
+2. Signed scope before payment (DocuSign template, a `scope_signed` note on
    the lead, the pay link only after).
-2. "Where did you see us" on every intake, and dedupe by phone and email
+3. "Where did you see us" on every intake, and dedupe by phone and email
    so repeat submitters are one record (ACT-245).
-3. Per-client ROI card on the client workspace: spend, leads, quotes, jobs,
-   client profit, as Scott's month one was counted on Oct 1.
-4. The daily brief email (ACT-234) from the same board math.
-5. Quo threads on the lead's call card for both logins, and the second
+4. Per-client ROI card on the client workspace: spend, leads, quotes, jobs,
+   client profit, as Scott's month one was counted on Oct 1. This is the
+   "business within a business" view from Sep 23 and the proof per client
+   that lets the price go up.
+5. The daily brief email (ACT-234) from the same board math, off until the
+   owner turns it on.
+6. Quo threads on the lead's call card for both logins, and the second
    call booked straight onto the LeadFlow Google Workspace calendar from
    the call card (Pat's two asks on Sep 30 and Oct 2).
-6. Fieldy and Quo transcripts linked to the lead they concern, in the Hub.
+7. Fieldy and Quo transcripts linked to the lead they concern, in the Hub.
 
 ## Coverage
 
@@ -471,7 +623,9 @@ the Oct 3 release notes and commercial decisions; the Oct 2 Scott ad report
 and Oct 4 Bison pilot email to Pat; the Notion Current Command Center page
 (Oct 5), the Fieldy decisions ledger (25 Tasks & Decisions items), and the
 Aug 25 to Sep 18 conversation ledgers; the raw Fieldy archives for Sep 19
-through Oct 5 (one reader per archive, business content only); the Fieldy
+through Oct 5 (one reader per archive, every line, business content only;
+the Sep 27 to 29 archive holds nothing dated Sep 28 or 29, and Fieldy was
+off all day on Sep 26, so those three days are a gap in the record); the Fieldy
 manifest (736 archived recordings, 198 classified as LeadFlow business by
 title). Not read: 116 older recordings the manifest has not reconciled, and
 two long Sep 15 to 16 transcripts whose business content reached the

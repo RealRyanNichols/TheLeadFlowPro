@@ -124,7 +124,7 @@ test("moneyBoard: reached means a human touch; the software's own messages never
   assert.equal(board.repliesOwed, 1, "lead 5's text is the last thing on its thread");
   assert.deepEqual(board.stages, { contacted: 2, booked: 0, proposal: 1 });
   assert.deepEqual(board.proposalsOut, { count: 1, cents: 750_000, valued: 1 });
-  assert.deepEqual(board.paid, { count: 1, cents: 750_000 }, "pending and out-of-window payments are not paid in this window");
+  assert.deepEqual(board.paid, { count: 1, cents: 750_000, bySource: [{ key: "agency_payment", label: "agency payment", count: 1, cents: 750_000 }] }, "pending and out-of-window payments are not paid in this window");
   assert.deepEqual(board.notesByAuthor, [
     { author: "Pat", count: 2 },
     { author: "Ryan", count: 1 },
@@ -156,7 +156,34 @@ test("bottleneckLine puts replies owed first, then untouched leads, then proposa
   assert.match(bottleneckLine({ ...base, untouched: 1, leadsIn: 3 }), /^1 of the last 7 days' leads has never heard from a person/);
   assert.match(bottleneckLine({ ...base, leadsIn: 3, reached: 3, proposalsOut: { count: 2, cents: 0, valued: 0 } }), /^2 proposals out and nothing paid/);
   assert.match(bottleneckLine({ ...base, leadsIn: 3, reached: 3 }), /Book the sit-down/);
-  assert.match(bottleneckLine({ ...base, leadsIn: 3, reached: 3, paid: { count: 1, cents: 1 } }), /^1 paid in 7 days/);
+  assert.match(bottleneckLine({ ...base, leadsIn: 3, reached: 3, paid: { count: 1, cents: 1, bySource: [] } }), /^1 paid in 7 days/);
+});
+
+test("paid is grouped by where the money came from, with the cash ledger's source names", () => {
+  const board = moneyBoard({
+    leads: [],
+    touches: [],
+    purchases: [
+      { id: "a", kind: "checkout", amount_cents: 750_000, status: "paid", created_at: daysAgo(1) },
+      { id: "b", kind: "manual_check", amount_cents: 85_000, status: "paid", created_at: daysAgo(2) },
+      { id: "c", kind: "manual_check", amount_cents: 50_000, status: "paid", created_at: daysAgo(3) },
+      { id: "d", kind: "invoice", amount_cents: 100_000, status: "paid", created_at: daysAgo(4) },
+    ],
+    notes: [],
+    calls: [],
+    now: NOW,
+    days: 7,
+  });
+  assert.equal(board.paid.count, 4);
+  assert.equal(board.paid.cents, 985_000);
+  assert.deepEqual(board.paid.bySource, [
+    { key: "checkout", label: "Stripe checkout", count: 1, cents: 750_000 },
+    { key: "manual_check", label: "check recorded by hand", count: 2, cents: 135_000 },
+    { key: "invoice", label: "paid Stripe invoice", count: 1, cents: 100_000 },
+  ]);
+  assert.equal(commandCenterLib.cashSourceLabel("manual_ach"), "ach recorded by hand");
+  assert.equal(commandCenterLib.cashSourceLabel("stripe_invoice"), "paid Stripe invoice");
+  assert.equal(commandCenterLib.cashSourceLabel(null), "payment");
 });
 
 test("promisesDue: only touched, open leads whose promised time is at or before the end of today, overdue first", () => {

@@ -4,8 +4,8 @@ import { stripActivityMarkers } from "@/lib/leadTimeline";
 import { requireOperatorAdmin } from "@/lib/operatoros/auth";
 import { createServiceClient } from "@/lib/supabase/service";
 import { loadCallSheet } from "@/lib/callSheetServer";
-import { loadClientWorkspaces, loadMoneyBoard } from "@/lib/commandCenterServer";
-import { adSummary, breakEven, businessCounts, money, moneyBoard, parseUsd, parseWindow, type BusinessRow } from "@/lib/commandCenter";
+import { CASH_LEDGER_COLUMNS, loadClientWorkspaces, loadMoneyBoard, purchasesFromLedger, type CashLedgerRow } from "@/lib/commandCenterServer";
+import { adSummary, breakEven, businessCounts, cashSourceLabel, money, moneyBoard, parseUsd, parseWindow, type BusinessRow } from "@/lib/commandCenter";
 import { MANAGED_COMMERCIAL_TERMS } from "@/lib/site/managedPlans";
 import { fetchLeadFlowAdInsights } from "@/lib/metaInsights";
 import { centralDate, formatCentral } from "@/lib/businessTime";
@@ -40,11 +40,9 @@ export const dynamic = "force-dynamic";
 // read (approvals, clients, analytics, Meta) says so in its own panel.
 
 type LeadActivity = { id: string; lead_id: string; kind: string; detail: string; created_at: string };
-type Purchase = { id: string; kind: string; amount_cents: number; status: string; created_at: string };
 type Approval = { id: string; source_agent: string | null; target_agent: string | null; status: string; approval_required: boolean; created_at: string };
 type TimelineItem = { id: string; at: string; title: string; detail: string; tone: "blue" | "green" | "warn" | "violet" };
 
-const PAID_STATUSES = new Set(["paid", "complete", "completed", "succeeded"]);
 const PENDING_APPROVAL_STATUSES = new Set(["pending", "awaiting_approval", "needs_approval", "queued", "ready"]);
 const FOCUS = "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--blue)]";
 const PANEL = "rounded-[22px] border border-[var(--line)] bg-[var(--panel)] p-5";
@@ -67,7 +65,8 @@ export default async function CommandCenter({ searchParams }: { searchParams: Pr
     loadMoneyBoard(supabase, now, days).catch((error: unknown) => ({ ok: false as const, error: error instanceof Error ? error.message : "The board could not be read." })),
     loadCallSheet(supabase, now).catch((error: unknown) => ({ ok: false as const, error: error instanceof Error ? error.message : "The call sheet could not be read." })),
     supabase.from("lead_activity").select("id, lead_id, kind, detail, created_at").gte("created_at", since24h).order("created_at", { ascending: false }).limit(60),
-    supabase.from("purchases").select("id, kind, amount_cents, status, created_at").gte("created_at", since24h).order("created_at", { ascending: false }).limit(50),
+    // Money that landed in the last day: the verified cash ledger (Stripe, paid invoices, hand-recorded cash), admin only.
+    supabase.from("operator_verified_cash_entries").select(CASH_LEDGER_COLUMNS).gte("received_at", since24h).order("received_at", { ascending: false }).limit(50),
     (async () => {
       try {
         // approval_queue is service-only by design. Never loosen its grants.
@@ -129,7 +128,7 @@ export default async function CommandCenter({ searchParams }: { searchParams: Pr
 
   const sheetRows = sheetLoad.ok ? sheetLoad.sheet.rows : [];
   const activity = (activityResult.error ? [] : (activityResult.data ?? [])) as LeadActivity[];
-  const purchases24h = ((purchaseResult.error ? [] : (purchaseResult.data ?? [])) as Purchase[]).filter((p) => PAID_STATUSES.has(p.status));
+  const purchases24h = purchaseResult.error ? [] : purchasesFromLedger((purchaseResult.data ?? []) as CashLedgerRow[]);
   const approvals = approvalResult.error ? null : ((approvalResult.data ?? []) as Approval[]);
   const approvalsWaiting = approvals ? approvals.filter((a) => a.approval_required && PENDING_APPROVAL_STATUSES.has(a.status)) : null;
 
@@ -148,7 +147,7 @@ export default async function CommandCenter({ searchParams }: { searchParams: Pr
         tone: "violet" as const,
       };
     }),
-    ...purchases24h.map((purchase) => ({ id: `purchase-${purchase.id}`, at: purchase.created_at, title: "Payment recorded", detail: `${money(purchase.amount_cents)} · ${purchase.kind.replace(/_/g, " ")}`, tone: "green" as const })),
+    ...purchases24h.map((purchase) => ({ id: `purchase-${purchase.id}`, at: purchase.created_at, title: "Payment recorded", detail: `${money(purchase.amount_cents ?? 0)} · ${cashSourceLabel(purchase.kind)}`, tone: "green" as const })),
     ...(approvalsWaiting ?? []).slice(0, 5).map((approval) => ({ id: `approval-${approval.id}`, at: approval.created_at, title: "Human stopline", detail: `${approval.source_agent || "Agent"} → ${approval.target_agent || "operator"} needs approval.`, tone: "warn" as const })),
   ]
     .sort((a, b) => b.at.localeCompare(a.at))

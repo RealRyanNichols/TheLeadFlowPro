@@ -26,7 +26,14 @@ export default async function SalesBoard({ searchParams }: { searchParams: Promi
   const supabase = await createClient();
   const now = new Date();
   const days = parseWindow(((await searchParams) ?? {}).window);
-  const load = await loadMoneyBoard(supabase, now, days);
+  // The cash ledger answers admins only and returns nothing, not an error,
+  // to the sales role; so the role decides whether money is read at all.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const profile = user ? await supabase.from("profiles").select("role").eq("id", user.id).single() : null;
+  const isAdmin = profile?.data?.role === "admin";
+  const load = await loadMoneyBoard(supabase, now, days, { moneyReadable: isAdmin });
 
   if (!load.ok) {
     return (
@@ -42,7 +49,9 @@ export default async function SalesBoard({ searchParams }: { searchParams: Promi
   // Pat's board reads only what the sales role can read; Meta spend stays on Ryan's board.
   const links = operatorLinks().filter((l) => !l.ownerOnly && ["uncalled", "hub", "calldesk"].includes(l.key));
   // The pulse on our own records; Meta's campaign status is read on the owner's board only.
-  const pulseRows = pulse({ leads: load.leads, calls: load.calls, messages: load.messages, purchases: load.purchases, now, metaCampaignActive: null });
+  const pulseRows = pulse({ leads: load.leads, calls: load.calls, messages: load.messages, purchases: load.purchases, now, metaCampaignActive: null })
+    // A lane this login cannot read is left off, never shown as quiet.
+    .filter((row) => row.key !== "paid" || !load.unavailable.includes("payments"));
 
   return (
     <div className="space-y-6">

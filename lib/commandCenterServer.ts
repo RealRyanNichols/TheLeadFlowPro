@@ -30,6 +30,14 @@ import {
 // (both windows come from the same rows), plus every open lead older than
 // that, so a proposal from six weeks ago and a promise made last month still
 // count. History (notes, calls, texts) is read for those leads only.
+//
+// Money in is the verified cash ledger (operator_verified_cash_entries):
+// Stripe checkouts, paid Stripe invoices, and checks, cash, ACH or wires
+// recorded by hand on /admin/operator/cash. The Sep 27 recording ("the
+// dashboard shows $0 collected in September, but that's bullshit") was a
+// board that read Stripe alone. The view answers admins only and returns no
+// rows, not an error, to any other role, so the caller says whether this
+// login can read it; a login that cannot gets "payments" in `unavailable`.
 
 /** Most window leads read in one go. */
 export const BOARD_LEAD_LIMIT = 600;
@@ -52,7 +60,7 @@ export type BoardLoad =
       proposals: ProposalRow[];
       leads: BoardLead[];
       touches: CallSheetTouch[];
-      /** Paid purchase rows from the last 28 days, so the page can count a different window. */
+      /** Money that landed in the last 28 days (the verified cash ledger), so the page can count a different window. */
       purchases: BoardPurchase[];
       /** The raw call and text rows behind the touches, for the pulse (when each lane last moved). */
       calls: CallSheetCallRow[];
@@ -68,7 +76,31 @@ export type BoardLoad =
 
 type NoteRow = CallSheetNoteRow & { author?: string | null };
 
-export async function loadMoneyBoard(supabase: SupabaseClient, now: Date, days: BoardWindow): Promise<BoardLoad> {
+/** A row of the verified cash ledger view. */
+export type CashLedgerRow = {
+  source_type: string;
+  source_id: string;
+  payer_label: string | null;
+  description: string | null;
+  amount_cents: number | null;
+  received_at: string;
+};
+
+export const CASH_LEDGER_COLUMNS = "source_type, source_id, payer_label, description, amount_cents, received_at";
+
+/** The ledger's rows in the board's purchase shape: every row on it is money that landed. */
+export function purchasesFromLedger(rows: readonly CashLedgerRow[]): BoardPurchase[] {
+  return rows
+    .filter((row) => row.source_id && row.received_at && Number(row.amount_cents) > 0)
+    .map((row) => ({ id: row.source_id, kind: row.source_type, amount_cents: Number(row.amount_cents), status: "paid", created_at: row.received_at }));
+}
+
+export type BoardOptions = {
+  /** Whether this login is an admin, the only role the cash ledger answers. */
+  moneyReadable: boolean;
+};
+
+export async function loadMoneyBoard(supabase: SupabaseClient, now: Date, days: BoardWindow, options: BoardOptions = { moneyReadable: true }): Promise<BoardLoad> {
   const since28 = windowStart(now, 28).toISOString();
   const [windowResult, openResult] = await Promise.all([
     supabase
@@ -125,14 +157,18 @@ export async function loadMoneyBoard(supabase: SupabaseClient, now: Date, days: 
     partial = [notes, calls, messages].some((rows) => rows.length >= BOARD_ROW_CAP);
   }
 
-  const purchaseResult = await supabase
-    .from("purchases")
-    .select("id, kind, amount_cents, status, created_at")
-    .gte("created_at", since28)
-    .order("created_at", { ascending: false })
-    .limit(500);
-  if (purchaseResult.error) unavailable.push("payments");
-  else purchases = (purchaseResult.data ?? []) as BoardPurchase[];
+  if (options.moneyReadable) {
+    const cashResult = await supabase
+      .from("operator_verified_cash_entries")
+      .select(CASH_LEDGER_COLUMNS)
+      .gte("received_at", since28)
+      .order("received_at", { ascending: false })
+      .limit(500);
+    if (cashResult.error) unavailable.push("payments");
+    else purchases = purchasesFromLedger((cashResult.data ?? []) as CashLedgerRow[]);
+  } else {
+    unavailable.push("payments");
+  }
 
   const touches = touchesFromRows({ notes, calls, messages });
   const board = moneyBoard({

@@ -155,7 +155,10 @@ export function pulse(input: {
     at: paid,
     hoursAgo: paidHours,
     warn: paidHours === null || paidHours >= 24 * 28,
-    note: paidHours === null || paidHours >= 24 * 28 ? "No paid checkout in 28 days. A check or a card taken by hand is not in this number." : "Money is landing.",
+    note:
+      paidHours === null || paidHours >= 24 * 28
+        ? "Nothing on the verified cash ledger in 28 days: no Stripe checkout, no paid invoice, no check or cash recorded by hand. If money did land, record it."
+        : "Money is landing.",
   });
 
   return rows;

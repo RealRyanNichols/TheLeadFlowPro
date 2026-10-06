@@ -64,6 +64,14 @@ export function WindowToggle({ days, basePath }: { days: BoardWindow; basePath: 
 
 export function MoneyLine({ board, ads, partial, unavailable }: { board: MoneyBoard; ads: AdsPanel; partial: boolean; unavailable: string[] }) {
   const sources = board.bySource.map((s) => `${s.label} ${s.count}`).join(" · ") || "no leads";
+  // Money in is the verified cash ledger, which answers admins only. A login
+  // that cannot read it sees "unread", never a zero.
+  const paymentsUnread = unavailable.includes("payments");
+  const paidTile = paymentsUnread
+    ? { value: "–", detail: "This login cannot read the cash ledger. Not zero, unread.", tone: "plain" as const }
+    : board.paid.count
+      ? { value: moneyExact(board.paid.cents), detail: `${board.paid.bySource.map((s) => `${s.count} ${s.label}`).join(" · ")}. Money that landed, from the verified cash ledger.`, tone: "good" as const }
+      : { value: "$0", detail: "Nothing landed on the verified cash ledger: no Stripe checkout, no paid invoice, no check or cash recorded by hand.", tone: "plain" as const };
   const spendTile =
     ads.state === "ok"
       ? {
@@ -111,17 +119,22 @@ export function MoneyLine({ board, ads, partial, unavailable }: { board: MoneyBo
           value={board.proposalsOut.count ? `${board.proposalsOut.count} · ${board.proposalsOut.cents ? money(board.proposalsOut.cents) : "unvalued"}` : "0"}
           detail={`Open leads in the proposal stage, any age. ${board.proposalsOut.valued} of ${board.proposalsOut.count} carry a dollar value. ${board.stages.booked} sit-downs booked, ${board.stages.contacted} contacted.`}
         />
-        <Tile
-          label={`Paid · ${board.days}d`}
-          value={board.paid.count ? moneyExact(board.paid.cents) : "$0"}
-          detail={board.paid.count ? `${board.paid.count} paid checkout${board.paid.count === 1 ? "" : "s"} recorded by Stripe.` : "No paid checkout recorded. A check or a card taken by hand is not in this number."}
-          tone={board.paid.count ? "good" : "plain"}
-        />
+        <Tile label={`Paid · ${board.days}d`} value={paidTile.value} detail={paidTile.detail} tone={paidTile.tone} />
         <Tile label={`Ad spend · ${board.days}d`} value={spendTile.value} detail={spendTile.detail} />
       </div>
       <p className="mt-3 text-xs text-[var(--muted)]">
         Calls somebody had: {board.callsHad}.{" "}
         {board.notesByAuthor.length ? `Notes logged: ${board.notesByAuthor.map((n) => `${n.author} ${n.count}`).join(", ")}.` : "No notes logged in this window."}
+        {!paymentsUnread ? (
+          <>
+            {" "}
+            A check, cash, ACH or wire that landed is not on this board until it is recorded:{" "}
+            <Link href="/admin/operator/cash" className={`font-bold text-[var(--blue)] ${FOCUS}`}>
+              Record a payment
+            </Link>
+            .
+          </>
+        ) : null}
       </p>
     </div>
   );
@@ -275,7 +288,7 @@ export function BreakEvenPanel({ counter, paid28Cents }: { counter: BreakEven | 
       {counter ? (
         <div className="mt-3 grid gap-3 sm:grid-cols-3">
           <Tile label="Known monthly costs" value={money(counter.monthlyCostsCents)} detail="What the owner typed into the server's env file. Change it there when a bill changes." />
-          <Tile label="Paid · last 28 days" value={moneyExact(counter.paidCents)} detail={counter.marginCents >= 0 ? `${money(counter.marginCents)} past the costs. Profit zone.` : `${money(-counter.marginCents)} short of the month's costs.`} tone={counter.marginCents >= 0 ? "good" : "warn"} />
+          <Tile label="Paid · last 28 days" value={moneyExact(counter.paidCents)} detail={`${counter.marginCents >= 0 ? `${money(counter.marginCents)} past the costs. Profit zone.` : `${money(-counter.marginCents)} short of the month's costs.`} From the verified cash ledger: Stripe, paid invoices, and payments recorded by hand.`} tone={counter.marginCents >= 0 ? "good" : "warn"} />
           <Tile
             label="Clients to cover it"
             value={String(counter.clientsRemaining)}
