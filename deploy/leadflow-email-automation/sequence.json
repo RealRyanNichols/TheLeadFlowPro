@@ -1,0 +1,669 @@
+{
+  "schema_version": 1,
+  "sequence_id": "lfp_business_followup_30day",
+  "version": "v1",
+  "approved_for_sending": false,
+  "title": "The LeadFlow Pro — 30-Day Business Follow-Up",
+  "staging_notice": "Local staging for handoff to the existing DigitalOcean environment. No sending has been authorized by this file.",
+  "timezone": "America/Chicago",
+  "schedule": {
+    "immediate_acknowledgment": "existing_service_message_do_not_duplicate",
+    "day_offsets": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23,
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30
+    ],
+    "local_send_time": "10:00",
+    "first_send_minimum_hours_after_consent": 24,
+    "minimum_hours_between_marketing_sends": 24,
+    "no_catch_up_bursts": true
+  },
+  "enrollment": {
+    "requires_explicit_sequence_consent": true,
+    "consent_text": "Email me The LeadFlow Pro’s 30-day business follow-up series: one helpful email a day with tools, examples and service offers. I can unsubscribe at any time.",
+    "checkbox_default": false,
+    "consent_fields": [
+      "status",
+      "captured_at",
+      "source",
+      "wording_version",
+      "contact_id"
+    ],
+    "callback_only_form_is_not_sequence_consent": true,
+    "pause_on": [
+      "reply",
+      "consultation_booking",
+      "purchase"
+    ],
+    "stop_on": [
+      "unsubscribe",
+      "complaint",
+      "hard_bounce",
+      "suppressed"
+    ],
+    "end_after_day": 30,
+    "no_automatic_reenrollment": true
+  },
+  "sender": {
+    "name": "Ryan Nichols | The LeadFlow Pro",
+    "email": "hello@theleadflowpro.com",
+    "reply_to": "hello@theleadflowpro.com",
+    "requires_verified_sender_configuration": true
+  },
+  "footer": {
+    "business_name": "The LeadFlow Pro",
+    "legal_business_name": "Longview Training Center, LLC",
+    "mailing_address": null,
+    "mailing_address_verification_status": "Not established by the retrieved official privacy/contact pages; required before marketing sends.",
+    "privacy_url": "https://www.theleadflowpro.com/privacy",
+    "phone": "(903) 500-8898",
+    "call_url": "tel:+19035008898",
+    "text_url": "sms:+19035008898",
+    "unsubscribe_url": null,
+    "subscription_explanation": "You requested this 30-day series of business tools, practical ideas and service offers."
+  },
+  "sources": [
+    {
+      "id": "services",
+      "url": "https://www.theleadflowpro.com/services",
+      "title": "LeadFlow services",
+      "source_date": null,
+      "checked_at": "2026-09-27",
+      "scope": "Current service scope and written approval process."
+    },
+    {
+      "id": "home",
+      "url": "https://www.theleadflowpro.com/",
+      "title": "LeadFlow home",
+      "source_date": null,
+      "checked_at": "2026-09-27",
+      "scope": "Free 30-minute consultation; phone; business and Longview office meetings; ownership."
+    },
+    {
+      "id": "followup",
+      "url": "https://www.theleadflowpro.com/go/lead-follow-up",
+      "title": "Lead Follow-Up Campaign",
+      "source_date": null,
+      "checked_at": "2026-09-27",
+      "scope": "$197 writing-only offer; five-message email sequence; no sending, CRM implementation or ad spend."
+    },
+    {
+      "id": "launch",
+      "url": "https://www.theleadflowpro.com/packages/launch",
+      "title": "Website Launch",
+      "source_date": null,
+      "checked_at": "2026-09-27",
+      "scope": "$1,000 five-page foundation; $500 start and $500 after approval before launch."
+    },
+    {
+      "id": "map",
+      "url": "https://www.theleadflowpro.com/packages/system-map",
+      "title": "System Map",
+      "source_date": null,
+      "checked_at": "2026-09-27",
+      "scope": "$497 planning deliverable separate from execution."
+    },
+    {
+      "id": "results",
+      "url": "https://www.theleadflowpro.com/results",
+      "title": "Results",
+      "source_date": null,
+      "checked_at": "2026-09-27",
+      "scope": "Portfolio context and distinction between recorded activity and completed sales."
+    },
+    {
+      "id": "portfolio",
+      "url": "https://www.theleadflowpro.com/portfolio",
+      "title": "The Work",
+      "source_date": null,
+      "checked_at": "2026-09-27",
+      "scope": "Examples of live business websites and connected customer paths."
+    },
+    {
+      "id": "privacy",
+      "url": "https://www.theleadflowpro.com/privacy",
+      "title": "Privacy Policy",
+      "source_date": "2026-08-28",
+      "checked_at": "2026-09-27",
+      "scope": "Optional educational series requires corresponding consent; service messages distinguished from marketing."
+    },
+    {
+      "id": "contact",
+      "url": "https://www.theleadflowpro.com/contact",
+      "title": "Contact",
+      "source_date": null,
+      "checked_at": "2026-09-27",
+      "scope": "Public phone/email; no postal address found in retrieved page."
+    },
+    {
+      "id": "tool_website",
+      "url": "https://www.theleadflowpro.com/tools/website-grader",
+      "title": "Website Scorecard",
+      "source_date": null,
+      "checked_at": "2026-09-27",
+      "scope": "Self-reported checklist, not a measured revenue/ranking outcome."
+    },
+    {
+      "id": "tool_utm",
+      "url": "https://www.theleadflowpro.com/tools/utm-link-builder",
+      "title": "UTM Link Builder",
+      "source_date": null,
+      "checked_at": "2026-09-27",
+      "scope": "Campaign link labeling."
+    },
+    {
+      "id": "tool_budget",
+      "url": "https://www.theleadflowpro.com/tools/ad-budget-planner",
+      "title": "Ad Budget Planner",
+      "source_date": null,
+      "checked_at": "2026-09-27",
+      "scope": "Budget scenario using supplied assumptions."
+    },
+    {
+      "id": "tool_calendar",
+      "url": "https://www.theleadflowpro.com/tools/add-to-calendar-link",
+      "title": "Add-to-Calendar Link Maker",
+      "source_date": null,
+      "checked_at": "2026-09-27",
+      "scope": "Calendar link and ICS output."
+    },
+    {
+      "id": "tool_voicemail",
+      "url": "https://www.theleadflowpro.com/tools/voicemail-script-generator",
+      "title": "Business Voicemail Script Writer",
+      "source_date": null,
+      "checked_at": "2026-09-27",
+      "scope": "Draft voicemail greetings."
+    },
+    {
+      "id": "tool_missed_call",
+      "url": "https://www.theleadflowpro.com/tools/missed-call-textback-script",
+      "title": "Missed Call Text-Back Script Writer",
+      "source_date": null,
+      "checked_at": "2026-09-27",
+      "scope": "Draft missed-call response wording."
+    }
+  ],
+  "emails": [
+    {
+      "day": 1,
+      "subject": "Start with one part of the business",
+      "preheader": "Choose the customer-process problem you most want to improve.",
+      "body": [
+        "Welcome to the 30-day series. I’ll send you one practical idea or tool each day, along with ways The LeadFlow Pro can help.",
+        "Start here: finish this sentence.",
+        "“The part of our customer process I most want to improve is _____.”",
+        "It might be answering inquiries, explaining tuition, following up after an event or keeping track of coaching conversations. Choose the part that creates the most confusion for your team.",
+        "Reply with your answer. A clear starting point makes the next conversation more useful."
+      ],
+      "cta": {
+        "label": "Reply with your biggest bottleneck",
+        "url": "mailto:hello@theleadflowpro.com"
+      }
+    },
+    {
+      "day": 2,
+      "subject": "Try your website on your phone",
+      "preheader": "Check what a first-time visitor can understand and do.",
+      "body": [
+        "Open your website on your phone and pretend you have never seen the business before.",
+        "Can you understand what is offered? Can you find the next step? Does the contact button work?",
+        "Our free Website Scorecard gives you a structured checklist to work through. It is a review of the answers you provide, not a prediction of leads or sales.",
+        "Choose one useful improvement from the list before trying to change everything."
+      ],
+      "cta": {
+        "label": "Check your website",
+        "url": "https://www.theleadflowpro.com/tools/website-grader"
+      }
+    },
+    {
+      "day": 3,
+      "subject": "Three answers your offer needs",
+      "preheader": "Make the audience, scope and next step easier to understand.",
+      "body": [
+        "A prospective customer should not have to guess whether an offer fits.",
+        "Read your main page and look for three answers: who the offer serves, what is included and how to take the next step.",
+        "For a school, that might mean the program, format and inquiry process. For a coach, it might mean the problem addressed and how to discuss fit. For an event, it means the audience, topic and registration.",
+        "Write the missing answer in plain language today."
+      ],
+      "cta": {
+        "label": "Reply with the offer you want to clarify",
+        "url": "mailto:hello@theleadflowpro.com"
+      }
+    },
+    {
+      "day": 4,
+      "subject": "What does a missed caller hear?",
+      "preheader": "A realistic voicemail greeting gives the caller a next step.",
+      "body": [
+        "Your voicemail is part of the customer experience.",
+        "Listen to it. Does it identify the business? Explain what information to leave? Set an expectation your team can keep?",
+        "A useful greeting gives someone a reason to leave a clear message. Avoid promising an immediate callback if nobody is available to make it.",
+        "Our free script tool can help you draft a greeting. Read it aloud and adjust it to sound like you before using it."
+      ],
+      "cta": {
+        "label": "Draft your voicemail greeting",
+        "url": "https://www.theleadflowpro.com/tools/voicemail-script-generator"
+      }
+    },
+    {
+      "day": 5,
+      "subject": "Make the first reply useful",
+      "preheader": "Answer the question, then explain one next step.",
+      "body": [
+        "An acknowledgment is a start. A helpful answer goes further.",
+        "Try this structure: thank the person, respond to the question they actually asked, then explain one next step.",
+        "“You asked about our evening program. Here is how that schedule works. Would a call or a visit help you decide whether it fits?”",
+        "Keep the details accurate. Avoid dropping someone into a generic sales pitch when they have asked a specific question.",
+        "Save a good example where your team can find it."
+      ],
+      "cta": {
+        "label": "Reply with a common customer question",
+        "url": "mailto:hello@theleadflowpro.com"
+      }
+    },
+    {
+      "day": 6,
+      "subject": "Give the next step an owner",
+      "preheader": "Make one open inquiry easier for your team to handle.",
+      "body": [
+        "Look at one open inquiry today.",
+        "Can you identify the person responsible, the next action and when that action should happen?",
+        "“We should follow up” is easy to lose in a busy day. “Jordan will answer the schedule question Tuesday morning” gives the team something concrete to do.",
+        "The tool matters less than whether your team can find and use the information. Start with a shared place and a clear responsibility."
+      ],
+      "cta": {
+        "label": "Tell Ryan which handoff needs an owner",
+        "url": "mailto:hello@theleadflowpro.com"
+      }
+    },
+    {
+      "day": 7,
+      "subject": "Review one real customer journey",
+      "preheader": "Find a practical improvement by following one inquiry.",
+      "body": [
+        "Take one inquiry from the past week and follow its path.",
+        "Where did it begin? Who saw it first? What answer did the person receive? What happened next?",
+        "You are looking for the handoff that needs attention. A missing reply, unclear form or forgotten appointment can point to a practical improvement.",
+        "Keep the review small enough to finish. One carefully understood conversation can tell you more than a long list of guesses."
+      ],
+      "cta": {
+        "label": "Reply with the handoff that needs work",
+        "url": "mailto:hello@theleadflowpro.com"
+      }
+    },
+    {
+      "day": 8,
+      "subject": "Give your links useful names",
+      "preheader": "Consistent campaign labels help you review traffic.",
+      "body": [
+        "When several posts point to the same page, it can be difficult to tell which one brought a visitor.",
+        "Campaign tags help you distinguish the links in your analytics. Our free UTM Link Builder lets you label the source, channel and campaign.",
+        "Use a consistent naming pattern your team understands. A tagged visit still is not a sale; connect it to later activity before drawing conclusions.",
+        "Start by labeling the next link you publish."
+      ],
+      "cta": {
+        "label": "Build a labeled link",
+        "url": "https://www.theleadflowpro.com/tools/utm-link-builder"
+      }
+    },
+    {
+      "day": 9,
+      "subject": "Put assumptions beside the ad budget",
+      "preheader": "Use your own numbers and label estimates honestly.",
+      "body": [
+        "Before choosing a budget, write down the assumptions behind it.",
+        "How many inquiries do you hope to handle? What might each inquiry cost? How many become real customers in your own records?",
+        "The Ad Budget Planner helps you work through a scenario. Its output depends on your inputs; it is not a forecast or a promise.",
+        "If you do not know a number yet, label it as an estimate and replace it when your campaign produces evidence."
+      ],
+      "cta": {
+        "label": "Explore a budget scenario",
+        "url": "https://www.theleadflowpro.com/tools/ad-budget-planner"
+      }
+    },
+    {
+      "day": 10,
+      "subject": "School owners: separate the questions",
+      "preheader": "Give tuition and funding questions an accurate next step.",
+      "body": [
+        "Tuition questions and funding questions do not always have the same next step.",
+        "Make a short list of the payment options your school actually offers or accepts. Then note who can answer each question and what information the prospective student needs next.",
+        "Keep that explanation consistent across your page, form and follow-up.",
+        "Eligibility and approval belong to the applicable funding program and the individual’s circumstances. A clearer process helps your team explain what is known without promising an outcome."
+      ],
+      "cta": {
+        "label": "Reply with an enrollment question",
+        "url": "mailto:hello@theleadflowpro.com"
+      }
+    },
+    {
+      "day": 11,
+      "subject": "Explain tuition before asking for a decision",
+      "preheader": "Make costs, inclusions and actual payment terms clear.",
+      "body": [
+        "For a private-pay program, people may need to understand the cost before they are ready to talk about enrollment.",
+        "Check whether your information explains what is included, what is separate and when payments are due. If plans are available, describe only the terms you actually offer.",
+        "Clarity helps the conversation. It also gives your team a consistent reference when someone asks the same question in a different way.",
+        "Choose one tuition question and improve its answer today."
+      ],
+      "cta": {
+        "label": "Ask Ryan about your tuition explanation",
+        "url": "mailto:hello@theleadflowpro.com"
+      }
+    },
+    {
+      "day": 12,
+      "subject": "Give your event invitation a clear job",
+      "preheader": "Help someone decide whether to attend and how to register.",
+      "body": [
+        "A useful event invitation answers a few basic questions.",
+        "Who should attend? What will the session cover? When and where will it happen? What does registration involve?",
+        "Read your invitation without assuming the reader knows you. If the next step is difficult to find, make it easier to see.",
+        "For a virtual event, also check whether the time zone and joining instructions are clear. Small details deserve attention before you send more people to the page."
+      ],
+      "cta": {
+        "label": "Reply with the event you are planning",
+        "url": "mailto:hello@theleadflowpro.com"
+      }
+    },
+    {
+      "day": 13,
+      "subject": "Put the appointment on the calendar",
+      "preheader": "Check the time zone and joining details before sharing.",
+      "body": [
+        "After someone registers or chooses a time, make it easy to remember the details.",
+        "Our Add-to-Calendar Link Maker can create a calendar link for a class, consultation, open house or virtual event.",
+        "Check the time zone, location and joining link before sharing it. A calendar entry should agree with the confirmation message and event page.",
+        "Try the finished link yourself. That quick check can catch an avoidable source of confusion."
+      ],
+      "cta": {
+        "label": "Create a calendar link",
+        "url": "https://www.theleadflowpro.com/tools/add-to-calendar-link"
+      }
+    },
+    {
+      "day": 14,
+      "subject": "Make the mastermind fit easier to assess",
+      "preheader": "Explain participation and support before someone joins.",
+      "body": [
+        "Someone considering a mastermind may need more than a list of meeting dates.",
+        "Explain who the group is for, how participation works and what is expected between sessions. Be specific about the support you actually provide.",
+        "Then give interested people a useful next step: ask a question, discuss fit or review the details.",
+        "Clear expectations help both sides decide whether the offer belongs in their plans. What question would someone need answered before joining yours?"
+      ],
+      "cta": {
+        "label": "Reply with the question people ask",
+        "url": "mailto:hello@theleadflowpro.com"
+      }
+    },
+    {
+      "day": 15,
+      "subject": "What happens after someone joins?",
+      "preheader": "Make the first useful community action easy to find.",
+      "body": [
+        "For a community, the first useful experience matters.",
+        "Look at the welcome process. Can a new member find where to begin, introduce themselves and ask for help? Do they understand what the community offers?",
+        "You do not need a long introduction to explain those things. A short welcome with a clear first action can be easier to use.",
+        "Write the message from the perspective of someone opening the community for the first time."
+      ],
+      "cta": {
+        "label": "Tell Ryan about your welcome process",
+        "url": "mailto:hello@theleadflowpro.com"
+      }
+    },
+    {
+      "day": 16,
+      "subject": "Know who owns the accounts",
+      "preheader": "Make ownership and access part of the project conversation.",
+      "body": [
+        "Make a simple list of the accounts your business relies on: website, domain, advertising, email and customer records.",
+        "For each one, confirm who owns it and who can manage access.",
+        "The goal is a clear handoff and fewer surprises when someone’s role changes. Store access securely; do not put passwords into a shared planning document.",
+        "Our work is built around client-owned accounts and data. Ownership should be part of the project conversation from the beginning."
+      ],
+      "cta": {
+        "label": "Ask an account-ownership question",
+        "url": "mailto:hello@theleadflowpro.com"
+      }
+    },
+    {
+      "day": 17,
+      "subject": "Ask what a result actually counts",
+      "preheader": "Read the definition, period and source behind a number.",
+      "body": [
+        "A screenshot can look impressive without answering the question that matters to your business.",
+        "When you review marketing results, ask what was counted, over what period and from which source.",
+        "A page view is not automatically an inquiry. An inquiry is not automatically a customer. Those distinctions help you understand what the work has produced.",
+        "Our public results pages link to examples and recorded activity. Read the definitions alongside the numbers."
+      ],
+      "cta": {
+        "label": "Explore the work and its context",
+        "url": "https://www.theleadflowpro.com/results"
+      }
+    },
+    {
+      "day": 18,
+      "subject": "Follow a working example",
+      "preheader": "Look at the customer path before choosing features.",
+      "body": [
+        "A useful way to review a website is to use it as a customer would.",
+        "Choose an example from our portfolio. Look at the offer, the information someone needs and the action they are invited to take.",
+        "Then compare that path with your own business. Which parts fit? Which would need to be different?",
+        "The point is to identify useful details, not assume another business’s experience predicts your results."
+      ],
+      "cta": {
+        "label": "Explore the portfolio",
+        "url": "https://www.theleadflowpro.com/portfolio"
+      }
+    },
+    {
+      "day": 19,
+      "subject": "Give follow-up a reason to exist",
+      "preheader": "Add useful information to the conversation.",
+      "body": [
+        "A follow-up can add something useful.",
+        "Answer a question left open. Share the information the person requested. Explain a next step that was unclear.",
+        "“Checking in” may fit some situations, but it should not be the only message in your plan. Give the reader a reason to continue the conversation.",
+        "Before sending, review the earlier exchange so your message matches what has already happened. If the person declines or opts out, respect that choice."
+      ],
+      "cta": {
+        "label": "Ask Ryan about a follow-up message",
+        "url": "mailto:hello@theleadflowpro.com"
+      }
+    },
+    {
+      "day": 20,
+      "subject": "Draft a useful missed-call reply",
+      "preheader": "Identify the business and set a promise your team can keep.",
+      "body": [
+        "A missed-call message should identify the business and make it easy to respond.",
+        "Keep the promise realistic. If the team will reply during business hours, say that. If a particular detail helps route the request, ask for it clearly.",
+        "Our free script tool can give you a starting point. Review the wording and use it only where you have permission to contact the recipient.",
+        "A written script helps the team; it does not replace judgment."
+      ],
+      "cta": {
+        "label": "Draft a missed-call reply",
+        "url": "https://www.theleadflowpro.com/tools/missed-call-textback-script"
+      }
+    },
+    {
+      "day": 21,
+      "subject": "Turn repeated questions into useful content",
+      "preheader": "Answer a real question in the customer’s words.",
+      "body": [
+        "Write down the questions your team answers most often.",
+        "Choose one and create a plain-language answer for your page or follow-up. Include the detail someone needs to make a decision, and keep any conditions visible.",
+        "Schools might explain schedules. Coaches might explain how the first conversation works. Event hosts might explain what happens after registration.",
+        "Use the question in the customer’s words. That makes the answer easier to recognize and easier for your team to reuse."
+      ],
+      "cta": {
+        "label": "Reply with a question you want to answer",
+        "url": "mailto:hello@theleadflowpro.com"
+      }
+    },
+    {
+      "day": 22,
+      "subject": "Make a handoff someone else can use",
+      "preheader": "Keep the facts, agreement and next action together.",
+      "body": [
+        "Imagine another team member needs to continue an inquiry tomorrow.",
+        "Would the record explain what the person wants, what has been discussed and what should happen next?",
+        "A useful note is short and specific. Record the facts, the agreed next step and the responsible person. Avoid making someone reconstruct the entire exchange.",
+        "This is one of the practical details we look at when connecting customer records and follow-up."
+      ],
+      "cta": {
+        "label": "Tell Ryan which handoff needs help",
+        "url": "mailto:hello@theleadflowpro.com"
+      }
+    },
+    {
+      "day": 23,
+      "subject": "Review what your form asks",
+      "preheader": "Test where the inquiry goes after someone submits it.",
+      "body": [
+        "Every question on a form should have a purpose.",
+        "Read yours and ask how each answer will help the next conversation. Keep necessary questions clear, and explain what happens after submission.",
+        "Then submit a test using your own details. Confirm the message reaches the correct place and that the confirmation makes sense.",
+        "The useful result is a working handoff. A form can look finished while that part still needs attention."
+      ],
+      "cta": {
+        "label": "Ask Ryan about your inquiry path",
+        "url": "mailto:hello@theleadflowpro.com"
+      }
+    },
+    {
+      "day": 24,
+      "subject": "Want the follow-up written for you?",
+      "preheader": "Review the scope of the $197 writing service.",
+      "body": [
+        "If the main problem is finding the words, our Follow-Up Campaign may fit.",
+        "For $197 one time, Ryan writes a set of messages for one offer in your business, including a five-message email sequence and a guide to when the messages belong.",
+        "It is a writing service. Sending, advertising, CRM setup and automation implementation are separate.",
+        "Review the full scope and intake requirements before purchasing. If you need the connected system, bring that question to the consultation instead."
+      ],
+      "cta": {
+        "label": "Review the $197 Follow-Up Campaign",
+        "url": "https://www.theleadflowpro.com/go/lead-follow-up"
+      }
+    },
+    {
+      "day": 25,
+      "subject": "If the website is the starting point",
+      "preheader": "Review the five-page Website Launch and payment terms.",
+      "body": [
+        "Sometimes the first useful project is a clearer website with a working inquiry path.",
+        "Website Launch is our five-page foundation at $1,000: $500 to start, with the remaining $500 after approval and before launch.",
+        "The page explains the included work, review rounds and payment terms. Additional services are scoped separately.",
+        "Review those details against what your business needs. If you are unsure whether a website is the right first move, we can discuss that before you decide."
+      ],
+      "cta": {
+        "label": "Review Website Launch",
+        "url": "https://www.theleadflowpro.com/packages/launch"
+      }
+    },
+    {
+      "day": 26,
+      "subject": "When the pieces need a map",
+      "preheader": "A written plan can make a larger project easier to assess.",
+      "body": [
+        "If your business relies on several disconnected systems, deciding what to change first can be difficult.",
+        "The $497 System Map is a paid planning deliverable. It reviews the current setup, maps the customer path and identifies suggested phases and a price range.",
+        "It is separate from the free consultation and from carrying out the build.",
+        "Read the scope before choosing it. A clear plan should help you understand the work and its dependencies before committing to a larger project."
+      ],
+      "cta": {
+        "label": "Review the System Map",
+        "url": "https://www.theleadflowpro.com/packages/system-map"
+      }
+    },
+    {
+      "day": 27,
+      "subject": "Keep your team in the conversation",
+      "preheader": "Start with the work and the people who use the process.",
+      "body": [
+        "Before changing a workflow, ask the people who use it.",
+        "What information do they need? What slows them down? Which part works well already?",
+        "The answer may be a clearer task, a better page or a connection between tools. Start with the work itself and choose the tool afterward.",
+        "That applies whether your team handles student inquiries, coaching calls, event registrations or community questions. The process needs to make sense to the people using it."
+      ],
+      "cta": {
+        "label": "Tell Ryan what your team needs",
+        "url": "mailto:hello@theleadflowpro.com"
+      }
+    },
+    {
+      "day": 28,
+      "subject": "Pick the improvement you can measure",
+      "preheader": "Choose one change and a useful way to check it.",
+      "body": [
+        "Choose one improvement and decide how you will check it.",
+        "If you are changing inquiry routing, confirm the right person receives the information. If you are improving replies, review whether the question gets answered. If you are revising a page, test whether the next step is clear.",
+        "Keep the measure close to the change. It is easier to learn when you know what you were trying to improve."
+      ],
+      "cta": {
+        "label": "Reply with your next improvement",
+        "url": "mailto:hello@theleadflowpro.com"
+      }
+    },
+    {
+      "day": 29,
+      "subject": "Bring the real business to the call",
+      "preheader": "A free 30-minute conversation can start with what feels stuck.",
+      "body": [
+        "You do not need a presentation for a consultation with me.",
+        "Bring the website, the questions and the part of the process that feels difficult. We can talk about how people find you, where inquiries go and what happens afterward.",
+        "The free conversation is 30 minutes. In East Texas, we can meet at your business or the Longview office; phone and video are also options.",
+        "Reply with what you want to work through, or request the consultation on the site."
+      ],
+      "cta": {
+        "label": "Request a free consultation",
+        "url": "https://www.theleadflowpro.com/"
+      }
+    },
+    {
+      "day": 30,
+      "subject": "Which next step fits your business?",
+      "preheader": "The last message in your 30-day series.",
+      "body": [
+        "This is the last email in the 30-day series.",
+        "You have looked at the offer, website, inquiries, follow-up and the work behind your customer conversations. Which part deserves your attention now?",
+        "You can keep using the free tools, choose a defined service or talk with me about the next step.",
+        "There is no deadline attached to this message. If you want help, reply with the problem you want to work through.",
+        "Thanks for spending some of your time with The LeadFlow Pro."
+      ],
+      "cta": {
+        "label": "Reply with your next priority",
+        "url": "mailto:hello@theleadflowpro.com"
+      }
+    }
+  ],
+  "private_context_note": "Private business-direction records are retained in DigitalOcean context; no private transcript URLs are published here."
+}

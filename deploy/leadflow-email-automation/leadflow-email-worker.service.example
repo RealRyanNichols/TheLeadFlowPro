@@ -1,0 +1,18 @@
+[Unit]
+Description=LeadFlow consented email campaign worker (review template)
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=leadflowemail
+Group=leadflowemail
+WorkingDirectory=/opt/leadflow-email-automation/current
+EnvironmentFile=/etc/leadflow-email-automation/worker.env
+ExecStart=/usr/bin/python3 worker.py --config /etc/leadflow-email-automation/config.json run --send
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/leadflow-email-automation
+TimeoutStartSec=330
