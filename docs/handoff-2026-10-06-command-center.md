@@ -50,8 +50,19 @@ It was dark by Oct 5 evening. RYAN STATEMENT (Oct 3, 02:16Z, raw archive):
 "We are gonna keep Supabase as is." So this was not a decision. Pat's Sep 26
 handoff recorded fourteen projects in the Supabase account against a Free
 plan allowance of two, and thirteen of the fourteen now read `INACTIVE`,
-which fits a plan or billing change pausing projects. DOCUMENTED INFERENCE,
-not proven from here.
+which fits a plan or billing change pausing projects.
+
+The cause is on the record now. RYAN STATEMENT (Oct 5, 21:43Z, raw
+archive, to Amanda, about Premier Dental's outage the same evening): "It's
+because Supabase hasn't been paid. And so my credit card thing got all
+backed up... I just need your card so I can pay it and it'll turn back on."
+The same recording has the bank declining a $500 Meta payment and a $160
+card charge that day, on an account two to three weeks old. DOCUMENTED
+INFERENCE: the LeadFlow project was paused for the same unpaid bill and
+came back when it was paid. The lasting fix is the one Ryan named himself
+on that call: enough sales in the bank that a bill never bounces, and the
+site's own Postgres on the droplet so a card problem cannot take the CRM
+down (phases A to F, each with his approval).
 
 The fix is yours to approve, not mine to run:
 
@@ -296,6 +307,57 @@ financial-identifier material from the recordings is reproduced.
   business archive going nationwide, proof per client, and a board that
   never lies about a number.
 
+### Oct 4 to 5: the weekend before this build (raw archive, read in full)
+
+- RYAN STATEMENT (Oct 5, 18:13Z): "I've never had this many calls in one
+  day. But my ads are working. Everybody's seeing me." PAT STATEMENT (Oct 5,
+  20:09Z), the pipeline math: three proposals out (Lawrence, Jalen, a third
+  from the Scott ad), close thirty percent, "that'll put us at twenty-one
+  thousand dollars." Lawrence's proposal is out with a follow-up in a week;
+  whether anything is signed or paid is NEEDS AUTHENTICATION, and the cash
+  ledger read on Oct 6 shows no payment from any of them.
+- RYAN STATEMENT and PAT STATEMENT (Oct 5, 20:00Z to 20:02Z), price
+  discovery: the Scott-ad leads are "willing to spend 30,000 and we just
+  haven't asked for enough money yet"; Pat: start at thirty, come down,
+  "we land on seventy-five"; Ryan: "are we saying 75 and that's why we're
+  not getting it?" Pat: "Yes, sir." Then (21:10Z): run a second ad with a
+  different form to learn whether anyone says yes to thirty thousand before
+  moving the price. The plan sheet on the board prices per outcome so that
+  conversation has numbers under it.
+- RYAN STATEMENT (Oct 5, 03:42Z): Scott paid $850 of the $1,000 for the
+  month, by check; $500 of it is to go to his ads, charged to the LeadFlow
+  card under his account. (21:24Z to 21:34Z): the check had not posted and
+  the bank held a $500 Meta payment. FACT (cash ledger, Oct 6): one $1,000
+  Stripe invoice is the only payment this database holds. Until the $850
+  check is recorded by hand it is on no board.
+- PAT STATEMENT (Oct 5, 02:28Z), the board Pat wants: his reply desk for X
+  and Facebook, every metric, every CPA and CPL, "all synced through the
+  dashboard"; and "when Stripe's hooked up, I'll be able to send out
+  invoices myself with my proposals all plugged in." The next three
+  connections in his order: the Meta app, Quo, Stripe. FACT (Oct 4, 23:09Z
+  to 23:22Z): the Google Workspace for theleadflowpro.com was finally
+  created that night (Business Standard trial), with pat@ and setup@ as
+  super admins; hello@ was not yet moved into it.
+- RYAN STATEMENT (Oct 5, 17:24Z), the AI tool bill: a $500-a-month ChatGPT
+  account, two $200-a-month Claude accounts and a $200-a-month ChatGPT
+  account, about $1,100 a month. That belongs in the known-costs number
+  the break-even counter reads.
+- RYAN STATEMENT (Oct 5, 13:38Z and 21:43Z): Garrison is a no at anything
+  under $10,000; Bison read the message and never answered; Parker, a car
+  dealer, called and wants ads with follow-ups "just like Scott's"; Jalen
+  (dump trucks, no website) and Freddie (paid a lead service and got
+  nothing) are Pat's calls from the Scott ad.
+- RYAN STATEMENT (Oct 4, 21:46Z to 21:50Z): the social engine he wants:
+  post every day on his Facebook and X from the droplet, reply to every
+  comment every day, and read the analytics over one week, four weeks, 90
+  days, 180 days and a year to decide what to post next. (Oct 5, 20:45Z):
+  an AI agent already answers comments on his page in his voice.
+- RYAN STATEMENT (Oct 5, 16:02Z, Premier Dental): no payroll schedule, no
+  rolling average of weekly costs, nothing kept in the bank; "we're not
+  budgeting, and we're just hoping and praying." The same counter the
+  LeadFlow board has (known costs, money in, clients to cover it) is the
+  one PDA needs, with its own numbers.
+
 ### The offer and the contract
 
 - FACT (COMMERCIAL_DECISIONS.md, Oct 3; lib/site/managedPlans.ts): the live
@@ -396,6 +458,28 @@ Second increment, same day, for the problems nobody reports:
 - Home-screen app: the board declares a manifest, so Chrome offers "add to
   home screen" and it opens straight on the board (Pat's Oct 3 ask).
 
+Third increment, same day: money in is the verified cash ledger.
+
+- FACT: the repo already had a hand-recorded cash ledger
+  (`/admin/operator/cash`, table `operator_manual_cash_events`, admin only)
+  and a view, `operator_verified_cash_entries`, that unions Stripe
+  checkouts, paid Stripe invoices and those hand-recorded checks, cash, ACH
+  and wires. The board, the 24-hour feed and the pulse read Stripe's
+  `purchases` table alone, so a check never counted. That is the Sep 27
+  "$0 collected" complaint, and it would have happened again with Scott's
+  $850 check.
+- Now the board, Pat's board, the 24-hour feed, the pulse and the snapshot
+  read the view. The Paid tile names where the money came from ("1 Stripe
+  checkout · 1 check recorded by hand") and carries the door to record
+  one. The view answers admins only and returns no rows, not an error, to
+  any other role, so Pat's board reads the role first and marks payments
+  "unread, not zero" for the sales login, and leaves the paid lane off his
+  pulse rather than showing it quiet.
+- FACT (read-only, Oct 6): the live ledger holds one payment, a $1,000
+  Stripe invoice. No hand-recorded entry has ever been made. Randall's $500,
+  Holly's $500 and Scott's $850 check are on no board until someone records
+  them at Record a payment. No new table, function or policy was needed.
+
 Files: `lib/commandCenter.ts` (the arithmetic, pure), `lib/commandCenterServer.ts`
 (the reads), `lib/metaInsights.ts` (Meta, shared with the Ads Brain pull),
 `lib/commandCenterSwitches.ts`, `lib/operatorLinks.ts`,
@@ -410,7 +494,8 @@ Files: `lib/commandCenter.ts` (the arithmetic, pure), `lib/commandCenterServer.t
 ## What it reads, and what it never does
 
 Reads, with the signed-in person's own client: `leads`, `lead_notes`,
-`lead_calls`, `lead_messages`, `purchases`, `lead_activity`. With the
+`lead_calls`, `lead_messages`, `operator_verified_cash_entries` (the cash
+ledger view, admins only), `lead_activity`. With the
 service client, after the admin check: `approval_queue` (service only by
 design) and `hq_workspaces` / `hq_leads` (member-read tables, counted for
 the owner). Meta Graph, GET only, with the `ads_read` token.
@@ -511,10 +596,11 @@ Do not run `deploy/droplet/deploy.sh` on this droplet (CLAUDE.md).
 
 ## Next builds, in order
 
-1. Record a payment by hand: check, cash, or a card taken by hand, written
-   as a `purchases` row linked to the lead, admin only, through the existing
-   table and grants. Until then "Paid" and the live counter miss every
-   check, and the Sep 27 "$0 collected" happens again every month.
+1. Done in the third increment: the board reads the verified cash ledger,
+   so a check recorded at `/admin/operator/cash` counts. Still to do:
+   record the September and October money that landed by hand (Randall,
+   Holly, Scott's $850 check) so the counter is true, and link each ledger
+   entry to its lead (the table has the column; the form does not ask).
 2. Signed scope before payment (DocuSign template, a `scope_signed` note on
    the lead, the pay link only after).
 3. "Where did you see us" on every intake, and dedupe by phone and email

@@ -112,7 +112,7 @@ test("the silent failures from the recordings: no lead in three days, no logged 
   assert.equal(p.call_had.warn, true);
   assert.match(p.call_had.note, /No logged call in three days/);
   assert.equal(p.paid.warn, true);
-  assert.match(p.paid.note, /No paid checkout in 28 days/);
+  assert.match(p.paid.note, /Nothing on the verified cash ledger in 28 days/);
   assert.equal(p.lead_site.warn, false, "the site lane informs, it never warns on its own");
 });
 

@@ -172,7 +172,7 @@ const fixture = () => ({
   lead_notes: [{ lead_id: id(2), created_at: hoursAgo(20), body: "Wants the Thursday call", author: "Pat" }],
   lead_calls: [],
   lead_messages: [],
-  purchases: [{ id: "p1", kind: "agency_payment", amount_cents: 750_000, status: "paid", created_at: hoursAgo(5) }],
+  operator_verified_cash_entries: [{ workspace_id: "ws-lfp", source_type: "checkout", source_id: "p1", external_reference: "cs_test_1", payer_label: "zeb@quartermaine.test", description: "agency_payment", amount_cents: 750_000, received_at: hoursAgo(5) }],
 });
 
 test("the snapshot route refuses a non-admin before any read", async () => {
@@ -190,7 +190,7 @@ test("the snapshot route draws a 1200 by 630 card of the aggregates for an admin
   const response = await route.GET(new Request("https://www.theleadflowpro.com/admin/command-center/snapshot?window=28"));
   assert.equal(rendered.length, 1, "one image rendered");
   assert.ok(response instanceof FakeImageResponse, "the response is the image");
-  assert.ok(reads.includes("leads") && reads.includes("purchases"), reads.join(","));
+  assert.ok(reads.includes("leads") && reads.includes("operator_verified_cash_entries"), reads.join(","));
   const { options, element } = rendered[0];
   assert.equal(options.width, 1200);
   assert.equal(options.height, 630);

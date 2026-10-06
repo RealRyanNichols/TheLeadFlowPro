@@ -28,18 +28,33 @@ const src = (f: string) => readFileSync(f, "utf8");
 
 type Db = Record<string, unknown[]>;
 
-/** A PostgREST-shaped fake: any chain resolves to the table's rows, or an error for a failed table. */
+const FAKE_USER = { id: "user-1", email: "owner@example.test" };
+
+/** A PostgREST-shaped fake: any chain resolves to the table's rows (the first row after .single()), or an error for a failed table. */
 function fakeClient(db: Db, failed: Set<string>, reads: string[], tag: string) {
   return {
+    auth: { getUser: async () => ({ data: { user: FAKE_USER }, error: null }) },
     from(table: string) {
       reads.push(`${tag}:${table}`);
+      let single = false;
       const chain: unknown = new Proxy(
         {},
         {
-          get: (_t, key) =>
-            key === "then"
-              ? (resolve: (value: unknown) => void) => resolve({ data: failed.has(table) ? null : (db[table] ?? []), error: failed.has(table) ? { message: `${table} unavailable` } : null })
-              : () => chain,
+          get: (_t, key) => {
+            if (key === "then") {
+              return (resolve: (value: unknown) => void) => {
+                const rows = db[table] ?? [];
+                resolve({ data: failed.has(table) ? null : single ? (rows[0] ?? null) : rows, error: failed.has(table) ? { message: `${table} unavailable` } : null });
+              };
+            }
+            if (key === "single" || key === "maybeSingle") {
+              return () => {
+                single = true;
+                return chain;
+              };
+            }
+            return () => chain;
+          },
         },
       );
       return chain;
@@ -82,10 +97,13 @@ type HarnessOptions = {
   insights?: unknown;
   /** Rows the call sheet loader returns. */
   sheetLeads?: callSheet.CallSheetLead[];
+  /** The signed-in person's profile role (Pat's board reads it to decide whether money is readable). */
+  role?: "admin" | "sales";
 };
 
-function harness({ admin = true, failed = [], rows = {}, insights, sheetLeads = [] }: HarnessOptions = {}) {
+function harness({ admin = true, failed = [], rows: given = {}, insights, sheetLeads = [], role = "admin" }: HarnessOptions = {}) {
   const reads: string[] = [];
+  const rows: Db = { profiles: [{ id: FAKE_USER.id, role }], ...given };
   const failedSet = new Set(failed);
   let verified = false;
   let userClient: unknown = null;
@@ -206,7 +224,8 @@ function fixture(): Db {
     lead_notes: [{ lead_id: id(1), created_at: hoursAgo(19), body: "Called, wants the second call Thursday. Outcome: call_back. Ref 0123456789abcdef01234", author: "Pat" }],
     lead_calls: [],
     lead_messages: [],
-    purchases: [{ id: "p1", kind: "agency_payment", amount_cents: 750_000, status: "paid", created_at: hoursAgo(5) }],
+    // The verified cash ledger view: one Stripe checkout five hours ago.
+    operator_verified_cash_entries: [{ workspace_id: "ws-lfp", source_type: "checkout", source_id: "p1", external_reference: "cs_test_1", payer_label: "riley@example.test", description: "agency_payment", amount_cents: 750_000, received_at: hoursAgo(5) }],
     lead_activity: [{ id: "a1", lead_id: id(1), kind: "note", detail: "Called, wants the second call Thursday. Outcome: call_back. Offer ids: managed_campaign. Ref 0123456789abcdef01234", created_at: hoursAgo(19) }],
     approval_queue: [{ id: "q1", source_agent: "content", target_agent: "operator", status: "pending", approval_required: true, created_at: hoursAgo(1) }],
     hq_workspaces: [{ id: "ws1", name: "Restore Decorative Concrete (fictional)", slug: "restore", plan: "active" }],
@@ -216,7 +235,7 @@ function fixture(): Db {
 
 test("the command center verifies the admin before every private read and uses the service key only for the approval queue and client workspaces", async () => {
   const { reads } = await commandCenterPage({ rows: fixture() });
-  for (const table of ["leads", "lead_notes", "lead_calls", "lead_messages", "purchases", "lead_activity"]) {
+  for (const table of ["leads", "lead_notes", "lead_calls", "lead_messages", "operator_verified_cash_entries", "lead_activity"]) {
     assert.ok(reads.includes(`user:${table}`), `user read of ${table}`);
     assert.ok(!reads.includes(`service:${table}`), `no service read of ${table}`);
   }
@@ -269,7 +288,10 @@ test("the money line is the pure board's arithmetic over the real reads, with de
   assert.match(text, /Reached by a person 1 of 2 1 inside 24 hours/);
   assert.match(text, /Waiting on a person 1 0 replied or called and are owed an answer · 1 of this window's leads never heard from anyone/);
   assert.match(text, /Proposals out 1 · \$7,500/);
-  assert.match(text, /Paid · 7d \$7,500\.00 1 paid checkout recorded by Stripe/);
+  // Money in is the verified cash ledger, named by source, with the door to record a check.
+  assert.match(text, /Paid · 7d \$7,500\.00 1 Stripe checkout\. Money that landed, from the verified cash ledger\./);
+  assert.match(text, /Payment recorded .* \$7,500 · Stripe checkout/);
+  assert.ok(html.includes('href="/admin/operator/cash"'), "the record-a-payment door");
   assert.match(text, /Notes logged: Pat 1/);
   // The bottleneck line names the step: a lead nobody has reached.
   assert.match(text, /1 of the last 7 days' leads has never heard from a person\. Call them\./);
@@ -341,16 +363,29 @@ test("with Meta reporting available the ad tile and panel show spend and cost pe
 });
 
 test("Pat's board reads with the signed-in client, marks what the role cannot read as not counted, and never offers the owner-only doors", async () => {
-  const { html, reads } = await salesBoardPage({ rows: fixture(), failed: ["lead_notes"] });
+  const { html, reads } = await salesBoardPage({ rows: fixture(), failed: ["lead_notes"], role: "sales" });
   const text = textOf(html);
   assert.ok(reads.every((r) => r.startsWith("user:")), reads.join(","));
-  assert.match(text, /This login cannot read notes; those lanes are not counted, not zero\./);
+  // The cash ledger answers admins only, so the sales role never reads it and the tile says unread, not zero.
+  assert.ok(!reads.includes("user:operator_verified_cash_entries"), "no ledger read for the sales role");
+  assert.match(text, /This login cannot read notes, payments; those lanes are not counted, not zero\./);
+  assert.match(text, /Paid · 7d – This login cannot read the cash ledger\. Not zero, unread\./);
+  assert.doesNotMatch(text, /Last payment recorded/, "the paid lane is left off the pulse, never shown as quiet");
+  assert.ok(!html.includes("/admin/operator/cash"), "no record-a-payment door for the sales role");
   assert.match(text, /Leads in · 7d 2/);
   assert.match(text, /Spend shows on the owner's command center/);
   assert.ok(html.includes('href="/admin/sales/board?window=28"'));
   assert.ok(html.includes('href="/admin/sales/uncalled"'));
   assert.ok(!html.includes("/fieldy"), "the Fieldy archive is owner only");
   assert.ok(!html.includes("adsmanager.facebook.com"));
+});
+
+test("an admin on Pat's board gets the cash ledger counted", async () => {
+  const { html, reads } = await salesBoardPage({ rows: fixture(), role: "admin" });
+  assert.ok(reads.includes("user:operator_verified_cash_entries"));
+  const text = textOf(html);
+  assert.match(text, /Paid · 7d \$7,500\.00 1 Stripe checkout/);
+  assert.match(text, /Last payment recorded 5 hours ago/);
 });
 
 test("the pulse, the plan sheet and the snapshot door are on the owner's board; Pat's board gets the pulse only", async () => {

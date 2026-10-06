@@ -56,6 +56,22 @@ export type BoardPurchase = {
 
 export type SourceCount = { key: string; label: string; count: number };
 
+/** Money in, grouped by where it came from on the cash ledger. */
+export type PaidSource = { key: string; label: string; count: number; cents: number };
+
+/**
+ * A plain name for a cash ledger source type (checkout, invoice,
+ * manual_check, manual_cash, manual_ach, manual_wire, manual_other) or an
+ * older purchase kind, for the Paid tile and the 24-hour feed.
+ */
+export function cashSourceLabel(kind: string | null | undefined): string {
+  const key = String(kind ?? "").trim().toLowerCase();
+  if (key === "checkout") return "Stripe checkout";
+  if (key === "invoice" || key === "stripe_invoice") return "paid Stripe invoice";
+  if (key.startsWith("manual_")) return `${key.slice("manual_".length).replace(/_/g, " ")} recorded by hand`;
+  return key ? key.replace(/_/g, " ") : "payment";
+}
+
 export type MoneyBoard = {
   days: BoardWindow;
   since: string;
@@ -76,8 +92,8 @@ export type MoneyBoard = {
   stages: { contacted: number; booked: number; proposal: number };
   /** Open leads in the proposal stage and the dollar value typed on them. */
   proposalsOut: { count: number; cents: number; valued: number };
-  /** Paid purchase rows created in the window. */
-  paid: { count: number; cents: number };
+  /** Money that landed in the window, in total and by where it came from. */
+  paid: { count: number; cents: number; bySource: PaidSource[] };
   /** Notes logged in the window, by the author name on the note. */
   notesByAuthor: { author: string; count: number }[];
   /** Calls somebody had in the window (lead_calls, company scope). */
@@ -202,12 +218,19 @@ export function moneyBoard(input: {
 
   let paidCount = 0;
   let paidCents = 0;
+  const paidBySource = new Map<string, PaidSource>();
   for (const purchase of input.purchases) {
     const at = ms(purchase.created_at);
     if (!Number.isFinite(at) || at < sinceMs) continue;
     if (!PAID_STATUSES.has(String(purchase.status ?? "").toLowerCase())) continue;
+    const cents = Math.max(0, Number(purchase.amount_cents ?? 0));
     paidCount += 1;
-    paidCents += Math.max(0, Number(purchase.amount_cents ?? 0));
+    paidCents += cents;
+    const key = String(purchase.kind ?? "").trim().toLowerCase() || "unknown";
+    const row = paidBySource.get(key) ?? { key, label: cashSourceLabel(key), count: 0, cents: 0 };
+    row.count += 1;
+    row.cents += cents;
+    paidBySource.set(key, row);
   }
 
   const authors = new Map<string, number>();
@@ -239,7 +262,7 @@ export function moneyBoard(input: {
     repliesOwed,
     stages,
     proposalsOut: { count: stages.proposal, cents: proposalCents, valued: proposalValued },
-    paid: { count: paidCount, cents: paidCents },
+    paid: { count: paidCount, cents: paidCents, bySource: [...paidBySource.values()].sort((a, b) => b.cents - a.cents || a.label.localeCompare(b.label)) },
     notesByAuthor: [...authors.entries()].map(([author, count]) => ({ author, count })).sort((a, b) => b.count - a.count || a.author.localeCompare(b.author)),
     callsHad,
   };

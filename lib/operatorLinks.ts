@@ -43,6 +43,7 @@ export function operatorLinks(env: Record<string, string | undefined> = process.
     { key: "uncalled", label: "Uncalled", href: "/admin/sales/uncalled", detail: "Every open lead no person has reached. Pat and Ryan both open it.", external: false },
     { key: "sales", label: "Sales desk", href: "/admin/sales", detail: "Pat's Today queue, pipeline, follow-ups and invoices.", external: false },
     { key: "business", label: "Business dashboard", href: "/admin/business", detail: "Money moves, invoices, forecast and server health, from the DigitalOcean server.", external: false },
+    { key: "cash", label: "Record a payment", href: "/admin/operator/cash", detail: "A check, cash, ACH or wire, recorded by hand. It counts on this board the moment it is saved.", external: false, ownerOnly: true },
     { key: "hub", label: "LeadFlow Hub", href: hub, detail: "Every business, every client, one place on the droplet. Call Desk login.", external: true },
     { key: "calldesk", label: "Call Desk", href: `${brain}/`, detail: "The brain's call desk on the droplet.", external: true },
     { key: "fieldy", label: "Fieldy archive", href: `${brain}/fieldy`, detail: "Every recording, searchable, owner only.", external: true, ownerOnly: true },
