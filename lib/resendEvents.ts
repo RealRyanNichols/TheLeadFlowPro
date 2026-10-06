@@ -7,12 +7,14 @@
 // older than five minutes.
 //
 // What is recorded (lead_activity, kind "email"):
+//   email.sent        Resend accepted the request; delivery is still pending
+//   email.delivered   the recipient's mail server accepted the email
 //   email.opened      the FIRST open of each email (opens repeat; one is enough)
 //   email.clicked     every distinct link clicked in each email
 //   email.bounced     the bounce; a permanent bounce stops future emails
 //   email.complained  the spam report; it stops future emails at once
-// Everything else (sent, delivered, delayed) is ignored: it is noise in a
-// timeline Ryan reads before a call.
+// Everything else is ignored. A delivery receipt proves mail-server
+// acceptance; it does not prove inbox placement or that a person read it.
 //
 // Each detail ends with "Ref <id>", which the timeline hides
 // (lib/leadTimeline.ts ACTIVITY_MARKER_TAIL) and the route uses to skip
@@ -111,6 +113,20 @@ export function resendEventActivity(event: unknown): ResendActivity | null {
   const base = { leadId, email };
 
   switch (type) {
+    case "email.sent":
+      return {
+        ...base,
+        detail: `Resend accepted ${subject}${which(tags)} for delivery.`,
+        ref: `sent-${emailId}`,
+        stopEmails: false,
+      };
+    case "email.delivered":
+      return {
+        ...base,
+        detail: `Delivered ${subject}${which(tags)} to the recipient's mail server.`,
+        ref: `delivered-${emailId}`,
+        stopEmails: false,
+      };
     case "email.opened":
       return { ...base, detail: `Opened ${subject}${which(tags)}.`, ref: `open-${emailId}`, stopEmails: false };
     case "email.clicked": {
@@ -153,4 +169,51 @@ export function resendEventActivity(event: unknown): ResendActivity | null {
 /** The stored detail: the readable line plus the hidden reference marker. */
 export function activityDetail(activity: ResendActivity): string {
   return `${activity.detail} Ref ${activity.ref}`.slice(0, 1000);
+}
+
+/** Stable UUID for the existing primary key: concurrent retries can insert once. */
+export function resendActivityId(leadId: string, ref: string): string {
+  const bytes = createHash("sha256").update(`resend-activity:${leadId.toLowerCase()}:${ref}`).digest().subarray(0, 16);
+  bytes[6] = (bytes[6] & 0x0f) | 0x80;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = bytes.toString("hex");
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
+export type ResendActivityStore = {
+  findLead(activity: ResendActivity): Promise<string | null>;
+  suppressEmails(leadId: string): Promise<void>;
+  hasLegacyActivity(leadId: string, ref: string): Promise<boolean>;
+  insertActivity(row: { id: string; lead_id: string; kind: "email"; detail: string }): Promise<"inserted" | "duplicate">;
+};
+
+export type ResendRecordResult =
+  | { ok: true; recorded: true }
+  | { ok: true; recorded: false; reason: "no lead" }
+  | { ok: true; recorded: false; duplicate: true };
+
+/** Throw on storage failures so the provider retries; never acknowledge a lost opt-out. */
+export async function recordResendActivity(
+  activity: ResendActivity,
+  store: ResendActivityStore,
+): Promise<ResendRecordResult> {
+  const leadId = await store.findLead(activity);
+  if (!leadId) return { ok: true, recorded: false, reason: "no lead" };
+
+  // Retry suppression even when an older handler already wrote the activity.
+  // Only set an unset opt-out; no open, click or delivery ever restores consent.
+  if (activity.stopEmails) await store.suppressEmails(leadId);
+  if (await store.hasLegacyActivity(leadId, activity.ref)) {
+    return { ok: true, recorded: false, duplicate: true };
+  }
+
+  const result = await store.insertActivity({
+    id: resendActivityId(leadId, activity.ref),
+    lead_id: leadId,
+    kind: "email",
+    detail: activityDetail(activity),
+  });
+  return result === "duplicate"
+    ? { ok: true, recorded: false, duplicate: true }
+    : { ok: true, recorded: true };
 }
