@@ -1,5 +1,6 @@
-import LeadStandingBrief from "@/components/LeadStandingBrief";
 "use client";
+
+import LeadStandingBrief from "@/components/LeadStandingBrief";
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
