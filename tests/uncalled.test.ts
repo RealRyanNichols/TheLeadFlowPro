@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import test from "node:test";
 import type { CallSheetLead } from "../lib/callSheet.ts";
+import { adminGroupsFor, destinationActive } from "../app/admin/adminNavigation.ts";
 import { leadConsultationTextBody, leadFirstText, leadTextBackBody } from "../lib/leadNotify.ts";
 import { INBOUND_AUTO_REPLY } from "../lib/quo.ts";
 import { buildUncalledList, isPlaceholderEmail, touchesFromRows, type UncalledTouchRows } from "../lib/uncalled.ts";
@@ -131,10 +132,29 @@ test("the page: both roles, checked next to the read, no last_contacted_at, no l
   assert.match(loader, /\.limit\(UNCALLED_LEAD_LIMIT\)/);
   assert.match(loader, /\.range\(from, to\)/, "touch reads page past the 1000-row cap");
   assert.ok(!loader.includes(".insert(") && !loader.includes(".update(") && !loader.includes(".delete("), "the loader is read-only");
-  // Both headers reach it: the Back Office menu (its data file) and the sales workspace.
-  for (const layout of ["app/admin/backOfficeNav.ts", "app/sales/layout.tsx"]) {
-    assert.match(read(layout), /href(="|: ")\/admin\/sales\/uncalled"[\s\S]{0,200}Uncalled/, layout);
+  // The native workspace uses one shared navigation renderer. Test its real
+  // role-filtered destinations rather than expecting inline links in a layout.
+  const salesLayout = read("app/sales/layout.tsx");
+  assert.match(salesLayout, /import AdminShell from "@\/app\/admin\/AdminShell"/);
+  assert.match(salesLayout, /scope=\{isAdmin \? "admin" : "sales"\}/);
+  const shell = read("app/admin/AdminShell.tsx");
+  assert.match(shell, /adminGroupsFor\(ownerAccess, scope\)/);
+  assert.match(shell, /href=\{item\.href\}/);
+  for (const access of [
+    { ownerAccess: false, scope: "sales" as const },
+    { ownerAccess: false, scope: "admin" as const },
+    { ownerAccess: true, scope: "admin" as const },
+  ]) {
+    const links = adminGroupsFor(access.ownerAccess, access.scope)
+      .flatMap(group => group.items)
+      .filter(item => item.href === "/admin/sales/uncalled");
+    assert.equal(links.length, 1, `${access.scope} owner=${access.ownerAccess}: Uncalled remains reachable once`);
+    assert.equal(links[0].label, "Uncalled");
+    assert.notEqual(links[0].external, true);
   }
+  assert.equal(destinationActive("/admin/sales/uncalled", "/admin/sales/uncalled"), true);
+  assert.equal(destinationActive("/admin/sales", "/admin/sales/uncalled"), false);
+
 });
 
 test("Mark contacted writes a note, stamps the lead, moves only new to contacted, logs a call, and restores the row on failure", () => {
