@@ -137,6 +137,10 @@ export async function getMetaOAuthCredentials(sb: SocialServiceClient) {
 }
 
 export async function getFacebookSourceToken(sb: SocialServiceClient) {
+  // The droplet's dedicated social credential takes precedence over legacy
+  // vault storage. Preserve the working lead token as a separate credential.
+  const dedicated = process.env.META_FACEBOOK_SOURCE_TOKEN?.trim();
+  if (dedicated) return dedicated;
   return (
     (await secretOrEnvironment(
       sb,

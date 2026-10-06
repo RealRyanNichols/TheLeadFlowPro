@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ADS_BRAIN, metaLeadCount, numericMetric, verifyAdsBrainSignature } from "@/lib/adsBrain";
+import { metaAdsReadToken, metaReportingPageToken } from "@/lib/metaReporting";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -65,11 +66,11 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Ads Brain authorization failed." }, { status: 401 });
   }
 
-  const adsToken = (process.env.META_ADS_READ_TOKEN || process.env.META_PAGE_ACCESS_TOKEN || "").trim();
-  const pageToken = (process.env.META_PAGE_ACCESS_TOKEN || adsToken).trim();
+  const adsToken = metaAdsReadToken(process.env);
+  const pageCredential = (process.env.META_PAGE_ACCESS_TOKEN || "").trim();
   if (!adsToken) {
     return NextResponse.json(
-      { error: "Meta read access is not configured in the LeadFlow production runtime." },
+      { error: "Dedicated Meta reporting access (META_ADS_READ_TOKEN) is not configured in the LeadFlow production runtime." },
       { status: 503, headers: { "Cache-Control": "no-store" } },
     );
   }
@@ -115,6 +116,11 @@ export async function GET(request: Request) {
     let forms: Record<string, unknown>[] = [];
     let formsError: string | null = null;
     try {
+      const pageToken = await metaReportingPageToken({
+        credential: pageCredential,
+        pageId: ADS_BRAIN.identity.pageId,
+        graphVersion: ADS_BRAIN.graphVersion,
+      });
       forms = await graphRows<Record<string, unknown>>(
         `${ADS_BRAIN.identity.pageId}/leadgen_forms`,
         "id,name,status,created_time,locale",

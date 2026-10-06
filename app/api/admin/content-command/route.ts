@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { upsertContentArtifact } from "@/lib/content-command/import";
 import { loadContentCommandState } from "@/lib/content-command/state";
+import { getReplyReadiness } from "@/lib/content-command/facebook-permissions";
 import { CONTENT_PLATFORMS, type ContentPlatform } from "@/lib/content-command/types";
 import { createSocialServiceClient, requireSocialAdmin } from "@/lib/social-server";
 
@@ -195,10 +196,9 @@ export async function POST(request: Request) {
     if (!thread) return json({ error: "Conversation not found." }, 404);
     const state = await loadContentCommandState(sb);
     const connection = state.connections.find((item) => item.platform === thread.platform);
-    const needed = thread.thread_type === "dm" ? "reply" : "comment";
-    const canReply = connection?.status === "connected" && connection.capabilities.includes(needed);
+    const { canReply, reason } = getReplyReadiness(connection, thread.thread_type);
     const status = canReply ? "queued" : "blocked";
-    const blocker = canReply ? null : connection?.last_error || `${thread.platform} does not have ${needed} permission.`;
+    const blocker = canReply ? null : reason;
     const { data: message, error } = await sb
       .from("content_messages")
       .insert({

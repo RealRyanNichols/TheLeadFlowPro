@@ -19,6 +19,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { getReplyReadiness } from "@/lib/content-command/facebook-permissions";
 import {
   CONTENT_PLATFORMS,
   type ContentCommandState,
@@ -188,10 +189,14 @@ export default function ContentCommandCenter({ initialState }: { initialState: C
 
   const selectedThread = state.threads.find((thread) => thread.id === selectedThreadId) ?? state.threads[0] ?? null;
   const threadMessages = state.messages.filter((message) => message.thread_id === selectedThread?.id);
+  const replyReadiness = selectedThread
+    ? getReplyReadiness(state.connections.find((connection) => connection.platform === selectedThread.platform), selectedThread.thread_type)
+    : { canReply: false, reason: null };
 
   async function queueReply() {
     if (!selectedThread) return;
     if (!reply.trim()) return setError("Write or choose a reply first.");
+    if (!replyReadiness.canReply) return setError(replyReadiness.reason || "Connect this channel before sending a reply.");
     if (!window.confirm(`Send this ${selectedThread.thread_type} reply through ${PLATFORM_LABEL[selectedThread.platform]}?`)) return;
     await run("reply", async () => {
       await call("queue_reply", {
@@ -409,7 +414,8 @@ export default function ContentCommandCenter({ initialState }: { initialState: C
                     {state.templates.filter((item) => !item.platform || item.platform === selectedThread.platform).map((template) => <option key={template.id} value={template.id}>{template.title}</option>)}
                   </select>
                   <textarea value={reply} onChange={(event) => setReply(event.target.value)} className="input min-h-28" placeholder="Write the reply. Nothing sends until you confirm." />
-                  <div className="mt-3 flex justify-end"><button type="button" onClick={() => void queueReply()} disabled={busy !== "" || !reply.trim()} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-emerald-500 px-4 text-sm font-black text-slate-950 disabled:opacity-40"><MessageSquareReply className="h-4 w-4" /> {busy === "reply" ? "Queuing..." : "Review and send"}</button></div>
+                  {!replyReadiness.canReply && <p className="mt-2 text-sm text-amber-600" role="status">{replyReadiness.reason}</p>}
+                  <div className="mt-3 flex justify-end"><button type="button" onClick={() => void queueReply()} disabled={busy !== "" || !reply.trim() || !replyReadiness.canReply} className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-emerald-500 px-4 text-sm font-black text-slate-950 disabled:opacity-40"><MessageSquareReply className="h-4 w-4" /> {busy === "reply" ? "Queuing..." : "Review and send"}</button></div>
                 </div>
               </>
             ) : <div className="grid flex-1 place-items-center p-10 text-center text-sm text-[var(--muted)]">Choose a conversation when one arrives.</div>}

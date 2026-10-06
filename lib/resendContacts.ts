@@ -205,14 +205,22 @@ export async function syncResendContacts(input: {
 
   for (const [email, contact] of desired) {
     const current = existing.get(email);
+    let contactId = current?.id?.trim() || null;
     if (current) {
+      result.already_present++;
+      // Resend identifies writes by the provider's contact ID. An email path
+      // can return 404 even when that address is present in the Contacts list.
+      if (!contactId) {
+        result.deferred++;
+        continue;
+      }
       if (!contact.unsubscribed && current.unsubscribed) {
         result.preserved_provider_opt_out++;
       } else if (contact.unsubscribed && !current.unsubscribed) {
         if (!(await mutationSlot())) continue;
         const response = await requestWithRateLimit(
           fetcher,
-          `${RESEND_CONTACTS_ENDPOINT}/${encodeURIComponent(email)}`,
+          `${RESEND_CONTACTS_ENDPOINT}/${encodeURIComponent(contactId)}`,
           {
             method: "PATCH",
             headers: {
@@ -227,9 +235,11 @@ export async function syncResendContacts(input: {
         else {
           result.failed++;
           result.errors.push(`update:${response.status}`);
+          // Do not add this contact to a marketing segment while the stricter
+          // CRM opt-out has not been saved at the provider.
+          continue;
         }
       }
-      result.already_present++;
     } else {
       if (!(await mutationSlot())) continue;
       const response = await requestWithRateLimit(fetcher, RESEND_CONTACTS_ENDPOINT, {
@@ -247,6 +257,8 @@ export async function syncResendContacts(input: {
         });
       recordMutation();
       if (response.ok) {
+        const created = (await response.json().catch(() => ({}))) as { id?: string };
+        contactId = typeof created.id === "string" ? created.id.trim() || null : null;
         result.created++;
         if (segmentId) {
           segmentMembers.add(email);
@@ -254,6 +266,10 @@ export async function syncResendContacts(input: {
         }
       } else if (response.status === 409) {
         result.already_present++;
+        // Another writer created the contact after our list read. Its ID and
+        // unsubscribe state are unknown; the next poll must refetch both.
+        result.deferred++;
+        continue;
       } else {
         result.failed++;
         result.errors.push(`create:${response.status}`);
@@ -262,10 +278,14 @@ export async function syncResendContacts(input: {
     }
 
     if (segmentId && !segmentMembers.has(email)) {
+      if (!contactId) {
+        result.deferred++;
+        continue;
+      }
       if (!(await mutationSlot())) continue;
       const response = await requestWithRateLimit(
         fetcher,
-        `${RESEND_CONTACTS_ENDPOINT}/${encodeURIComponent(email)}/segments/${encodeURIComponent(segmentId)}`,
+        `${RESEND_CONTACTS_ENDPOINT}/${encodeURIComponent(contactId)}/segments/${encodeURIComponent(segmentId)}`,
         {
           method: "POST",
           headers: { Authorization: `Bearer ${input.apiKey}` },

@@ -9,6 +9,9 @@ export const META_OAUTH_SCOPES = [
   "pages_show_list",
   "pages_read_engagement",
   "pages_manage_posts",
+  "pages_read_user_content",
+  "pages_manage_engagement",
+  "pages_messaging",
 ] as const;
 
 export const META_OAUTH_STATE_COOKIE = "leadflow_meta_oauth_state";

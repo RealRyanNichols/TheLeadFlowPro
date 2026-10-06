@@ -61,6 +61,7 @@ export type ChannelConnection = {
   status: string;
   display_name: string | null;
   capabilities: string[];
+  permission_names?: string[];
   last_verified_at: string | null;
   last_error: string | null;
 };

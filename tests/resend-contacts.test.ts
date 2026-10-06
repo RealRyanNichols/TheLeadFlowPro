@@ -62,7 +62,7 @@ test("contact sync creates missing contacts and stores missing consent as unsubs
 
 test("contact sync never re-subscribes a provider opt-out", async () => {
   let writes = 0;
-  const fetcher: typeof fetch = async (_url, init) => {
+  const fetcher: typeof fetch = async (url, init) => {
     if (!init?.method) {
       return Response.json({
         object: "list",
@@ -75,6 +75,7 @@ test("contact sync never re-subscribes a provider opt-out", async () => {
     }
     writes++;
     assert.equal(init.method, "PATCH");
+    assert.equal(String(url), "https://api.resend.com/contacts/needs-opt-out");
     assert.deepEqual(JSON.parse(String(init.body)), { unsubscribed: true });
     return Response.json({ object: "contact", id: "needs-opt-out" });
   };
@@ -121,7 +122,7 @@ test("contact sync adds existing contacts to the requested segment", async () =>
   assert.equal(result.already_present, 1);
   assert.equal(result.added_to_segment, 1);
   assert.deepEqual(writes, [
-    "https://api.resend.com/contacts/pat%40example.com/segments/meta-segment",
+    "https://api.resend.com/contacts/existing/segments/meta-segment",
   ]);
 });
 
@@ -154,4 +155,120 @@ test("contact sync paginates, de-duplicates by normalized email, and keeps the s
   assert.equal(requested.filter((url) => url.includes("/contacts?")).length, 2);
   assert.equal(result.eligible, 1);
   assert.equal(result.created, 1);
+});
+
+test("contact sync saves a CRM opt-out by provider ID before adding segment membership", async () => {
+  const writes: string[] = [];
+  const fetcher: typeof fetch = async (url, init) => {
+    if (!init?.method) {
+      return Response.json({
+        has_more: false,
+        data: String(url).includes("/segments/")
+          ? []
+          : [{ id: "provider-contact", email: "pat@example.com", unsubscribed: false }],
+      });
+    }
+    writes.push(`${init.method} ${String(url)}`);
+    if (init.method === "PATCH") {
+      assert.deepEqual(JSON.parse(String(init.body)), { unsubscribed: true });
+    }
+    return Response.json({ id: "provider-contact" });
+  };
+
+  const result = await syncResendContacts({
+    apiKey: "fixture",
+    fetcher,
+    segmentId: "meta-segment",
+    leads: [lead({ marketing_email_consent: false })],
+  });
+
+  assert.equal(result.ok, true);
+  assert.equal(result.marked_unsubscribed, 1);
+  assert.equal(result.added_to_segment, 1);
+  assert.deepEqual(writes, [
+    "PATCH https://api.resend.com/contacts/provider-contact",
+    "POST https://api.resend.com/contacts/provider-contact/segments/meta-segment",
+  ]);
+});
+
+test("contact sync does not enroll a contact when saving its CRM opt-out fails", async () => {
+  const writes: string[] = [];
+  const fetcher: typeof fetch = async (url, init) => {
+    if (!init?.method) {
+      return Response.json({
+        has_more: false,
+        data: String(url).includes("/segments/")
+          ? []
+          : [{ id: "provider-contact", email: "pat@example.com", unsubscribed: false }],
+      });
+    }
+    writes.push(`${init.method} ${String(url)}`);
+    return Response.json({ name: "not_found" }, { status: 404 });
+  };
+
+  const result = await syncResendContacts({
+    apiKey: "fixture",
+    fetcher,
+    segmentId: "meta-segment",
+    leads: [lead({ email_unsubscribed_at: "2026-10-05T00:00:00Z" })],
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.failed, 1);
+  assert.equal(result.already_present, 1);
+  assert.equal(result.added_to_segment, 0);
+  assert.deepEqual(result.errors, ["update:404"]);
+  assert.deepEqual(writes, ["PATCH https://api.resend.com/contacts/provider-contact"]);
+});
+
+test("contact sync defers a create conflict until the provider ID and opt-out state can be refetched", async () => {
+  const writes: string[] = [];
+  const fetcher: typeof fetch = async (url, init) => {
+    if (!init?.method) return Response.json({ has_more: false, data: [] });
+    writes.push(`${init.method} ${String(url)}`);
+    return Response.json({ name: "conflict" }, { status: 409 });
+  };
+
+  const result = await syncResendContacts({
+    apiKey: "fixture",
+    fetcher,
+    segmentId: "meta-segment",
+    leads: [lead({ marketing_email_consent: false })],
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.deferred, 1);
+  assert.equal(result.failed, 0);
+  assert.equal(result.already_present, 1);
+  assert.equal(result.added_to_segment, 0);
+  assert.deepEqual(writes, ["POST https://api.resend.com/contacts"]);
+});
+
+test("contact sync defers a listed contact without a provider ID instead of using its email", async () => {
+  let writes = 0;
+  const fetcher: typeof fetch = async (url, init) => {
+    if (init?.method) {
+      writes++;
+      throw new Error("A missing provider ID must prevent writes");
+    }
+    return Response.json({
+      has_more: false,
+      data: String(url).includes("/segments/")
+        ? []
+        : [{ email: "pat@example.com", unsubscribed: false }],
+    });
+  };
+
+  const result = await syncResendContacts({
+    apiKey: "fixture",
+    fetcher,
+    segmentId: "meta-segment",
+    leads: [lead({ marketing_email_consent: false })],
+  });
+
+  assert.equal(result.ok, false);
+  assert.equal(result.deferred, 1);
+  assert.equal(result.marked_unsubscribed, 0);
+  assert.equal(result.added_to_segment, 0);
+  assert.equal(writes, 0);
 });

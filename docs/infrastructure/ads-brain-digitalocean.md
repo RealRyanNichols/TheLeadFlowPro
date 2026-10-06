@@ -1,6 +1,6 @@
 # Ads Brain on DigitalOcean
 
-Status: deployed as a read only LeadFlow observer. The public site remains on Vercel.
+Status: deployed as a read-only LeadFlow observer. The public site and reporting route run on the LeadFlow DigitalOcean droplet.
 
 ## Purpose
 
@@ -20,31 +20,46 @@ It does not create campaigns, change budgets, publish ads, send email, text lead
 - Exact LeadFlow business portfolio only: `1154478850201530`.
 - Exact LeadFlow Page only: `887023637835514`.
 - Premier Dental Academy account `924465906541446` and the old wrong account `1439074857790304` are outside the contract.
-- The Meta token remains in the Vercel production runtime. It is never copied to the shared droplet.
-- The droplet signs a short lived GET request with `/etc/brain/ads_brain_ed25519`. Vercel stores only the public key in code.
-- The Vercel route supports one GET path and contains no Meta mutation call.
+- Credentials live only in root-owned mode-600 `/srv/site-env/leadflow.env`, read by systemd into the LeadFlow server runtime. They never appear in dashboard responses or client bundles.
+- The droplet signs a short-lived GET request with `/etc/brain/ads_brain_ed25519`. The reporting route stores only the public key in code.
+- The reporting route supports one GET path and contains no Meta mutation call.
 - The droplet reads LeadFlow through the existing `tlfp_reader` role and stores only aggregate ad intelligence in local Postgres.
 
 ## Runtime
 
 | Component | Location |
 | --- | --- |
-| Signed aggregate source | `/api/ads-brain/pull` on Vercel |
+| Signed aggregate source | `/api/ads-brain/pull` in the DigitalOcean LeadFlow runtime |
 | Worker | `/opt/brain/ads-brain-worker.js` |
 | Private dashboard | `/ads` on the central brain |
 | Timer | `ads-brain.timer`, every fifteen minutes |
 | Tables | `ads_brain_run`, `ads_brain_snapshot`, `ads_brain_alert` |
 
-The Vercel route uses `META_ADS_READ_TOKEN` for ad-account reporting and
-`META_PAGE_ACCESS_TOKEN` for Page lead-form inventory. If the Page-scoped token
-is unavailable, campaign, delivery, spend and insight reporting remain live and
-the private dashboard raises a limited form-inventory warning.
+The route requires `META_ADS_READ_TOKEN` for ad-account reporting; it does not
+substitute the lead-import credential. It preserves `META_PAGE_ACCESS_TOKEN`
+for the working lead workflow and derives an exact-Page credential from it
+when needed for Page form inventory. If Page inventory fails, account and
+Insights reporting remain available with a limited form-inventory warning.
 
-If Meta returns permission error `#200`, provision a dedicated system-user
-token inside Business Portfolio `1154478850201530`, assign read access only to
-ad account `1637329904238602`, grant the LeadFlow app `ads_read`, and store the
-token as the Vercel secret `META_ADS_READ_TOKEN`. `ads_management` is not needed.
-Never copy that credential into `/etc/brain/env` or onto the shared droplet.
+The verified app is LeadFlow Lead Sync (`1595903401874517`) in Business
+Portfolio `1154478850201530`. Reporting needs a system-user credential with
+`ads_read` and assigned access to ad account `1637329904238602`. Save it as
+`META_ADS_READ_TOKEN` in the protected runtime environment, then restart the
+LeadFlow service to load it and verify the actual signed reporting endpoint.
+Do not copy credentials into dashboard fields, chat, email, or source control.
+
+Private ad creation is a separate workflow using `META_ADS_MANAGEMENT_TOKEN`
+with `ads_management`. The observer remains read-only even when a separate
+creation client is installed. Every concrete campaign manifest must be reviewed
+before a creation test; campaign, ad set and ad must all use `PAUSED` status.
+Activation and spending need their own approval. Keep Premier and all other
+client identities outside this LeadFlow credential and manifest allowlist.
+
+The reporting Graph version is `v26.0`. The existing lead importer currently
+uses `v21.0`; that working path is not upgraded by reporting credential setup.
+All three contractor forms (`1410074817946865`, `1149268527613297`,
+`2084381329108926`) already belong to the compiled form registry and are polled.
+Legacy environment form IDs do not replace the full registry.
 
 ## Verification
 

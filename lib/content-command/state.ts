@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { facebookReplyCapabilities, withFacebookReplyPermissions } from "./facebook-permissions";
 import { CONTENT_PLATFORMS, type ContentCommandState, type ContentPlatform } from "./types";
 
 const emptyConnections = CONTENT_PLATFORMS.map((platform) => ({
@@ -82,7 +83,7 @@ export async function loadContentCommandState(
   if (facebook && !saved.get("facebook")?.last_verified_at) {
     const capabilities = [
       ...(facebook.permission_names?.includes("pages_manage_posts") ? ["publish"] : []),
-      ...(facebook.permission_names?.includes("pages_manage_engagement") ? ["comment", "reply"] : []),
+      ...facebookReplyCapabilities(facebook.permission_names),
       ...((facebook.page_tasks ?? []).some((task: string) => ["CREATE_CONTENT", "MANAGE"].includes(task)) ? ["publish"] : []),
     ];
     saved.set("facebook", {
@@ -94,6 +95,11 @@ export async function loadContentCommandState(
       last_verified_at: facebook.last_verified_at,
       last_error: facebook.last_error,
     });
+  }
+
+  const facebookConnection = saved.get("facebook");
+  if (facebookConnection) {
+    saved.set("facebook", withFacebookReplyPermissions(facebookConnection, facebook?.permission_names));
   }
 
   return {
