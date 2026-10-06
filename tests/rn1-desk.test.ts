@@ -316,11 +316,14 @@ test("the panel frames the live desk in a sandbox, with full screen and a new ta
 test("the Command page shows the desk in both views, and the back office nav opens it in one click", () => {
   const page = src("app/admin/command-center/page.tsx");
   assert.equal((page.match(/<Rn1DeskPanel \/>/g) ?? []).length, 2);
+  // The full view: the money board (lead to cash) comes first, the desk closes the page.
   const full = page.slice(page.lastIndexOf("<TodaysCallsBanner"));
   const at = (s: string) => full.indexOf(s);
-  assert.ok(at("<WorkspaceLinks admin />") < at("<Rn1DeskPanel />"), "after the workspace links");
-  assert.ok(at("<Rn1DeskPanel />") < at("Flow Mission Control"), "before the mission board");
-  const failed = page.slice(page.indexOf("if (firstError)"), page.indexOf("const leads = "));
+  assert.ok(at('id="money-line"') < at("<Rn1DeskPanel />"), "after the money line");
+  assert.ok(at('id="call-now"') < at("<Rn1DeskPanel />"), "after the call queue");
+  assert.ok(at("<Rn1DeskPanel />") > at("Human stopline"), "the desk closes the page");
+  // The recovery view: the desk still shows, after the notice, because it reads its own server.
+  const failed = page.slice(page.indexOf("if (!boardLoad.ok)"), page.indexOf("const { board, promises"));
   assert.ok(failed.indexOf("Part of the overview could not be loaded.") < failed.indexOf("<Rn1DeskPanel />"));
 
   // The Back Office menu (app/admin/backOfficeNav.ts) points at the same desk, as a separate site.
