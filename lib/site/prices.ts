@@ -12,6 +12,11 @@
 // a guessed number here.
 
 export const PRICES = {
+  /** Ryan-approved picture packs, October 6, 2026. One-time purchases. */
+  pictureStarter: 97,
+  pictureGrowth: 197,
+  pictureDaily: 397,
+  pictureBulk100: 1000,
   /** Owner-approved minimum upfront investment for the initial 90-day campaign. */
   managedStartingUpfront: 7500,
   /** Owner planning targets per completed outcome, not a charge or measured CAC. */

@@ -22,6 +22,9 @@ about, and the A to Z index) and their copy. Rules every page follows:
 * One ``h1`` per page, a skip link, labels, visible focus, AA contrast, and a
   layout built for a 390 px phone first.
 * ``noindex,nofollow`` on every page while ``settings.indexable`` is off.
+  Search-engine markup (schema.org microdata on profiles, breadcrumbs, Open
+  Graph tags, the favicon, the sitemaps) exists only while it is on: with the
+  switch off the pages are exactly what they were without it.
 
 The site is written atomically: pages are built in a new folder under
 ``www/<town>/.builds/``, and the ``businesses`` symbolic link is switched to
@@ -40,6 +43,7 @@ import shutil
 import tempfile
 import unicodedata
 from contextvars import ContextVar
+from dataclasses import replace
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Mapping, Optional, Sequence, Tuple
@@ -65,6 +69,14 @@ REL = "nofollow noopener noreferrer"
 CSS_NAME = "directory.css"
 JS_NAME = "search.js"
 JSON_NAME = "search.json"
+# Written only while indexing is on (with the switch off every page keeps href="data:,").
+ICON_NAME = "icon.svg"
+ICON_SVG = ('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7"'
+            ' fill="#1240E8"/><text x="16" y="21.5" fill="#FFFFFF" font-family="Arial,Helvetica,sans-serif"'
+            ' font-size="14" font-weight="700" text-anchor="middle">LF</text></svg>\n')
+THEME_COLOR = "#1240E8"
+SCHEMA = "https://schema.org/"
+SITEMAP_NS = "http://www.sitemaps.org/schemas/sitemap/0.9"
 
 DISCLAIMER = "Not affiliated with the businesses listed. No rankings, no reviews, no endorsements."
 SAMPLE_BANNER = "Sample data: fictional businesses for layout testing"
@@ -75,7 +87,7 @@ CATEGORY_LEAD = "Every one we could verify, listed A to Z. Not ranked."
 # Bump whenever the pages' wording or markup changes: a site built with another
 # version is rebuilt at the next service start (``build_key``), so an upgrade
 # never leaves the old copy public until the next approval.
-COPY_VERSION = "11"
+COPY_VERSION = "12"
 
 SOURCE_LABELS = {
     "tx_sales_tax": "Texas Comptroller open data",
@@ -102,6 +114,7 @@ WEBSITE_NOTES = {
 }
 DAY_NAMES = (("mon", "Monday"), ("tue", "Tuesday"), ("wed", "Wednesday"), ("thu", "Thursday"),
              ("fri", "Friday"), ("sat", "Saturday"), ("sun", "Sunday"))
+SCHEMA_DAYS = {"mon": "Mo", "tue": "Tu", "wed": "We", "thu": "Th", "fri": "Fr", "sat": "Sa", "sun": "Su"}
 SHORT_MONTHS = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
 LONG_MONTHS = ("January", "February", "March", "April", "May", "June", "July", "August", "September",
                "October", "November", "December")
@@ -269,10 +282,11 @@ def plural(n: int, one: str, many: str) -> str:
     return f"{n:,} {one if n == 1 else many}"
 
 
-def ext_link(url: str, text: str) -> str:
-    """A link out to someone else's site: http(s) only, nofollow."""
+def ext_link(url: str, text: str, prop: str = "") -> str:
+    """A link out to someone else's site: http(s) only, nofollow (``prop``: its microdata itemprop)."""
     href = safe_url(url)
-    return f'<a href="{e(href)}" rel="{REL}">{e(text)}</a>' if href else e(text)
+    attr = f' itemprop="{prop}"' if prop else ""
+    return f'<a{attr} href="{e(href)}" rel="{REL}">{e(text)}</a>' if href else e(text)
 
 
 def paginate(items: Sequence, page: int, size: int = PAGE_SIZE) -> Tuple[list, int]:
@@ -347,22 +361,56 @@ def _robots(index: bool, paged: bool = False) -> str:
     return ""
 
 
+def _seo_head(*, title: str, description: str, url: str, icon_href: Optional[str], share: bool) -> str:
+    """The favicon line, plus theme-color and Open Graph tags on a page search engines may index.
+
+    ``icon_href`` is None while indexing is off: the page keeps href="data:," (no request)."""
+    head = f'<link rel="icon" href="{e(icon_href) if icon_href else "data:,"}"'
+    head += ' type="image/svg+xml">\n' if icon_href else ">\n"
+    if share:
+        head += (f'<meta name="theme-color" content="{THEME_COLOR}">\n'
+                 f'<meta property="og:type" content="website">\n'
+                 f'<meta property="og:title" content="{e(title)}">\n'
+                 f'<meta property="og:description" content="{e(description)}">\n'
+                 f'<meta property="og:url" content="{e(url)}">\n')
+    return head
+
+
+def crumbs_html(crumbs: Sequence[Tuple[str, Optional[str]]], microdata: bool = False) -> str:
+    """The breadcrumb trail; with ``microdata``, also a schema.org BreadcrumbList (no script)."""
+    if not crumbs:
+        return ""
+    items = []
+    for i, (label, href) in enumerate(crumbs):
+        if microdata:
+            position = f'<meta itemprop="position" content="{i + 1}">'
+            if href:
+                inner = f'<a itemprop="item" href="{e(href)}"><span itemprop="name">{e(label)}</span></a>'
+            else:
+                current = ' aria-current="page"' if i == len(crumbs) - 1 else ""
+                inner = f'<span itemprop="name"{current}>{e(label)}</span>'
+            items.append(f'<li itemprop="itemListElement" itemscope itemtype="{SCHEMA}ListItem">'
+                         f"{inner}{position}</li>")
+        elif href:
+            items.append(f'<li><a href="{e(href)}">{e(label)}</a></li>')
+        else:
+            current = ' aria-current="page"' if i == len(crumbs) - 1 else ""
+            items.append(f"<li><span{current}>{e(label)}</span></li>")
+    scope = f' itemscope itemtype="{SCHEMA}BreadcrumbList"' if microdata else ""
+    return f'<nav class="crumbs" aria-label="Breadcrumb"><ol{scope}>{"".join(items)}</ol></nav>'
+
+
 def render_page(d: Directory, *, title: str, description: str, site_path: str, h1: str,
                 eyebrow: str = "", lead: str = "", crumbs: Sequence[Tuple[str, Optional[str]]] = (),
                 art: str = "", hero_extra: str = "", body: str = "", index: bool = False,
                 paged: bool = False, script: bool = False, disclaimer_in_footer: bool = True,
-                hero_class: str = "", sprite: str = "") -> str:
-    """The frame every page shares. ``lead``, ``art``, ``hero_extra``, and ``body`` are HTML already escaped."""
-    crumb_html = ""
-    if crumbs:
-        items = []
-        for i, (label, href) in enumerate(crumbs):
-            if href:
-                items.append(f'<li><a href="{e(href)}">{e(label)}</a></li>')
-            else:
-                current = ' aria-current="page"' if i == len(crumbs) - 1 else ""
-                items.append(f"<li><span{current}>{e(label)}</span></li>")
-        crumb_html = f'<nav class="crumbs" aria-label="Breadcrumb"><ol>{"".join(items)}</ol></nav>'
+                hero_class: str = "", sprite: str = "", item: bool = False) -> str:
+    """The frame every page shares. ``lead``, ``art``, ``hero_extra``, and ``body`` are HTML already escaped.
+
+    ``item``: the page is one business's indexable profile; ``main`` is its schema.org
+    LocalBusiness and the ``h1`` its name (the body carries the other itemprops)."""
+    crumb_html = crumbs_html(crumbs, microdata=index)
+    item_attr = f' itemscope itemtype="{SCHEMA}LocalBusiness"' if item else ""
     sample = f'<p class="sample" role="note">{e(SAMPLE_BANNER)}</p>\n' if d.sample else ""
     script_tag = f'<script src="{base()}{JS_NAME}" defer></script>\n' if script else ""
     pitch = FOOTER_PITCH if d.place is places.LONGVIEW else FOOTER_PITCH_OTHER
@@ -378,8 +426,9 @@ def render_page(d: Directory, *, title: str, description: str, site_path: str, h
         f"<title>{e(title)}</title>\n"
         f'<meta name="description" content="{e(description)}">\n'
         f'<link rel="canonical" href="{e(canonical(d, site_path))}">\n'
-        '<link rel="icon" href="data:,">\n'
-        f'<link rel="stylesheet" href="{base()}{CSS_NAME}">\n'
+        + _seo_head(title=title, description=description, url=canonical(d, site_path),
+                    icon_href=base() + ICON_NAME if d.indexable else None, share=index and not paged)
+        + f'<link rel="stylesheet" href="{base()}{CSS_NAME}">\n'
         f"{script_tag}"
         "</head>\n<body>\n"
         f"{sprite}"
@@ -389,10 +438,10 @@ def render_page(d: Directory, *, title: str, description: str, site_path: str, h
         '<span> · The LeadFlow Pro</span>'
         + (f'<a class="brand-search" href="{path("search")}">Search</a>' if d.businesses else "")
         + "</div></header>\n"
-        '<main id="main">\n'
+        f'<main id="main"{item_attr}>\n'
         f'<section class="{hero_cls}"><div class="shell">{crumb_html}{art}'
         + (f'<p class="eyebrow">{e(eyebrow)}</p>' if eyebrow else "")
-        + f"<h1>{e(h1)}</h1>"
+        + (f'<h1 itemprop="name">{e(h1)}</h1>' if item else f"<h1>{e(h1)}</h1>")
         + (f'<p class="lead">{lead}</p>' if lead else "")
         + f"{hero_extra}</div></section>\n"
         f"{body}\n"
@@ -897,6 +946,65 @@ def _profile_description(b: Mapping, category_name: str) -> str:
     return " ".join(parts)
 
 
+def _from_website(b: Mapping, field: str) -> bool:
+    """The value comes from a fact checked on the business's own website."""
+    return any(f["field"] == field and f["source"] == "website" for f in b["facts"])
+
+
+def schema_hours(hours: Mapping[str, list]) -> List[str]:
+    """schema.org openingHours, one per stated range ("Mo 07:30-18:00"); a day stated closed ([]) has none.
+
+    Search engines read the list as the whole week (a day not in it is closed), so
+    ld_dict() uses it only when the business states all seven days."""
+    return [f"{SCHEMA_DAYS[key]} {o}-{c}" for key, _ in DAY_NAMES for o, c in hours.get(key) or ()]
+
+
+def whole_week(hours: Mapping[str, list]) -> bool:
+    """Every day is stated, open or closed: only then can the hours be given as a weekly schedule."""
+    return all(key in hours for key, _ in DAY_NAMES)
+
+
+def ld_dict(d: "Directory", b: Mapping) -> dict:
+    """What a profile's microdata says, as a schema.org LocalBusiness: the one place it is decided.
+
+    Name and the town always; street and ZIP only when the page shows both; phone,
+    website, social links, and hours only from the business's own website. Never a
+    rating, a review, or coordinates. Hours are schema.org ``openingHours`` text (the
+    form microdata can carry in a ``meta``), one entry per stated range, and only when
+    all seven days are stated: search engines read a missing day as closed, and the
+    page says "Hours not listed" for it, so a partial week is left to the page alone."""
+    address: Dict[str, str] = {"@type": "PostalAddress"}
+    street, zip_code = b["address"]["street"], b["address"]["zip"]
+    if street and zip_code:
+        address.update(streetAddress=street, postalCode=zip_code)
+    address.update(addressLocality=b["address"].get("city") or "Longview", addressRegion="TX")
+    out: Dict[str, Any] = {"@context": SCHEMA.rstrip("/"), "@type": "LocalBusiness", "name": b["name"],
+                           "address": address}
+    if b["phone"] and _from_website(b, "phone"):
+        out["telephone"] = b["phone"]["e164"]
+    site_url = safe_url(b["website"]["url"]) if b["website"] else None
+    # Only a website that loaded as itself: one that forwards elsewhere may no longer be the business's.
+    if site_url and b["website"]["status"] == "ok" and _from_website(b, "website"):
+        out["url"] = site_url
+    same = [url for field in ("facebook", "instagram")
+            if (url := safe_url(b["social"][field])) and _from_website(b, field)]
+    if same:
+        out["sameAs"] = same
+    if b["hours"] and _from_website(b, "hours") and whole_week(b["hours"]) and schema_hours(b["hours"]):
+        out["openingHours"] = schema_hours(b["hours"])
+    return out
+
+
+def address_microdata(b: Mapping, ld: Mapping) -> str:
+    """The profile's address line as a nested PostalAddress. The visible line stays one run of
+    text, exactly as address_line() shows it (split into spans it would shape a hair differently);
+    its parts ride along in meta tags, the same values ld_dict() gives."""
+    parts = "".join(f'<meta itemprop="{key}" content="{e(value)}">'
+                    for key, value in ld["address"].items() if key != "@type")
+    return (f'<span itemprop="address" itemscope itemtype="{SCHEMA}PostalAddress">{e(address_line(b))}'
+            f"{parts}</span>")
+
+
 def _dl_row(term: str, value: str) -> str:
     return f"<div><dt>{e(term)}</dt><dd>{value}</dd></div>"
 
@@ -921,17 +1029,23 @@ def neighbour_band(d: "Directory", b: Mapping, category_name: str) -> str:
 def profile_page(d: Directory, b: Mapping) -> str:
     category_name = d.category_name(b["category"])
     neighbours = neighbour_band(d, b, category_name)
+    # Microdata only on a profile search engines may index; every value comes from ld_dict().
+    item = d.profile_indexable(b)
+    ld = ld_dict(d, b) if item else {}
     rows = []
     if b["categoryLabel"]:
         rows.append(_dl_row("Kind of business", e(b["categoryLabel"])))
     if b["website"] and safe_url(b["website"]["url"]):
         note = WEBSITE_NOTES.get(b["website"]["status"])
-        rows.append(_dl_row("Website", ext_link(b["website"]["url"], website_host(b["website"]["url"]))
+        rows.append(_dl_row("Website", ext_link(b["website"]["url"], website_host(b["website"]["url"]),
+                                                "url" if "url" in ld else "")
                             + (f"<small>{e(note)}</small>" if note else "")))
     else:
         rows.append(_dl_row("Website", '<span class="missing">No website found yet.</span>'))
     if b["phone"]:
-        rows.append(_dl_row("Phone", f'<a href="tel:{e(b["phone"]["e164"])}">{e(b["phone"]["display"])}</a>'))
+        tel = (f'<meta itemprop="telephone" content="{e(ld["telephone"])}">' if "telephone" in ld else "")
+        rows.append(_dl_row("Phone", f'<a href="tel:{e(b["phone"]["e164"])}">{e(b["phone"]["display"])}</a>'
+                            + tel))
     else:
         rows.append(_dl_row("Phone", '<span class="missing">No phone number listed on a website we could'
                                      " verify.</span>"))
@@ -940,20 +1054,29 @@ def profile_page(d: Directory, b: Mapping) -> str:
     socials = [(label, url) for label, url in (("Facebook", b["social"]["facebook"]),
                                                ("Instagram", b["social"]["instagram"])) if safe_url(url)]
     if socials:
-        rows.append(_dl_row("Social", " · ".join(ext_link(url, label) for label, url in socials)))
+        same = set(ld.get("sameAs", ()))
+        rows.append(_dl_row("Social", " · ".join(ext_link(url, label, "sameAs" if safe_url(url) in same else "")
+                                                for label, url in socials)))
     panels = [f'<div class="panel"><h2>Contact</h2><dl class="dl">{"".join(rows)}</dl></div>']
 
     if b["hours"]:
         table_rows, missing = hours_rows(b["hours"])
         checked = next((f["checkedAt"] for f in b["facts"] if f["field"] == "hours"), "")
         stated = [(key, label) for key, label in DAY_NAMES if key in b["hours"]]
+
+        def opening(key: str) -> str:
+            if "openingHours" not in ld:
+                return ""
+            return "".join(f'<meta itemprop="openingHours" content="{e(v)}">'
+                           for v in schema_hours({key: b["hours"][key]}))
+
         # data-h carries the stated ranges for search.js's "Open now" line ('-': stated closed).
         hours_html = ('<p class="now" role="status" hidden></p>'
                       f'<table class="hours" data-hours="1" data-checked="{e(format_day(checked) if checked else "")}">'
                       '<caption class="sr-only">Hours as the business lists them</caption>'
                       "<tbody>" + "".join(
                           f'<tr data-d="{key}" data-h="{e(hours_code({key: b["hours"][key]})[3:])}">'
-                          f'<th scope="row">{e(day)}</th><td>{e(text)}</td></tr>'
+                          f'<th scope="row">{e(day)}</th><td>{e(text)}{opening(key)}</td></tr>'
                           for (key, day), (_, text) in zip(stated, table_rows)) + "</tbody></table>")
         if missing:
             hours_html += '<p class="fallback"><span class="missing">Hours not listed for other days.</span></p>'
@@ -1018,14 +1141,15 @@ def profile_page(d: Directory, b: Mapping) -> str:
     actions, used = action_bar(b)
     directions = (f'<a href="{e(maps_url(b))}" rel="{REL}">Directions</a>'
                   if has_premises(b) and not b["address"]["street"] else "")
-    hero_extra = f'<p class="where"><span>{e(address_line(b))}</span>{directions}</p>{actions}'
+    where = address_microdata(b, ld) if item else f"<span>{e(address_line(b))}</span>"
+    hero_extra = f'<p class="where">{where}{directions}</p>{actions}'
     return render_page(
         d, title=f"{b['name']} in {d.town}, TX | {d.town} businesses",
         description=_profile_description(b, category_name), site_path=path(b["slug"]), h1=b["name"],
         eyebrow=category_name,
         crumbs=((f"{d.town} businesses", base()), (category_name, path("category", b["category"])),
                 (b["name"], None)),
-        art=identity(b), hero_extra=hero_extra, body=body, index=d.profile_indexable(b),
+        art=identity(b), hero_extra=hero_extra, body=body, index=item, item=item,
         disclaimer_in_footer=False, hero_class="hero-profile", sprite=sprite(used), script=bool(b["hours"]))
 
 
@@ -1397,9 +1521,64 @@ def render_site(data: dict, settings, place: places.Place = places.LONGVIEW, hub
                 files[f"{b['slug']}/index.html"] = profile_page(d, b)
             if d.indexable:
                 files["sitemap.xml"] = sitemap_xml(d)
+                files[ICON_NAME] = ICON_SVG
         return files
     finally:
         _PLACE.reset(token)
+
+
+def sitemap_index(settings, towns: Sequence[places.Place]) -> str:
+    """/places/sitemap.xml: each listed town's own sitemap (paged lists are never in a sitemap)."""
+    root = str(settings.public_base_url).rstrip("/")
+    body = "".join(f"<sitemap><loc>{e(root + p.base + 'sitemap.xml')}</loc></sitemap>\n" for p in towns)
+    return f'<?xml version="1.0" encoding="UTF-8"?>\n<sitemapindex xmlns="{SITEMAP_NS}">\n{body}</sitemapindex>\n'
+
+
+def hub_indexable(data: Mapping, settings) -> bool:
+    """The towns hub follows the same switch: never for sample data or an empty batch."""
+    return bool(settings.indexable) and not bool(data.get("sample")) and bool(data["businesses"])
+
+
+def seo_preview(data: dict, settings, sample: int = 5) -> Dict[str, str]:
+    """What switching indexing on would publish, for a person to read first: never served.
+
+    ``data`` is the approved batch with removal requests already taken out (the
+    same input ``build_site`` gets). It is checked by the same contract, then
+    rendered with a copy of ``settings`` whose switch is on: up to ``sample``
+    indexable profiles (taken town by town, A to Z), every town's sitemap, and
+    the sitemap index. Paths are as they would be served under www/."""
+    preview = replace(settings, indexable=True)
+    directory = validate_directory(data).directory
+    active = places.active(preview)
+    files: Dict[str, str] = {}
+    picks: Dict[str, List[Tuple[Directory, dict]]] = {}
+    listed: List[places.Place] = []
+    for place in active:
+        token = _PLACE.set(place)
+        try:
+            d = Directory(place_directory(directory, place), preview, place, len(active) > 1)
+            if not d.indexable:
+                continue
+            listed.append(place)
+            files[f"{place.slug}/businesses/sitemap.xml"] = sitemap_xml(d)
+            picks[place.slug] = [(d, b) for b in d.businesses if d.profile_indexable(b)][:sample]
+        finally:
+            _PLACE.reset(token)
+    chosen: List[Tuple[places.Place, Directory, dict]] = []
+    for round_ in range(sample):
+        for place in listed:
+            if len(chosen) < sample and round_ < len(picks[place.slug]):
+                chosen.append((place, *picks[place.slug][round_]))
+    for place, d, b in chosen:
+        token = _PLACE.set(place)
+        try:
+            files[f"{place.slug}/businesses/{b['slug']}/index.html"] = profile_page(d, b)
+            files[f"{place.slug}/businesses/{ICON_NAME}"] = ICON_SVG
+        finally:
+            _PLACE.reset(token)
+    if len(active) > 1 and listed:
+        files[f"{HUB_DIR}/sitemap.xml"] = sitemap_index(preview, listed)
+    return files
 
 
 def hub_page(data: dict, settings, active: Sequence[places.Place]) -> str:
@@ -1407,7 +1586,8 @@ def hub_page(data: dict, settings, active: Sequence[places.Place]) -> str:
     per = places.counts_by_place(data["businesses"]) if "places" in data else {
         places.LONGVIEW.slug: len(data["businesses"])}
     sample = bool(data.get("sample"))
-    index = bool(settings.indexable) and not sample and bool(data["businesses"])
+    index = hub_indexable(data, settings)
+
     def town(p: places.Place) -> str:
         return (f'<li class="town-card"><h4 class="card-name"><a href="{e(p.base)}">{e(p.name)}, TX</a></h4>'
                 f'<p class="card-meta">{e(plural(per.get(p.slug, 0), "business", "businesses"))} listed</p>'
@@ -1429,18 +1609,21 @@ def hub_page(data: dict, settings, active: Sequence[places.Place]) -> str:
                f' {e(plural(len(active), "town", "towns"))}</p>')
     items = "".join(groups)
     base_url = str(settings.public_base_url).rstrip("/")
+    title = "Businesses by town | The LeadFlow Pro"
+    description = ("The towns in the directory, each with its own A to Z list of businesses and the source and"
+                   " check date for every fact.")
     return (
         "<!doctype html>\n"
         '<html lang="en">\n<head>\n<meta charset="utf-8">\n'
         '<meta name="viewport" content="width=device-width, initial-scale=1">\n'
         f"{_robots(index)}"
         '<meta name="referrer" content="no-referrer">\n'
-        "<title>Businesses by town | The LeadFlow Pro</title>\n"
-        '<meta name="description" content="The towns in the directory, each with its own A to Z list of'
-        ' businesses and the source and check date for every fact.">\n'
+        f"<title>{e(title)}</title>\n"
+        f'<meta name="description" content="{e(description)}">\n'
         f'<link rel="canonical" href="{e(base_url + places.HUB_PATH)}">\n'
-        '<link rel="icon" href="data:,">\n'
-        f'<link rel="stylesheet" href="{places.HUB_PATH}{CSS_NAME}">\n'
+        + _seo_head(title=title, description=description, url=base_url + places.HUB_PATH,
+                    icon_href=places.HUB_PATH + ICON_NAME if index else None, share=index)
+        + f'<link rel="stylesheet" href="{places.HUB_PATH}{CSS_NAME}">\n'
         + (f'<script src="{places.HUB_PATH}{JS_NAME}" defer></script>\n' if data["businesses"] else "")
         + "</head>\n<body>\n"
         '<a class="skip" href="#main">Skip to the content</a>\n'
@@ -1569,6 +1752,10 @@ def build_site(settings, export: Optional[dict], now: Any = None) -> Dict[str, A
         if result.directory["businesses"]:
             hub_files[JS_NAME] = SEARCH_JS
             hub_files.update(hub_search_index(result.directory, settings, active))
+        if hub_indexable(result.directory, settings):
+            listed = [p for p in active if per_place.get(p.slug)]  # a town with no businesses has no sitemap
+            hub_files["sitemap.xml"] = sitemap_index(settings, listed)
+            hub_files[ICON_NAME] = ICON_SVG
         _publish(Path(settings.www_dir), ".places-builds", HUB_DIR, hub_files, now)
         pages += 1
     else:

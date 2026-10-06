@@ -326,11 +326,10 @@ test("the Command page shows the desk in both views, and the back office nav ope
   const failed = page.slice(page.indexOf("if (!boardLoad.ok)"), page.indexOf("const { board, promises"));
   assert.ok(failed.indexOf("Part of the overview could not be loaded.") < failed.indexOf("<Rn1DeskPanel />"));
 
-  const layout = src("app/admin/layout.tsx");
-  assert.ok(
-    layout.includes(`{ href: "${rn1Desk.RN1_DESK_URL}", label: "RN-1 Desk ↗", external: true }`),
-    "the nav link points at the same desk",
-  );
+  // The Back Office menu (app/admin/backOfficeNav.ts) points at the same desk, as a separate site.
+  const nav = src("app/admin/backOfficeNav.ts");
+  const url = rn1Desk.RN1_DESK_URL.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
+  assert.match(nav, new RegExp(`\\{ href: "${url}", label: "RN-1 Desk", description: "[^"]+", external: true \\}`), "the nav link points at the same desk");
 });
 
 test("the desk files keep the house style and stay read only", () => {
