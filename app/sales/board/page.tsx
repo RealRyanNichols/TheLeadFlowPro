@@ -20,7 +20,7 @@ const FOCUS = "focus-visible:outline focus-visible:outline-2 focus-visible:outli
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
-export default async function SalesBoard({ searchParams }: { searchParams?: Promise<SearchParams> } = {}) {
+export default async function SalesBoard({ searchParams }: { searchParams: Promise<SearchParams> }) {
   const supabase = await createClient();
   const now = new Date();
   const days = parseWindow(((await searchParams) ?? {}).window);

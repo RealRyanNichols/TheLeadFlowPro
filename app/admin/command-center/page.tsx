@@ -51,7 +51,7 @@ function shortTime(value: string) {
 
 type SearchParams = Record<string, string | string[] | undefined>;
 
-export default async function CommandCenter({ searchParams }: { searchParams?: Promise<SearchParams> } = {}) {
+export default async function CommandCenter({ searchParams }: { searchParams: Promise<SearchParams> }) {
   // Verify the signed-in admin before touching anything private.
   const { supabase, user } = await requireOperatorAdmin();
   const now = new Date();
@@ -59,8 +59,8 @@ export default async function CommandCenter({ searchParams }: { searchParams?: P
   const since24h = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString();
 
   const [boardLoad, sheetLoad, activityResult, purchaseResult, approvalResult, clientsLoad, insights] = await Promise.all([
-    loadMoneyBoard(supabase, now, days),
-    loadCallSheet(supabase, now),
+    loadMoneyBoard(supabase, now, days).catch((error: unknown) => ({ ok: false as const, error: error instanceof Error ? error.message : "The board could not be read." })),
+    loadCallSheet(supabase, now).catch((error: unknown) => ({ ok: false as const, error: error instanceof Error ? error.message : "The call sheet could not be read." })),
     supabase.from("lead_activity").select("id, lead_id, kind, detail, created_at").gte("created_at", since24h).order("created_at", { ascending: false }).limit(60),
     supabase.from("purchases").select("id, kind, amount_cents, status, created_at").gte("created_at", since24h).order("created_at", { ascending: false }).limit(50),
     (async () => {

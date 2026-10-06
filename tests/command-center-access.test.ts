@@ -140,15 +140,15 @@ function harness({ admin = true, failed = [], rows = {}, insights, sheetLeads = 
 
 async function commandCenterPage(opts: HarnessOptions = {}, query?: Record<string, string | string[]>) {
   const h = harness(opts);
-  const page = evalModule("app/admin/command-center/page.tsx", h.resolve) as { default: (props?: unknown) => Promise<unknown> };
-  const element = await page.default(query === undefined ? undefined : { searchParams: Promise.resolve(query) });
+  const page = evalModule("app/admin/command-center/page.tsx", h.resolve) as { default: (props: unknown) => Promise<unknown> };
+  const element = await page.default({ searchParams: Promise.resolve(query ?? {}) });
   return { element, html: renderToStaticMarkup(element as never), reads: h.reads, userClient: h.userClient() };
 }
 
 async function salesBoardPage(opts: HarnessOptions = {}, query?: Record<string, string | string[]>) {
   const h = harness(opts);
-  const page = evalModule("app/sales/board/page.tsx", h.resolve) as { default: (props?: unknown) => Promise<unknown> };
-  const element = await page.default(query === undefined ? undefined : { searchParams: Promise.resolve(query) });
+  const page = evalModule("app/sales/board/page.tsx", h.resolve) as { default: (props: unknown) => Promise<unknown> };
+  const element = await page.default({ searchParams: Promise.resolve(query ?? {}) });
   return { element, html: renderToStaticMarkup(element as never), reads: h.reads };
 }
 
@@ -223,8 +223,8 @@ test("the command center verifies the admin before every private read and uses t
 
 test("a non-admin cannot trigger any command-center read", async () => {
   const h = harness({ admin: false, rows: fixture() });
-  const page = evalModule("app/admin/command-center/page.tsx", h.resolve) as { default: () => Promise<unknown> };
-  await assert.rejects(page.default(), /Admins only/);
+  const page = evalModule("app/admin/command-center/page.tsx", h.resolve) as { default: (props: unknown) => Promise<unknown> };
+  await assert.rejects(page.default({ searchParams: Promise.resolve({}) }), /Admins only/);
   assert.deepEqual(h.reads, []);
 });
 
