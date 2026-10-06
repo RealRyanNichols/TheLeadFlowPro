@@ -51,7 +51,7 @@ export function primaryDestinationsFor(ownerAccess: boolean, scope: "admin" | "s
   {href:ownerAccess?"/admin/overview":"/admin/call-sheet",label:"Today"},
   {href:"/admin/sales",label:"Sales"},
   {href:"/admin/clients",label:"Clients"},
-  {href:ownerAccess?"/admin/overview?view=marketing":"/admin/analytics",label:"Analytics"},
+  {href:ownerAccess?"/admin/overview?view=marketing":"/admin/analytics",label:"Analytics",hint:ownerAccess?"Campaigns, CPL, acquisition, recurring revenue and Stripe":"Website traffic"},
   {href:ownerAccess?"/admin/overview?view=work":"/admin/projects",label:"Operations"},
  ];
 }
