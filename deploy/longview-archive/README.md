@@ -437,6 +437,7 @@ business's, and it reads that site again on its next loop.
 | `lva approve` | Approve the newest publish file and rebuild the directory (see "Approving a batch") |
 | `lva approve --auto on` | Approve each new publish file by itself, except one that removes more than 25% (`--auto off` to stop) |
 | `lva site` | Rebuild the directory pages from the approved batch |
+| `lva seo-preview --out /var/lib/longview-archive/seo-preview` | Write what search-engine indexing would add (5 sample profiles with their schema.org markup, every town's sitemap, the sitemap index) to a new private folder. Publishes nothing and does not turn indexing on |
 | `lva exports` | Write the two private lists (no website; hiring) to `exports/private/`. They are sent nowhere |
 | `lva backup` | Take a database backup now |
 | `lva migrate` | Create or update the database tables |

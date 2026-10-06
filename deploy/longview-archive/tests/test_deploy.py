@@ -67,7 +67,7 @@ FORBIDDEN_IN_SCRIPTS = (
 # The CLI commands in SPEC.md ("service.py and __main__.py").
 SPEC_COMMANDS = {
     "run", "migrate", "sync", "match", "crawl-once", "publish", "status",
-    "backup", "suppress", "review", "check", "exports", "approve", "site",
+    "backup", "suppress", "review", "check", "exports", "approve", "site", "seo-preview",
 }
 STRICT_CSP = ("default-src 'none'; style-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none';"
               " frame-ancestors 'none'")
