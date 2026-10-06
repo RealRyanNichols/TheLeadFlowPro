@@ -11,10 +11,9 @@ const CAMPAIGN_MINIMUM = usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd);
 export const PUBLIC_PAGE_CATALOG = [
   {
     path: "/services/picture-packages",
-    title: "Dealership picture packages",
-    description: "Branded social pictures and matching captions for car dealerships and local businesses. Choose a starter pack, daily content, or a bulk content bank.",
+    title: "Custom picture and story packages",
+    description: "Custom pictures, captions, themes, and music placement notes for businesses, creators, individuals, and families. Build a connected story or a content bank.",
     eyebrow: "Picture packages",
-    art: "/images/picture-packages/dealership-sample.png",
   },
   {
     path: "/events",

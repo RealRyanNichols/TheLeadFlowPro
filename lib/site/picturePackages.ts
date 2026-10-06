@@ -1,16 +1,16 @@
 import { PRICES } from "./prices";
 
 export const PICTURE_PACKAGES = [
-  { id: "starter", name: "Starter", pictures: 5, priceUsd: PRICES.pictureStarter,
-    use: "Give us a chance. Start with five.", days: 5,
+  { id: "starter", name: "5-Picture Pack", pictures: 5, priceUsd: PRICES.pictureStarter,
+    use: "Try a theme, mark a moment, or refresh your page.", days: 5,
     checkout: "https://buy.stripe.com/cNi8wO52y2os3O8aIK5AQ0n",
     productId: "prod_VODZAxdES5Hc4A", priceId: "price_1UNR7wBHH7tuNwAAIyiu5Dl1" },
-  { id: "growth", name: "Growth", pictures: 12, priceUsd: PRICES.pictureGrowth,
-    use: "Three fresh posts a week for four weeks.", days: 5,
+  { id: "growth", name: "12-Picture Pack", pictures: 12, priceUsd: PRICES.pictureGrowth,
+    use: "Build a connected story or a month of three posts a week.", days: 5,
     checkout: "https://buy.stripe.com/4gM5kC9iO2os4Sc4km5AQ0o",
     productId: "prod_VODZTz3rVqQt8x", priceId: "price_1UNR8CBHH7tuNwAArVyNVxV7" },
-  { id: "daily", name: "Daily Presence", pictures: 30, priceUsd: PRICES.pictureDaily,
-    use: "One picture a day for 30 days.", days: 10,
+  { id: "daily", name: "30-Picture Pack", pictures: 30, priceUsd: PRICES.pictureDaily,
+    use: "Create a content bank with room for several themes.", days: 10,
     checkout: "https://buy.stripe.com/9B6cN466C9QU3O87wy5AQ0p",
     productId: "prod_VODZd1b5PBtQBw", priceId: "price_1UNR8DBHH7tuNwAAbHkn7RA4" },
 ] as const;
@@ -19,12 +19,12 @@ export const PICTURE_BULK = {
   id: "bulk100", name: "100-Picture Bulk Pack", pictures: 100,
   priceUsd: PRICES.pictureBulk100,
   checkout: "https://buy.stripe.com/28E6oG1Qme7afwQ5oq5AQ0q",
-  productId: "prod_VODbyqOBR4BNb6", priceId: "price_1UNRANBHH7tuNwAA3Mma4SO7",
+  productId: "prod_VODbyqOBR4BNb6", priceId: "price_1UNR9pBHH7tuNwAA3Mma4SO7",
 } as const;
 
 export const PICTURE_CONTENT_TYPES = [
-  "Inventory spotlights", "Approved offers", "New arrivals", "Meet the team",
-  "Customer deliveries", "Service reminders", "Seasonal promotions", "Brand and quote graphics",
+  "Movie-inspired scenes", "Family and milestone stories", "Personal brand and quotes", "Business and product spotlights",
+  "Events and seasonal moments", "Team and community stories", "Offers and announcements", "Dealership inventory",
 ] as const;
 
 export const DAILY_PACK_QUANTITIES = [1, 2, 3, 4] as const;

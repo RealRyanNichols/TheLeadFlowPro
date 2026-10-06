@@ -13,6 +13,20 @@ import {
 } from "../lib/analytics/browserPrivacy.ts";
 
 describe("analytics URL privacy", () => {
+  it("keeps picture briefs, team review, and private order access out of vendor analytics", () => {
+    for (const path of [
+      "/picture-studio",
+      "/picture-studio/team",
+      "/picture-studio/orders/47c9d07f-3ad5-46b2-b5c0-ad29f8363136",
+      "/picture-studio/orders/47c9d07f-3ad5-46b2-b5c0-ad29f8363136#access=private-order-token",
+      "/pricing#access=private-order-token",
+    ]) {
+      assert.equal(isPublicAnalyticsUrl(path), false, path);
+      assert.equal(safeAnalyticsUrl(path), undefined, path);
+      assert.equal(thirdPartyAnalyticsAllowed(path), false, path);
+    }
+    assert.equal(isPublicAnalyticsUrl("/services/picture-packages"), true);
+  });
   it("excludes local development and private network hosts from analytics", () => {
     for (const host of [
       "localhost:3000", "LOCALHOST.:3000", "workshop.localhost:3000", "macbook.local:3000",

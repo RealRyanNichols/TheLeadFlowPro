@@ -1,10 +1,10 @@
 const BASE = "https://www.theleadflowpro.com";
-const PRIVATE_PATH = /^\/(?:admin|design-preview|dashboard|login|logout|auth|training|api|sales|account|settings|workspace|portal)(?:\/|$)/i;
+const PRIVATE_PATH = /^\/(?:admin|design-preview|dashboard|login|logout|auth|training|api|sales|account|settings|workspace|portal|picture-studio)(?:\/|$)/i;
 const PRIVATE_EVENT = /^\/events\/[^/]+\/confirmed(?:\/|$)/i;
 const PRIVATE_SELLERPROOF = /^\/sellerproof\/build(?:\/|$)/i;
 const PRIVATE_CHASE_SHEET = /^\/chase-sheet\/app(?:\/|$)/i;
 const PRIVATE_POST_CREATOR = /^\/post-creator\/app(?:\/|$)/i;
-const CREDENTIAL_KEY = /^(?:t|.*token.*|.*secret.*|.*password.*|.*signature.*|session|session_id|checkout_session_id|code|email|email_address|authorization|key)$/i;
+const CREDENTIAL_KEY = /^(?:t|access|.*token.*|.*secret.*|.*password.*|.*signature.*|session|session_id|checkout_session_id|code|email|email_address|authorization|key)$/i;
 
 function parseUrl(value: string): URL | null {
   try {

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import crypto from "node:crypto";
 import type Stripe from "stripe";
 import { handleSpecialWebhook } from "@/lib/septemberSpecialServer";
+import { isDedicatedPictureStripeEvent } from "@/lib/pictureStudio/stripeIsolation";
 import {
   createClient as createSupabaseClient,
   type SupabaseClient,
@@ -2156,7 +2157,7 @@ function webhookString(value: unknown, max = 1000) {
 export async function POST(request: Request) {
   const whSecret = process.env.STRIPE_WEBHOOK_SECRET;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!whSecret || !serviceKey) {
+  if (!whSecret) {
     return NextResponse.json({ error: "not_configured" }, { status: 501 });
   }
 
@@ -2175,6 +2176,24 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json({ error: "Bad payload" }, { status: 400 });
   }
+
+  // Picture Studio owns its local order ledger and dedicated signed endpoint.
+  // Its sessions must never enter the legacy manual purchase/email dispatch.
+  try {
+    if (await isDedicatedPictureStripeEvent(event, async chargeId => {
+      const stripeKey = process.env.STRIPE_SECRET_KEY;
+      if (!stripeKey) throw new Error("Charge lookup is not configured");
+      const response = await fetch(`https://api.stripe.com/v1/charges/${encodeURIComponent(chargeId)}`, {
+        headers: { Authorization: `Bearer ${stripeKey}` }, cache: "no-store", signal: AbortSignal.timeout(15000),
+      });
+      if (!response.ok) throw new Error("Charge lookup failed");
+      return response.json();
+    })) return NextResponse.json({ received: true });
+  } catch {
+    console.error("Stripe picture event ownership lookup failed");
+    return NextResponse.json({ error: "Payment routing needs retry" }, { status: 503 });
+  }
+  if (!serviceKey) return NextResponse.json({ error: "not_configured" }, { status: 501 });
 
   // Capacity-controlled September checkouts are bound to a server reservation.
   // Process expiry as well as paid events; no generic purchase path may bypass

@@ -66,7 +66,7 @@ const SERVICES_JSONLD = graph(
 );
 
 const GUIDE_LINKS = [
-  ["Picture packages", "Branded social pictures and captions for your business", "/services/picture-packages"],
+  ["Picture packages", "Custom pictures, stories, and captions for businesses, creators, and families", "/services/picture-packages"],
   ["Get found", "Ads, search, and useful content", "/system/attention"],
   [
     "Your website",
