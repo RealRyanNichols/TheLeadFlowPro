@@ -53,6 +53,14 @@ const nextConfig: NextConfig = {
       "./public/images/social/scoreboard-20260907.jpg",
     ],
   },
+  // These are local paths, not network proxy URLs. Middleware still performs
+  // the sign-in check before routing; SalesLayout enforces the existing roles.
+  async rewrites() {
+    return { beforeFiles: [
+      { source: "/admin/sales", destination: "/sales" },
+      { source: "/admin/sales/:path*", destination: "/sales/:path*" },
+    ] };
+  },
   // The free website build offer was retired on 2026-09-22. Paid ads, old
   // emails, and outside links still point at /free-build, so it answers with
   // a permanent 301 (not Next's default 308) to the services page. Next

@@ -81,20 +81,11 @@ export async function middleware(request: NextRequest) {
     requestedPath.startsWith("/admin") ||
     (requestedPath.startsWith("/hq") && !isPath(requestedPath, "/hq/thanks"));
 
-  const rewriteUrl = request.nextUrl.clone();
-  if (isSalesWorkspace) {
-    rewriteUrl.pathname = movePath(
-      requestedPath,
-      PUBLIC_SALES_PATH,
-      INTERNAL_SALES_PATH,
-    );
-  }
-
+  // The Next config maps Sales aliases to relative internal routes after this
+  // authentication middleware. An absolute rewrite can inherit HTTPS on the
+  // HTTP loopback listener and become a failing network self-proxy.
   const makeResponse = () => {
-    const res = isSalesWorkspace
-      ? NextResponse.rewrite(rewriteUrl, { request })
-      : NextResponse.next({ request });
-    // The workspace is an internal tool. It should never appear in search.
+    const res = NextResponse.next({ request });
     if (onWorkspaceHost) res.headers.set("x-robots-tag", "noindex, nofollow");
     return res;
   };
