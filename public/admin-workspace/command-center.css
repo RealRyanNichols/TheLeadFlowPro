@@ -54,3 +54,5 @@
 @media(max-width:520px){.money-tile{padding:16px;gap:8px}.money-tile>strong{font-size:28px}.compact-agenda{padding:0 14px}.compact-agenda article{flex-wrap:wrap;gap:12px}.compact-agenda article .button{font-size:11px;padding:9px 12px}.compact-calendar>summary{align-items:flex-start;flex-direction:column;gap:6px;padding:8px 0}.deal-tile{padding:12px;gap:12px}.proposal-thumb{width:78px;height:44px}.deal-title h3,.deal-title>strong{font-size:14px}.analytics-tabs,.client-report-tabs{gap:6px}.analytics-tabs button,.client-report-tabs button{padding:10px 12px;font-size:11px}.campaign-table>button{grid-template-columns:1fr 1fr 1fr;gap:12px;padding:14px}.campaign-table>button>span:first-child{grid-column:1/-1}.quick-stats{gap:18px}.today-source{align-items:flex-start;gap:12px}.interactive-donut{grid-template-columns:130px 1fr}.campaign-focus dl{gap:8px}.campaign-focus dd{font-size:20px}}
 
 .native-admin-embedded .snapshot-rail{display:none}
+
+.pda-report-entry{margin:18px 0}.pda-report-options{display:flex;gap:16px;align-items:center;flex-wrap:wrap;padding:20px}.pda-report-options small{width:100%;color:var(--muted);font-size:11px;line-height:1.6}
