@@ -450,6 +450,17 @@ class SeoPreview(CliTestBase):
         self.assertIn("is not empty", proc.stderr)
         self.assertEqual([p.name for p in busy.iterdir()], ["keep.txt"])
 
+    def test_a_second_run_is_pointed_at_a_folder_that_works(self):
+        self.approve_fixture()
+        usual = self.data / "seo-preview"
+        self.assertEqual(self.lva("seo-preview", "--out", str(usual)).returncode, 0)
+        proc = self.lva("seo-preview", "--out", str(usual))
+        self.assertEqual(proc.returncode, 2)
+        self.assertIn("or remove the old preview first", proc.stderr)
+        suggested = re.search(r"for example (\S+)\.$", proc.stderr.strip()).group(1)
+        self.assertNotEqual(Path(suggested), usual)
+        self.assertEqual(self.lva("seo-preview", "--out", suggested).returncode, 0)
+
     def test_nothing_approved_writes_nothing(self):
         target = Path(self.tmp.name) / "preview"
         proc = self.lva("seo-preview", "--out", str(target))
@@ -461,6 +472,9 @@ class SeoPreview(CliTestBase):
         self.approve_fixture()
         proc = self.lva("suppress", "--domain", "exampletire.example", "--reason", "owner asked")
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+        # suppress also rewrote approved.json; put the business back in it, as a removal request that
+        # reaches an older approved batch leaves it, so only seo-preview's own filter can take it out.
+        self.approve_fixture()
         target = Path(self.tmp.name) / "preview"
         proc = self.lva("seo-preview", "--out", str(target))
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)

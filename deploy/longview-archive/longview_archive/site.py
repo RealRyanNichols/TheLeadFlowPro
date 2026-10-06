@@ -952,9 +952,16 @@ def _from_website(b: Mapping, field: str) -> bool:
 
 
 def schema_hours(hours: Mapping[str, list]) -> List[str]:
-    """schema.org openingHours, one per stated range ("Mo 07:30-18:00"). A day stated
-    closed ([]) and a day never stated are both left out: nothing is said about them."""
+    """schema.org openingHours, one per stated range ("Mo 07:30-18:00"); a day stated closed ([]) has none.
+
+    Search engines read the list as the whole week (a day not in it is closed), so
+    ld_dict() uses it only when the business states all seven days."""
     return [f"{SCHEMA_DAYS[key]} {o}-{c}" for key, _ in DAY_NAMES for o, c in hours.get(key) or ()]
+
+
+def whole_week(hours: Mapping[str, list]) -> bool:
+    """Every day is stated, open or closed: only then can the hours be given as a weekly schedule."""
+    return all(key in hours for key, _ in DAY_NAMES)
 
 
 def ld_dict(d: "Directory", b: Mapping) -> dict:
@@ -963,7 +970,9 @@ def ld_dict(d: "Directory", b: Mapping) -> dict:
     Name and the town always; street and ZIP only when the page shows both; phone,
     website, social links, and hours only from the business's own website. Never a
     rating, a review, or coordinates. Hours are schema.org ``openingHours`` text (the
-    form microdata can carry in a ``meta``), one entry per stated range."""
+    form microdata can carry in a ``meta``), one entry per stated range, and only when
+    all seven days are stated: search engines read a missing day as closed, and the
+    page says "Hours not listed" for it, so a partial week is left to the page alone."""
     address: Dict[str, str] = {"@type": "PostalAddress"}
     street, zip_code = b["address"]["street"], b["address"]["zip"]
     if street and zip_code:
@@ -981,7 +990,7 @@ def ld_dict(d: "Directory", b: Mapping) -> dict:
             if (url := safe_url(b["social"][field])) and _from_website(b, field)]
     if same:
         out["sameAs"] = same
-    if b["hours"] and _from_website(b, "hours") and schema_hours(b["hours"]):
+    if b["hours"] and _from_website(b, "hours") and whole_week(b["hours"]) and schema_hours(b["hours"]):
         out["openingHours"] = schema_hours(b["hours"])
     return out
 

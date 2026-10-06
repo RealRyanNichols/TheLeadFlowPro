@@ -85,8 +85,10 @@ read (with it off, every page is byte-for-byte what it was without this):
   are a schema.org `LocalBusiness` in microdata on the elements already on the
   page: the name, the address (street and ZIP only when the page shows them),
   the phone, website, Facebook and Instagram only when they came from the
-  business's own website, and the hours it states, one `openingHours` per range.
-  A day it says it is closed and a day it never stated are both left out. There
+  business's own website, and its hours, one `openingHours` per range, only
+  when it states all seven days (open or closed). Search engines read a day
+  missing from the list as closed, so a business that lists only some days
+  keeps its hours on the page alone, where the rest say "not listed". There
   is never a rating, a review, coordinates, or a `<script>`. `site.ld_dict()` is
   the one place that decides it, and the tests read the markup back and compare.
 - **Breadcrumbs** on indexable pages are a schema.org `BreadcrumbList`.

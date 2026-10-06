@@ -384,8 +384,13 @@ def cmd_seo_preview(args, settings) -> int:
     target = Path(args.out).expanduser().absolute()
     problem = preview_folder_problem(target, settings)
     if problem:
-        err(f"SEO preview: {problem}. Nothing was written. Give a new folder, for example"
-            f" {Path(settings.data_dir) / 'seo-preview'}.")
+        # Suggest a folder that would work: the usual one, or a dated one when that is taken.
+        suggestion = Path(settings.data_dir).absolute() / "seo-preview"
+        if suggestion == target or preview_folder_problem(suggestion, settings):
+            stamp = publish.resolve_now(None).strftime("%Y%m%d-%H%M%S")
+            suggestion = suggestion.with_name(f"seo-preview-{stamp}")
+        again = " (or remove the old preview first)" if problem.endswith("is not empty") else ""
+        err(f"SEO preview: {problem}. Nothing was written. Give a new folder{again}, for example {suggestion}.")
         return 2
     conn = bootstrap(settings)
     try:

@@ -357,6 +357,35 @@ class Details(unittest.TestCase):
         tire["hours"] = {"sun": []}
         self.assertNotIn("openingHours", site.ld_dict(self.directory(data), tire))
 
+    def test_a_partial_week_is_never_given_as_a_schedule(self):
+        # Search engines read a day missing from openingHours as closed; the page says "not listed".
+        data = T.fixture_export()
+        d = self.directory(data)
+        weekdays = {k: [["08:00", "17:00"]] for k in ("mon", "tue", "wed", "thu", "fri")}
+        tire = copy.deepcopy(T.by_slug(data, "example-tire-and-lube"))
+        tire["hours"] = dict(weekdays)
+        self.assertNotIn("openingHours", site.ld_dict(d, tire))  # Mon-Fri only (or "Sat by appointment")
+        tire["hours"] = dict(weekdays, sat=[], sun=[])  # the same week, weekend stated closed
+        self.assertEqual(site.ld_dict(d, tire)["openingHours"],
+                         [f"{day} 08:00-17:00" for day in ("Mo", "Tu", "We", "Th", "Fr")])
+        settings = build(T.fixture_export(), Path(self.tmp.name) / "week", indexable=True)
+        for slug in ("example-taqueria", "example-family-dental"):  # fixture profiles with a partial week
+            html = (site.site_dir(settings) / slug / "index.html").read_text(encoding="utf-8")
+            with self.subTest(slug=slug):
+                self.assertIn("Hours not listed for other days.", html)
+                self.assertNotIn("openingHours", html)
+                self.assertIn('itemtype="https://schema.org/LocalBusiness"', html)
+
+    def test_a_website_shown_but_not_its_url_has_no_url_markup(self):
+        data = T.fixture_export()
+        T.by_slug(data, "example-tire-and-lube")["website"]["status"] = "moved"
+        settings = build(data, Path(self.tmp.name) / "moved", indexable=True)
+        html = (site.site_dir(settings) / "example-tire-and-lube" / "index.html").read_text(encoding="utf-8")
+        self.assertIn(">exampletire.example</a>", html)  # still shown to a visitor, with its note
+        self.assertNotIn('itemprop="url"', html)
+        business = next(i for i in items(html) if i["@type"] == "LocalBusiness")
+        self.assertNotIn("url", business)
+
     def test_paged_lists_get_no_share_tags(self):
         data = T.fixture_export()
         record = T.by_slug(data, "example-tire-and-lube")
@@ -419,6 +448,17 @@ class Preview(unittest.TestCase):
         for town in TP.RING:
             self.assertIn(f"{town}/businesses/sitemap.xml", files)
         self.assertIn("places/sitemap.xml", files)
+
+    def test_records_that_fail_the_contract_are_not_previewed(self):
+        data = T.fixture_export()
+        bad = copy.deepcopy(T.by_slug(data, "example-tire-and-lube"))
+        bad.update(id="lv-zzbad00001", slug="Not A Slug!", name="Contract Breaker Garage")
+        data["businesses"].append(bad)
+        settings = config.Settings(data_dir=Path(tempfile.gettempdir()) / "unused")
+        blob = "".join(site.seo_preview(data, settings, sample=50).values())
+        self.assertIn("example-tire-and-lube/", blob)
+        self.assertNotIn("Contract Breaker", blob)
+        self.assertNotIn("Not A Slug", blob)
 
     def test_sample_data_previews_nothing(self):
         data = T.fixture_export()
