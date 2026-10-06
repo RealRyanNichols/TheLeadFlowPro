@@ -186,8 +186,8 @@ export default function PrivacyPage() {
         <a href={`mailto:${BUSINESS.email.hello}`}>{BUSINESS.email.hello}</a>. Please
         include enough information for us to verify and respond to the request.
       </p>
-      <Link className="button-secondary" href="/start">
-        Return to the System Map
+      <Link className="button-secondary" href="/pricing">
+        See current managed plans
       </Link>
     </main>
   );

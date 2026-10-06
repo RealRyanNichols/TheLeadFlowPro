@@ -1,386 +1,359 @@
-import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, Boxes, Check, FileSearch, ShieldCheck, Store } from "lucide-react";
+import {
+  ArrowRight,
+  Check,
+  MapPin,
+  Plus,
+  ShieldCheck,
+  Target,
+  TrendingUp,
+  WalletCards,
+} from "lucide-react";
 import CtaLink from "@/components/site/CtaLink";
-import SiteHero from "@/components/site/system/SiteHero";
-import { OFFER_LADDER, WEBSITE_LAUNCH, WEBSITE_LAUNCH_CHECKOUT } from "@/lib/offers";
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
+import { CONSULTATION } from "@/lib/site/consultation";
 import { PRICES, usd } from "@/lib/site/prices";
-
-// Current offer ladder from the approved Revenue Pivot and Offer Ladder spec.
+import {
+  MANAGED_COMMERCIAL_TERMS,
+  MANAGED_PLANS,
+  managedAdditionalScopeExplanation,
+  managedAdvertisingExplanation,
+  managedBillingExplanation,
+  managedCampaignSummary,
+  managedCompletionExplanation,
+  managedRenewalExplanation,
+} from "@/lib/site/managedPlans";
+import {
+  agencyIntakeHref,
+  productProjectIntakeHref,
+} from "@/lib/site/agencyIntake";
+import { PROJECT_QUOTE_SUMMARY } from "@/lib/site/projectQuotes";
+import styles from "./managed-pricing.module.css";
 
 export const metadata: Metadata = withPublicPageMetadata("/pricing", {
-  title: "Packages | The LeadFlow Pro",
-  description:
-    `Start with a five-page Website Launch for ${usd(PRICES.websiteLaunchTotal)}, use a ${usd(PRICES.systemMap)} System Map for deeper dependencies, or scope a larger operating system around the real work.`,
-  alternates: { canonical: "https://www.theleadflowpro.com/pricing" },
+  title: "90-Day Campaign Pricing | The LeadFlow Pro",
+  description: `Start a 90-day campaign from ${usd(PRICES.managedStartingUpfront)} upfront. Agree on your territory, signed-job target, advertising allocation, and scope before launch.`,
   openGraph: {
-    title: "Start with the right first release.",
-    description:
-      "Website Launch, System Map, Lead Engine, Training Platform, Company OS, and Custom Platform. Clear entry points and written scope.",
-    url: "https://www.theleadflowpro.com/pricing",
-    siteName: "The LeadFlow Pro",
-    images: [{ url: "/og/pricing.png", width: 1200, height: 630 }],
-    type: "website",
+    title: "One campaign. Up to 90 days.",
+    description: managedCampaignSummary(),
   },
 });
 
-const canonicalOffer = (id: (typeof OFFER_LADDER)[number]["id"]) =>
-  OFFER_LADDER.find((offer) => offer.id === id)!;
-
-const LADDER = [
+const QUESTIONS = [
   {
-    kind: "Fixed-scope foundation",
-    ...canonicalOffer("website-launch"),
-    lead: true,
-    body: WEBSITE_LAUNCH.summary,
-    items: [...WEBSITE_LAUNCH.included],
-    cta: "See Website Launch",
+    question: "What if I need a smaller storefront or product project?",
+    answer: PROJECT_QUOTE_SUMMARY,
   },
   {
-    kind: "Deeper diagnostic",
-    ...canonicalOffer("system-map"),
-    lead: false,
-    body: canonicalOffer("system-map").purpose,
-    items: [
-      "Full inventory of current software and workflows",
-      "Customer path, data flow, ownership, and handoff map",
-      "Ownership audit: what you own versus what you rent",
-      "Recommended modules, phases, and dependencies",
-      "An honest build range before production begins",
-    ],
-    cta: "Get the System Map",
+    question: "What does the upfront investment include?",
+    answer: managedBillingExplanation(),
   },
   {
-    kind: "Connected sales system",
-    ...canonicalOffer("lead-engine"),
-    lead: false,
-    body: canonicalOffer("lead-engine").purpose,
-    items: [
-      "Conversion website and focused funnel",
-      "CRM and one customer record",
-      "Lead routing and response automation",
-      "Source tracking and visible next actions",
-    ],
-    cta: "Map the Lead Engine",
+    question: "What happens if we reach the target early?",
+    answer: managedCompletionExplanation(),
   },
   {
-    kind: "Owned delivery system",
-    ...canonicalOffer("training-platform"),
-    lead: false,
-    body: canonicalOffer("training-platform").purpose,
-    items: [
-      "Public course catalog and member access",
-      "Course, module, and lesson structure",
-      "Enrollment and progress tracking",
-      "Admin tools for ongoing course updates",
-    ],
-    cta: "Map the Training Platform",
+    question: "Can I invest more in the initial campaign?",
+    answer: managedAdditionalScopeExplanation(),
   },
   {
-    kind: "Connected company core",
-    ...canonicalOffer("company-os"),
-    lead: false,
-    body: canonicalOffer("company-os").purpose,
-    items: [
-      "Website, CRM, and client portal",
-      "Analytics and operating dashboard",
-      "Workflow and response automation",
-      "Accounts, data, and handoffs documented",
-    ],
-    cta: "Map the Company OS",
+    question: "Is advertising spend included?",
+    answer: managedAdvertisingExplanation(),
   },
   {
-    kind: "Purpose-built software",
-    ...canonicalOffer("custom-platform"),
-    lead: false,
-    body: canonicalOffer("custom-platform").purpose,
-    items: [
-      "Multi-role product and workflow design",
-      "Advanced integrations and permissions",
-      "Custom tools, records, and interfaces",
-      "Phased architecture after a System Map",
-    ],
-    cta: "Map the Custom Platform",
+    question: "What happens at the 90-day review?",
+    answer: managedRenewalExplanation(),
+  },
+  {
+    question: "What counts as an acquired job?",
+    answer:
+      "A farm/ag job must have signed or paid confirmation, with attribution and reporting agreed in the written scope. We count real estate and mortgage deals at completion. An inquiry, appointment, or unaccepted estimate is not a completed outcome. We agree on how cancellations and disputed attribution are handled before launch.",
+  },
+  {
+    question: "Are the outcome targets guaranteed?",
+    answer:
+      "No. A target gives the campaign a clear objective; it is not a promise of sales. Market demand, qualification, your pricing, response time, capacity, and closing process affect results. We review the evidence together at day 90 if the target has not been reached; there is no automatic extension.",
+  },
+  {
+    question: "How does service-area protection work?",
+    answer:
+      "We check your services and geography before agreeing to territory protection. Interest on the map is not a reservation. Your written agreement defines the services and area protected.",
   },
 ];
 
-// Ryan, Aug 12 2026: "Every quote was different. Every business was different.
-// Not everybody's paying the same amount, but not everybody's getting the same
-// exact thing."
-//
-// The ladder above shows three starting points, which reads as one-size-fits-all
-// if nothing explains why two businesses on the same rung pay different numbers.
-// This is that explanation, and it turns custom pricing from evasion into the
-// reason the number is honest.
-const WHY_DIFFERENT = [
-  {
-    num: "01",
-    title: "Same door, different building",
-    body: "Two businesses can both need an operating system and require completely different work. One has a clean brand and 40 customers in a spreadsheet. The other has eight years of records in three systems and a team that needs permissions. The System Map exposes that difference before anyone quotes the build.",
-  },
-  {
-    num: "02",
-    title: "You are quoted for what you actually need",
-    body: "Nobody pays for a portal they will not use, a migration they do not need, or an integration that does not apply. The map decides the scope, and the scope decides the number. That is why the price is a range until the map is done.",
-  },
-  {
-    num: "03",
-    title: "Priced by the real work",
-    body: "The number comes from what the build actually takes, not from a rate card that charges every client the same because it is easier to invoice. If a piece turns out simpler than expected, it costs less. That runs both ways, in writing, before anything starts.",
-  },
-];
-
-const CLARITY = [
-  {
-    num: "01",
-    title: "Scope first",
-    body: "The map identifies what exists, what stays, what connects, what moves, and what should be left alone. Nothing gets built on a guess.",
-  },
-  {
-    num: "02",
-    title: "Approve the phases",
-    body: "You see the modules, ownership, dependencies, assumptions, and investment before the build begins. No surprise invoices.",
-  },
-  {
-    num: "03",
-    title: "Build in accounts you control",
-    body: "Code, hosting, database, domains, and approved vendor accounts are organised so the business keeps control of all of it.",
-  },
-];
-
-const CHANNELS = [
-  {
-    icon: Store,
-    title: "Keep the useful channels",
-    body: "Amazon, eBay, Poshmark, Mercari, and Whatnot reach can stay part of the model. They are sales channels, not your website.",
-  },
-  {
-    icon: FileSearch,
-    title: "Audit the real fees",
-    body: "No fake blended percentage. We use your actual category and your actual statements to work out what each channel costs you.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Build owned leverage",
-    body: "Own the brand, data, workflows, and direct customer relationships you are allowed to own, and let the channels do what they are good at.",
-  },
-];
-
-export default function PricingPage() {
+export default async function PricingPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const query = await searchParams;
+  const upfront = usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd);
+  const farmRate = usd(PRICES.farmAcquiredJobPlanningTarget);
+  const propertyRate = usd(PRICES.propertyCompletedDealPlanningTarget);
+  const intake = agencyIntakeHref(MANAGED_PLANS[0].id, query);
+  const projectIntake = productProjectIntakeHref(query);
   return (
-    <main className="cb-page">
-      <SiteHero
-        eyebrow="Two ways to start. Honest scope."
-        mutedTitle="Choose your first move."
-        title="Bigger systems are priced by the work."
-        body={`Website Launch is the five-page website, bought outright for ${usd(PRICES.websiteLaunchTotal)}: ${usd(PRICES.websiteLaunchDeposit)} to start and ${usd(PRICES.websiteLaunchFinal)} after approval, before launch. Larger systems are scoped separately.`}
-        media={{
-          src: "/images/offer-v2/website-launch-approval-path.webp",
-          alt: "A secure website build moving through assembly, approval, final payment, and launch",
-          kicker: `${usd(PRICES.websiteLaunchDeposit)} starts the build`,
-          caption: `${usd(PRICES.websiteLaunchFinal)} after approval, before launch.`,
-        }}
-        primary={{ href: WEBSITE_LAUNCH_CHECKOUT, label: `Start Website Launch | ${usd(PRICES.websiteLaunchDeposit)}`, external: true }}
-        secondary={{ href: "/services", label: "See everything we build" }}
-        trustLine={`Written scope, two revision rounds, and no final launch before approval and payment. Once intake begins, the ${usd(PRICES.websiteLaunchDeposit)} deposit is non-refundable, except where the written agreement or applicable law requires otherwise.`}
-      />
-
-      <section id="offer-ladder" className="cb-band scroll-mt-24">
-        <div className="cb-shell">
-          <div className="cb-headrow">
-            <div>
-              <p className="cb-eyebrow">The ladder</p>
-              <h2 className="cb-h2 cb-heading">Six clear levels. Pick the right first move.</h2>
-            </div>
-            <p className="cb-lead">
-              Start with Website Launch when five focused pages solve the immediate problem.
-              Start with the System Map when software, data, teams, or migrations make the
-              dependencies more complex.
+    <main className={styles.page}>
+      <div className={styles.shell}>
+        <section className={styles.hero}>
+          <div>
+            <p className={styles.eyebrow}>
+              Managed acquisition. A clear starting offer.
             </p>
-          </div>
-
-          <div className="cb-ladder">
-            {LADDER.map((r) => (
-              <article
-                key={r.name}
-                id={r.href.split("/").pop()}
-                className={`cb-rung${r.lead ? " cb-rung--lead" : ""}`}
+            <h1>
+              Your first 90 days. <span>Built to win work.</span>
+            </h1>
+            <p className={styles.lead}>
+              Start at {upfront} upfront. We build one acquisition campaign
+              around your business, your territory, and the jobs you want to
+              win. The campaign runs for up to 90 days, with its outcome target
+              agreed before launch.
+            </p>
+            <div className={styles.actions}>
+              <CtaLink
+                href={intake}
+                event="managed_plan_intake"
+                placement="pricing_hero"
+                className={styles.primary}
               >
-                {r.lead ? <span className="cb-rung-flag">The first move</span> : null}
-                <span className="cb-rung-kind">{r.kind}</span>
-                <h3>{r.name}</h3>
-                <p className="cb-rung-price">{r.price}</p>
-                <p>{r.body}</p>
-                <ul>
-                  {r.items.map((i) => (
-                    <li key={i}>
-                      <Check aria-hidden="true" className="h-4 w-4" />
-                      <span>{i}</span>
-                    </li>
-                  ))}
-                </ul>
-                <Link
-                  className={`cb-btn ${r.lead ? "cb-btn--primary" : "cb-btn--ghost"}`}
-                  href={r.href}
-                >
-                  {r.cta}
-                  <ArrowRight aria-hidden="true" className="h-4 w-4" />
-                </Link>
-              </article>
-            ))}
+                Scope my campaign
+                <ArrowRight size={16} aria-hidden="true" />
+              </CtaLink>
+              <Link href="/service-areas" className={styles.secondary}>
+                Check my service area
+                <MapPin size={16} aria-hidden="true" />
+              </Link>
+            </div>
+            <p className={styles.trust}>
+              <ShieldCheck size={16} aria-hidden="true" />
+              Your scope, advertising allocation, outcome target, and
+              responsibilities are agreed in writing before you pay.
+            </p>
           </div>
+          <aside
+            className={styles.commitment}
+            aria-label="The single initial campaign offer"
+          >
+            <small>90-Day Acquisition Campaign</small>
+            <strong>{upfront}</strong>
+            <span>minimum upfront · up to 90 days</span>
+            <p>
+              Includes onboarding, the agreed build, and the agreed advertising
+              allocation. One campaign investment, with no separate setup fee.
+            </p>
+            <div className={styles.outcome}>
+              <Target size={23} aria-hidden="true" />
+              <div>
+                <strong>15 farm/ag jobs</strong>
+                <span>
+                  Initial target · signed or paid confirmation
+                  <br />
+                  {farmRate} per targeted acquired job
+                </span>
+              </div>
+            </div>
+          </aside>
+        </section>
 
-          <div className="cb-custom">
+        <section
+          className={styles.projectScope}
+          aria-labelledby="project-scope-title"
+        >
+          <div>
+            <p className={styles.eyebrow}>Build around what you need</p>
+            <h2 id="project-scope-title">Have a product ready to sell?</h2>
+            <p>{PROJECT_QUOTE_SUMMARY}</p>
+          </div>
+          <CtaLink
+            href={projectIntake}
+            event="product_project_intake"
+            placement="pricing_project_scope"
+            className={styles.secondary}
+          >
+            Scope my product project
+            <ArrowRight size={16} aria-hidden="true" />
+          </CtaLink>
+        </section>
+
+        <section
+          id="plans"
+          aria-labelledby="plans-title"
+          className={styles.campaignSection}
+        >
+          <div className={styles.intro}>
             <div>
-              <p className="cb-eyebrow">
-                <Boxes aria-hidden="true" className="h-4 w-4" />
-                Not sure which lane fits
-              </p>
-              <h3>Map the dependencies before you pick a package.</h3>
+              <p className={styles.eyebrow}>Define it. Build it. Measure it.</p>
+              <h2 id="plans-title">A campaign with a finish line.</h2>
+            </div>
+            <p>
+              We measure the work you actually win. Leads and appointments help
+              create opportunities; they do not count as acquired jobs.
+            </p>
+          </div>
+          <ol className={styles.steps}>
+            <li>
+              <span>01</span>
+              <h3>Agree on the campaign</h3>
               <p>
-                If the project touches software, data, teams, portals, migrations, or several
-                vendors, use the guided map first. It shows the likely build path before you
-                send contact information.
+                Confirm your services, territory, capacity, start date,
+                acquisition target, and included advertising allocation.
               </p>
-            </div>
-            <Link className="cb-btn cb-btn--ghost" href="/start?goal=custom">
-              Map the bigger idea
-              <ArrowRight aria-hidden="true" className="h-4 w-4" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      <section className="cb-band cb-band--ink">
-        <div className="cb-shell">
-          <div className="cb-headrow">
-            <div>
-              <p className="cb-eyebrow">Why the number moves</p>
-              <h2 className="cb-h2 cb-heading">
-                Every quote is different, because every business is.
-              </h2>
-            </div>
-            <p className="cb-lead">
-              Not everybody pays the same amount, and not everybody is getting the same
-              thing. A price list that charges two very different companies the same number
-              is not being fair to either of them. It is just easier to print.
-            </p>
-          </div>
-          <ol className="cb-steps cb-steps--three">
-            {/* No cb-step--done accent here. These three are peers, not a
-                sequence, so nothing should read as "you are here". */}
-            {WHY_DIFFERENT.map((c) => (
-              <li key={c.num} className="cb-step">
-                <span className="cb-step-num">{c.num}</span>
-                <h3>{c.title}</h3>
-                <p>{c.body}</p>
-              </li>
-            ))}
+            </li>
+            <li>
+              <span>02</span>
+              <h3>Launch and improve</h3>
+              <p>
+                Connect the agreed build, creative, advertising, and follow-up.
+                Review inquiries and attributed signed or paid jobs together.
+              </p>
+            </li>
+            <li>
+              <span>03</span>
+              <h3>Reach the target or review</h3>
+              <p>
+                Acquisition ends at the agreed target or day 90. If the target
+                is reached on day 45, acquisition is complete. Captured
+                inquiries are still handed over.
+              </p>
+            </li>
           </ol>
-          <p className="cb-quotenote">
-            Worth saying plainly: this is not the cheapest way to get a website. It is the
-            way that leaves you owning the thing when it is done. If price is the only
-            number that matters, there are faster answers than this one.
+          <p className={styles.finePrint}>
+            Day 90 is a results review if the target is still unmet. There is no
+            automatic extension, renewal charge, or promise of a specific
+            result.
           </p>
-        </div>
-      </section>
+        </section>
 
-      <section className="cb-band cb-band--tint">
-        <div className="cb-shell">
-          <div className="cb-headrow">
-            <div>
-              <p className="cb-eyebrow">Marketplace and multi-channel sellers</p>
-              <h2 className="cb-h2 cb-heading">
-                We do not pretend a marketplace is your website.
-              </h2>
-            </div>
-            <p className="cb-lead">
-              Those are sales channels with category, order, fulfillment, shipping,
-              advertising, and transaction fees attached. They can stay in the plan. We audit
-              the real statements, connect what each platform permits, and decide where an
-              owned home base actually creates leverage.
+        <section className={styles.benchmarks} aria-labelledby="targets-title">
+          <div>
+            <p className={styles.eyebrow}>Add acquisition scope</p>
+            <h2 id="targets-title">
+              Same campaign.
+              <br />
+              More room to grow.
+            </h2>
+            <p>{managedAdditionalScopeExplanation()}</p>
+            <p>
+              Our CPA planning rates describe the investment per targeted
+              acquired outcome. They are our commercial rates, not published
+              industry averages or the price of an unclosed lead.
             </p>
           </div>
-
-          <div className="cb-pillars">
-            {CHANNELS.map((c) => (
-              <article key={c.title} className="cb-pillar">
-                <div className="cb-pillar-top">
-                  <h3>{c.title}</h3>
-                  <c.icon aria-hidden="true" className="h-6 w-6" />
-                </div>
-                <p>{c.body}</p>
-              </article>
-            ))}
+          <div className={styles.benchmarkGrid}>
+            <article>
+              <small>Farm/ag & service industries</small>
+              <strong>{farmRate}</strong>
+              <span>per additional targeted signed or paid job</span>
+              <p>
+                The {upfront} farm/ag base campaign targets 15 acquired jobs.
+                Other service industries confirm their outcome goal in writing.
+              </p>
+            </article>
+            <article>
+              <small>Real estate & mortgage</small>
+              <strong>{propertyRate}</strong>
+              <span>
+                per additional targeted completed deal while we dial it in
+              </span>
+              <p>
+                At this planning rate, {upfront} targets 5 completed deals. Your
+                scope confirms the goal.
+              </p>
+            </article>
           </div>
+        </section>
 
-          <div className="mt-12 flex justify-center">
+        <section className={styles.growth} aria-labelledby="growth-title">
+          <div>
+            <p className={styles.eyebrow}>The next engagement</p>
+            <h2 id="growth-title">
+              When it works,
+              <br />
+              build on it.
+            </h2>
+            <p>{managedRenewalExplanation()}</p>
+          </div>
+          <div className={styles.growthCheck}>
+            <TrendingUp size={32} aria-hidden="true" />
+            <h3>Grow with the evidence.</h3>
+            <ul>
+              <li>
+                <Check size={17} aria-hidden="true" />
+                Review acquired outcomes and campaign costs
+              </li>
+              <li>
+                <Check size={17} aria-hidden="true" />
+                Confirm staffing and capacity for more work
+              </li>
+              <li>
+                <Check size={17} aria-hidden="true" />
+                Agree on a larger scope and price in writing
+              </li>
+            </ul>
             <CtaLink
-              href="/start?goal=replace_tools"
-              event="map_my_company"
-              placement="pricing_channels"
-              className="cb-btn cb-btn--primary"
+              href={intake}
+              event="managed_plan_intake"
+              placement="pricing_growth"
+              className={styles.primary}
             >
-              Map my sales channels
-              <ArrowRight aria-hidden="true" className="h-4 w-4" />
+              Talk through my business
+              <ArrowRight size={16} aria-hidden="true" />
             </CtaLink>
           </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="cb-band cb-band--ink">
-        <div className="cb-shell">
-          <div className="cb-headrow">
-            <div>
-              <p className="cb-eyebrow">What the starting price means</p>
-              <h2 className="cb-h2 cb-heading">No mystery package. No forced migration.</h2>
-            </div>
-            <p className="cb-lead">
-              A starting price is a floor, not a bait number. What moves it is scope, and
-              scope is decided by the map, in writing, before anyone starts building.
-            </p>
+        <section className={styles.faq} aria-labelledby="faq-title">
+          <div>
+            <p className={styles.eyebrow}>Before you commit</p>
+            <h2 id="faq-title">Know what you’re buying.</h2>
           </div>
-          <ol className="cb-steps cb-steps--three">
-            {CLARITY.map((c, i) => (
-              <li key={c.num} className={`cb-step${i === 0 ? " cb-step--done" : ""}`}>
-                <span className="cb-step-num">{c.num}</span>
-                <h3>{c.title}</h3>
-                <p>{c.body}</p>
-              </li>
+          <div>
+            {QUESTIONS.map(({ question, answer }) => (
+              <details key={question}>
+                <summary>
+                  {question}
+                  <Plus size={17} aria-hidden="true" />
+                </summary>
+                <p>{answer}</p>
+              </details>
             ))}
-          </ol>
-        </div>
-      </section>
-
-      <section className="cb-final">
-        <div className="cb-shell">
-          <p className="cb-eyebrow">Your next move</p>
-          <h2 className="cb-h2">
-            <em>Show me the business.</em>
-            I&rsquo;ll show you what to build.
-          </h2>
-          <p className="cb-lead">
-            Start with Website Launch when five focused pages solve the immediate problem.
-            Start with the System Map when software, data, team, or migration dependencies
-            make the build more complex.
-          </p>
-          <div className="cb-actions">
-            <CtaLink
-              href="/start"
-              event="map_my_company"
-              placement="pricing_final"
-              className="cb-btn cb-btn--primary"
-            >
-              Map My Company
-              <ArrowRight aria-hidden="true" className="h-4 w-4" />
-            </CtaLink>
-            <Link className="cb-btn cb-btn--ghost" href="/contact">
-              Ask a question first
-            </Link>
           </div>
-        </div>
-      </section>
+        </section>
+        <section className={styles.next}>
+          <p className={styles.eyebrow}>Make the first move</p>
+          <h2>Give the campaign a business worth growing.</h2>
+          <p>
+            Tell us what you do, where you work, and how much new work you can
+            take on. We’ll check territory availability and confirm whether the
+            campaign fits.
+          </p>
+          <div className={styles.actions}>
+            <CtaLink
+              href={intake}
+              event="managed_plan_intake"
+              placement="pricing_footer"
+              className={styles.primary}
+            >
+              Scope my 90-day campaign
+              <ArrowRight size={16} aria-hidden="true" />
+            </CtaLink>
+            <CtaLink
+              href={CONSULTATION.href}
+              event={CONSULTATION.funnel}
+              placement="pricing_consultation"
+              className={styles.secondary}
+            >
+              Book a free consultation
+              <WalletCards size={16} aria-hidden="true" />
+            </CtaLink>
+          </div>
+          <p className={styles.finePrint}>
+            Looking for a separate software tool?{" "}
+            <Link href="/tools">Explore our tools and their own pricing.</Link>
+          </p>
+        </section>
+      </div>
     </main>
   );
 }

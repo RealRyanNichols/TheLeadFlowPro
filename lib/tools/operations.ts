@@ -875,11 +875,26 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
     who: "Trades, delivery, mobile services, anybody quoting jobs outside their town.",
     problem:
       "Most owners price fuel and forget everything else. Then the truck needs tires and it feels like bad luck.",
-    payoff: "A per-mile number you can add to every out-of-town quote.",
+    payoff: "A vehicle cost per mile and the amount allocated to a round-trip job, using your selected cost basis.",
     steps: [
-      "Enter your yearly miles and vehicle costs.",
-      "Read cost per mile.",
-      "Add it to your travel charge, or start charging one.",
+      "Enter yearly miles, fuel use, insurance and maintenance for the same vehicle and period.",
+      "Choose cash outlay for full loan payments, or economic cost for depreciation plus loan interest. These are separate views, not costs to add together.",
+      "Enter all round-trip job miles. Read the selected per-mile cost and the vehicle cost allocated to that trip.",
+      "Use the trip allocation in your quote alongside labor, travel time, job-specific costs and profit that are not entered here.",
+    ],
+    faqs: [
+      {
+        q: "Should I use cash outlay or economic cost per mile?",
+        a: "Cash outlay includes fuel, insurance, maintenance and full loan payments. Economic cost uses those operating costs plus depreciation and loan interest, excluding principal payments. Compare the views for your planning purpose; adding them together would count some costs twice.",
+      },
+      {
+        q: "How is the cost of a round-trip job calculated?",
+        a: "Divide the selected yearly vehicle cost by yearly miles, then multiply the unrounded result by round-trip job miles. Example: $18,000 cash outlay over 28,000 miles allocates $28.93 to a 45-mile round trip. The displayed $0.64 per mile is rounded; these example inputs are not a typical vehicle cost benchmark.",
+      },
+      {
+        q: "Is this my travel charge or a tax mileage deduction?",
+        a: "It is a vehicle-cost allocation, not a complete customer charge or a tax deduction rate. Add labor, billable travel time, tolls and any other job-specific costs outside the entered vehicle costs when preparing your quote. Use the actual rules that apply to your business for tax reporting.",
+      },
     ],
     fields: [
       { id: "miles", label: "Miles per year", type: "slider", min: 2000, max: 100000, step: 1000, def: 28000 },
@@ -887,7 +902,7 @@ export const OPERATIONS_TOOLS: ToolDef[] = [
       { id: "fuelPrice", label: "Fuel price per gallon", type: "money", def: 3 },
       { id: "insurance", label: "Insurance per year", type: "money", def: 2400 },
       { id: "maintenance", label: "Maintenance and tires per year", type: "money", def: 2200 },
-      { id: "basis", label: "Cost basis", type: "select", def: "cash", options: [{ value: "cash", label: "Cash outlay: includes loan payments" }, { value: "economic", label: "Economic cost: depreciation plus interest" }] },
+      { id: "basis", label: "Cost basis", type: "select", def: "cash", options: [{ value: "cash", label: "Cash outlay: includes loan payments" }, { value: "economic", label: "Economic cost: depreciation plus interest" }], help: "Choose one view. Cash includes payments; economic cost includes depreciation and interest instead." },
       { id: "interest", label: "Vehicle loan interest per year", type: "money", def: 0, help: "Interest only, not principal. Used in economic cost; cash outlay already includes it in the payment." },
       { id: "payment", label: "Payment per month", type: "money", def: 650 },
       { id: "depreciation", label: "Value it loses per year", type: "money", def: 3500 },

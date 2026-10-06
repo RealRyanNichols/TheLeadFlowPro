@@ -98,17 +98,16 @@ test("website launch: the hosted Stripe deposit link, with the deposit due now",
   assert.ok(line.includes(`${usd(PRICES.websiteLaunchDeposit)} deposit`), line);
 });
 
-test("system map and follow-up campaign: their own public pages, whose forms open checkout", () => {
+test("legacy system-map payment references survive, while the separate follow-up product keeps checkout", () => {
   const map = door("system_map");
   assert.equal(map.kind, "pay_online");
   assert.equal(map.url, `${BUSINESS.siteUrl}/packages/system-map`);
   assert.equal(map.url, `${BUSINESS.siteUrl}${offer("system_map").href}`);
   assert.equal(map.dueNowLabel, offer("system_map").priceLabel);
   assert.equal(map.payableNow, true);
-  // The System Map pack is buyable outright on its page, and the order form posts to checkout.
-  const packs = src("app/packages/[slug]/page.tsx");
-  assert.equal(/"system-map":\s*\{[\s\S]*?buyable:\s*(true|false)/.exec(packs)?.[1], "true");
-  assert.ok(src("app/packages/[slug]/PackageOrderForm.tsx").includes('fetch("/api/checkout"'));
+  // Legacy signed-scope references retain recorded terms; buyer-paths verifies
+  // that the retired public sales URL redirects to the current pricing.
+  assert.equal(offer("system_map").publiclyOffered, false);
 
   const fu = door("lead_followup_campaign");
   assert.equal(fu.kind, "pay_online");

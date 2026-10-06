@@ -36,12 +36,21 @@ export function organizationJsonLd() {
     // one-word spelling as an alternateName; that would deepen the collision.
     disambiguatingDescription: `Marketing agency and business systems builder in ${BUSINESS.city}, Texas, operated by ${BUSINESS.operator}. Not the LeadFlowPro messaging app.`,
     url: SITE,
-    logo: { "@type": "ImageObject", url: `${SITE}/icon-512.png`, width: 512, height: 512 },
+    logo: {
+      "@type": "ImageObject",
+      url: `${SITE}/icon-512.png`,
+      width: 512,
+      height: 512,
+    },
     image: `${SITE}/og/home.png`,
     email: BUSINESS.email.hello,
     telephone: BUSINESS.phone.schema,
     address: postalAddress(),
-    founder: { "@type": "Person", name: BUSINESS.operator, url: `${SITE}/about` },
+    founder: {
+      "@type": "Person",
+      name: BUSINESS.operator,
+      url: `${SITE}/about`,
+    },
     sameAs: sameAsLinks(),
   };
 }
@@ -49,7 +58,11 @@ export function organizationJsonLd() {
 /** The profiles search engines may tie to this business. The Google listing joins only once it is verified and set. */
 export function sameAsLinks(): string[] {
   const gbp = googleBusinessProfile();
-  return [BUSINESS.socials.youtube, BUSINESS.socials.facebook, ...(gbp ? [gbp] : [])];
+  return [
+    BUSINESS.socials.youtube,
+    BUSINESS.socials.facebook,
+    ...(gbp ? [gbp] : []),
+  ];
 }
 
 export function areaServedJsonLd() {
@@ -64,10 +77,19 @@ export function areaServedJsonLd() {
 
 /** ProfessionalService node for the whole business, with the live offer catalog. */
 export function localBusinessJsonLd(
-  options: { id?: string; name?: string; knowsAbout?: string[]; catalogName?: string; offerIds?: string[] } = {},
+  options: {
+    id?: string;
+    name?: string;
+    knowsAbout?: string[];
+    catalogName?: string;
+    offerIds?: string[];
+  } = {},
 ) {
   const offers = OFFERS.filter(
-    (o) => o.status === "live" && (!options.offerIds || options.offerIds.includes(o.id)),
+    (o) =>
+      o.status === "live" &&
+      o.publiclyOffered !== false &&
+      (!options.offerIds || options.offerIds.includes(o.id)),
   );
   return {
     "@type": "ProfessionalService",
@@ -90,13 +112,25 @@ export function localBusinessJsonLd(
     ],
     hasOfferCatalog: {
       "@type": "OfferCatalog",
-      name: options.catalogName ?? "Website, agency, and connected business system offers",
+      name:
+        options.catalogName ??
+        "Website, agency, and connected business system offers",
       itemListElement: offers.map((o) => ({
         "@type": "Offer",
         url: `${SITE}${o.href}`,
         description: o.terms,
         ...(typeof o.priceUsd === "number" && o.priceUsd > 0
           ? { price: String(o.priceUsd), priceCurrency: "USD" }
+          : {}),
+        ...(o.billingPeriod
+          ? {
+              priceSpecification: {
+                "@type": "UnitPriceSpecification",
+                price: String(o.priceUsd),
+                priceCurrency: "USD",
+                billingDuration: o.billingPeriod,
+              },
+            }
           : {}),
         itemOffered: { "@type": "Service", name: o.name },
       })),

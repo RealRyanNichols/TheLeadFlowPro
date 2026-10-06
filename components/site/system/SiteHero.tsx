@@ -62,7 +62,11 @@ export default function SiteHero({
         <div className="cb-hero-copy">
           <p className="cb-eyebrow">{eyebrow}</p>
           <h1 className="cb-h1">
-            {mutedTitle ? <em>{mutedTitle}</em> : null}
+            {mutedTitle ? (
+              <>
+                <em>{mutedTitle}</em>{" "}
+              </>
+            ) : null}
             {title}
           </h1>
           <p className="cb-hero-lead">{body}</p>
@@ -88,4 +92,3 @@ export default function SiteHero({
     </section>
   );
 }
-

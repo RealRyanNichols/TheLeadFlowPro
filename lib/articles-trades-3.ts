@@ -859,7 +859,7 @@ That is the whole diagnostic, and it is more useful than any report, because it 
     slug: "daycare-late-pickup-policy",
     title: "The late pickup and absence policy every daycare needs",
     description:
-      "Unclear policies cost daycares money and goodwill at the same time. Here is what a fair, enforceable late pickup policy says, plus a generator that writes it.",
+      "Clear late pickup and absence policies help families understand expectations. Draft the wording, then review it against your agreement and applicable local rules.",
     publishedAt: "2026-08-14",
     readingMinutes: 6,
     ogImage: "/og/articles/daycare-late-pickup-policy.jpg",
@@ -883,11 +883,11 @@ That is the whole diagnostic, and it is more useful than any report, because it 
         },
         {
           name: "Put it in the enrollment packet, not just the handbook",
-          text: "Language a parent signed at enrollment is understood and enforceable in a way that a sign on the door never is.",
+          text: "Explain the policy at enrollment and record the family's acknowledgment. A signature documents receipt; whether a fee can be enforced depends on the agreement and applicable local rules.",
         },
       ],
       readIt: [
-        "Plain language beats legal language here. A parent who understood the policy at enrollment almost never argues about it later.",
+        "Plain language helps families understand the policy. Written acknowledgment can reduce confusion, but it does not prevent disputes or establish that every fee is enforceable.",
         "Consistency is what makes it work. A policy enforced for some families and not others is worse than no policy, because it reads as unfair rather than as a rule.",
         "Have a local attorney review it before you use it. Childcare is regulated and the rules vary by state, so a generic template is a starting point rather than a finished document.",
       ],
@@ -900,7 +900,7 @@ That is the whole diagnostic, and it is more useful than any report, because it 
     faq: [
       {
         q: "Is a late fee actually enforceable?",
-        a: "Generally yes when it is disclosed in advance and agreed to in writing at enrollment, and when it is reasonable. Childcare is regulated at the state level and some states have specific requirements around fees and contracts, so have a local attorney check yours before you rely on it.",
+        a: "It depends on the written agreement, the fee's terms, and the rules that apply to your location and type of childcare operation. Disclosure and a signature do not by themselves settle enforceability. Have a qualified local professional review the policy before relying on it; this generator provides a draft, not a legal determination.",
       },
       {
         q: "Should I charge tuition when a child is absent?",
@@ -926,9 +926,9 @@ This is the most common recurring friction in childcare and it is almost always 
 
 Not revenue. If your late fees are a meaningful part of your income, something is wrong.
 
-A policy does three things. It changes behavior, because people are more punctual when there is a known consequence. It pays the person who has to stay. And most importantly, it removes the argument, because the answer was agreed to months ago by somebody who read it and signed it.
+A policy explains the pickup deadline, how a proposed fee is applied, and what happens when a delay repeats. Discuss it at enrollment so families know what to expect. Whether a fee is allowed or enforceable depends on the written agreement and applicable local rules.
 
-That last one is the real value. The fee is secondary to never having the conversation.
+The value is clearer expectations. A signed policy can still be questioned or disputed.
 
 {{TOOL}}
 
@@ -936,7 +936,7 @@ That last one is the real value. The fee is secondary to never having the conver
 
 **Late pickup.** Grace period, the fee, how it is applied, and what happens if it becomes a pattern rather than an occasional thing.
 
-**Absences.** Whether tuition is charged when a child is out sick or on vacation. This is the number one billing dispute in the industry and it is entirely preventable with one clear sentence at enrollment.
+**Absences.** Whether tuition is charged when a child is out sick or on vacation. Explain the applicable terms at enrollment rather than assuming families know them.
 
 **Holidays and closures.** Which days you are closed and whether those are charged. Put the calendar in the enrollment packet so nobody is surprised in November.
 
@@ -946,7 +946,7 @@ That last one is the real value. The fee is secondary to never having the conver
 
 ## Making it work in practice
 
-**Get it signed at enrollment.** Not handed over. Signed, with the specific policies initialed. A parent who initialed the late pickup fee does not argue about the late pickup fee.
+**Explain it at enrollment.** Give families time to read it, ask questions, and acknowledge the reviewed terms. An acknowledgment records the discussion; it does not guarantee that a charge will be accepted or enforceable.
 
 **Apply it the same way to everybody.** The moment you waive it for one family and charge another, it stops being a policy and starts being a judgment about who you like. That is far more damaging than the money involved.
 
@@ -958,7 +958,7 @@ That last one is the real value. The fee is secondary to never having the conver
 
 Childcare is regulated and the rules differ meaningfully by state, covering everything from contract terms to ratios to health requirements.
 
-Use the generator to get clean language quickly, then have a local attorney read it once before it goes in the packet. One review sets you up for years, and it is a great deal cheaper than discovering a problem when a family disputes something.
+Use the generator as a draft, then have a qualified local professional review it against the written agreement and applicable rules before it goes in the packet. Revisit it when your terms or the relevant rules change.
 `,
   },
 

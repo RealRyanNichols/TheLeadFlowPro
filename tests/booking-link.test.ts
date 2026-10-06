@@ -1,6 +1,4 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
 import test from "node:test";
 import { EXTERNAL_LINKS, bookingPage, googleBusinessProfile, optionalLink } from "../lib/site/external-links.ts";
 import { bookingLines, bookingSentence, leadTextBackBody, leadWelcomePayload } from "../lib/leadNotify.ts";
@@ -18,7 +16,7 @@ test("an optional address counts only as a real https URL", () => {
   assert.equal(optionalLink("https://calendar.app.google/abc "), "https://calendar.app.google/abc");
 });
 
-test("the confirmation, the welcome email, and the text-back mention booking exactly when the page is set", () => {
+test("generic welcome emails and the retired text-back mention booking exactly when the page is set", () => {
   // Ryan is meant to change EXTERNAL_LINKS.bookingPage; the wiring has to hold in either state.
   const set = bookingPage();
   assert.equal(set, optionalLink(EXTERNAL_LINKS.bookingPage));
@@ -28,10 +26,8 @@ test("the confirmation, the welcome email, and the text-back mention booking exa
   assert.ok(text.startsWith("Sam, this is Ryan with The LeadFlow Pro."));
   assert.ok(text.endsWith("Reply STOP to opt out."));
   assert.equal(/pick a time yourself/i.test(text), Boolean(set));
-  const welcome = leadWelcomePayload({ full_name: "Sam Tate", email: "sam@example.com", interest: CONSULTATION.interest, funnel: CONSULTATION.funnel });
+  const welcome = leadWelcomePayload({ full_name: "Sam Tate", email: "sam@example.com", interest: CONSULTATION.interest });
   assert.equal(/pick the time yourself/i.test(welcome.text), Boolean(set));
-  const form = readFileSync(join(process.cwd(), "components/site/ConsultationForm.tsx"), "utf8");
-  assert.ok(form.includes("bookingPage()") && form.includes("{booking ? ("), "the confirmation renders the link only when set");
 });
 
 test("with a booking page set, the line appears once and STOP stays last in the text", () => {

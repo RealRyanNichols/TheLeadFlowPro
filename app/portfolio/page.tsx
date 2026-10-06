@@ -81,10 +81,10 @@ const CLIENTS = [
     image: "/images/portfolio/lone-star-fleet-before-after.jpg",
     alt: "An actual truck before and after washing, from Lone Star Total Wash’s completed-jobs gallery",
     caption:
-      "The before-and-after belongs to Lone Star’s crew. Our work gives customers a place to see it and request a quote.",
+      "The before-and-after belongs to Lone Star’s crew. It is preserved here as part of the documented website build.",
     title: "Let the finished job start the conversation.",
     summary:
-      "A truck owner can see what Lone Star washes, browse the prices, inspect finished jobs, and contact the team from a phone.",
+      "The build brought finished-job photos, published service information, and quote requests together for truck owners using a phone.",
     features: [
       "Show finished work",
       "Answer pricing questions",
@@ -104,12 +104,12 @@ const CLIENTS = [
         text: "Send the job details or call the team.",
       },
     ],
-    href: "https://www.lonestartotalwash.com/jobs",
-    link: "See Lone Star’s finished jobs",
-    url: "https://www.lonestartotalwash.com",
+    href: null,
+    link: null,
+    url: null,
     goal: "demand",
     detail:
-      "The mobile website brings the service list, pricing, completed-job photos, quote request, and click-to-call together. Lone Star performs the washing and provides the final quote. The website makes those first customer steps easier to find.",
+      "The mobile website brought the service list, pricing, completed-job photos, quote request, and click-to-call together. Lone Star performs the washing and provides the final quote. These project images and the summary document that build; they are not a working quote or booking page.",
   },
   {
     id: "don-and-patti",
@@ -328,12 +328,19 @@ export default function PortfolioPage() {
                       </li>
                     ))}
                   </ul>
-                  <DestinationLink
-                    href={client.href}
-                    className={styles.primaryLink}
-                  >
-                    {client.link}
-                  </DestinationLink>
+                  {client.href ? (
+                    <DestinationLink
+                      href={client.href}
+                      className={styles.primaryLink}
+                    >
+                      {client.link}
+                    </DestinationLink>
+                  ) : (
+                    <p className={styles.evidenceNote}>
+                      The live client website is currently unavailable. The
+                      project photo and build summary remain here for review.
+                    </p>
+                  )}
                   <CtaLink
                     href={`/start?goal=${client.goal}`}
                     event="build_this_for_me"
@@ -346,7 +353,11 @@ export default function PortfolioPage() {
                 </div>
               </div>
               <div className={styles.pathArea}>
-                <p className={styles.label}>The visitor’s next three steps</p>
+                <p className={styles.label}>
+                  {client.url
+                    ? "The visitor’s next three steps"
+                    : "The customer path that was built"}
+                </p>
                 <ol className={styles.path}>
                   {client.steps.map((step, i) => (
                     <li key={step.title}>
@@ -362,9 +373,16 @@ export default function PortfolioPage() {
               <details className={styles.details}>
                 <summary>What the build includes</summary>
                 <p>{client.detail}</p>
-                <a href={client.url} target="_blank" rel="noopener noreferrer">
-                  Visit the business website <ExternalLink aria-hidden="true" />
-                </a>
+                {client.url ? (
+                  <a
+                    href={client.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Visit the business website{" "}
+                    <ExternalLink aria-hidden="true" />
+                  </a>
+                ) : null}
               </details>
             </article>
           ))}

@@ -22,8 +22,6 @@ export type PayableService = {
   fixedBilling: AgencyBilling | null;
 };
 
-const PRESETS = [750, 1500, 2500, 4000];
-
 type Status = "idle" | "opening" | "unavailable";
 
 export default function AgencyPayForm({
@@ -40,7 +38,6 @@ export default function AgencyPayForm({
 }) {
   const [slug, setSlug] = useState<string>(preselected ?? "");
   const [billing, setBilling] = useState<AgencyBilling>("one_time");
-  const [amount, setAmount] = useState<number>(PRESETS[0]);
   const [custom, setCustom] = useState("");
   const [reference, setReference] = useState("");
   const [email, setEmail] = useState("");
@@ -48,9 +45,8 @@ export default function AgencyPayForm({
   const [error, setError] = useState(cancelled ? "Checkout was closed before payment. Nothing was charged. Pick up where you left off." : "");
 
   const service = useMemo(() => services.find((s) => s.slug === slug) ?? null, [services, slug]);
-  const usingCustom = custom.trim() !== "";
   const parsed = Math.round(Number(custom.replace(/[^0-9.]/g, "")));
-  const effective = service?.fixedUsd ?? (usingCustom ? parsed : amount);
+  const effective = service?.fixedUsd ?? parsed;
   // A published price carries its cadence; the server enforces the same rule.
   const effectiveBilling: AgencyBilling = service?.fixedBilling ?? billing;
   const amountValid =
@@ -201,34 +197,15 @@ export default function AgencyPayForm({
           </div>
         ) : (
           <>
-            <div className="cb-deposit-presets">
-              {PRESETS.map((value) => {
-                const selected = !usingCustom && amount === value;
-                return (
-                  <button
-                    key={value}
-                    type="button"
-                    aria-pressed={selected}
-                    onClick={() => {
-                      setAmount(value);
-                      setCustom("");
-                    }}
-                    className={`cb-deposit-preset${selected ? " is-on" : ""}`}
-                  >
-                    ${value.toLocaleString("en-US")}
-                  </button>
-                );
-              })}
-            </div>
             <label className="cb-deposit-custom">
-              <span>Or type the exact number Ryan wrote down</span>
+              <span>Type the exact amount in your existing signed scope</span>
               <div>
                 <span aria-hidden="true">$</span>
                 <input
                   inputMode="numeric"
                   value={custom}
                   onChange={(event) => setCustom(event.target.value)}
-                  placeholder="1,250"
+                  placeholder="Amount on your signed scope"
                   aria-label={`Amount in dollars from your written scope, between ${min} and ${max}`}
                 />
               </div>
@@ -281,8 +258,7 @@ export default function AgencyPayForm({
       <p className="cb-deposit-note">
         <ShieldCheck aria-hidden="true" className="h-4 w-4" />
         Use this page only for a number already confirmed in writing. Secure checkout is handled by
-        Stripe; card details never touch this site. Ad spend is separate and is paid by you to Meta or
-        Google directly.
+        Stripe; card details never touch this site. Your existing signed scope controls advertising allocation and any outside costs. This page does not purchase a new managed plan.
       </p>
     </form>
   );

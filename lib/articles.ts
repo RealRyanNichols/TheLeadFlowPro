@@ -8,6 +8,8 @@ import { TOOL_BUSINESS_ARTICLES } from "./articles-tool-business";
 import { TOOL_GENERATOR_ARTICLES } from "./articles-tool-generators";
 import { TOOL_HOUSEHOLD_ARTICLES } from "./articles-tool-household";
 import { isArticlePublished, publishedArticles } from "./article-publication";
+import { MANAGED_COMMERCIAL_TERMS } from "./site/managedPlans";
+import { usd } from "./site/prices";
 
 // Owned article library. Articles are plain markdown in the repo so they ship
 // with the site, rank under the site's own domain, and never live in a rented
@@ -297,7 +299,7 @@ The person who cannot read your site does not know your labels are eight pixels.
 
 The record does not care how the site looked on your monitor. It cares what happened on her phone.
 
-We took the correction and shipped the fix the same day. Your move is the same one: run the test, price the leak, fix the floor. And if the site fails deeper than type size, the [five-page Website Launch](/packages/launch) exists for exactly that.
+We took the correction and shipped the fix the same day. Your move is the same one: run the test, price the leak, fix the floor. If the site needs more than a type-size fix, [managed website work](/agency/websites) starts with a written scope for the site and its inquiry path.
 `,
   },
   {
@@ -429,11 +431,11 @@ I said in the video that I would tell you. Here it is.
 
 I am building owned systems for business owners while the tools are cheap and most people are still arguing about whether any of this is real.
 
-There are three honest starting points. Pick the smallest one that solves the problem in front of you.
+New managed clients start with a [90-day campaign](/pricing): from ${usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd)} upfront for the first ${MANAGED_COMMERCIAL_TERMS.initialCampaignDays} days. The written scope defines the agreed build, onboarding, included advertising allocation, acquisition target, counting rules, and any additional prepaid acquisition scope before work begins.
 
-1. **Website Launch.** Five focused pages, one lead path, a $1,000 fixed total, and a working approval checkpoint before the final $500 and production launch.
-2. **System Map.** A $497 paid diagnosis for a business with software, data, people, migrations, or dependencies that need to be understood before anyone quotes a larger build.
-3. **Larger connected system.** Lead Engine, Training Platform, Company OS, or Custom Platform work is scoped from the real modules and starts higher because it includes more than a public website.
+At day 90 we review results and capacity. Scaling into a higher investment requires a new written scope and price; there is no automatic extension or charge.
+
+Website work, follow-up, and a larger connected system belong in that scope when they support the business. Separate software, tools, and courses retain their own purchase terms. Previous signed agreements keep their own terms.
 
 There is no version of this where I hold your platform hostage. That is the entire point.
 
@@ -693,7 +695,7 @@ Do not trust a blended fee percentage from a blog post, including this one. Pull
     faq: [
       {
         q: "How much should a five-page small business website cost?",
-        a: "Templates you build yourself run tens of dollars a month plus your evenings. Freelancers and agencies commonly land between two and ten thousand dollars on rented platforms. An owned build has a fixed build cost and small infrastructure costs after. The LeadFlow Pro's five-page Website Launch is $1,000, bought outright.",
+        a: `The cost depends on the pages, inquiry path, and integrations. New managed clients at The LeadFlow Pro start at ${usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd)} upfront for the first ${MANAGED_COMMERCIAL_TERMS.initialCampaignDays} days. Any agreed website build, onboarding, and advertising allocation are included in that written campaign scope. This is an acquisition campaign, not a standalone five-page website quote. At day 90 we review results and capacity; any higher investment needs a new written scope and price.`,
       },
       {
         q: "Why is there such a huge range in website quotes?",
@@ -736,7 +738,7 @@ Local agencies and freelancers commonly land between two and ten thousand dollar
 
 Building custom used to be the expensive option. That changed. Modern tools cut the labor dramatically, which is the whole reason The LeadFlow Pro exists. An owned build costs more up front than a template, and then the monthly picture flips: infrastructure for an owned stack often runs less than a single builder subscription, and there is no per-feature toll booth.
 
-You are not paying for pixels. You are paying for the system: the site, the lead capture, the follow-up, the database, all in accounts with your name on them. See [what those builds include](/pricing) if you want real ranges instead of a mystery quote.
+You are not paying for pixels. You are paying for the system: the site, the lead capture, the follow-up, the database, all in accounts with your name on them. See [the first 90-day campaign](/pricing) for the upfront price and how any website work fits its written scope.
 
 ## Before you buy anything, grade what you have
 
@@ -1204,7 +1206,7 @@ This is one of the cheapest leaks in business to fix, which is what makes it pai
       },
       {
         q: "What is the smallest useful website for a social-first business?",
-        a: "A few pages that say what you do, where you do it, and how to buy or book, with every inquiry landing in one owned list. That is exactly the shape of a five-page Website Launch, and for a social-only business it is the difference between renting your existence and owning it.",
+        a: "A few clear pages that say what you do, where you work, and how to buy or book, with inquiries landing in an account you control. The right scope depends on your business. Keep social media as a channel and give customers an owned website and a reliable next step.",
       },
     ],
     body: `
@@ -1554,7 +1556,7 @@ This is the rare business decision you can start with an hour and a bank stateme
         },
         {
           name: "Put in what the system costs",
-          text: "A one-time build cost plus its monthly running cost. If you have a quote, use it. If not, use the build shapes on the pricing page as honest placeholders.",
+          text: "Use a written quote for the system itself plus its running costs. Do not substitute the full 90-day acquisition campaign price for a standalone build cost; it also includes agreed campaign work and advertising. If you do not have a quote, label the number as your own scenario.",
         },
         {
           name: "Be honest about the overlap",

@@ -69,7 +69,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
     ...getPublishedArticles().map((a) => ({
       url: `${BASE}/articles/${a.slug}`,
-      lastModified: a.publishedAt,
+      // Publication dates remain in Article schema. No verified modification
+      // timestamp is maintained for these pages, so do not mislabel it lastmod.
       changeFrequency: "monthly" as const,
       priority: 0.6,
     })),

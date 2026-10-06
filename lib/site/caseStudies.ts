@@ -58,11 +58,11 @@ export const CASE_STUDIES: readonly CaseStudy[] = [
     problem:
       "Fleet and pressure washing sold entirely by phone call and word of mouth. Nothing online said what they do, what it costs, or what finished work looks like.",
     built:
-      "A mobile-first service site with a free quote request that reaches them instantly, a public price list, a completed-jobs gallery, and click to call.",
+      "A mobile-first service site built with a free quote request, a public price list, a completed-jobs gallery, and click to call.",
     ownedByClient: "Built in the owner's accounts on Next.js and Vercel. The site, the form, and the leads are theirs.",
     metricIds: [],
-    disclosure: null,
-    href: EXTERNAL_LINKS.loneStarTotalWash,
+    disclosure: "The live client website is currently unavailable. The case study preserves the project images and build summary.",
+    href: "/portfolio#lone-star",
     shot: "/og/portfolio/lonestar.jpg",
     alt: "Lone Star Total Wash homepage with the fleet washing offer, free quote request, and company logo",
     approved: true,

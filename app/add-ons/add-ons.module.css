@@ -1,3 +1,12 @@
+.formFields {
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 1rem;
+}
+
 .page {
   --navy-950: #f3efe8;
   --navy-900: #f6e9dc;
@@ -45,7 +54,9 @@
   border: 1px solid #dbd0c5;
   border-radius: 28px;
   background: #f6e9dc;
-  box-shadow: 0 2px 4px #4d32530a, 0 14px 32px #4d325310;
+  box-shadow:
+    0 2px 4px #4d32530a,
+    0 14px 32px #4d325310;
 }
 
 .heroVisual img {
@@ -145,7 +156,10 @@
   letter-spacing: 0.08em;
   text-decoration: none;
   text-transform: uppercase;
-  transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    transform 160ms ease;
 }
 
 .primaryButton,
@@ -303,7 +317,10 @@
   text-align: left;
   background: var(--navy-850);
   cursor: pointer;
-  transition: border-color 160ms ease, background-color 160ms ease, transform 160ms ease;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    transform 160ms ease;
 }
 
 .item:hover {
@@ -315,7 +332,9 @@
 .itemSelected {
   border-color: var(--cyan);
   background: #fff9ef;
-  box-shadow: 0 2px 4px #4d32530a, 0 14px 32px #4d325310;
+  box-shadow:
+    0 2px 4px #4d32530a,
+    0 14px 32px #4d325310;
 }
 
 .itemIcon {
@@ -408,7 +427,9 @@
   border: 1px solid var(--line-strong);
   border-radius: 26px;
   background: var(--navy-900);
-  box-shadow: 0 2px 4px #4d32530a, 0 14px 32px #4d325310;
+  box-shadow:
+    0 2px 4px #4d32530a,
+    0 14px 32px #4d325310;
 }
 
 .formCard h2,

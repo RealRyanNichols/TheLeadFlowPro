@@ -20,7 +20,18 @@ import {
   Target,
   Workflow,
 } from "lucide-react";
-import { OPERATOR_OFFERS } from "@/lib/operatoros/catalog.ts";
+import {
+  MANAGED_PLANS,
+  managedPlanPrice,
+  managedUpfrontSummary,
+  managedCampaignSummary,
+  managedCompletionExplanation,
+  managedRenewalExplanation,
+  managedAdvertisingExplanation,
+} from "@/lib/site/managedPlans";
+import { agencyIntakeHref } from "@/lib/site/agencyIntake";
+import { buyerHref, type BuyerQuery } from "@/lib/site/publicBuyerRoutes";
+import { CONSULTATION } from "@/lib/site/consultation";
 
 export const metadata: Metadata = withPublicPageMetadata("/operatoros", {
   title: "OperatorOS | AI Workers You Can Watch Work | The LeadFlow Pro",
@@ -92,7 +103,12 @@ const stoplineActions = [
   "Delete data or deploy production",
 ];
 
-export default function OperatorOSPage() {
+export default async function OperatorOSPage({
+  searchParams,
+}: {
+  searchParams: Promise<BuyerQuery>;
+}) {
+  const incoming = await searchParams;
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "Service",
@@ -164,7 +180,7 @@ export default function OperatorOSPage() {
                   <span className="relative h-2 w-2 rounded-full bg-emerald-300">
                     <span className="absolute inset-0 animate-ping rounded-full bg-current opacity-30 motion-reduce:animate-none" />
                   </span>
-                  LIVE
+                  EXAMPLE
                 </span>
               </div>
               <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -356,13 +372,12 @@ export default function OperatorOSPage() {
               What you are buying
             </p>
             <h2 className="mt-3 text-4xl font-black tracking-[-0.035em] text-[#20212b] sm:text-5xl">
-              A completed operating outcome, not AI credits.
+              Scope the workflow within the campaign.
             </h2>
             <p className="mt-5 text-lg leading-8 text-[#625f6d]">
-              The system is scoped around the work product. That may be working
-              every new lead, preparing every onboarding packet, clearing the
-              follow-up queue, organizing delivery, or producing a verified
-              daily brief.
+              AI workflows belong in a written scope around your business,
+              connected accounts, permissions, and the work you want handled. We
+              define the supported workflow and review steps before work begins.
             </p>
             <div className="mt-8 space-y-4">
               {[
@@ -411,47 +426,53 @@ export default function OperatorOSPage() {
             </div>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            {OPERATOR_OFFERS.map((offer) => (
-              <article
-                key={offer.name}
-                className={`rounded-3xl border p-6 shadow-[0_18px_50px_rgba(10,18,32,0.06)] ${offer.featured ? "border-[#5135e5] bg-[#ede6f3] text-[#20212b]" : "border-[#dbd0c5] bg-[#fff9ef] text-[#20212b]"}`}
-              >
-                {offer.featured && (
-                  <span className="inline-flex rounded-full bg-[#ffb443] px-3 py-1 text-[10px] font-black uppercase tracking-wide text-[#20212b]">
-                    Complete operating layer
-                  </span>
-                )}
-                <h3 className="mt-4 text-2xl font-black">{offer.name}</h3>
-                <p
-                  className={`mt-2 text-sm leading-6 ${offer.featured ? "text-[#625f6d]" : "text-[#625f6d]"}`}
-                >
-                  {offer.buyer}
-                </p>
-                <div className="mt-5 border-y border-current/10 py-4">
-                  <p className="text-xl font-black">{offer.setup}</p>
-                  <p
-                    className={`mt-1 text-sm font-bold ${offer.featured ? "text-[#5135e5]" : "text-[#5135e5]"}`}
+          <div>
+            <p className="mb-5 text-sm leading-6 text-[#625f6d]">
+              {managedUpfrontSummary()} {managedCampaignSummary()} {managedAdvertisingExplanation()}
+              Custom integrations and work beyond the approved scope receive a
+              separate written quote. Existing agreements keep their terms.
+            </p>
+            <div className="grid gap-4">
+              {MANAGED_PLANS.map((plan) => {
+                const price = managedPlanPrice(plan);
+                return (
+                  <article
+                    key={plan.id}
+                    className="flex flex-col rounded-3xl border border-[#dbd0c5] bg-[#fff9ef] p-6 shadow-[0_18px_50px_rgba(10,18,32,0.06)]"
                   >
-                    {offer.monthly}
-                  </p>
-                </div>
-                <ul className="mt-5 space-y-3">
-                  {offer.includes.map((item) => (
-                    <li
-                      key={item}
-                      className={`flex gap-2 text-sm ${offer.featured ? "text-[#34313f]" : "text-[#34313f]"}`}
+                    <h3 className="text-2xl font-black text-[#20212b]">
+                      {plan.name}
+                    </h3>
+                    <p className="mt-4 text-2xl font-black text-[#5135e5]">
+                      {price.amount}{" "}
+                      <span className="text-sm">{price.unit}</span>
+                    </p>
+                    <p className="mt-3 text-sm leading-6 text-[#625f6d]">
+                      {plan.description}
+                    </p>
+                    <Link
+                      href={agencyIntakeHref(plan.id, incoming)}
+                      className="mt-5 inline-flex min-h-[50px] items-center justify-center gap-2 rounded-xl border border-[#dbd0c5] px-4 text-sm font-black text-[#5135e5]"
                     >
-                      <Check
-                        className={`mt-0.5 h-4 w-4 shrink-0 ${offer.featured ? "text-[#5135e5]" : "text-[#5135e5]"}`}
-                        aria-hidden="true"
-                      />
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </article>
-            ))}
+                      Scope this plan{" "}
+                      <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                    </Link>
+                  </article>
+                );
+              })}
+            </div>
+            <p className="mt-5 text-sm leading-6 text-[#625f6d]">
+              {managedCompletionExplanation()}
+            </p>
+            <p className="mt-5 text-sm leading-6 text-[#625f6d]">
+              {managedRenewalExplanation()}
+            </p>
+            <Link
+              href={buyerHref("/pricing", incoming)}
+              className="mt-5 inline-block text-sm font-bold text-[#5135e5] underline"
+            >
+              See campaign and renewal terms
+            </Link>
           </div>
         </div>
       </section>
@@ -479,10 +500,10 @@ export default function OperatorOSPage() {
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </Link>
             <Link
-              href="/book"
+              href={buyerHref(CONSULTATION.href, incoming)}
               className="inline-flex min-h-[50px] items-center gap-2 rounded-xl border border-[#dbd0c5] bg-[#fff9ef] px-6 text-sm font-black text-[#20212b]"
             >
-              Book the fit call
+              Request a free 30-minute consultation
             </Link>
           </div>
         </div>

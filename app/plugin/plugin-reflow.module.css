@@ -1,0 +1,24 @@
+.reflow :global(.plugin-rail) {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.reflow :global(.plugin-card),
+.reflow :global(.plugin-steps),
+.reflow :global(.plugin-steps li) {
+  min-width: 0;
+}
+
+.reflow :global(.plugin-steps code) {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.reflow :global(.plugin-steps li) {
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 880px) {
+  .reflow :global(.plugin-rail) {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import CustomDepositForm from "./CustomDepositForm";
-import { PRICES, usd } from "@/lib/site/prices";
 
 export const metadata: Metadata = {
   title: "Custom Project Deposit | The LeadFlow Pro",
@@ -20,9 +19,7 @@ export default function CustomDepositPage() {
             Keep the payment tied to the work.
           </h1>
           <p className="cb-hero-lead">
-            This route preserves flexible deposits for larger modules and custom builds.
-            If you do not already have a written amount, start with the Website Launch or
-            send a message before paying.
+            Existing clients: pay only the deposit amount in your approved written scope. This page does not purchase a new 90-day campaign. If you do not have a written amount, discuss the campaign before paying.
           </p>
         </div>
       </section>
@@ -33,9 +30,9 @@ export default function CustomDepositPage() {
             <p className="cb-eyebrow">Before you pay</p>
             <h2 className="cb-h2 cb-heading">Match the scope, amount and business.</h2>
             <p className="cb-lead">
-              Need the fixed {usd(PRICES.websiteLaunchTotal)} Website Launch instead?{" "}
-              <Link className="cb-textlink" href="/packages#website-launch">
-                See the Website Launch scope
+              Looking for a new 90-day campaign?{" "}
+              <Link className="cb-textlink" href="/pricing">
+                Review the 90-day campaign and request your scope
               </Link>
               .
             </p>

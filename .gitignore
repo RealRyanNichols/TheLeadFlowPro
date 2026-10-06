@@ -27,3 +27,6 @@ build/
 
 # local scratch
 query_leads.cjs
+
+# Private local territory records (production data lives outside releases).
+.data/

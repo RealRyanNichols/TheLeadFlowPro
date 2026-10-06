@@ -2,18 +2,25 @@ import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowRight, Check, CreditCard, KeyRound, ShieldCheck, X } from "lucide-react";
+import { ArrowRight, Check, ShieldCheck, X } from "lucide-react";
 import SiteHero from "@/components/site/system/SiteHero";
 import FinalCta from "@/components/site/system/FinalCta";
-import { agencyPayHref } from "@/lib/agencyPayment";
-import { AGENCY_PROCESS, AGENCY_SERVICES, OWNERSHIP_PROMISE, agencyOffer, agencyService, countWord } from "@/lib/site/agency";
+import { AGENCY_PROCESS, AGENCY_SERVICES, OWNERSHIP_PROMISE, PROJECT_BUILD_PROCESS, agencyService, countWord } from "@/lib/site/agency";
 import { BUSINESS } from "@/lib/site/business";
-import { TBD_PRICE_LABEL, TBD_PRICE_TERMS } from "@/lib/site/offers";
+import { PROJECT_QUOTE_SUMMARY } from "@/lib/site/projectQuotes";
+import { productProjectIntakeHref } from "@/lib/site/agencyIntake";
+import {
+  managedAdvertisingExplanation,
+  managedBillingExplanation,
+  managedCampaignSummary,
+  managedCompletionExplanation,
+  managedRenewalExplanation,
+  managedUpfrontSummary,
+} from "@/lib/site/managedPlans";
 import { breadcrumbJsonLd, faqJsonLd, graph, jsonLdText } from "@/lib/site/structuredData";
 
-// One agency service page. Everything comes from lib/site/agency.ts; the
-// price block reads lib/site/offers.ts and prints the neutral TBD line when
-// Ryan has not set a number.
+// Website/product builds receive a project quote; acquisition has its own scope.
+// The signed-scope payment handler remains separate.
 
 export function generateStaticParams() {
   return AGENCY_SERVICES.map((s) => ({ service: s.slug }));
@@ -33,14 +40,9 @@ export default async function AgencyServicePage({ params }: { params: Promise<{ 
   const { service } = await params;
   const s = agencyService(service);
   if (!s) notFound();
-  const offer = agencyOffer(s);
-  const priced = offer.status === "live";
-  // Websites is paid through the Website Launch deposit; every other service
-  // takes the written-scope payment on /agency/pay.
-  const payable = s.slug !== "websites";
-  // Ads and automation are built inside the client's own accounts, so the
-  // access step is the first thing after payment.
-  const connects = ["meta-ads", "google-ads", "automation"].includes(s.slug);
+  const projectQuote = s.inquiryKind === "product-project";
+  const process = projectQuote ? PROJECT_BUILD_PROCESS : AGENCY_PROCESS;
+  const intakeLabel = projectQuote ? "Get my project quote" : "Scope my acquisition campaign";
   const jsonLd = graph(
     {
       "@type": "Service",
@@ -50,9 +52,6 @@ export default async function AgencyServicePage({ params }: { params: Promise<{ 
       description: s.promise,
       areaServed: BUSINESS.areaServed.map((name) => ({ "@type": "Place", name })),
       provider: { "@type": "Organization", "@id": `${BUSINESS.siteUrl}/#organization`, name: BUSINESS.name, legalName: BUSINESS.legalName, url: BUSINESS.siteUrl },
-      ...(priced && typeof offer.priceUsd === "number" && offer.priceUsd > 0
-        ? { offers: { "@type": "Offer", price: String(offer.priceUsd), priceCurrency: "USD", url: `${BUSINESS.siteUrl}${offer.href}`, description: offer.terms } }
-        : {}),
     },
     faqJsonLd(s.faq),
     breadcrumbJsonLd([
@@ -68,16 +67,16 @@ export default async function AgencyServicePage({ params }: { params: Promise<{ 
       <SiteHero
         compact
         eyebrow={`Agency · ${s.eyebrow}`}
-        mutedTitle={s.name}
-        title={s.promise}
-        body={`For ${s.audience.charAt(0).toLowerCase()}${s.audience.slice(1)}`}
+        mutedTitle={s.navLabel}
+        title="Handled for you."
+        body={s.promise}
         media={{
-          src: "/images/homepage-v2/company-operating-loop.webp",
-          alt: "The operating loop: capture, record, follow-up, sale, delivery, reporting",
+          src: "/images/services/quote-follow-up-light.webp",
+          alt: "A quote clipboard, phone, calendar, and reminder connected across a bright cream desk",
           kicker: "In your accounts",
-          caption: OWNERSHIP_PROMISE.headline,
+          caption: projectQuote ? "Your website, accounts, and customer data." : OWNERSHIP_PROMISE.headline,
         }}
-        primary={{ href: s.intakeHref, label: "Start the intake" }}
+        primary={{ href: s.intakeHref, label: intakeLabel }}
         secondary={{ href: "#included", label: "What is included" }}
         trustLine={s.trustLine ?? "No guaranteed leads, cost per lead, ranking, or return on ad spend."}
       />
@@ -120,7 +119,7 @@ export default async function AgencyServicePage({ params }: { params: Promise<{ 
             <div>
               <p className="cb-eyebrow">Ownership and vendor costs</p>
               <h2 id="own-title" className="cb-h2 cb-heading">
-                What you own, and what you pay directly.
+                {projectQuote ? "Your website, your accounts, your agreed scope." : "Your accounts, your allocation, your agreed scope."}
               </h2>
             </div>
             <p className="cb-lead">{OWNERSHIP_PROMISE.points[2]}</p>
@@ -138,7 +137,7 @@ export default async function AgencyServicePage({ params }: { params: Promise<{ 
               </ul>
             </div>
             <div className="cb-vs-col cb-vs-col--them">
-              <p className="cb-vs-label">You pay vendors directly</p>
+              <p className="cb-vs-label">{projectQuote ? "Provider costs agreed in your project quote" : "Outside the agreed campaign scope"}</p>
               <ul className="cb-vs-list">
                 {s.clientPaysDirectly.map((item) => (
                   <li key={item}>
@@ -167,45 +166,47 @@ export default async function AgencyServicePage({ params }: { params: Promise<{ 
         <div className="cb-shell">
           <div className="cb-headrow">
             <div>
-              <p className="cb-eyebrow">Pricing</p>
+              <p className="cb-eyebrow">{projectQuote ? "Project pricing" : "Managed acquisition pricing"}</p>
               <h2 id="price-title" className="cb-h2 cb-heading">
-                {priced ? offer.priceLabel : TBD_PRICE_LABEL}
+                {projectQuote ? "Quote the build you need." : managedUpfrontSummary()}
               </h2>
             </div>
-            <p className="cb-lead">{priced ? offer.terms : TBD_PRICE_TERMS}</p>
+            <p className="cb-lead">{projectQuote ? PROJECT_QUOTE_SUMMARY : `${managedCampaignSummary()} ${managedBillingExplanation()}`}</p>
           </div>
-          <div className="cb-actions">
-            {payable ? (
-              <Link href={agencyPayHref(s.slug)} className="cb-btn cb-btn--primary" data-cta="agency_service_pay" data-cta-placement={s.slug}>
-                {priced ? `Pay ${offer.priceLabel}` : "Pay a written scope"}
-                <CreditCard aria-hidden="true" className="h-4 w-4" />
-              </Link>
-            ) : (
-              <Link href="/packages/launch" className="cb-btn cb-btn--primary" data-cta="agency_service_pay" data-cta-placement={s.slug}>
-                Buy the Website Launch
-                <CreditCard aria-hidden="true" className="h-4 w-4" />
-              </Link>
-            )}
-            <Link href={s.intakeHref} className="cb-btn cb-btn--ghost" data-cta="agency_service_intake" data-cta-placement={s.slug}>
-              No scope yet? Start the intake
-            </Link>
-            {connects ? (
-              <Link href="/connect" className="cb-btn cb-btn--ghost" data-cta="agency_service_connect" data-cta-placement={s.slug}>
-                Connect your accounts
-                <KeyRound aria-hidden="true" className="h-4 w-4" />
-              </Link>
-            ) : null}
-          </div>
-          {payable ? (
-            <p className="cb-lead mt-6" style={{ fontSize: 16 }}>
-              The pay page takes the number from your written scope, one-time or monthly, by card
-              through Stripe. Nothing on it can change what was agreed, and ad spend is paid by you to
-              the platform directly.
+          {projectQuote ? (
+            <p className="cb-lead mt-6">
+              Your quote defines the pages, catalog or customer path, launch checks,
+              usage costs, and any operating support. Requesting it does not enroll
+              you in an acquisition campaign or authorize a charge. Product sales
+              do not carry farm job or property deal targets.
             </p>
+          ) : (
+            <>
+              <p className="cb-lead mt-6">{managedAdvertisingExplanation()}</p>
+              <p className="cb-lead mt-6">{managedCompletionExplanation()}</p>
+              <p className="cb-lead mt-6">{managedRenewalExplanation()}</p>
+            </>
+          )}
+          <div className="cb-actions">
+            <Link href={s.intakeHref} className="cb-btn cb-btn--primary" data-cta="agency_service_intake" data-cta-placement={s.slug}>
+              {intakeLabel} <ArrowRight aria-hidden="true" className="h-4 w-4" />
+            </Link>
+            <Link href="/pricing" className="cb-btn cb-btn--ghost" data-cta="agency_service_plans" data-cta-placement={s.slug}>
+              {projectQuote ? "Explore optional acquisition" : "See the 90-day campaign"}
+            </Link>
+          </div>
+          {s.slug === "content" ? (
+            <div className="mt-8">
+              <h3 className="cb-h3">Need content for a product launch?</h3>
+              <p className="cb-lead">{PROJECT_QUOTE_SUMMARY}</p>
+              <Link href={productProjectIntakeHref({ service: "content" })} className="cb-textlink" data-cta="product_project_quote" data-cta-placement="agency_content">
+                Quote my product launch content <ArrowRight aria-hidden="true" className="h-4 w-4" />
+              </Link>
+            </div>
           ) : null}
           {s.related.length > 0 ? (
             <p className="cb-lead mt-6">
-              Already priced on this site:{" "}
+              Related details:{" "}
               {s.related.map((r, i) => (
                 <span key={r.href}>
                   <Link href={r.href} className="cb-textlink">
@@ -230,7 +231,7 @@ export default async function AgencyServicePage({ params }: { params: Promise<{ 
             </div>
           </div>
           <ol className="cb-steps cb-steps--three mt-8">
-            {AGENCY_PROCESS.map((step) => (
+            {process.map((step) => (
               <li key={step.step} className="cb-step">
                 <span className="cb-step-num">{step.step}</span>
                 <div>
@@ -264,8 +265,8 @@ export default async function AgencyServicePage({ params }: { params: Promise<{ 
       <FinalCta
         eyebrow={s.name}
         title="Get the scope in writing."
-        body={`Ten questions, one business day to a reply from ${BUSINESS.operator}. Or call or text ${BUSINESS.phone.display}.`}
-        primary={{ href: s.intakeHref, label: "Start the intake" }}
+        body={`Tell ${BUSINESS.operator} what needs to work. Expect an email reply within one business day. Or call or text ${BUSINESS.phone.display} to discuss the scope.`}
+        primary={{ href: s.intakeHref, label: intakeLabel }}
         secondary={{ href: "/agency", label: `All ${countWord(AGENCY_SERVICES.length)} services` }}
       />
       <p className="cb-shell" style={{ paddingBlock: 24 }}>

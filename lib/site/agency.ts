@@ -3,33 +3,42 @@
 // XRPL treasury alerts, crypto checkout), run for the client in accounts the
 // client owns.
 //
-// Every page under /agency renders from this file. Prices come from
-// lib/site/offers.ts, where every agency offer is `tbd_ryan` until Ryan sets
-// a number; the pages print the neutral TBD line, never a guess. The
-// ownership promise below is the same one every website build makes: the
-// client pays the platforms directly and keeps the ad account, pixel,
-// audiences, leads, and reporting.
+// Public agency pages use managedPlans.ts. Legacy offerId mappings below stay
+// available to existing signed-scope payment handlers; they are not public plans.
 
 import { BUSINESS } from "./business";
 import { offer, type Offer } from "./offers";
 import { PRICES, usd } from "./prices";
+import { MANAGED_COMMERCIAL_TERMS, managedAdvertisingExplanation, managedBillingExplanation, managedCampaignSummary } from "./managedPlans";
+import { productProjectIntakeHref } from "./agencyIntake";
+import { PROJECT_QUOTE_SUMMARY } from "./projectQuotes";
+
+export const AGENCY_PLAN_SUMMARY = `${managedCampaignSummary()} Paid upfront. Advertising is included within your written campaign allocation.`;
 
 export const OWNERSHIP_PROMISE = {
-  headline: "You own the accounts. You pay the platforms. You keep the data.",
+  headline: "You own the accounts and data. Your campaign includes advertising.",
   points: [
     "The ad account, pixel, tag, and audiences are created in your name or moved into it before a dollar is spent.",
-    "Ad spend goes from your card to Meta or Google. It never passes through The LeadFlow Pro.",
+    managedAdvertisingExplanation(),
     "Leads land in your inbox, your CRM, or a record you can export. No hidden copy, no cross-client audience, no reuse of one client's leads for another.",
-    "Reporting reads your own accounts and your own records. If we part ways, everything keeps working without us.",
+    "Reporting reads your accounts and records. If we part ways, you keep your accounts, data, and the documented systems you own.",
   ],
 } as const;
 
 export const AGENCY_PROCESS = [
-  { step: "01", name: "Map", body: "One call. What you sell, who buys it, where leads come from now, and the monthly budget you are genuinely prepared to spend." },
-  { step: "02", name: "Scope", body: "A written scope: what gets built, what you own, what you pay vendors directly, the price, and the first ninety days. Nothing starts without your approval." },
+  { step: "01", name: "Map", body: "One call. What you sell, who buys it, where leads come from now, and the first 90-day campaign and the jobs your business can handle." },
+  { step: "02", name: "Scope", body: `A written scope for the first ${MANAGED_COMMERCIAL_TERMS.initialCampaignDays} days: the agreed build, what you own, the included advertising allocation, the acquisition target, how outcomes count, and the ${usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd)} upfront minimum and any additional prepaid acquisition scope. Nothing starts without your approval.` },
   { step: "03", name: "Build", body: "Accounts, tracking, pages, forms, creative, and routing set up in your accounts, tested with the way you actually answer the phone." },
   { step: "04", name: "Launch", body: "Live on an agreed date with the first-party trace in place: source, action, outcome, against your own records." },
-  { step: "05", name: "Measure", body: "A plain-English report on a fixed cadence with definitions printed on it, and one recommended next decision." },
+  { step: "05", name: "Measure", body: "Reports connect inquiries to the agreed counted outcomes using your closing records. At day 90 we review results and capacity. If the work supports scaling, a higher investment needs a new written scope and price; there is no automatic extension or charge." },
+] as const;
+
+export const PROJECT_BUILD_PROCESS = [
+  { step: "01", name: "Map", body: "Review what you sell, who uses it, and the website, catalog, payment, and delivery accounts you already have." },
+  { step: "02", name: "Scope", body: "Agree the build and launch deliverables, ownership, timing, operating costs, support, and project price in writing before work or payment." },
+  { step: "03", name: "Build", body: "Build the agreed pages, checkout, delivery, or customer workflow in accounts you control. Review the work before launch." },
+  { step: "04", name: "Launch", body: "Test the agreed customer path, access rules, and handoff. Launch only after the required content and account approvals are complete." },
+  { step: "05", name: "Measure", body: "Review the product and operating records agreed in your scope. Any ongoing support or managed acquisition needs its own written responsibilities and price; the build has no automatic job target or renewal." },
 ] as const;
 
 export type AgencyService = {
@@ -55,6 +64,8 @@ export type AgencyService = {
   faq: { q: string; a: string }[];
   /** Where the intake pre-selects this service. */
   intakeHref: string;
+  /** Build-only inquiries use a project quote, without a campaign acknowledgment. */
+  inquiryKind?: "product-project";
   /** Existing pages this service hands off to, when the work already exists. */
   related: { href: string; label: string }[];
   /**
@@ -85,7 +96,7 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
     navLabel: "Meta ads",
     seoTitle: "Facebook and Instagram Ads Management in Longview, TX | The LeadFlow Pro",
     metaDescription:
-      "Facebook and Instagram lead ads for Longview and East Texas businesses, built in your own Meta Business Manager. You pay Meta directly and keep the pixel, audiences, leads, and reporting.",
+      "Facebook and Instagram lead ads for Longview and East Texas businesses, built in your own Meta Business Manager. Advertising is included in your written plan allocation. You keep the pixel, audiences, leads, and reporting.",
     eyebrow: "Facebook and Instagram",
     audience: "Local service businesses, schools, and shops in East Texas that need more inquiries this month, not a brand campaign.",
     problem: "Boosted posts and a lead form nobody follows up on. Money goes out, a few names come in, and nobody can say which ad paid for which job.",
@@ -99,13 +110,13 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
       "A weekly plain-English report: spend, leads by source, cost per lead record, and one recommended decision",
     ],
     clientOwns: ["Meta Business Manager and the ad account", "The pixel, events, and every audience", "Every lead, the CRM record, and the reporting"],
-    clientPaysDirectly: ["Ad spend, paid to Meta from your card", "Any CRM or form software subscription"],
-    notIncluded: ["A promise of a particular cost per lead, number of leads, or return on ad spend", "Running ads for two businesses from one account or audience", "Ad spend passing through The LeadFlow Pro"],
+    clientPaysDirectly: ["Only vendor or software items identified outside the included campaign allocation in your written scope"],
+    notIncluded: ["A promise of a particular cost per lead, number of leads, or return on ad spend", "Running ads for two businesses from one account or audience", "Spending beyond the advertising allocation without an approved scope change"],
     faq: [
-      { q: "Do I need a website first?", a: "No. Meta lead forms work without one. A landing page usually converts better, and the five-page Website Launch can build it, priced separately." },
+      { q: "Do I need a website first?", a: "No. Meta lead forms can work without one. If a website or landing page is needed, we define the build within your 90-day campaign before work begins." },
       { q: "Who owns the ad account?", a: "You do. If it does not exist yet it is created in your Business Manager. If it exists somewhere else, moving it into your name is the first job." },
-      { q: "What does it cost?", a: `Management pricing is confirmed on the scoping call and put in writing before anything starts. Ad spend is separate and goes to Meta directly.` },
-      { q: "What happens if we stop?", a: "The account, pixel, audiences, and leads are already yours. Access is removed and everything keeps running." },
+      { q: "What does it cost?", a: AGENCY_PLAN_SUMMARY },
+      { q: "What happens if we stop?", a: "The account, pixel, audiences, and leads are already yours. Our access is removed. Your accounts and records stay yours; whether advertising continues depends on your instructions and funding." },
     ],
     intakeHref: intake("meta-ads"),
     related: [
@@ -134,12 +145,12 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
       "A weekly plain-English report: spend, leads by source, cost per lead record, and one recommended decision",
     ],
     clientOwns: ["The Google Ads account and billing profile", "The Google Tag, conversions, and audiences", "Every lead, call log, and the reporting"],
-    clientPaysDirectly: ["Ad spend, paid to Google from your card", "Call tracking numbers or software, if used"],
-    notIncluded: ["A promise of a ranking position, a number of calls, or a return on ad spend", "Search engine optimisation of the organic listing (a separate scope)", "Ad spend passing through The LeadFlow Pro"],
+    clientPaysDirectly: ["Only vendor or tracking software identified outside the included campaign allocation in your written scope"],
+    notIncluded: ["A promise of a ranking position, a number of calls, or a return on ad spend", "Search engine optimisation of the organic listing (a separate scope)", "Spending beyond the advertising allocation without an approved scope change"],
     faq: [
       { q: "Is this the same as SEO?", a: "No. Google Ads buys the top of the page today. Search optimisation earns the organic listing over months. Both can be scoped; this page is about the ads." },
       { q: "Can you track phone calls?", a: "Yes, with call conversion tracking in your account. If a tracking number is used, it is yours and forwards to your real line." },
-      { q: "What does it cost?", a: "Management pricing is confirmed on the scoping call and put in writing before anything starts. Ad spend is separate and goes to Google directly." },
+      { q: "What does it cost?", a: AGENCY_PLAN_SUMMARY },
       { q: "How fast does it start?", a: "Account and tracking setup comes first because reporting without it is guessing. Campaigns launch once the tracking is proven with a test conversion." },
     ],
     intakeHref: intake("google-ads"),
@@ -155,30 +166,35 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
     navLabel: "Websites",
     seoTitle: "Website Design for Longview, TX Businesses | The LeadFlow Pro",
     metaDescription:
-      "Five-page business websites for Longview and East Texas, built to capture the inquiry and hand it to follow-up. Buy the Website Launch outright or scope a larger build. You own the domain and the site.",
-    eyebrow: "Five pages that give people a next step",
+      "Website and storefront projects for Longview and East Texas, quoted around your build, launch, and support. You own your site and accounts.",
+    eyebrow: "A website that gives people a next step",
     audience: "Any business whose website cannot answer what you do, what it costs, and how to reach you from a phone.",
     problem: "A template someone else owns, a contact form that goes nowhere, and a monthly bill for a site that has never produced a lead you could trace.",
-    promise: "A mobile-first five-page site with lead capture routed to your inbox or CRM, search foundation, analytics in your account, and clear ownership. Buy it outright as the Website Launch.",
+    promise: "A website or storefront built around what you sell, with the pages, checkout, delivery, and support agreed in a separate project quote. You own the site and accounts; managed acquisition is optional.",
     included: [
-      "Up to five scoped pages: Home, Services, About, Contact, and one conversion page",
+      "The pages agreed in your quote: services or products, proof, contact, and the customer paths your business needs",
+      "Storefront, checkout, download, or order handoff features when included in your project scope",
       "One lead-capture path with routing to the agreed inbox or CRM",
       "LocalBusiness structured data, titles, descriptions, sitemap, and indexing submission",
       "First-party analytics connected in your account",
       "Deployment to your own hosting project and domain",
-      "Two revision rounds against the written scope",
+      "Revision rounds and ongoing responsibilities defined in your written scope",
     ],
     clientOwns: ["The code, the domain, and the hosting project", "The form, the leads, and the analytics", "Every account created for the build"],
     clientPaysDirectly: ["Domain registration", "Third-party hosting fees, unless you choose managed hosting", "Any paid software the site depends on"],
-    notIncluded: ["A promise of a Google ranking, a number of leads, or sales", "Unlimited pages or revisions", "CRM, automation, or ad management (separate scopes on this site)"],
+    notIncluded: ["A promise of a Google ranking, a number of leads, or sales", "Unlimited pages or revisions", "Managed acquisition or ongoing support not agreed in the project scope"],
     faq: [
-      { q: "What does it cost?", a: `The five-page Website Launch is ${usd(PRICES.websiteLaunchTotal)}: ${usd(PRICES.websiteLaunchDeposit)} to start and ${usd(PRICES.websiteLaunchFinal)} after approval, before launch. Anything larger gets a written scope and price first.` },
-      { q: "Do you host it?", a: `You can self-host, export, or choose managed hosting at ${usd(PRICES.hostingManagedMonthly)} a month, or ${usd(PRICES.hostingWithEditsMonthly)} a month with two minor edits. Hosting is billed by monthly invoice; nothing renews without your written approval.` },
-      { q: "Can it connect to my ads?", a: "Yes. The pixel, tag, and lead routing are set up so an ad click, a form, and a lead record connect. That is the trace-the-sale chain the rest of this site teaches." },
+      { q: "What does it cost?", a: PROJECT_QUOTE_SUMMARY },
+      { q: "Do you host it?", a: "Hosting, access, and responsibilities are written into your proposal. You own the domain and site. Any vendor item outside the approved plan is disclosed before you agree." },
+      { q: "Do I have to buy an acquisition campaign?", a: "No. A storefront or product build can have its own project quote. A managed acquisition campaign is a separate decision, with its goal, advertising allocation, price, and responsibilities agreed in writing." },
+      { q: "Does a product build carry a farm job target?", a: "No. Product build and launch deliverables are defined in your project quote. We do not apply farm job or property deal targets to ordinary product sales." },
+      { q: "Can it connect to my ads?", a: "Yes. We can scope tracking and inquiry routing for your customer path. Running the acquisition campaign is optional and requires its own written scope." },
     ],
-    intakeHref: intake("websites"),
+    intakeHref: productProjectIntakeHref({ service: "websites" }),
+    inquiryKind: "product-project",
     related: [
-      { href: "/packages/launch", label: `Website Launch, ${usd(PRICES.websiteLaunchTotal)}` },
+      { href: "/commerce", label: "Storefront and product planning" },
+      { href: "/pricing", label: "Optional managed acquisition campaign" },
     ],
   },
   {
@@ -209,11 +225,11 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
       { q: "Is this the plugin?", a: `The plugin is the ${usd(PRICES.pluginMonthly)} a month product that runs the loop inside ChatGPT or Claude. Automation as an agency service is the same loop built into the tools you already use, or the plugin set up and tuned for you.` },
       { q: "What about texting?", a: "Texts go only to people who agreed, every text carries an opt-out, and STOP is honoured immediately and everywhere. If your list does not have consent recorded, the first job is fixing that." },
       { q: "Do you set up missed call text back?", a: "Yes, in your own phone or texting account, with the reply written for your business, consent recorded, and STOP honoured immediately. The free script writer on this site drafts the message; this service installs it and wires the reply into your lead records." },
-      { q: "What does it cost?", a: "Automation scopes are priced on the scoping call and put in writing. The cheapest version of the follow-up piece is the written Follow-Up Campaign on this site." },
+      { q: "What does it cost?", a: AGENCY_PLAN_SUMMARY },
     ],
     intakeHref: intake("automation"),
     related: [
-      { href: "/go/lead-follow-up", label: `Follow-Up Campaign, ${usd(PRICES.leadFollowUpCampaign)}` },
+      { href: "/pricing", label: "90-day campaign and scope" },
       { href: "/plugin", label: `The plugin, ${usd(PRICES.pluginMonthly)} a month` },
     ],
   },
@@ -238,11 +254,11 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
       "Files delivered to storage you own, with captions and thumbnails",
     ],
     clientOwns: ["Every file, raw and finished", "The channels they are posted to", "The releases and consent records"],
-    clientPaysDirectly: ["Any paid stock music or licensed assets", "Ad spend if the video runs as an ad"],
+    clientPaysDirectly: ["Only licensed assets or vendor items identified outside the included campaign allocation in your written scope"],
     notIncluded: ["Testimonials without a signed release", "Scripted claims about results, rankings, or savings", "Filming customers, students, or patients who have not agreed in writing"],
     faq: [
       { q: "Can you film my customers?", a: "Only with a signed release that says how the footage may be used. Anyone who declines is seated or shot out of frame, and nothing they say is used." },
-      { q: "What packages are there?", a: "Package tiers are being finalised by Ryan and priced on the scoping call. The usual shapes are a shorts package, an offer explainer, and a customer-story capture day." },
+      { q: "What packages are there?", a: "Video work is part of the scope we agree within your 90-day campaign. A shorts package, an offer explainer, or a capture day is selected around your business priorities and capacity." },
       { q: "Do I get the raw footage?", a: "Yes. Raw and finished files are delivered to storage in your name." },
     ],
     intakeHref: intake("video"),
@@ -271,15 +287,17 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
       "A monthly note on what people read, clicked, and asked next",
     ],
     clientOwns: ["Every post, page, article, and email", "The channels, the list, and the analytics", "The publishing calendar"],
-    clientPaysDirectly: ["Email software or scheduling tools, if used", "Ad spend if a post is promoted"],
+    clientPaysDirectly: ["Email software or scheduling tools identified outside the included campaign allocation in your written scope", "Additional promotion beyond the campaign's included advertising allocation, only with a separately approved scope and budget"],
     notIncluded: ["Invented reviews, statistics, or claims", "Marketing email to anyone who did not opt in", "Posting from LeadFlow accounts on your behalf"],
     faq: [
-      { q: "What does it cost?", a: "The content service runs on a monthly cadence. It is scoped and priced on the call and put in writing before anything starts." },
+      { q: "What does a managed acquisition campaign cost?", a: AGENCY_PLAN_SUMMARY },
+      { q: "Can I quote content for a product launch separately?", a: PROJECT_QUOTE_SUMMARY },
       { q: "Will it sound like me?", a: "It has to. The first job is a short voice interview; every draft is checked against it, and nothing publishes without your approval on the first batch." },
       { q: "Can I learn to do this myself?", a: "Yes. The Content Engine course in the Operator Academy teaches the same process." },
     ],
     intakeHref: intake("content"),
     related: [
+      { href: productProjectIntakeHref({ service: "content" }), label: "Quote product launch content" },
       { href: "/operator-academy/content-engine", label: "The Content Engine course" },
     ],
   },
@@ -328,7 +346,7 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
       { q: "Does it replace our moderators?", a: "No. It takes the repeat questions so your moderators have time for the ones that need a person. Bans, refunds, and disputes stay with your team." },
       { q: "Can you just lock down our server?", a: "Yes. The safe server setup can be scoped on its own: roles, verification, filters, two-factor sign-in for admins, the official-links page, and the written raid plan." },
       { q: "Who owns the bot and the answers?", a: "You do. The bot account, the server settings, the knowledge base, and the logs are in your name. If we part ways, it keeps running without us." },
-      { q: "What does it cost?", a: "Pricing is confirmed on the scoping call and put in writing before anything starts. The help desk software is billed to you by its maker, separately." },
+      { q: "What does it cost?", a: `${AGENCY_PLAN_SUMMARY} Specialty capacity and any outside software charges are identified in the proposal.` },
     ],
     intakeHref: intake("community-help-desk"),
     related: [
@@ -490,12 +508,12 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
       { q: "Which processor should we use?", a: "The one that fits your business. We lay out the options, fees, and requirements side by side, and you choose and sign up directly." },
       { q: "What about taxes?", a: "The bookkeeping map records each crypto sale in dollars, the way your processor reports it, so your accountant has what they need. We don't give tax advice." },
       { q: "Can it go on our website?", a: "Yes. It can sit beside card payments in your checkout, or work as a payment link and QR code at the counter." },
-      { q: "What does it cost?", a: "Pricing is confirmed on the scoping call and put in writing before anything starts. Processor fees are charged by the processor, separately." },
+      { q: "What does it cost?", a: `${AGENCY_PLAN_SUMMARY} A payment processor can charge transaction fees; these are disclosed separately from the marketing allocation.` },
     ],
     intakeHref: intake("crypto-checkout"),
     related: [
       { href: "/agency/websites", label: "Websites" },
-      { href: "/packages/launch", label: `Website Launch, ${usd(PRICES.websiteLaunchTotal)}` },
+      { href: "/pricing", label: "90-day campaign and scope" },
     ],
   },
 ];
@@ -518,7 +536,7 @@ export const AGENCY_HUB = {
   eyebrow: "Run it for me",
   title: "The agency lane.",
   lead: `Meta ads, Google Ads, websites, automation, video, and content, run by ${BUSINESS.operator} in accounts you own, plus specialty builds for online communities, CPA firms, XRP Ledger projects, and shops that take crypto. This is the lane for owners who want the whole loop handled.`,
-  budgetNote: "The intake asks for the monthly ad budget you are genuinely prepared to spend. A $0 answer does not disqualify you; it routes you to the right lane.",
+  budgetNote: `${AGENCY_PLAN_SUMMARY} ${managedBillingExplanation()}`,
   contact: {
     phone: BUSINESS.phone.display,
     tel: BUSINESS.phone.tel,

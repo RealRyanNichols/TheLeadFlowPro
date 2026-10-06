@@ -19,24 +19,38 @@ export const MONEY_TOOLS: ToolDef[] = [
     category: "Money",
     tagline: "What you actually have to charge per hour",
     description:
-      "Most owners pick a number out of the air and wonder why the bank account never grows. This backs into the rate your business actually requires.",
+      "Estimate the hourly rate your business needs to cover your take-home target, tax set-aside and overhead across the hours you can actually bill.",
     who: "Anyone who bills by the hour or quotes jobs off a gut-feel hourly rate.",
     problem:
       "You are charging what the last guy charged. Nobody ever did the math on overhead, unbillable hours, taxes, or the weeks you do not work.",
     payoff:
-      "One number you can defend, plus proof of how far off the old number was.",
+      "An estimated hourly floor and a comparison with what you charge now.",
     steps: [
-      "Put in what you want to actually take home in a year, before taxes.",
+      "Enter the yearly amount you want to keep after the tax set-aside, then choose that set-aside percentage.",
       "Add your yearly overhead: insurance, truck, software, rent, phone.",
-      "Be honest about billable hours. Most owners bill half of what they work.",
-      "Read the rate. That is your floor, not your dream price.",
+      "Use your working weeks, hours and billable share. Count only the hours you expect to charge a customer for.",
+      "Read the estimated hourly floor. Allow for job-specific costs and profit when setting your actual quote.",
+    ],
+    faqs: [
+      {
+        q: "Is this an employee wage or the rate I charge a customer?",
+        a: "It estimates a business charge-out rate. Your take-home target is the amount you want to keep after the entered tax set-aside. The calculator adds overhead and spreads the required revenue across billable hours; it does not calculate an employee's wage.",
+      },
+      {
+        q: "How does the hourly rate calculation work?",
+        a: "First, divide your take-home target by one minus the tax set-aside and add overhead; then divide by working weeks × hours per week × billable share. Example: $90,000 take-home, a 25% set-aside and $24,000 overhead require $144,000 revenue; 48 weeks × 50 hours × 60% gives 1,440 billable hours and a $100 hourly floor. These are example inputs, not an industry benchmark.",
+      },
+      {
+        q: "Can I use the result as my complete job price?",
+        a: "Use it as a planning floor for billable time. Materials, job-specific travel, subcontractors and other costs still need to be included in the quote when they are outside your entered overhead. The result does not establish what customers will pay or replace a tax calculation for your business.",
+      },
     ],
     fields: [
-      { id: "take", label: "What you want to take home a year", type: "money", def: 90000 },
+      { id: "take", label: "Yearly take-home target after tax set-aside", type: "money", def: 90000, help: "The amount you want to keep. The calculator adds the tax set-aside and overhead to estimate required revenue." },
       { id: "overhead", label: "Yearly overhead (insurance, truck, tools, software)", type: "money", def: 24000 },
       { id: "weeks", label: "Weeks you actually work", type: "slider", min: 30, max: 52, step: 1, def: 48 },
       { id: "hours", label: "Hours you work a week", type: "slider", min: 10, max: 80, step: 1, def: 50 },
-      { id: "billable", label: "Percent of those hours you can bill", type: "slider", min: 20, max: 100, step: 5, def: 60, suffix: "%", help: "Driving, quoting, invoicing and phone tag are not billable." },
+      { id: "billable", label: "Percent of those hours you can bill", type: "slider", min: 20, max: 100, step: 5, def: 60, suffix: "%", help: "Exclude driving, quoting, invoicing and other time you do not charge for. Use your own records to estimate the share." },
       { id: "tax", label: "Set aside for taxes", type: "slider", min: 0, max: 45, step: 1, def: 25, suffix: "%" },
       { id: "current", label: "What you charge now per hour", type: "money", def: 75 },
     ],
@@ -1024,7 +1038,7 @@ export const MONEY_TOOLS: ToolDef[] = [
     category: "Money",
     tagline: "What a hire actually costs you",
     description:
-      "Wage is maybe two-thirds of it. Payroll tax, comp, benefits, equipment and the hours you spend managing them are the rest.",
+      "Wages are one part of the cost. Add your own payroll tax, insurance, benefits, equipment and management-time estimates; the displayed scenario is illustrative.",
     who: "Any owner thinking about hiring, or wondering why payroll feels heavier than it looks.",
     problem:
       "You budget the wage and get blindsided by everything attached to it.",

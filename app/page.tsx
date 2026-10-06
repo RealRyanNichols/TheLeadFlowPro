@@ -1,7 +1,8 @@
 import SeptemberSpecialNotice from "@/components/site/SeptemberSpecialNotice";
 import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 export const metadata = withPublicPageMetadata("/", {
-  title: "Marketing Agency in Longview, TX: Ads, Websites, Follow-Up | The LeadFlow Pro",
+  title:
+    "Marketing Agency in Longview, TX: Ads, Websites, Follow-Up | The LeadFlow Pro",
   description:
     "The LeadFlow Pro builds and runs the lead system for Longview and East Texas businesses: ads, websites, funnels, and follow-up in accounts you own. Start with a free 30-minute consultation.",
 });
@@ -21,7 +22,10 @@ import HomeScoreboard from "@/components/site/HomeScoreboard";
 import { TOOL_COUNT } from "@/lib/tools";
 import { BUSINESS } from "@/lib/site/business";
 import { CONSULTATION } from "@/lib/site/consultation";
-import { PRICES, usd } from "@/lib/site/prices";
+import {
+  managedUpfrontSummary,
+  managedCampaignSummary,
+} from "@/lib/site/managedPlans";
 import { TEXT_LABEL, smsHref } from "@/lib/site/textLinks";
 import {
   graph,
@@ -78,7 +82,8 @@ export default function HomePage() {
       <section className="lf-hero lf-shell">
         <div className="lf-hero-copy">
           <p className="lf-eyebrow">
-            THE LEADFLOW PRO / {BUSINESS.city.toUpperCase()}, {BUSINESS.region.toUpperCase()} AND BEYOND
+            THE LEADFLOW PRO / {BUSINESS.city.toUpperCase()},{" "}
+            {BUSINESS.region.toUpperCase()} AND BEYOND
           </p>
           <h1>
             More leads for {BUSINESS.region} businesses.
@@ -92,13 +97,25 @@ export default function HomePage() {
             Built and run for your business, in accounts you own. You run the
             business. We run the system.
           </p>
+          <p className="lf-plan-expectation">
+            <Link href="/pricing">
+              <strong>{managedUpfrontSummary()}</strong>{" "}
+              {managedCampaignSummary()}
+            </Link>
+          </p>
           <div className="lf-actions">
-            <a className="lf-button" href={CONSULT_HREF} data-cta="consultation_cta" data-cta-placement="home_hero_copy">
+            <a
+              className="lf-button"
+              href={CONSULT_HREF}
+              data-cta="consultation_cta"
+              data-cta-placement="home_hero_copy"
+            >
               Book my free {CONSULTATION.minutes}-minute consultation{" "}
               <ArrowRight size={19} aria-hidden="true" />
             </a>
             <a className="lf-text-link" href="#what-we-do">
-              See what we build and run <ArrowUpRight size={18} aria-hidden="true" />
+              See what we build and run{" "}
+              <ArrowUpRight size={18} aria-hidden="true" />
             </a>
           </div>
           <div className="lf-hero-trust">
@@ -119,7 +136,10 @@ export default function HomePage() {
               <h2 id="free-consultation-title">{CONSULTATION.headline}</h2>
               <p>{CONSULTATION.body}</p>
             </div>
-            <ConsultationForm placement={CONSULTATION.placement} labelledBy="free-consultation-title" />
+            <ConsultationForm
+              placement={CONSULTATION.placement}
+              labelledBy="free-consultation-title"
+            />
           </div>
         </div>
       </section>
@@ -170,13 +190,12 @@ export default function HomePage() {
                 accounts.
               </p>
               <Link href="/agency/automation">
-                See the automation service <ArrowRight size={18} aria-hidden="true" />
+                See the automation service{" "}
+                <ArrowRight size={18} aria-hidden="true" />
               </Link>
               <small>
                 Just want the messages written?{" "}
-                <Link href="/go/lead-follow-up">
-                  Follow-Up Campaign, {usd(PRICES.leadFollowUpCampaign)}.
-                </Link>
+                <Link href="/pricing">See the 90-day campaign.</Link>
               </small>
             </article>
             <article>
@@ -184,20 +203,53 @@ export default function HomePage() {
               <Globe aria-hidden="true" />
               <h3>A website and a funnel that give people a next step.</h3>
               <p>
-                Five pages that say what you do, what it costs, and how to
-                reach you from a phone. One offer page with the follow-up
-                behind it. Built in accounts you own.
+                Five pages that say what you do, what it costs, and how to reach
+                you from a phone. One offer page with the follow-up behind it.
+                Built in accounts you own.
               </p>
               <Link href="/agency/websites">
-                See the website service <ArrowRight size={18} aria-hidden="true" />
+                See the website service{" "}
+                <ArrowRight size={18} aria-hidden="true" />
               </Link>
               <small>
-                Know you want the five pages?{" "}
-                <Link href="/packages/launch">
-                  Website Launch is {usd(PRICES.websiteLaunchTotal)}.
+                <Link href="/pricing">
+                  {managedUpfrontSummary()} {managedCampaignSummary()}
                 </Link>
               </small>
             </article>
+          </div>
+        </div>
+      </section>
+
+      <section
+        className="lf-section lf-shell"
+        aria-labelledby="territory-title"
+      >
+        <div className="lf-territory-callout">
+          <div>
+            <p className="lf-eyebrow">YOUR INDUSTRY. YOUR TERRITORY.</p>
+            <h2 id="territory-title">
+              Your competitor should not get the same campaign next door.
+            </h2>
+            <p>
+              We agree on the services and area we protect before taking on
+              competing work. Local radius, a whole state, or national coverage:
+              the boundary follows your business.
+            </p>
+            <Link
+              className="lf-button"
+              href="/service-areas#check-my-area"
+              data-cta="service_area_check"
+              data-cta-placement="home_territory"
+            >
+              Check my service area <ArrowRight size={18} aria-hidden="true" />
+            </Link>
+          </div>
+          <div className="lf-territory-visual" aria-hidden="true">
+            <span className="lf-territory-ring lf-territory-ring-outer" />
+            <span className="lf-territory-ring lf-territory-ring-inner" />
+            <ShieldCheck size={50} strokeWidth={1.5} />
+            <span>Agreed in writing.</span>
           </div>
         </div>
       </section>
@@ -240,13 +292,29 @@ export default function HomePage() {
               ))}
             </ul>
             <div className="lf-actions">
-              <a className="lf-button" href={CONSULT_HREF} data-cta="consultation_cta" data-cta-placement="home_how_it_works">
-                Book my free consultation <ArrowRight size={18} aria-hidden="true" />
+              <a
+                className="lf-button"
+                href={CONSULT_HREF}
+                data-cta="consultation_cta"
+                data-cta-placement="home_how_it_works"
+              >
+                Book my free consultation{" "}
+                <ArrowRight size={18} aria-hidden="true" />
               </a>
-              <a className="lf-text-link" href={BUSINESS.phone.tel} data-cta="call" data-cta-placement="home_how_it_works">
+              <a
+                className="lf-text-link"
+                href={BUSINESS.phone.tel}
+                data-cta="call"
+                data-cta-placement="home_how_it_works"
+              >
                 Or call {BUSINESS.phone.display}
               </a>
-              <a className="lf-text-link" href={smsHref("home_how_it_works")} data-cta="text" data-cta-placement="home_how_it_works">
+              <a
+                className="lf-text-link"
+                href={smsHref("home_how_it_works")}
+                data-cta="text"
+                data-cta-placement="home_how_it_works"
+              >
                 {TEXT_LABEL}
               </a>
             </div>
@@ -267,8 +335,8 @@ export default function HomePage() {
             </div>
             <p>
               Our own businesses, running on the same system we build for
-              clients. Real records from their own accounts. Definitions
-              printed on every board.
+              clients. Real records from their own accounts. Definitions printed
+              on every board.
             </p>
           </div>
           <HomeScoreboard />
@@ -323,7 +391,8 @@ export default function HomePage() {
       <section className="lf-final">
         <div className="lf-shell">
           <p className="lf-eyebrow">
-            {BUSINESS.city.toUpperCase()}. {BUSINESS.region.toUpperCase()}. ANYWHERE.
+            {BUSINESS.city.toUpperCase()}. {BUSINESS.region.toUpperCase()}.
+            ANYWHERE.
           </p>
           <h2>
             You run the business.
@@ -335,13 +404,28 @@ export default function HomePage() {
             first.
           </p>
           <div className="lf-actions">
-            <a className="lf-button" href={CONSULT_HREF} data-cta="consultation_cta" data-cta-placement="home_final">
+            <a
+              className="lf-button"
+              href={CONSULT_HREF}
+              data-cta="consultation_cta"
+              data-cta-placement="home_final"
+            >
               Book my free consultation <ArrowRight aria-hidden="true" />
             </a>
-            <a className="lf-text-link" href={BUSINESS.phone.tel} data-cta="call" data-cta-placement="home_final">
+            <a
+              className="lf-text-link"
+              href={BUSINESS.phone.tel}
+              data-cta="call"
+              data-cta-placement="home_final"
+            >
               Call {BUSINESS.phone.display} <ArrowRight aria-hidden="true" />
             </a>
-            <a className="lf-text-link" href={smsHref("home_final")} data-cta="text" data-cta-placement="home_final">
+            <a
+              className="lf-text-link"
+              href={smsHref("home_final")}
+              data-cta="text"
+              data-cta-placement="home_final"
+            >
               {TEXT_LABEL} <ArrowRight aria-hidden="true" />
             </a>
           </div>

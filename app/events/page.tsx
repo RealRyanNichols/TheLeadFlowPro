@@ -189,14 +189,14 @@ export default async function EventsPage() {
                 <h2>The founding class opens to this list first.</h2>
                 <p>
                   The founding ChatGPT workshop above is being scheduled now.
-                  Book a call and Ryan will make sure you get first pick of the
-                  ten seats before the date is announced anywhere else.
+                  Join the workshop list for the next date. A place is confirmed
+                  only after registration and payment when booking opens.
                 </p>
                 <Link
-                  href="/book?interest=workshop_founding"
+                  href="#next-workshop"
                   className="cb-btn cb-btn--primary"
                 >
-                  Get First Pick of the Seats
+                  Join the workshop list
                   <ArrowRight aria-hidden="true" />
                 </Link>
               </div>
@@ -230,7 +230,7 @@ export default async function EventsPage() {
               <p>
                 Ten founding seats at the founding price. ChatGPT only,
                 beginner-friendly, and deep enough for real operators. This is
-                the cheapest this room will ever be.
+                the price for that workshop, not a promise about future dates.
               </p>
             </div>
             <div className={styles.cadenceCard}>
@@ -269,7 +269,7 @@ export default async function EventsPage() {
                 training is scoped per company.
               </p>
               <Link
-                href="/book?interest=training_platform"
+                href="/contact#message-form"
                 className="cb-btn cb-btn--ghost"
               >
                 Ask About On-Site Training

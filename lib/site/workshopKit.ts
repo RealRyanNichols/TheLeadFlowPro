@@ -7,14 +7,15 @@
 // No page is rebuilt. The date, price, and seat count never appear in kit
 // copy: pages read them from the event and the database row.
 //
-// Leaf module: imports only prices, so the follow-up drafts and the pages
-// can both read it without a cycle.
+// Imports only commercial copy and prices, so the follow-up drafts and the
+// pages can both read it without a cycle.
 
-import { PRICES, usd } from "./prices";
+import { MANAGED_COMMERCIAL_TERMS } from "./managedPlans";
+import { usd } from "./prices";
 
-// The day-2 email used to default to the "Free Website + Content Engine"
-// add-on. The free website build was retired on 2026-09-22, so the Website
-// Launch is the only day-2 offer until Ryan names another live one.
+// Keep the historical key so saved, unactivated follow-up drafts still resolve.
+// The recommendation now points to current managed work, never a retired
+// standalone Website Launch price or deposit schedule.
 export type DayTwoOffer = "website_launch";
 
 export type WorkshopKit = {
@@ -51,10 +52,10 @@ export type WorkshopKit = {
 
 export const DAY_TWO_OFFERS: Record<DayTwoOffer, { name: string; price: string; path: string; pitch: string }> = {
   website_launch: {
-    name: "Website Launch",
-    price: usd(PRICES.websiteLaunchTotal),
-    path: "/packages/launch",
-    pitch: `Five pages, one clear next step for the customer, and the follow-up wired behind it. ${usd(PRICES.websiteLaunchDeposit)} to start, the rest after you approve the working site.`,
+    name: "The first 90-day acquisition campaign",
+    price: `${usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd)} upfront minimum`,
+    path: "/pricing",
+    pitch: `The first ${MANAGED_COMMERCIAL_TERMS.initialCampaignDays} days include the agreed build, onboarding, and advertising allocation. We define the acquisition target, counting rules, and any additional prepaid acquisition scope in writing. At day 90 we review results and capacity; scaling requires a new written scope and price, with no automatic extension or charge.`,
   },
 };
 

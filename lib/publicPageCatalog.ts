@@ -1,9 +1,19 @@
+import {
+  MANAGED_COMMERCIAL_TERMS,
+  managedUpfrontSummary,
+  managedCampaignSummary,
+} from "./site/managedPlans";
+import { usd } from "./site/prices";
+
+const CAMPAIGN_MINIMUM = usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd);
+
 // Reviewed canonical public pages. Redirects and private completion URLs are excluded.
 export const PUBLIC_PAGE_CATALOG = [
   {
     path: "/events",
     title: "Events and business workshops",
-    description: "Bring one real business task to a practical workshop. Review the current events page for dates, registration, and workshop details.",
+    description:
+      "Bring one real business task to a practical workshop. Review the current events page for dates, registration, and workshop details.",
     eyebrow: "Business workshops",
     index: false,
   },
@@ -26,7 +36,8 @@ export const PUBLIC_PAGE_CATALOG = [
   {
     path: "/events/chatgpt-for-business-owners-longview/worksheet",
     title: "Workshop worksheet",
-    description: "The worksheet the room works from: one task, one brief, two runs. For attendees.",
+    description:
+      "The worksheet the room works from: one task, one brief, two runs. For attendees.",
     eyebrow: "Live learning in Longview",
     index: false,
   },
@@ -55,7 +66,8 @@ export const PUBLIC_PAGE_CATALOG = [
   {
     path: "/chase-sheet/app",
     title: "Your Chase Sheet",
-    description: "The sheet itself: today's chase list, your quotes, and the ledger. For buyers.",
+    description:
+      "The sheet itself: today's chase list, your quotes, and the ledger. For buyers.",
     eyebrow: "Chase Sheet",
     index: false,
   },
@@ -76,7 +88,8 @@ export const PUBLIC_PAGE_CATALOG = [
   {
     path: "/post-creator/app",
     title: "Your Post Creator",
-    description: "Post ideas, AI drafts in your voice, and your business profile. For buyers.",
+    description:
+      "Post ideas, AI drafts in your voice, and your business profile. For buyers.",
     eyebrow: "Post Creator",
     index: false,
   },
@@ -119,7 +132,7 @@ export const PUBLIC_PAGE_CATALOG = [
     path: "/",
     title: "Leads, websites, and follow-up. Done for you.",
     description:
-      "Ads, websites, funnels, and follow-up built and run for East Texas businesses in accounts you own. Start with a free 30-minute consultation.",
+      `A 90-day acquisition campaign for East Texas businesses, starting at ${CAMPAIGN_MINIMUM} upfront. Ads, websites, and follow-up in accounts you own; scope agreed in writing.`,
     eyebrow: "Done for you",
     art: "/images/ryan-wholesale-universe-warehouse-pallets-flag.jpg",
   },
@@ -135,21 +148,28 @@ export const PUBLIC_PAGE_CATALOG = [
     path: "/longview",
     title: "Marketing agency in Longview, TX",
     description:
-      "Ads, websites, and follow-up for Longview and East Texas businesses, built and run in accounts you own. Free 30-minute consultation at your business, the Longview office, or by phone.",
+      `Acquisition campaigns for Longview and East Texas. Start at ${CAMPAIGN_MINIMUM} upfront for up to 90 days, with an agreed advertising allocation in accounts you own.`,
     eyebrow: "Longview and East Texas",
   },
   {
     path: "/services",
     title: "Build the part your business needs",
     description:
-      "Websites, lead capture, follow-up, payments, portals, and reporting in accounts you control.",
+      "Website, storefront, and product projects receive a separate written quote for build, launch, and support. Managed acquisition is optional, under its own written scope.",
     eyebrow: "Services",
   },
   {
-    path: "/start",
-    title: "Find your next business step",
+    path: "/service-areas",
+    title: "Your industry. Your territory.",
     description:
-      "Answer a few practical questions and see where to start before sharing your contact details.",
+      "Check local, statewide, or national service areas. See verified interest, temporary holds, and protected territories by the work you do.",
+    eyebrow: "Service areas",
+  },
+  {
+    path: "/start",
+    title: "Find your campaign starting point",
+    description:
+      `Map your business needs before sharing contact details. One acquisition campaign starts at ${CAMPAIGN_MINIMUM} upfront for up to 90 days; scope and goals agreed in writing.`,
     eyebrow: "Start here",
   },
   {
@@ -161,34 +181,37 @@ export const PUBLIC_PAGE_CATALOG = [
   },
   {
     path: "/pricing",
-    title: "Choose the right starting point",
-    description:
-      "Compare the Website Launch, System Map, and larger systems around the work you need done.",
-    eyebrow: "Pricing",
+    title: managedUpfrontSummary(),
+    description: `${managedCampaignSummary()} Advertising allocation included. Ends at the agreed target or day 90. No automatic extension or renewal.`,
+    eyebrow: "90-Day Campaign",
   },
   {
     path: "/packages",
-    title: "Build a website. Connect the work.",
+    index: false,
+    title: "One campaign. A clear acquisition scope.",
     description:
-      "Explore the Website Launch and the separately scoped tools, portals, and systems that can follow.",
-    eyebrow: "Product studio",
+      `Review the current 90-day acquisition campaign, starting at ${CAMPAIGN_MINIMUM} upfront. Additional prepaid scope is agreed in writing.`,
+    eyebrow: "Campaign scope",
   },
   {
     path: "/packages/system-map",
+    index: false,
     title: "Know what to build first",
     description:
-      "Map your website, customer path, ownership, and next build phases before a larger project.",
+      "Map your customer path and campaign needs before the written scope. Review the current 90-day campaign rather than a retired entry product.",
     eyebrow: "System Map",
   },
   {
     path: "/packages/launch",
-    title: "A five-page website with a clear plan",
+    index: false,
+    title: "A campaign built around the next step",
     description:
-      "Review the Website Launch scope, approval process, and payment stages.",
-    eyebrow: "Website Launch",
+      "Review the current acquisition campaign, its agreed website work, included advertising allocation, and upfront scope approval.",
+    eyebrow: "Campaign scope",
   },
   {
     path: "/packages/industry-os",
+    index: false,
     title: "Build around the way you work",
     description:
       "Scope the website, lead flow, delivery, and reporting your business actually needs.",
@@ -233,9 +256,9 @@ export const PUBLIC_PAGE_CATALOG = [
   },
   {
     path: "/agency",
-    title: "Ads, websites, automation, video, and content, run for you",
+    title: "Your marketing. Handled for you.",
     description:
-      "The agency lane: Meta ads, Google Ads, websites, automation, video, and content in accounts you own, plus specialty builds for crypto communities, CPA firms, and shops. You pay the platforms directly and keep the leads.",
+      `One acquisition campaign starts at ${CAMPAIGN_MINIMUM} upfront for up to 90 days. Ads, websites, and follow-up in accounts you own, with an agreed advertising allocation.`,
     eyebrow: "Run it for me",
   },
   {
@@ -254,9 +277,9 @@ export const PUBLIC_PAGE_CATALOG = [
   },
   {
     path: "/agency/websites",
-    title: "Five pages that give people a next step",
+    title: "Websites that give people a next step",
     description:
-      "A mobile-first five-page site with lead capture, search foundation, and analytics in your account. Buy the Website Launch outright, in accounts you own.",
+      "Website, storefront, and product builds receive a separate written quote. Scope launch, support, and ownership; managed acquisition is optional.",
     eyebrow: "Agency · Websites",
   },
   {
@@ -310,9 +333,9 @@ export const PUBLIC_PAGE_CATALOG = [
   },
   {
     path: "/agency/start",
-    title: "Tell Ryan what is leaking",
+    title: "Request a service scope",
     description:
-      "The agency intake: business, channels, the ad budget you are genuinely prepared to spend, the bottleneck, who decides, and when.",
+      "Tell us about your business. Request a separate product or storefront quote, or scope a managed acquisition campaign. Agree the work and price before payment.",
     eyebrow: "Agency intake",
     index: false,
   },
@@ -320,7 +343,7 @@ export const PUBLIC_PAGE_CATALOG = [
     path: "/agency/pay",
     title: "Pay the number in your written scope",
     description:
-      "Pay an agency scope by card: the service, one-time or monthly, the amount Ryan put in writing, and your receipt. Ad spend stays on your own card.",
+      "Pay the amount and billing terms in your written agency scope. Existing signed agreements keep their own terms; the payment page does not create a new subscription.",
     eyebrow: "Agency payment",
     index: false,
   },
@@ -434,6 +457,7 @@ export const PUBLIC_PAGE_CATALOG = [
   },
   {
     path: "/go/lead-follow-up",
+    index: false,
     title: "Give every inquiry a next step",
     description:
       "Review the scope of a practical lead follow-up campaign written for one business offer.",
@@ -457,6 +481,7 @@ export const PUBLIC_PAGE_CATALOG = [
   },
   {
     path: "/book",
+    index: false,
     title: "Talk through your next move",
     description:
       "Share your business, the problem you want to solve, and the next step you need to make clear.",

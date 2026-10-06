@@ -189,6 +189,103 @@ body:has(.cb-page.cb-home-dark),
   border-color: var(--cb-hair);
   box-shadow: var(--lf-shadow);
 }
+
+/* Public controls share the light palette even on older route families. */
+.site-header :focus-visible,
+.site-footer :focus-visible,
+body:has(.cb-page) .site-header :focus-visible,
+body:has(.cb-page) .site-footer :focus-visible,
+.cb-page :focus-visible,
+.router-page :focus-visible {
+  outline: 3px solid var(--cb-blue);
+  outline-offset: 4px;
+}
+.site-header .header-cta {
+  min-height: 48px;
+  padding-block: 10px;
+  line-height: 1.35;
+}
+.site-header .header-cta svg {
+  flex: none;
+}
+.site-header .mobile-nav summary {
+  width: 44px;
+  height: 44px;
+}
+.site-header .mobile-nav-panel {
+  top: 52px;
+  width: min(304px, calc(100vw - 32px));
+  max-height: calc(100vh - 92px);
+  max-height: calc(100dvh - 92px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scroll-padding-block: 10px;
+}
+.site-header .mobile-nav-panel > a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+  line-height: 1.4;
+}
+.site-header .mobile-nav-panel > a:not(.header-cta) svg {
+  flex: none;
+}
+.site-footer.cb-footer nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding-block: 6px;
+  line-height: 1.5;
+}
+.site-footer.cb-footer .cb-footer-col nav {
+  gap: 2px;
+  justify-content: start;
+}
+.site-footer.cb-footer .cb-footer-col summary {
+  min-height: 44px;
+  padding-block: 10px;
+  line-height: 1.5;
+}
+.site-footer.cb-footer .cb-footer-col summary::marker {
+  color: var(--cb-blue);
+}
+.site-footer.cb-footer .cb-footer-bottom nav {
+  gap: 16px;
+}
+.cb-page .cb-btn {
+  padding-block: 13px;
+  line-height: 1.35;
+}
+.cb-page fieldset {
+  min-inline-size: 0;
+}
+.cb-page .form-error,
+.router-page .form-error {
+  color: var(--danger);
+  background: var(--danger-tint);
+  border-color: var(--danger-line);
+}
+.cb-page .cb-attribution-art::before {
+  background: var(--cb-blue);
+}
+.cb-page .lfp-capability-module-grid {
+  scrollbar-color: #b7a2db #eee7de;
+}
+.plugin-page .cb-hero .cb-btn--primary,
+.cb-page .pro-buy-button:hover {
+  box-shadow: var(--lf-shadow);
+}
+@keyframes lfp-buyglow {
+  0%, 86%, 100% { box-shadow: 0 0 0 0 #6540bc00; }
+  93% { box-shadow: 0 0 0 8px #6540bc1f; }
+}
+@media (max-width: 1100px) {
+  .site-header .header-text-mobile {
+    display: inline-flex;
+  }
+}
 .operator-dark {
   background: #f3efe8;
 }

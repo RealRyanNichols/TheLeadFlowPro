@@ -22,7 +22,7 @@ test("every text link dials the one business line with a plain prefilled opening
 });
 
 test("every public call-or-text placement is a pair: one tel link and one sms link", () => {
-  const files = ["app/page.tsx", "components/SiteFooter.tsx", "components/site/ConsultationForm.tsx", "app/services/page.tsx", "components/SiteHeader.tsx", "app/longview/page.tsx"];
+  const files = ["app/page.tsx", "components/SiteFooter.tsx", "components/site/ConsultationForm.tsx", "app/services/page.tsx", "components/SiteHeader.tsx", "app/longview/page.tsx", "app/contact/page.tsx", "app/contact/ContactForm.tsx", "app/agency/start/page.tsx"];
   for (const file of files) {
     const source = readFileSync(join(process.cwd(), file), "utf8");
     assert.ok(!/Call or text/.test(source), `${file} still has a combined call-or-text link`);

@@ -9,6 +9,7 @@ import {
   type CommercePath,
 } from "@/lib/commercePlanner";
 import { BUSINESS } from "@/lib/site/business";
+import { useFormReady } from "@/components/site/useFormReady";
 import styles from "./commerce.module.css";
 
 const EXISTING = [
@@ -19,6 +20,7 @@ const EXISTING = [
 ] as const;
 
 export default function CommercePlanner() {
+  const ready = useFormReady();
   const [path, setPath] = useState<CommercePath>("products");
   const [existing, setExisting] = useState<string[]>([]);
   const [sending, setSending] = useState(false);
@@ -26,6 +28,7 @@ export default function CommercePlanner() {
   const [error, setError] = useState("");
   const pending = useRef(false);
   const plan = COMMERCE_PATHS[path];
+  const busy = !ready || sending;
 
   function download() {
     const url = URL.createObjectURL(
@@ -42,7 +45,7 @@ export default function CommercePlanner() {
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (pending.current) return;
+    if (!ready || pending.current) return;
     pending.current = true;
     setSending(true);
     setError("");
@@ -67,6 +70,8 @@ export default function CommercePlanner() {
           utm_campaign: params.get("utm_campaign"),
           diagnostic: {
             source: "commerce_planner",
+            inquiry_kind: "product-project",
+            quote_required: true,
             version: 1,
             selling: path,
             existing,
@@ -188,71 +193,81 @@ export default function CommercePlanner() {
             </Link>
           </div>
         ) : (
-          <form onSubmit={submit}>
-            <p className={styles.eyebrow}>3. WANT HELP CONNECTING IT?</p>
-            <h3>Send Ryan your build list.</h3>
-            <p>
-              Tell us what you sell and where the work gets stuck. This is a
-              scope request, with no charge to submit.
-            </p>
-            <div className={styles.formGrid}>
-              <label>
-                Your name *
-                <input
-                  name="full_name"
-                  autoComplete="name"
-                  required
-                  maxLength={200}
-                />
-              </label>
-              <label>
-                Email *
-                <input
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  maxLength={200}
-                />
-              </label>
-              <label>
-                Phone
-                <input
-                  name="phone"
-                  type="tel"
-                  autoComplete="tel"
-                  maxLength={50}
-                />
-              </label>
-              <label>
-                Business name
-                <input
-                  name="business_name"
-                  autoComplete="organization"
-                  maxLength={200}
-                />
-              </label>
-            </div>
-            <label className={styles.notes}>
-              What do you sell, and what needs to work better?
-              <textarea
-                name="goals"
-                rows={3}
-                maxLength={1500}
-                placeholder="Products, services, or downloads. No passwords or customer details."
-              />
-            </label>
-            <label className={styles.consent}>
-              <input type="checkbox" name="marketing_email_consent" /> Email me
-              occasional business tools and tips. Optional; unsubscribe any
-              time.
-            </label>
-            {error && (
-              <p role="alert" className={styles.error}>
-                {error}
+          <form method="post" action="/api/leads" onSubmit={submit} aria-busy={busy}>
+            <noscript>
+              <p className={styles.fine}>
+                This form needs JavaScript. You can{" "}
+                <a href={`mailto:${BUSINESS.email.hello}`}>email Ryan</a> or{" "}
+                <a href={BUSINESS.phone.tel}>call {BUSINESS.phone.display}</a> to discuss your project.
               </p>
-            )}
-            <button disabled={sending} type="submit" className={styles.primary}>
+            </noscript>
+            <fieldset disabled={busy} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
+            <legend className="sr-only">Commerce project request details</legend>
+              <p className={styles.eyebrow}>3. WANT HELP CONNECTING IT?</p>
+              <h3>Send Ryan your build list.</h3>
+              <p>
+                Tell us what you sell and where the work gets stuck. This is a
+                scope request, with no charge to submit.
+              </p>
+              <div className={styles.formGrid}>
+                <label>
+                  Your name *
+                  <input
+                    name="full_name"
+                    autoComplete="name"
+                    required
+                    maxLength={200}
+                  />
+                </label>
+                <label>
+                  Email *
+                  <input
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    required
+                    maxLength={200}
+                  />
+                </label>
+                <label>
+                  Phone
+                  <input
+                    name="phone"
+                    type="tel"
+                    autoComplete="tel"
+                    maxLength={50}
+                  />
+                </label>
+                <label>
+                  Business name
+                  <input
+                    name="business_name"
+                    autoComplete="organization"
+                    maxLength={200}
+                  />
+                </label>
+              </div>
+              <label className={styles.notes}>
+                What do you sell, and what needs to work better?
+                <textarea
+                  name="goals"
+                  rows={3}
+                  maxLength={1500}
+                  placeholder="Products, services, or downloads. No passwords or customer details."
+                />
+              </label>
+              <label className={styles.consent}>
+                <input type="checkbox" name="marketing_email_consent" /> Email me
+                occasional business tools and tips. Optional; unsubscribe any
+                time.
+              </label>
+              {error && (
+                <p role="alert" className={styles.error}>
+                  {error}
+                </p>
+              )}
+            </fieldset>
+            <button disabled={busy} type="submit" className={styles.primary}>
               {sending ? "Saving your request…" : "Send my build list"}
               <ArrowRight size={18} aria-hidden="true" />
             </button>

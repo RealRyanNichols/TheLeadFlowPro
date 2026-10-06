@@ -1,11 +1,12 @@
+import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import type { Metadata } from "next";
 import Link from "next/link";
 import styles from "../sellerproof.module.css";
 import { PRICES, usd } from "@/lib/site/prices";
-export const metadata: Metadata = {
+export const metadata: Metadata = withPublicPageMetadata("/sellerproof/terms", {
   title: "SellerProof purchase terms",
   alternates: { canonical: "/sellerproof/terms" },
-};
+});
 export default function Terms() {
   return (
     <main className={styles.page}>

@@ -1,285 +1,643 @@
 "use client";
 
-// The agency intake form. Every answer rides along in the lead record: the
-// summary in `goals` for the owner alert, the structured answers in
-// `diagnostic` for the admin workspace. Consent boxes use the same wording as
-// the homepage consultation form. Entries are preserved on an error so nobody
-// retypes ten answers.
-
-import { useState } from "react";
-import { ArrowRight, Check } from "lucide-react";
+// Answers remain in the form on an error. The existing lead API stores the
+// owner summary in goals and the private structured answers in diagnostic.
+import { useEffect, useId, useRef, useState, type ReactNode } from "react";
+import { ArrowRight, Check, CheckCircle2, ShieldCheck } from "lucide-react";
+import Link from "next/link";
 import { SmsConsentText } from "@/components/site/SmsConsentText";
+import { useFormReady } from "@/components/site/useFormReady";
 import { campaignTags, storedCampaignTags } from "@/lib/site/campaignTags";
-
-type ServiceOption = { slug: string; label: string };
-
-const CHANNELS = [
-  ["facebook_instagram", "Facebook or Instagram"],
-  ["google_ads", "Google Ads"],
-  ["google_business", "Google Business Profile and reviews"],
-  ["referrals", "Referrals and word of mouth"],
-  ["website", "Our website"],
-  ["none", "Nothing steady yet"],
-] as const;
-
-// Monthly ad spend paid straight to Meta or Google. Not LeadFlow prices.
-const BUDGETS = [
-  ["ads_0", "$0 right now"],
-  ["ads_under_500", "Under $500 a month"],
-  ["ads_500_1500", "$500 to $1,500 a month"],
-  ["ads_1500_5000", "$1,500 to $5,000 a month"],
-  ["ads_5000_plus", "$5,000 or more a month"],
-] as const;
-
-const DECIDERS = [
-  ["me", "I decide"],
-  ["shared", "A partner or spouse decides with me"],
-  ["someone_else", "Someone else signs off"],
-] as const;
-
-const TIMELINES = [
-  ["this_month", "This month"],
-  ["30_60_days", "In the next 30 to 60 days"],
-  ["this_quarter", "This quarter"],
-  ["researching", "Just researching for now"],
-] as const;
+import { BUSINESS } from "@/lib/site/business";
+import {
+  AGENCY_CHANNELS,
+  AGENCY_DECIDERS,
+  AGENCY_TIMELINES,
+  validateAgencyIntake,
+  type AgencyIntakeErrors,
+  type AgencyIntakeField,
+  type AgencyInquiryKind,
+  type AgencyServiceOption,
+} from "@/lib/site/agencyIntake";
+import { PROJECT_QUOTE_SUMMARY } from "@/lib/site/projectQuotes";
+import {
+  MANAGED_COMMERCIAL_TERMS,
+  MANAGED_PLANS,
+  managedCampaignSummary,
+  managedAdvertisingExplanation,
+  managedCompletionExplanation,
+  managedRenewalExplanation,
+  managedPlanPrice,
+} from "@/lib/site/managedPlans";
+import styles from "./agency-intake.module.css";
 
 type Status = "idle" | "sending" | "done";
+
+function Section({
+  number,
+  title,
+  note,
+  requiredMark,
+  children,
+  ...props
+}: {
+  number: number;
+  title: string;
+  note?: string;
+  requiredMark?: boolean;
+  children: ReactNode;
+} & React.FieldsetHTMLAttributes<HTMLFieldSetElement>) {
+  return (
+    <fieldset className={styles.section} {...props}>
+      <legend className={styles.legend}>
+        <span className={styles.step} aria-hidden="true">
+          {String(number).padStart(2, "0")}
+        </span>
+        <span>
+          {title}
+          {requiredMark ? <span aria-hidden="true"> *</span> : null}
+        </span>
+      </legend>
+      <div className={styles.sectionBody}>
+        {note ? <p className={styles.helper}>{note}</p> : null}
+        {children}
+      </div>
+    </fieldset>
+  );
+}
 
 export default function AgencyIntake({
   services,
   preselected,
   placement = "agency_start",
+  requestedService = null,
+  originatingLead = null,
+  inquiryKind = "managed-campaign",
 }: {
-  services: ServiceOption[];
+  services: AgencyServiceOption[];
   preselected: string | null;
-  /** Which page the form was on, so the admin workspace can tell the hub from the intake page. */
+  initialPlan?: string | null;
+  requestedService?: string | null;
+  originatingLead?: string | null;
+  inquiryKind?: AgencyInquiryKind;
   placement?: "agency_start" | "agency_hub";
 }) {
+  const ready = useFormReady();
+  const prefix = useId();
+  const id = (field: string) => `${prefix}-${field}`;
   const [status, setStatus] = useState<Status>("idle");
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<AgencyIntakeErrors>({});
+  const [serverError, setServerError] = useState(false);
+  const [errorVersion, setErrorVersion] = useState(0);
+  const sending = useRef(false);
+  const errorNotice = useRef<HTMLDivElement>(null);
+  const doneHeading = useRef<HTMLHeadingElement>(null);
+  const campaign = MANAGED_PLANS[0];
+  const campaignPrice = managedPlanPrice(campaign);
+  const isProject = inquiryKind === "product-project";
+  const busy = !ready || status === "sending";
+
+  useEffect(() => {
+    if (errorVersion) errorNotice.current?.focus();
+  }, [errorVersion]);
+  useEffect(() => {
+    if (status === "done") doneHeading.current?.focus();
+  }, [status]);
+
+  function fieldError(field: AgencyIntakeField) {
+    return errors[field] ? (
+      <span id={id(`${field}-error`)} className={styles.fieldError}>
+        {errors[field]}
+      </span>
+    ) : null;
+  }
+  function fieldA11y(field: AgencyIntakeField, helper?: string) {
+    return {
+      "aria-invalid": errors[field] ? (true as const) : undefined,
+      "aria-describedby":
+        [helper, errors[field] ? id(`${field}-error`) : null]
+          .filter(Boolean)
+          .join(" ") || undefined,
+    };
+  }
+  function clearError(event: React.FormEvent<HTMLFormElement>) {
+    const name = (event.target as HTMLInputElement).name;
+    const field = name.startsWith("service_")
+      ? "services"
+      : name === "sms_consent"
+        ? "phone"
+        : name;
+    if (errors[field as AgencyIntakeField]) {
+      setErrors((previous) => {
+        const next = { ...previous };
+        delete next[field as AgencyIntakeField];
+        return next;
+      });
+    }
+  }
 
   async function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setError(null);
-    const form = new FormData(event.currentTarget);
-    const phone = String(form.get("phone") ?? "").trim();
-    const smsConsent = form.get("sms_consent") === "on";
-    if (smsConsent && !phone) {
-      setError("Add a mobile number before choosing call or text consent.");
+    if (!ready || sending.current) return;
+    setServerError(false);
+    const result = validateAgencyIntake(
+      new FormData(event.currentTarget),
+      services,
+      inquiryKind,
+    );
+    if (!result.ok) {
+      setErrors(result.errors);
+      setErrorVersion((version) => version + 1);
       return;
     }
-    const picked = services.filter((s) => form.get(`service_${s.slug}`) === "on");
-    if (picked.length === 0) {
-      setError("Pick at least one service so the reply lands in the right lane.");
-      return;
-    }
-    const channels = CHANNELS.filter(([id]) => form.get(`channel_${id}`) === "on");
-    const budget = BUDGETS.find(([id]) => id === form.get("ad_budget"));
-    const decider = DECIDERS.find(([id]) => id === form.get("decision_maker"));
-    const timeline = TIMELINES.find(([id]) => id === form.get("timeline"));
-    const bottleneck = String(form.get("bottleneck") ?? "").trim();
-
+    setErrors({});
+    const values = result.value;
     const summary = [
-      `AGENCY INTAKE: ${picked.map((s) => s.label).join(", ")}.`,
-      channels.length ? `Current channels: ${channels.map(([, label]) => label).join(", ")}.` : "",
-      budget ? `Monthly ad budget genuinely prepared to spend: ${budget[1]}.` : "",
-      decider ? `Decision-maker: ${decider[1]}.` : "",
-      timeline ? `Timeline: ${timeline[1]}.` : "",
-      bottleneck ? `Bottleneck: ${bottleneck}` : "",
+      `${isProject ? "PRODUCT PROJECT QUOTE" : "AGENCY INTAKE"}: ${values.picked.map((service) => service.label).join(", ")}.`,
+      values.channels.length
+        ? `Current channels: ${values.channels.map(([, label]) => label).join(", ")}.`
+        : "",
+      isProject
+        ? "Separate build quote requested. Deliverables, ownership, timing, operating costs, support and price require a written scope before work or payment."
+        : `Campaign under consideration: ${campaign.name}, ${campaignPrice.amount} ${campaignPrice.unit}. Agreed advertising allocation included; scope and goal agreed in writing.`,
+      `Decision-maker: ${values.decider[1]}.`,
+      `Timeline: ${values.timeline[1]}.`,
+      `Bottleneck: ${values.bottleneck}`,
     ]
       .filter(Boolean)
       .join(" ");
-
+    sending.current = true;
     setStatus("sending");
-    const params = new URLSearchParams(window.location.search);
-    const tags = campaignTags(params, storedCampaignTags(), "agency_intake");
+    const tags = campaignTags(
+      new URLSearchParams(window.location.search),
+      storedCampaignTags(),
+      isProject ? "product_project" : "agency_intake",
+    );
     try {
       const res = await fetch("/api/leads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          full_name: form.get("full_name"),
-          business_name: form.get("business_name"),
-          email: form.get("email"),
-          phone: phone || null,
-          website_url: String(form.get("website_url") ?? "").trim() || null,
+          full_name: values.fullName,
+          business_name: values.businessName,
+          email: values.email,
+          phone: values.phone,
+          website_url: values.websiteUrl,
           interest: "done_for_you",
           goals: summary.slice(0, 2000),
-          budget_range: budget?.[0] ?? null,
-          timeline: timeline?.[0] ?? null,
-          best_contact_method: smsConsent && phone ? "phone" : "email",
-          sms_consent: smsConsent && Boolean(phone),
-          marketing_email_consent: form.get("marketing_email_consent") === "on",
+          budget_range: values.plan,
+          timeline: values.timeline[0],
+          best_contact_method:
+            values.smsConsent && values.phone ? "phone" : "email",
+          sms_consent: values.smsConsent && Boolean(values.phone),
+          marketing_email_consent: values.marketingEmailConsent,
           utm_source: tags.utm_source,
           utm_medium: tags.utm_medium,
           utm_campaign: tags.utm_campaign,
           diagnostic: {
-            version: 1,
-            source: "agency_intake",
-            services: picked.map((s) => s.slug),
-            channels: channels.map(([id]) => id),
-            ad_budget: budget?.[0] ?? null,
-            decision_maker: decider?.[0] ?? null,
-            timeline: timeline?.[0] ?? null,
-            bottleneck: bottleneck.slice(0, 1000),
+            version: 4,
+            source: isProject ? "product_project" : "agency_intake",
+            inquiry_kind: values.inquiryKind,
+            services: values.picked.map((service) => service.slug),
+            channels: values.channels.map(([choice]) => choice),
+            ...(isProject
+              ? { quote_required: true }
+              : {
+                  managed_plan_budget: values.plan,
+                  advertising_included: true,
+                  upfront_treatment: "initial_campaign",
+                  initial_campaign_days:
+                    MANAGED_COMMERCIAL_TERMS.initialCampaignDays,
+                  campaign_acknowledged: values.campaignAcknowledged,
+                  automatic_extension: false,
+                }),
+            decision_maker: values.decider[0],
+            timeline: values.timeline[0],
+            bottleneck: values.bottleneck,
             preselected,
+            requested_service: requestedService ?? preselected,
+            originating_lead_id: originatingLead,
             placement,
           },
         }),
       });
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
-        setError(data.error ?? "That did not go through. Try again, or call or text us.");
-        setStatus("idle");
-        return;
-      }
+      if (!res.ok) throw new Error("Request not confirmed");
       setStatus("done");
     } catch {
-      setError("That did not go through. Try again, or call or text us.");
+      setServerError(true);
       setStatus("idle");
+      setErrorVersion((version) => version + 1);
+    } finally {
+      sending.current = false;
     }
   }
 
   if (status === "done") {
     return (
-      <div className="hq-card" role="status">
-        <p className="cb-eyebrow">It is in</p>
-        <h2 className="cb-h2">Ryan has it.</h2>
-        <p className="cb-lead">
-          A short note is on its way to your inbox now. Expect a text or call within one business day
-          to map the first ninety days. Nothing is scoped, built, or billed until you see it in writing.
+      <div className={styles.success} role="status">
+        <CheckCircle2 size={32} aria-hidden="true" />
+        <p className={styles.eyebrow}>Request received</p>
+        <h2 ref={doneHeading} tabIndex={-1}>
+          Your next step is a clear scope.
+        </h2>
+        <p>
+          Expect a reply within one business day to{" "}
+          {isProject ? "scope your project." : "map the first ninety days."}{" "}
+          We call or text only when you chose that consent.
         </p>
+        <p>Nothing is scoped, built, or billed until you see it in writing.</p>
+        {!isProject ? <p>{managedRenewalExplanation()}</p> : null}
+        <Link href={isProject ? "/services" : "/pricing"} className={styles.textLink}>
+          {isProject ? "Review build options" : "Review the 90-day campaign"}{" "}
+          <ArrowRight size={15} aria-hidden="true" />
+        </Link>
       </div>
     );
   }
 
   return (
-    <form className="grid gap-7" onSubmit={submit} aria-label="Agency intake">
-      <fieldset className="hq-card grid gap-4">
-        <legend className="cb-eyebrow">1. The business</legend>
-        <label className="hq-label">
-          Business name
-          <input className="hq-input" name="business_name" type="text" required maxLength={200} autoComplete="organization" />
-        </label>
-        <label className="hq-label">
-          Your name
-          <input className="hq-input" name="full_name" type="text" required maxLength={200} autoComplete="name" />
-        </label>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <label className="hq-label">
-            Email
-            <input className="hq-input" name="email" type="email" required maxLength={200} autoComplete="email" inputMode="email" />
-          </label>
-          <label className="hq-label">
-            Mobile (optional)
-            <input className="hq-input" name="phone" type="tel" maxLength={50} autoComplete="tel" inputMode="tel" />
-          </label>
+    <form
+      className={styles.form}
+      method="post"
+      action="/api/leads"
+      onSubmit={submit}
+      onChange={clearError}
+      noValidate
+      aria-label={isProject ? "Product project quote request" : "Agency intake"}
+      aria-busy={busy}
+    >
+      <noscript>
+        <p className={styles.helper}>
+          This form needs JavaScript. You can{" "}
+          <a href={BUSINESS.phone.tel}>call {BUSINESS.phone.display}</a> or{" "}
+          <a href={BUSINESS.phone.sms}>text us</a> to discuss{" "}
+          {isProject ? "your project." : "a campaign."}
+        </p>
+      </noscript>
+      <div className={styles.planSummary}>
+        <ShieldCheck size={24} aria-hidden="true" />
+        <div>
+          <p className={styles.eyebrow}>Your starting point</p>
+          <strong>
+            {isProject
+              ? "Your product build. Quoted from scope."
+              : managedCampaignSummary()}
+          </strong>
+          <p>
+            {isProject ? PROJECT_QUOTE_SUMMARY : managedAdvertisingExplanation()}
+          </p>
         </div>
-        <label className="hq-label">
-          Website or Facebook page (optional)
-          <input className="hq-input" name="website_url" type="url" maxLength={300} placeholder="https://" inputMode="url" />
-        </label>
-      </fieldset>
+      </div>
+      <p className={styles.requiredNote}>
+        Fields marked <span aria-hidden="true">*</span> are required. Contact
+        preferences are optional.
+      </p>
 
-      <fieldset className="hq-card grid gap-3">
-        <legend className="cb-eyebrow">2. What you want run for you</legend>
-        {services.map((s) => (
-          <label key={s.slug} className="flex items-start gap-3 text-sm">
-            <input type="checkbox" name={`service_${s.slug}`} defaultChecked={preselected === s.slug} className="mt-1 h-5 w-5" />
-            <span>{s.label}</span>
-          </label>
-        ))}
-      </fieldset>
-
-      <fieldset className="hq-card grid gap-3">
-        <legend className="cb-eyebrow">3. Where customers come from today</legend>
-        {CHANNELS.map(([id, label]) => (
-          <label key={id} className="flex items-start gap-3 text-sm">
-            <input type="checkbox" name={`channel_${id}`} className="mt-1 h-5 w-5" />
-            <span>{label}</span>
-          </label>
-        ))}
-      </fieldset>
-
-      <fieldset className="hq-card grid gap-3">
-        <legend className="cb-eyebrow">4. The monthly ad budget you are genuinely prepared to spend</legend>
-        <p className="text-sm text-[var(--muted)]">
-          Paid by you, directly to Meta or Google. A $0 answer does not disqualify you; it routes you to
-          the right lane.
-        </p>
-        {BUDGETS.map(([id, label]) => (
-          <label key={id} className="flex items-start gap-3 text-sm">
-            <input type="radio" name="ad_budget" value={id} required className="mt-1 h-5 w-5" />
-            <span>{label}</span>
-          </label>
-        ))}
-      </fieldset>
-
-      <fieldset className="hq-card grid gap-3">
-        <legend className="cb-eyebrow">5. The bottleneck</legend>
-        <label className="hq-label">
-          What is getting stuck, in your own words
-          <textarea className="hq-textarea" name="bottleneck" required maxLength={1000} rows={4} placeholder="Leads come in on Facebook and nobody follows up. Or: the phone rings while I am on a job and the voicemail never gets returned." />
-        </label>
-      </fieldset>
-
-      <fieldset className="hq-card grid gap-3">
-        <legend className="cb-eyebrow">6. Who decides</legend>
-        {DECIDERS.map(([id, label]) => (
-          <label key={id} className="flex items-start gap-3 text-sm">
-            <input type="radio" name="decision_maker" value={id} required className="mt-1 h-5 w-5" />
-            <span>{label}</span>
-          </label>
-        ))}
-      </fieldset>
-
-      <fieldset className="hq-card grid gap-3">
-        <legend className="cb-eyebrow">7. Timeline</legend>
-        {TIMELINES.map(([id, label]) => (
-          <label key={id} className="flex items-start gap-3 text-sm">
-            <input type="radio" name="timeline" value={id} required className="mt-1 h-5 w-5" />
-            <span>{label}</span>
-          </label>
-        ))}
-      </fieldset>
-
-      <fieldset className="hq-card grid gap-3">
-        <legend className="cb-eyebrow">8. How we may contact you</legend>
-        <label className="flex items-start gap-3 text-sm">
-          <input type="checkbox" name="sms_consent" className="mt-1 h-5 w-5" />
-          <span>
-            <SmsConsentText topic="this application" />
-          </span>
-        </label>
-        <label className="flex items-start gap-3 text-sm">
-          <input type="checkbox" name="marketing_email_consent" className="mt-1 h-5 w-5" />
-          <span>
-            Send me Ryan&rsquo;s daily practical business emails for up to 30 days. Optional, and one
-            click unsubscribes at any time.
-          </span>
-        </label>
-        <p className="text-xs text-[var(--muted)]">
-          The reply to this intake and the scope are sent to your email regardless. Neither box is
-          required.
-        </p>
-      </fieldset>
-
-      {error ? (
-        <p className="hq-error" role="alert">
-          {error}
-        </p>
+      {Object.keys(errors).length || serverError ? (
+        <div
+          ref={errorNotice}
+          tabIndex={-1}
+          role="alert"
+          className={styles.errorSummary}
+        >
+          {serverError ? (
+            <>
+              <strong>We could not confirm your request.</strong>
+              <p>
+                Your answers are still here. Try again, or{" "}
+                <a href={`mailto:${BUSINESS.email.hello}`}>email us</a> or{" "}
+                <a href={BUSINESS.phone.tel}>call {BUSINESS.phone.display}</a>.
+              </p>
+            </>
+          ) : (
+            <>
+              <strong>A few details need your attention.</strong>
+              <ul>
+                {Object.entries(errors).map(([field, message]) => (
+                  <li key={field}>
+                    <a
+                      href={`#${id(field)}`}
+                      onClick={() =>
+                        document.getElementById(id(field))?.focus()
+                      }
+                    >
+                      {message}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
       ) : null}
 
-      <button type="submit" className="pro-buy-button" disabled={status === "sending"} data-cta="agency_intake_submit" data-cta-placement={placement}>
-        {status === "sending" ? "Sending…" : "Send it to Ryan"}
-        <ArrowRight aria-hidden="true" className="h-4 w-4" />
-      </button>
-      <p className="flex items-start gap-2 text-xs text-[var(--muted)]">
-        <Check aria-hidden="true" className="mt-0.5 h-4 w-4" />
+      <Section number={1} title="About your business" disabled={busy}>
+        <div className={styles.fieldGrid}>
+          <label className={styles.label} htmlFor={id("business_name")}>
+            Business name <span aria-hidden="true">*</span>
+            <input
+              id={id("business_name")}
+              className={styles.input}
+              name="business_name"
+              type="text"
+              required
+              maxLength={200}
+              autoComplete="organization"
+              {...fieldA11y("business_name")}
+            />
+            {fieldError("business_name")}
+          </label>
+          <label className={styles.label} htmlFor={id("full_name")}>
+            Your name <span aria-hidden="true">*</span>
+            <input
+              id={id("full_name")}
+              className={styles.input}
+              name="full_name"
+              type="text"
+              required
+              maxLength={200}
+              autoComplete="name"
+              {...fieldA11y("full_name")}
+            />
+            {fieldError("full_name")}
+          </label>
+          <label className={styles.label} htmlFor={id("email")}>
+            Email <span aria-hidden="true">*</span>
+            <input
+              id={id("email")}
+              className={styles.input}
+              name="email"
+              type="email"
+              required
+              maxLength={200}
+              autoComplete="email"
+              inputMode="email"
+              {...fieldA11y("email")}
+            />
+            {fieldError("email")}
+          </label>
+          <label className={styles.label} htmlFor={id("phone")}>
+            Mobile <span className={styles.optional}>Optional</span>
+            <input
+              id={id("phone")}
+              className={styles.input}
+              name="phone"
+              type="tel"
+              maxLength={50}
+              autoComplete="tel"
+              inputMode="tel"
+              {...fieldA11y("phone", id("phone-help"))}
+            />
+            <span id={id("phone-help")} className={styles.fieldHelp}>
+              Call and text consent is your choice below.
+            </span>
+            {fieldError("phone")}
+          </label>
+          <label
+            className={`${styles.label} ${styles.fullWidth}`}
+            htmlFor={id("website_url")}
+          >
+            Website or Facebook page{" "}
+            <span className={styles.optional}>Optional</span>
+            <input
+              id={id("website_url")}
+              className={styles.input}
+              name="website_url"
+              type="text"
+              maxLength={300}
+              placeholder="yourbusiness.com"
+              inputMode="url"
+              {...fieldA11y("website_url")}
+            />
+            {fieldError("website_url")}
+          </label>
+        </div>
+      </Section>
+
+      <Section
+        number={2}
+        disabled={busy}
+        title={isProject ? "What should we build?" : "What should we handle?"}
+        requiredMark
+        note="Choose everything that needs attention. We will agree on what belongs in your scope."
+        id={id("services")}
+        tabIndex={-1}
+        {...fieldA11y("services")}
+      >
+        <div className={styles.choiceGrid}>
+          {services.map((service) => (
+            <label key={service.slug} className={styles.choice}>
+              <input
+                type="checkbox"
+                name={`service_${service.slug}`}
+                defaultChecked={preselected === service.slug}
+                {...fieldA11y("services")}
+              />
+              <span>{service.label}</span>
+            </label>
+          ))}
+        </div>
+        {fieldError("services")}
+      </Section>
+
+      <Section
+        number={3}
+        disabled={busy}
+        title="Where do customers find you?"
+        note="Optional. Choose the channels you use today."
+      >
+        <div className={styles.choiceGrid}>
+          {AGENCY_CHANNELS.map(([choice, label]) => (
+            <label key={choice} className={styles.choice}>
+              <input type="checkbox" name={`channel_${choice}`} />
+              <span>{label}</span>
+            </label>
+          ))}
+        </div>
+      </Section>
+
+      <Section
+        number={4}
+        disabled={busy}
+        title={
+          isProject
+            ? "Your written project quote"
+            : "Review the campaign starting point"
+        }
+        requiredMark={!isProject}
+        note={
+          isProject
+            ? "Tell us the build you need. We review the project and quote its scope separately before you choose to proceed."
+            : "This request does not start a subscription or authorize a payment. We confirm fit, the goal, and scope before you pay."
+        }
+        id={id("managed_plan_budget")}
+        tabIndex={-1}
+      >
+        <input type="hidden" name="inquiry_kind" value={inquiryKind} />
+        {isProject ? (
+          <p className={styles.helper}>
+            Your quote will name the deliverables, ownership, timing, operating
+            costs, support, and price. This request does not authorize a payment
+            or enroll you in an acquisition campaign.
+          </p>
+        ) : (
+          <>
+            <input type="hidden" name="managed_plan_budget" value={campaign.id} />
+            <label className={`${styles.choice} ${styles.planChoice}`}>
+              <input
+                id={id("campaign_acknowledged")}
+                type="checkbox"
+                name="campaign_acknowledged"
+                required
+                {...fieldA11y("campaign_acknowledged")}
+              />
+              <span className={styles.planDetails}>
+                <strong className={styles.planName}>{campaign.name}</strong>
+                <span className={styles.planPrice}>
+                  {campaignPrice.amount} <small>{campaignPrice.unit}</small>
+                </span>
+                <span className={styles.planUpfront}>
+                  I understand this starting point and want to discuss whether it fits my business.
+                </span>
+              </span>
+            </label>
+            <p className={styles.helper}>{managedCompletionExplanation()}</p>
+            <p className={styles.helper}>{managedRenewalExplanation()}</p>
+            <p className={styles.helper}>
+              Want more acquisition capacity? Tell us below. Any added prepaid scope,
+              price, and outcome goal must be agreed in writing.
+            </p>
+            {fieldError("campaign_acknowledged")}
+            {fieldError("managed_plan_budget")}
+          </>
+        )}
+      </Section>
+
+      <Section
+        number={5}
+        title={isProject ? "What does the project need to do?" : "What needs to improve?"}
+        disabled={busy}
+      >
+        <label className={styles.label} htmlFor={id("bottleneck")}>
+          Tell us in your own words <span aria-hidden="true">*</span>
+          <textarea
+            id={id("bottleneck")}
+            className={styles.input}
+            name="bottleneck"
+            required
+            maxLength={1000}
+            rows={4}
+            placeholder={
+              isProject
+                ? "For example: a storefront for our products, checkout, and a clear order handoff. Tell us what exists now and what needs building."
+                : "For example: leads arrive on Facebook, but we miss the follow-up. Or we miss calls while we are on a job."
+            }
+            {...fieldA11y("bottleneck")}
+          />
+          {fieldError("bottleneck")}
+        </label>
+      </Section>
+
+      <Section
+        number={6}
+        disabled={busy}
+        title="Who approves the work?"
+        requiredMark
+        id={id("decision_maker")}
+        tabIndex={-1}
+        {...fieldA11y("decision_maker")}
+      >
+        <div className={styles.choiceGrid}>
+          {AGENCY_DECIDERS.map(([choice, label]) => (
+            <label key={choice} className={styles.choice}>
+              <input
+                type="radio"
+                name="decision_maker"
+                value={choice}
+                required
+                {...fieldA11y("decision_maker")}
+              />
+              <span>{label}</span>
+            </label>
+          ))}
+        </div>
+        {fieldError("decision_maker")}
+      </Section>
+
+      <Section
+        number={7}
+        disabled={busy}
+        title="When would you like to start?"
+        requiredMark
+        id={id("timeline")}
+        tabIndex={-1}
+        {...fieldA11y("timeline")}
+      >
+        <div className={styles.choiceGrid}>
+          {AGENCY_TIMELINES.map(([choice, label]) => (
+            <label key={choice} className={styles.choice}>
+              <input
+                type="radio"
+                name="timeline"
+                value={choice}
+                required
+                {...fieldA11y("timeline")}
+              />
+              <span>{label}</span>
+            </label>
+          ))}
+        </div>
+        {fieldError("timeline")}
+      </Section>
+
+      <Section
+        number={8}
+        disabled={busy}
+        title="How we may follow up"
+        note="Both choices are optional. We use your email to respond to this request even if you leave them unchecked."
+      >
+        <label className={`${styles.choice} ${styles.consent}`}>
+          <input type="checkbox" name="sms_consent" />
+          <span>
+            <strong>Call or text about this request</strong>
+            <span className={styles.consentDisclosure}>
+              <SmsConsentText topic="this application" />
+            </span>
+          </span>
+        </label>
+        <label className={`${styles.choice} ${styles.consent}`}>
+          <input type="checkbox" name="marketing_email_consent" />
+          <span>
+            <strong>Send me practical business emails</strong>
+            <span className={styles.consentDisclosure}>
+              Send me Ryan&rsquo;s daily practical business emails for up to 30
+              days. One click unsubscribes at any time.
+            </span>
+          </span>
+        </label>
+      </Section>
+
+      <div className={styles.submitRow}>
+        <button
+          type="submit"
+          className={styles.submit}
+          disabled={busy}
+          data-cta="agency_intake_submit"
+          data-cta-placement={placement}
+        >
+          {status === "sending" ? "Sending your request…" : "Send it to Ryan"}
+          <ArrowRight aria-hidden="true" size={17} />
+        </button>
+        <p className={styles.helper}>
+          We review your answers, then reply within one business day. You
+          approve the scope before work or billing starts.
+        </p>
+      </div>
+      <p className={styles.assurance}>
+        <Check size={17} aria-hidden="true" />
         <span>
-          No guaranteed leads, cost per lead, ranking, or return on ad spend. Your accounts stay in your
-          name. Nothing runs without your written approval.
+          Your accounts stay in your name. Nothing runs without your written
+          approval. Leads, rankings, and returns are not guaranteed.
         </span>
       </p>
     </form>

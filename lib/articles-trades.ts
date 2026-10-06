@@ -269,7 +269,7 @@ Fix the phone first. Then spend on ads.
     faq: [
       {
         q: "Should I charge a no-show fee?",
-        a: "You can, and a written policy signed at intake is what makes it enforceable and fair. Be aware that collecting it is its own job and that it can cost you a patient over a small amount. Most practices get more out of better reminders and a working short-call list than out of chasing fees.",
+        a: "Whether a no-show fee is appropriate or enforceable depends on your written agreement and the applicable local, payer and professional rules. A signed policy alone does not establish that a charge is allowed. Get qualified guidance before using one, and compare the collection effort with better reminders and a working short-call list.",
       },
       {
         q: "How many reminders is too many?",
@@ -983,7 +983,7 @@ That is a systems problem, not a trucking problem, and it has [the same shape as
       slug: "employee-true-cost",
       heading: "Work out what your first hire really costs",
       intro:
-        "Wage is the smallest part of it. This adds the employer taxes, the insurance, the supplies, the training time and the hours they are on the clock but not in a house.",
+        "Wage is one part of it. Add your own estimates for employer taxes, insurance, supplies and time that cannot be billed. The result is an illustrative scenario, not a universal cost ratio.",
       steps: [
         {
           name: "Start with the honest wage",

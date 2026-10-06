@@ -9,8 +9,7 @@ export function generateStaticParams() {
 
 export const metadata: Metadata = {
   title: "Pricing | The LeadFlow Pro",
-  description:
-    "Compare the current Website Launch, System Map, Lead Engine, Training Platform, Company OS, and Custom Platform offer ladder.",
+  description: "Review the 90-day acquisition campaign and its written scope.",
   robots: { index: false, follow: true },
 };
 

@@ -1,8 +1,9 @@
 import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import ContactForm from "./ContactForm";
-import { Check, Phone } from "lucide-react";
+import { Check, MessageSquare, Phone } from "lucide-react";
 import SiteHero from "@/components/site/system/SiteHero";
 import { BUSINESS } from "@/lib/site/business";
+import { CALL_LABEL, TEXT_LABEL, smsHref } from "@/lib/site/textLinks";
 
 export const metadata = withPublicPageMetadata("/contact", {
   title: "Contact | The LeadFlow Pro",
@@ -17,15 +18,19 @@ export default function ContactPage() {
         eyebrow="Ask it straight"
         mutedTitle="No ticket queue."
         title="Send Ryan the real question."
-        body="Question about a Website Launch, a larger system, training, or whether the offer fits your business? Send the context. Ryan reads every message himself."
+        body="Question about a 90-day campaign, your service area, a tool, or what your business needs next? Send the context. Ryan reads every message himself."
         media={{
           src: "/images/page-art/contact.png",
           alt: "An open envelope, speech bubbles and phone handset for a direct conversation",
           kicker: "One message",
           caption: "Route the question to the right next move.",
         }}
-        primary={{ href: "#contact-form", label: "Send the question" }}
-        secondary={{ href: BUSINESS.phone.tel, label: `Call or text ${BUSINESS.phone.display}`, external: true }}
+        primary={{ href: "#message-form", label: "Send the question" }}
+        secondary={{
+          href: smsHref("contact"),
+          label: TEXT_LABEL,
+          external: true,
+        }}
         trustLine="No list selling. No fake urgency. A direct answer from the operator."
       />
 
@@ -49,7 +54,16 @@ export default function ContactPage() {
             <div className="cb-actions">
               <a className="cb-btn cb-btn--primary" href={BUSINESS.phone.tel}>
                 <Phone aria-hidden="true" className="h-4 w-4" />
-                Call or text {BUSINESS.phone.display}
+                {CALL_LABEL}
+              </a>
+              <a
+                className="cb-btn cb-btn--secondary"
+                href={smsHref("contact")}
+                data-cta="text"
+                data-cta-placement="contact_intro"
+              >
+                <MessageSquare aria-hidden="true" className="h-4 w-4" />
+                {TEXT_LABEL}
               </a>
             </div>
           </div>

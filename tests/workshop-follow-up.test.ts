@@ -13,7 +13,8 @@ import {
 
 const CTX: FollowUpContext = {
   first: "Dana",
-  worksheetUrl: "https://www.theleadflowpro.com/downloads/worksheet-example.pdf",
+  worksheetUrl:
+    "https://www.theleadflowpro.com/downloads/worksheet-example.pdf",
   unsubscribeUrl: "https://www.theleadflowpro.com/unsubscribe?token=example",
 };
 
@@ -27,7 +28,16 @@ test("the sequence is a documented, unactivated draft with three steps in the 30
       [303, "day_7", 7],
     ],
   );
-  for (const field of ["trigger", "eligibility", "exclusions", "stopConditions", "quietHours", "delivery", "owner", "analyticsEvent"] as const) {
+  for (const field of [
+    "trigger",
+    "eligibility",
+    "exclusions",
+    "stopConditions",
+    "quietHours",
+    "delivery",
+    "owner",
+    "analyticsEvent",
+  ] as const) {
     assert.ok(WORKSHOP_FOLLOW_UP_SEQUENCE[field].length > 10, field);
   }
 });
@@ -35,12 +45,28 @@ test("the sequence is a documented, unactivated draft with three steps in the 30
 test("every step passes the copy rules and stays short", () => {
   for (const step of WORKSHOP_FOLLOW_UP_STEPS) {
     const body = step.body(CTX);
-    assert.deepEqual(copyProblems(`${step.subject}\n${body}`), [], `${step.key}: ${copyProblems(body).join("; ")}`);
+    assert.deepEqual(
+      copyProblems(`${step.subject}\n${body}`),
+      [],
+      `${step.key}: ${copyProblems(body).join("; ")}`,
+    );
     assert.ok(body.startsWith("Dana,"), step.key);
-    assert.ok(body.length < 1600, `${step.key} runs long (${body.length} chars)`);
+    assert.ok(
+      body.length < 1600,
+      `${step.key} runs long (${body.length} chars)`,
+    );
     assert.ok(body.includes("(903) 500-8898"), step.key);
-    for (const banned of ["sold out", "% ", "roas", "guarantee", "testimonial"]) {
-      assert.ok(!body.toLowerCase().includes(banned), `${step.key} says "${banned}"`);
+    for (const banned of [
+      "sold out",
+      "% ",
+      "roas",
+      "guarantee",
+      "testimonial",
+    ]) {
+      assert.ok(
+        !body.toLowerCase().includes(banned),
+        `${step.key} says "${banned}"`,
+      );
     }
   }
 });
@@ -53,30 +79,57 @@ test("marketing steps carry the unsubscribe link and the transactional step does
   assert.ok(night.body(CTX).includes(CTX.worksheetUrl!));
   for (const step of [dayTwo, daySeven]) {
     assert.equal(step.kind, "marketing");
-    assert.ok(step.body(CTX).includes(`Unsubscribe: ${CTX.unsubscribeUrl}`), step.key);
+    assert.ok(
+      step.body(CTX).includes(`Unsubscribe: ${CTX.unsubscribeUrl}`),
+      step.key,
+    );
   }
 });
 
 test("the day-2 email makes exactly one offer, priced from the registry", () => {
   const dayTwo = WORKSHOP_FOLLOW_UP_STEPS[1];
-  // The kit default and an explicit pick are the same live offer: the
-  // Website Launch. The free website build it used to sell is retired.
-  for (const body of [dayTwo.body(CTX), dayTwo.body({ ...CTX, dayTwoOffer: "website_launch" })]) {
-    assert.ok(body.includes(usd(PRICES.websiteLaunchTotal)));
-    assert.ok(body.includes(usd(PRICES.websiteLaunchDeposit)));
-    assert.equal((body.match(/\$/g) ?? []).length, 2, "the total and the deposit, nothing else");
-    assert.ok(body.includes("/packages/launch?utm_source=email"));
-    assert.ok(!/free-build|\$0|build fee/i.test(body), "no retired free-build offer");
+  // Saved drafts retain the old offer key, but recommend the current managed
+  // scope and amounts. This sequence remains unactivated.
+  for (const body of [
+    dayTwo.body(CTX),
+    dayTwo.body({ ...CTX, dayTwoOffer: "website_launch" }),
+  ]) {
+    assert.ok(body.includes(`${usd(PRICES.managedStartingUpfront)} upfront`));
+    assert.equal(
+      (body.match(/\$/g) ?? []).length,
+      1,
+      "one upfront campaign price",
+    );
+    assert.match(body, /first 90.days/i);
+    assert.match(body, /At day 90 we review results and capacity/);
+    assert.match(body, /new written scope and price/);
+    assert.match(body, /no automatic extension or charge/);
+    assert.doesNotMatch(body, /per month|\/month|first month|\$5,000|\$15,000/);
+    assert.ok(body.includes("/pricing?utm_source=email"));
+    assert.ok(body.includes("advertising allocation"));
+    assert.ok(
+      !/free-build|Website Launch|\$0|\$1,000|\$500 to start/i.test(body),
+      "no retired standalone offer",
+    );
   }
 });
 
 test("the same-night step cannot send without the worksheet link", () => {
   const night = WORKSHOP_FOLLOW_UP_STEPS[0];
   assert.equal(canSendWorkshopFollowUp(night, CTX), true);
-  assert.equal(canSendWorkshopFollowUp(night, { ...CTX, worksheetUrl: null }), false);
-  assert.equal(canSendWorkshopFollowUp(night, { ...CTX, worksheetUrl: "   " }), false);
+  assert.equal(
+    canSendWorkshopFollowUp(night, { ...CTX, worksheetUrl: null }),
+    false,
+  );
+  assert.equal(
+    canSendWorkshopFollowUp(night, { ...CTX, worksheetUrl: "   " }),
+    false,
+  );
   const dayTwo = WORKSHOP_FOLLOW_UP_STEPS[1];
-  assert.equal(canSendWorkshopFollowUp(dayTwo, { ...CTX, unsubscribeUrl: "" }), false);
+  assert.equal(
+    canSendWorkshopFollowUp(dayTwo, { ...CTX, unsubscribeUrl: "" }),
+    false,
+  );
 });
 
 test("eligibility honours attendance, consent, unsubscribe, replies, purchases, and the event state", () => {
@@ -91,17 +144,59 @@ test("eligibility honours attendance, consent, unsubscribe, replies, purchases, 
     handledByRyan: false,
     eventIsPast: true,
   };
-  assert.deepEqual(eligibleWorkshopFollowUpSteps(base).map((s) => s.step), [301, 302, 303]);
-  assert.deepEqual(eligibleWorkshopFollowUpSteps({ ...base, marketingConsent: false }).map((s) => s.step), [301]);
-  assert.deepEqual(eligibleWorkshopFollowUpSteps({ ...base, unsubscribed: true }).map((s) => s.step), [301]);
-  assert.deepEqual(eligibleWorkshopFollowUpSteps({ ...base, purchasedDayTwoOffer: true }).map((s) => s.step), [301, 303]);
-  for (const status of ["paid", "no_show", "cancelled", "refunded", "transferred", "overbooked", "pending"]) {
-    assert.deepEqual(eligibleWorkshopFollowUpSteps({ ...base, registrationStatus: status }), [], status);
+  assert.deepEqual(
+    eligibleWorkshopFollowUpSteps(base).map((s) => s.step),
+    [301, 302, 303],
+  );
+  assert.deepEqual(
+    eligibleWorkshopFollowUpSteps({ ...base, marketingConsent: false }).map(
+      (s) => s.step,
+    ),
+    [301],
+  );
+  assert.deepEqual(
+    eligibleWorkshopFollowUpSteps({ ...base, unsubscribed: true }).map(
+      (s) => s.step,
+    ),
+    [301],
+  );
+  assert.deepEqual(
+    eligibleWorkshopFollowUpSteps({ ...base, purchasedDayTwoOffer: true }).map(
+      (s) => s.step,
+    ),
+    [301, 303],
+  );
+  for (const status of [
+    "paid",
+    "no_show",
+    "cancelled",
+    "refunded",
+    "transferred",
+    "overbooked",
+    "pending",
+  ]) {
+    assert.deepEqual(
+      eligibleWorkshopFollowUpSteps({ ...base, registrationStatus: status }),
+      [],
+      status,
+    );
   }
-  assert.deepEqual(eligibleWorkshopFollowUpSteps({ ...base, eventIsPast: false }), []);
-  assert.deepEqual(eligibleWorkshopFollowUpSteps({ ...base, replied: true }), []);
-  assert.deepEqual(eligibleWorkshopFollowUpSteps({ ...base, doNotContact: true }), []);
-  assert.deepEqual(eligibleWorkshopFollowUpSteps({ ...base, handledByRyan: true }), []);
+  assert.deepEqual(
+    eligibleWorkshopFollowUpSteps({ ...base, eventIsPast: false }),
+    [],
+  );
+  assert.deepEqual(
+    eligibleWorkshopFollowUpSteps({ ...base, replied: true }),
+    [],
+  );
+  assert.deepEqual(
+    eligibleWorkshopFollowUpSteps({ ...base, doNotContact: true }),
+    [],
+  );
+  assert.deepEqual(
+    eligibleWorkshopFollowUpSteps({ ...base, handledByRyan: true }),
+    [],
+  );
   assert.deepEqual(eligibleWorkshopFollowUpSteps({ ...base, email: null }), []);
 });
 
@@ -111,5 +206,7 @@ test("the dedupe key is unique per attendee and step and carries the template ve
   const c = workshopFollowUpDedupeKey("reg-2", 301);
   assert.notEqual(a, b);
   assert.notEqual(a, c);
-  assert.ok(a.startsWith("workshop-follow-up-v1:chatgpt-for-business-owners-longview:"));
+  assert.ok(
+    a.startsWith("workshop-follow-up-v1:chatgpt-for-business-owners-longview:"),
+  );
 });

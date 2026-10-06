@@ -10,6 +10,7 @@
 // free library stays free; this is the shelf next to it.
 
 import { PRICES } from "../../site/prices";
+import { uniqueOgImagePath } from "../../uniqueOgImages";
 import { getTool, resolveTool, type Tool } from "../index";
 import type { ToolDocument, ToolVisual } from "../types";
 import { PRO_KIT_DEFS, PRO_KIT_VISUALS } from "./kits";
@@ -40,7 +41,14 @@ export const PRO_TOOLS: ProTool[] = ALL_PRO_TOOLS.filter((t) => t.status === "pu
 
 export const PRO_TOOL_COUNT = PRO_TOOLS.length;
 
-export const PRO_TOOL_VISUALS: Record<string, ToolVisual> = PRO_KIT_VISUALS;
+export const PRO_TOOL_VISUALS: Record<string, ToolVisual> = Object.fromEntries(
+  Object.entries(PRO_KIT_VISUALS).map(([slug, visual]) => [slug, {
+    ...visual,
+    ogImage: uniqueOgImagePath(`/tools/pro/${slug}`)
+      ? visual.ogImage
+      : `/og/tools/violet-20261003/${slug}.jpg`,
+  }]),
+);
 
 const BY_SLUG = new Map(PRO_TOOLS.map((t) => [t.slug, t]));
 

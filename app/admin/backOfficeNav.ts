@@ -112,6 +112,7 @@ export const MENU_GROUPS: readonly BackOfficeGroup[] = [
     links: [
       { href: "/admin/settings", label: "Settings", description: "Ad tracking IDs, booking link, public dashboard switches" },
       { href: "/admin/connections", label: "Lead feeds", description: "Are Facebook, website, text and call feeds still working?" },
+      { href: "/admin/service-areas", label: "Territories", description: "The towns you serve, for the managed plans" },
     ],
   },
 ];

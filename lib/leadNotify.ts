@@ -9,6 +9,7 @@ import { CONSULTATION } from "@/lib/site/consultation";
 import { bookingPage } from "@/lib/site/external-links";
 import { PAST_EVENT_COPY, resolveFeaturedEvent } from "@/lib/site/events";
 import { usd } from "@/lib/site/prices";
+import { MANAGED_COMMERCIAL_TERMS } from "@/lib/site/managedPlans";
 import {
   CONTRACTOR_CAMPAIGN,
   CONTRACTOR_FUNNEL,
@@ -293,6 +294,25 @@ function workshopListWelcome(base: { from: string; to: string[]; reply_to: strin
 function funnelWelcome(lead: NotifiableLead, first: string) {
   const base = { from: FROM_RYAN, to: [lead.email], reply_to: BUSINESS.email.hello };
   switch (lead.funnel) {
+    case "product_project":
+      return {
+        ...base,
+        subject: `${first}, your product project request is in.`,
+        text: [
+          `${first},`,
+          "",
+          "Your website, storefront, or product project request is saved with The LeadFlow Pro.",
+          "",
+          "I will review what you sell and what needs to work. We will agree the build and launch deliverables, ownership, timing, operating costs, support, and project price in writing before work or payment.",
+          "",
+          `I reply within one business day by email.${lead.sms_consent && lead.phone ? ` With your permission, I may also call or text from ${BUSINESS.phone.display}.` : ""}`,
+          "",
+          "This is a project quote request, not enrollment in an acquisition campaign or authorization for a charge. Product sales do not carry farm job or property deal targets. Managed acquisition is optional and requires its own agreed scope.",
+          "",
+          "Reply here with any details you want to add. Do not send passwords, payment information, or customer lists.",
+          ...SIGNATURE,
+        ].join("\n"),
+      };
     case "commerce_planner":
       return {
         ...base,
@@ -305,6 +325,8 @@ function funnelWelcome(lead: NotifiableLead, first: string) {
           "I will review what you sell and the accounts you already use. We will agree the scope, cost, and payment and delivery checks before any build.",
           "",
           "Submitting the list did not buy a service, connect an account, or authorize a charge.",
+          "",
+          "It is a separate project quote, not acquisition campaign enrollment. Product sales do not carry farm job or property deal targets; any managed acquisition needs its own written scope.",
           "",
           "Reply here with any details you want to add. Do not send passwords, payment information, or customer lists.",
           "",
@@ -364,7 +386,7 @@ function funnelWelcome(lead: NotifiableLead, first: string) {
           `What happens next:`,
           ``,
           `1. I read what you want the tool to do and who it is for.`,
-          `2. I reach out within one business day from ${BUSINESS.phone.display} with the blueprint questions.`,
+          `2. I reply within one business day by email with the blueprint questions.${lead.sms_consent && lead.phone ? ` With your permission, I may also call or text from ${BUSINESS.phone.display}.` : ""}`,
           `3. You approve the plan before anything gets built. No passwords, ever.`,
           ``,
           `If you did not finish checkout and want to, the page is here:`,
@@ -387,8 +409,7 @@ function funnelWelcome(lead: NotifiableLead, first: string) {
           `2. I write the first draft within five business days of the intake.`,
           `3. You review, I revise, you start sending.`,
           ``,
-          `If you did not finish checkout and want to, the page is here:`,
-          `https://www.theleadflowpro.com/go/lead-follow-up`,
+          `If checkout did not finish, reply to this email so I can confirm your request and its written terms before any payment.`,
           ...SIGNATURE,
         ].join("\n"),
       };
@@ -423,7 +444,7 @@ function funnelWelcome(lead: NotifiableLead, first: string) {
           `What happens next:`,
           ``,
           `1. I read what you told me about the business.`,
-          `2. I reach out within one business day from ${BUSINESS.phone.display} to schedule the call.`,
+          `2. I reply within one business day by email to arrange the conversation.${lead.sms_consent && lead.phone ? ` With your permission, I may also call or text from ${BUSINESS.phone.display}.` : ""}`,
           `3. Want the call to start warm? Run the Business Growth Diagnostic first. It takes about ten minutes and it is the exact intake I use:`,
           `https://www.theleadflowpro.com/diagnostic`,
           ...SIGNATURE,
@@ -472,14 +493,17 @@ function funnelWelcome(lead: NotifiableLead, first: string) {
           `Here is what happens next:`,
           ``,
           `1. I read what you told me about the business and what is getting in the way.`,
-          `2. I reach out within one business day, the way you asked: a text or a call from ${BUSINESS.phone.display}, or an email from this address. We set the time and the place: your business, my office in ${BUSINESS.city}, or a call. Save that number, it is my direct line.`,
+          ``,
+          `2. I reply within one business day ${lead.sms_consent && lead.phone ? `by email, or by a call or text from ${BUSINESS.phone.display} with your permission` : "by email from this address"}. We set the time and the place: your business, my office in ${BUSINESS.city}, or a call.`,
+          ``,
           `3. We sit down for ${CONSULTATION.minutes} minutes and go through everything you bring. You leave knowing what to fix first and your next three moves, whether you hire me or not.`,
           ``,
           `Have ready if you can:`,
           ...CONSULTATION.bring.map((item) => `- ${item}`),
           ``,
           `Want to move faster? Call or text me at ${BUSINESS.phone.display}.`,
-          ...bookingLines(),
+          // The configured generic calendar is a separate 20-minute call.
+          // Arrange this 30-minute consultation directly instead.
           ...SIGNATURE,
         ].join("\n"),
       };
@@ -494,9 +518,15 @@ function funnelWelcome(lead: NotifiableLead, first: string) {
           ``,
           `Here is what happens next:`,
           ``,
-          `1. I read what you sell, where your leads come from now, and the budget you said you are genuinely prepared to spend on ads each month.`,
-          `2. I reach out within one business day from ${BUSINESS.phone.display} to map the first ninety days.`,
-          `3. You get the scope, what you own, what you pay the platforms directly, and the price in writing before anything is built or billed.`,
+          `1. I review your business, the priorities you chose, and the plan you want us to scope.`,
+          ``,
+          `2. I reply within one business day by email. If you gave call or text permission, we may also follow up at the number you provided.`,
+          ``,
+          `3. The first ${MANAGED_COMMERCIAL_TERMS.initialCampaignDays} days start at ${usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd)} upfront. You get the agreed build, what you own, the included advertising allocation, and the acquisition target and counting rules in writing before work starts.`,
+          ``,
+          `Any additional acquisition targets are scoped and funded upfront, not charged automatically when a job closes.`,
+          ``,
+          `At day 90 we review results and capacity. Scaling into a higher investment requires a new written scope and price. There is no automatic extension or charge.`,
           ``,
           `Two things that will not change: the ad accounts, pixel, audiences, and leads stay in your name, and nothing runs without your written approval.`,
           ``,
@@ -572,7 +602,9 @@ export function leadWelcomePayload(lead: NotifiableLead, context: OwnerAlertCont
       `Here is what happens next:`,
       ``,
       `1. I look at what you told me: what you are running now, what it is costing you, and how fast you want it changed.`,
-      `2. I reach out within one business day. Usually a text or call from ${BUSINESS.phone.display}. Save that number, it is my direct line.`,
+      ``,
+      `2. I reply within one business day by email.${lead.sms_consent && lead.phone ? ` With your permission, I may also call or text from ${BUSINESS.phone.display}.` : ""}`,
+      ``,
       `3. You leave that first conversation knowing the fastest thing to fix and your next three moves, whether you hire me or not.`,
       ``,
       ...bookingLines(),

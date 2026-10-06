@@ -105,7 +105,7 @@ export const STAGES: Stage[] = [
     proof: [
       { name: "TheLeadFlowPro.com", what: `${TOOL_COUNT} free tools and an article library published on owned infrastructure, with useful pages for people searching for answers`, url: "https://www.theleadflowpro.com/tools" },
       { name: "RealRyanNichols.com", what: "A publishing engine with a searchable archive of 1,568+ case profiles, built when platforms throttled the reach", url: "https://realryannichols.com" },
-      { name: "Lone Star Total Wash", what: "A local service business that can now be found, priced, and booked without a phone call", url: "https://www.lonestartotalwash.com" },
+      { name: "Lone Star Total Wash", what: "Documented service-site build with service information, pricing, and quote requests. The live client website is currently unavailable", url: "/portfolio#lone-star" },
     ],
     tools: [
       "seo-traffic-value",
@@ -180,7 +180,7 @@ export const STAGES: Stage[] = [
     },
     proof: [
       { name: "Premier Dental Academy", what: "A school that runs its own enrollment: applications, payment plans, tuition planner and training simulators", url: "https://www.premierdentalacademyoflongview.com" },
-      { name: "Lone Star Total Wash", what: "Free quote intake, a public price list, and a finished-work gallery on a mobile-first build", url: "https://www.lonestartotalwash.com" },
+      { name: "Lone Star Total Wash", what: "Free quote intake, a public price list, and a finished-work gallery in the documented mobile-first build. The live client website is currently unavailable", url: "/portfolio#lone-star" },
       { name: "Don and Patti", what: "Sponsorship checkout, a 509-photo archive across five countries, and a public Open Book ledger", url: "https://www.donandpatti.com" },
     ],
     tools: [
@@ -238,7 +238,7 @@ export const STAGES: Stage[] = [
     ],
     proof: [
       { name: "TheLeadFlowPro.com", what: "Every lead lands in our own CRM with the full guided diagnostic attached, plus an instant email and text", url: "https://www.theleadflowpro.com/start" },
-      { name: "Lone Star Total Wash", what: "Free quote request that reaches the owner instantly, plus click to call", url: "https://www.lonestartotalwash.com" },
+      { name: "Lone Star Total Wash", what: "Quote-request and click-to-call flows included in the documented service-site build. The live client website is currently unavailable", url: "/portfolio#lone-star" },
       { name: "Premier Dental Academy", what: "Every inquiry captured and every student record in a database the school owns", url: "https://www.premierdentalacademyoflongview.com" },
     ],
     tools: [

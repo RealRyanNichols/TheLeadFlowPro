@@ -96,20 +96,20 @@ export const FEATURED = [
     kind: "client" as const,
     kindLabel: "Client system",
     name: "Lone Star Total Wash",
-    what: "A local service business that can be found, priced, and booked without phone tag.",
+    what: "A documented service-site build for a local fleet and pressure-washing business.",
     problem:
       "Fleet and pressure washing sold entirely by phone call and word of mouth. Nothing online said what they do, what it costs, or what finished work looks like.",
     built:
-      "A mobile-first service site with a free quote request that reaches them instantly, a public price list, a completed-jobs gallery, and click to call. Commercial and residential, from service trucks and semis to buildings, lots, and drive-throughs.",
+      "A mobile-first service site built with a free quote request, a public price list, a completed-jobs gallery, and click to call. Commercial and residential, from service trucks and semis to buildings, lots, and drive-throughs. The live client website is currently unavailable; the case study preserves the project images and build summary.",
     facts: [
-      { v: "Quote intake", l: "Free quote request that reaches them instantly" },
+      { v: "Quote intake", l: "Quote-request flow included in the build" },
       { v: "Public pricing", l: "What it costs, on the page, before the call" },
       { v: "Job gallery", l: "Finished commercial and residential work" },
     ],
     outcome:
-      "The business answers the three questions every customer asks before anyone picks up the phone.",
+      "The build brought service information, pricing, and finished-work photos into the customer’s first steps.",
     stack: "Next.js, Vercel, in the owner's accounts",
-    href: EXTERNAL_LINKS.loneStarTotalWash,
+    href: "/portfolio#lone-star",
     shot: "/og/portfolio/lonestar.jpg",
     alt: "Lone Star Total Wash homepage with the fleet washing offer, free quote request, and company logo",
   },

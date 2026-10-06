@@ -1,8 +1,17 @@
 import type { Metadata } from "next";
 import { uniqueOgImagePath } from "./uniqueOgImages";
+import { PUBLIC_PAGE_CATALOG } from "./publicPageCatalog";
 
 export const PUBLIC_SITE_URL = "https://www.theleadflowpro.com";
 export const PUBLIC_OG_SIZE = { width: 1200, height: 630 } as const;
+// A finite version segment refreshes crawler caches without putting query text,
+// tokens, or user-provided values into a public share URL.
+export const PUBLIC_OG_REVISION = "scope90-20261003";
+// Keep the previous published URL valid; only these reviewed versions resolve.
+export const PUBLIC_OG_REVISIONS = [
+  PUBLIC_OG_REVISION,
+  "campaign90-20261003",
+] as const;
 
 // Finished, page-specific creatives for the destinations receiving paid traffic.
 // Dated URLs prompt social crawlers to fetch the new artwork instead of old cards.
@@ -11,7 +20,6 @@ export const AD_PAGE_SOCIAL_IMAGES: Readonly<Record<string, string>> = {
   "/portfolio": "/images/social/portfolio-20260907.jpg",
   "/results": "/images/social/results-20260907.jpg",
   "/commerce": "/images/social/commerce-20260907.jpg",
-  "/services": "/images/social/services-20260907.jpg",
   "/scoreboard": "/images/social/scoreboard-20260907.jpg",
 };
 
@@ -28,10 +36,12 @@ export function isCanonicalPublicPath(path: string): boolean {
 export function publicPageImagePath(path: string): string {
   if (!isCanonicalPublicPath(path))
     throw new Error("A canonical page path is required");
+  // The revised managed offer must not inherit the retired build-ladder card.
+  if (path === "/pricing") return `/og/pages/pricing/${PUBLIC_OG_REVISION}`;
   return (
     uniqueOgImagePath(path) ??
     AD_PAGE_SOCIAL_IMAGES[path] ??
-    `/og/pages${path === "/" ? "/home" : path}`
+    `/og/pages${path === "/" ? "/home" : path}/${PUBLIC_OG_REVISION}`
   );
 }
 
@@ -54,6 +64,7 @@ export function withPublicPageMetadata(
   const title = textTitle(metadata.title, "The LeadFlow Pro");
   const description =
     metadata.description ??
+    PUBLIC_PAGE_CATALOG.find((page) => page.path === path)?.description ??
     "Practical tools, learning, and business systems from The LeadFlow Pro.";
   const socialTitle = textTitle(metadata.openGraph?.title, title);
   const socialDescription = metadata.openGraph?.description ?? description;
@@ -64,6 +75,7 @@ export function withPublicPageMetadata(
   };
   return {
     ...metadata,
+    description,
     alternates: { ...metadata.alternates, canonical },
     openGraph: {
       type: "website",

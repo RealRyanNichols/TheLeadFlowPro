@@ -24,6 +24,7 @@ test("every thirty day step renders with its picture, its button, the unsubscrib
     assert.ok(html.includes("<img"), `step ${step.step} has no hero image`);
     assert.ok(!/[–—]/.test(html), `step ${step.step} contains a dash`);
     assert.ok(!/no-email\./.test(html));
+    assert.doesNotMatch(html, /\$0|\$197|\$497|Apply for one of the ten|first optional service|follow up pack/i);
   }
 });
 

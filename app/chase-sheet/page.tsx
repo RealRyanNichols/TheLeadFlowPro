@@ -79,7 +79,7 @@ const faqs: [string, string][] = [
   ],
   [
     "Is there a guarantee?",
-    "No promises about results. The calculator on this page runs on the numbers you type in, and the only thing the sheet guarantees is that no quote of yours goes quiet without you deciding to let it.",
+    "No promises about results. The calculator runs on the numbers you enter. The sheet keeps the quotes you enter and their next steps visible; you decide when to follow up and send the messages yourself.",
   ],
 ];
 

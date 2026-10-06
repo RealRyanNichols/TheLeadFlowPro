@@ -13,9 +13,9 @@ import { artHash } from "./art";
 
 export const OG_SIZE = { width: 1200, height: 630 };
 
-const PAGE = "#F7F5F2";
-const INK = "#0A1220";
-const MUTED = "#4E5866";
+const PAGE = "#F7F2FC";
+const INK = "#241A36";
+const MUTED = "#675774";
 const PANEL = "#FFFFFF";
 
 /** The tool-type mark, drawn large enough to read as a thumbnail in a feed. */

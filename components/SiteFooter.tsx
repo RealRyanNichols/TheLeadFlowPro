@@ -9,12 +9,21 @@ import {
   FOOTER_PITCH,
   LEGAL_LINKS,
   hidesSiteChrome,
+  type NavLink,
 } from "@/lib/site/navigation";
 import { CALL_LABEL, TEXT_LABEL, smsHref } from "@/lib/site/textLinks";
 
 // The one public footer, ink on every page. Columns, price labels, the
 // contact address, and the DBA line all come from lib/site so a change lands
 // everywhere at once.
+
+function FooterLink({ link }: { link: NavLink }) {
+  return link.href.startsWith("http") ? (
+    <a href={link.href}>{link.label}</a>
+  ) : (
+    <Link href={link.href}>{link.label}</Link>
+  );
+}
 
 export default function SiteFooter() {
   const pathname = usePathname();
@@ -26,34 +35,38 @@ export default function SiteFooter() {
           <div>
             <BrandLockup />
             <p className="cb-footer-pitch">{FOOTER_PITCH}</p>
-            <a href={`mailto:${BUSINESS.email.hello}`} className="cb-textlink mt-6 inline-flex">
+            <nav aria-label="Contact The LeadFlow Pro" className="mt-6 flex flex-col items-start gap-2">
+            <a href={`mailto:${BUSINESS.email.hello}`} className="cb-textlink">
               {BUSINESS.email.hello}
             </a>
-            <a href={BUSINESS.phone.tel} className="cb-textlink mt-2 inline-flex" data-cta="call" data-cta-placement="footer">
+            <a href={BUSINESS.phone.tel} className="cb-textlink" data-cta="call" data-cta-placement="footer">
               {CALL_LABEL}
             </a>
-            <a href={smsHref("footer")} className="cb-textlink mt-2 inline-flex" data-cta="text" data-cta-placement="footer">
+            <a href={smsHref("footer")} className="cb-textlink" data-cta="text" data-cta-placement="footer">
               {TEXT_LABEL}
             </a>
+            </nav>
           </div>
-          {FOOTER_COLUMNS.map((col) => (
+          {FOOTER_COLUMNS.map((col) => {
+            const featured = col.links.filter((link) => !col.featuredHrefs || col.featuredHrefs.includes(link.href));
+            const more = col.featuredHrefs ? col.links.filter((link) => !col.featuredHrefs?.includes(link.href)) : [];
+            return (
             <div key={col.heading} className="cb-footer-col">
               <h2>{col.heading}</h2>
               <nav aria-label={col.heading}>
-                {col.links.map((link) =>
-                  link.href.startsWith("http") ? (
-                    <a key={link.href} href={link.href}>
-                      {link.label}
-                    </a>
-                  ) : (
-                    <Link key={link.href} href={link.href}>
-                      {link.label}
-                    </Link>
-                  ),
-                )}
+                {featured.map((link) => <FooterLink key={link.href} link={link} />)}
               </nav>
+              {more.length ? (
+                <details className="mt-4">
+                  <summary className="cursor-pointer text-sm font-bold leading-6">{col.moreLabel}</summary>
+                  <nav aria-label={`${col.heading}: more options`} className="mt-3">
+                    {more.map((link) => <FooterLink key={link.href} link={link} />)}
+                  </nav>
+                </details>
+              ) : null}
             </div>
-          ))}
+            );
+          })}
         </div>
         <div className="cb-footer-bottom">
           <span>

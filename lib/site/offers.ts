@@ -8,11 +8,19 @@
 // price the server would not charge.
 //
 // `status`:
-//   live      -> published, purchasable or applicable today
+//   live      -> active pricing; publiclyOffered=false limits old signed scopes
+//                to legacy billing/fulfillment rather than current discovery
 //   tbd_ryan  -> the page exists, the price does not. Renders a neutral
 //                "pricing confirmed on the call" line, never a guessed number.
 //   retired   -> kept for history; never rendered as a current offer.
 
+import {
+  MANAGED_PLANS,
+  managedPlanPrice,
+  managedAdvertisingExplanation,
+  managedCompletionExplanation,
+  managedRenewalExplanation,
+} from "./managedPlans";
 import { EXTERNAL_LINKS } from "./external-links";
 import { PRICES, usd, usdFrom, usdPerMonth, usdRange } from "./prices";
 import { SELLERPROOF_MEMBER_PRICING_URL } from "../sellerproof/membership";
@@ -20,13 +28,7 @@ import { POST_CREATOR, aiCapLine } from "../postCreator/product";
 
 export type OfferStatus = "live" | "tbd_ryan" | "retired";
 export type OfferCategory =
-  | "website"
-  | "growth"
-  | "system"
-  | "product"
-  | "event"
-  | "hosting"
-  | "agency";
+  "website" | "growth" | "system" | "product" | "event" | "hosting" | "agency";
 
 export type Offer = {
   id: string;
@@ -39,6 +41,9 @@ export type Offer = {
   /** One line of terms that travels with the price wherever it appears. */
   terms: string;
   status: OfferStatus;
+  /** False for legacy signed scopes retained solely for billing/fulfillment. */
+  publiclyOffered?: boolean;
+  billingPeriod?: "P1M";
   /** YYYY-MM-DD the current price took effect. */
   effectiveDate: string;
   /** YYYY-MM-DD to re-confirm with Ryan. */
@@ -54,12 +59,25 @@ export const TBD_PRICE_LABEL = "Pricing confirmed on the scoping call";
 /** What a retired offer carries instead of a price. priceLabel() never prints it. */
 export const RETIRED_PRICE_LABEL = "Retired";
 export const TBD_PRICE_TERMS =
-  "Ryan has not published a price for this yet. You will see the number in writing before anything is scoped or billed.";
+  "Your scope determines the price. You receive the work, responsibilities, and price in writing before work begins.";
 
 const EFFECTIVE = "2026-09-01";
 const REVIEW = "2026-12-01";
 
 export const OFFERS: readonly Offer[] = [
+  ...MANAGED_PLANS.map((plan): Offer => ({
+    id: `managed_${plan.id}`,
+    name: plan.name,
+    category: "agency",
+    priceUsd: plan.amountUsd,
+    priceLabel: `${managedPlanPrice(plan).amount} minimum upfront · up to 90 days`,
+    terms: `${plan.billingNote} ${managedAdvertisingExplanation()} ${managedCompletionExplanation()} ${managedRenewalExplanation()}`,
+    status: "live",
+    effectiveDate: "2026-10-03",
+    reviewDate: REVIEW,
+    href: `/agency/start?plan=${plan.id}`,
+    source: "lib/site/managedPlans.ts",
+  })),
   // ---------------------------------------------------------- websites --
   // The free website build and its three add-on tiers were retired on
   // 2026-09-22. The ids stay so old lead rows, proposals, and Stripe sessions
@@ -71,7 +89,8 @@ export const OFFERS: readonly Offer[] = [
     category: "website",
     priceUsd: null,
     priceLabel: RETIRED_PRICE_LABEL,
-    terms: "Retired on 2026-09-22. Not sold or offered. Kept so older lead records still resolve.",
+    terms:
+      "Retired on 2026-09-22. Not sold or offered. Kept so older lead records still resolve.",
     status: "retired",
     effectiveDate: EFFECTIVE,
     reviewDate: REVIEW,
@@ -84,7 +103,8 @@ export const OFFERS: readonly Offer[] = [
     category: "growth",
     priceUsd: null,
     priceLabel: RETIRED_PRICE_LABEL,
-    terms: "Retired on 2026-09-22. Not sold or offered. Kept so older Stripe sessions still resolve.",
+    terms:
+      "Retired on 2026-09-22. Not sold or offered. Kept so older Stripe sessions still resolve.",
     status: "retired",
     effectiveDate: EFFECTIVE,
     reviewDate: REVIEW,
@@ -97,7 +117,8 @@ export const OFFERS: readonly Offer[] = [
     category: "growth",
     priceUsd: null,
     priceLabel: RETIRED_PRICE_LABEL,
-    terms: "Retired on 2026-09-22. Not sold or offered. Kept so older Stripe sessions still resolve.",
+    terms:
+      "Retired on 2026-09-22. Not sold or offered. Kept so older Stripe sessions still resolve.",
     status: "retired",
     effectiveDate: EFFECTIVE,
     reviewDate: REVIEW,
@@ -110,7 +131,8 @@ export const OFFERS: readonly Offer[] = [
     category: "growth",
     priceUsd: null,
     priceLabel: RETIRED_PRICE_LABEL,
-    terms: "Retired on 2026-09-22. Not sold or offered. Kept so older Stripe sessions still resolve.",
+    terms:
+      "Retired on 2026-09-22. Not sold or offered. Kept so older Stripe sessions still resolve.",
     status: "retired",
     effectiveDate: EFFECTIVE,
     reviewDate: REVIEW,
@@ -125,6 +147,7 @@ export const OFFERS: readonly Offer[] = [
     priceLabel: usd(PRICES.websiteLaunchTotal),
     terms: `${usd(PRICES.websiteLaunchDeposit)} to start, ${usd(PRICES.websiteLaunchFinal)} after approval, before launch. Once intake begins, the deposit is non-refundable, except where the written agreement or applicable law requires otherwise.`,
     status: "live",
+    publiclyOffered: false,
     effectiveDate: EFFECTIVE,
     reviewDate: REVIEW,
     href: "/packages/launch",
@@ -137,8 +160,10 @@ export const OFFERS: readonly Offer[] = [
     category: "system",
     priceUsd: PRICES.systemMap,
     priceLabel: usd(PRICES.systemMap),
-    terms: "Paid diagnosis, architecture, priorities, and an implementation roadmap. Credited toward an approved larger build.",
+    terms:
+      "Paid diagnosis, architecture, priorities, and an implementation roadmap. Credited toward an approved larger build.",
     status: "live",
+    publiclyOffered: false,
     effectiveDate: EFFECTIVE,
     reviewDate: REVIEW,
     href: "/packages/system-map",
@@ -150,8 +175,10 @@ export const OFFERS: readonly Offer[] = [
     category: "system",
     priceUsd: PRICES.leadEngineFrom,
     priceLabel: usdFrom(PRICES.leadEngineFrom),
-    terms: "Website, conversion funnel, CRM, lead routing, and response automation. Written scope sets the exact price.",
+    terms:
+      "Website, conversion funnel, CRM, lead routing, and response automation. Written scope sets the exact price.",
     status: "live",
+    publiclyOffered: false,
     effectiveDate: EFFECTIVE,
     reviewDate: REVIEW,
     href: "/start?goal=follow_up",
@@ -163,8 +190,10 @@ export const OFFERS: readonly Offer[] = [
     category: "system",
     priceUsd: PRICES.trainingPlatformFrom,
     priceLabel: usdFrom(PRICES.trainingPlatformFrom),
-    terms: "Course catalog, member dashboard, enrollment, progress, and admin tools. Written scope sets the exact price.",
+    terms:
+      "Course catalog, member dashboard, enrollment, progress, and admin tools. Written scope sets the exact price.",
     status: "live",
+    publiclyOffered: false,
     effectiveDate: EFFECTIVE,
     reviewDate: REVIEW,
     href: "/start?goal=delivery",
@@ -176,8 +205,10 @@ export const OFFERS: readonly Offer[] = [
     category: "system",
     priceUsd: PRICES.companyOsFrom,
     priceLabel: usdFrom(PRICES.companyOsFrom),
-    terms: "Website, CRM, client portal, analytics, automation, and operating dashboard. Begins with a System Map.",
+    terms:
+      "Website, CRM, client portal, analytics, automation, and operating dashboard. Begins with a System Map.",
     status: "live",
+    publiclyOffered: false,
     effectiveDate: EFFECTIVE,
     reviewDate: REVIEW,
     href: "/packages/industry-os",
@@ -189,8 +220,10 @@ export const OFFERS: readonly Offer[] = [
     category: "system",
     priceUsd: PRICES.customPlatformFrom,
     priceLabel: usdFrom(PRICES.customPlatformFrom),
-    terms: "Custom software, multi-role workflows, advanced integrations, and platform architecture.",
+    terms:
+      "Custom software, multi-role workflows, advanced integrations, and platform architecture.",
     status: "live",
+    publiclyOffered: false,
     effectiveDate: EFFECTIVE,
     reviewDate: REVIEW,
     href: "/start?goal=custom",
@@ -204,8 +237,10 @@ export const OFFERS: readonly Offer[] = [
     category: "growth",
     priceUsd: PRICES.leadFollowUpCampaign,
     priceLabel: usd(PRICES.leadFollowUpCampaign),
-    terms: "One time. Your follow-up written and handed over. Nothing is sent on your behalf.",
+    terms:
+      "One time. Your follow-up written and handed over. Nothing is sent on your behalf.",
     status: "live",
+    publiclyOffered: false,
     effectiveDate: EFFECTIVE,
     reviewDate: REVIEW,
     href: "/go/lead-follow-up",
@@ -232,7 +267,8 @@ export const OFFERS: readonly Offer[] = [
     category: "product",
     priceUsd: PRICES.proBundle,
     priceLabel: usd(PRICES.proBundle),
-    terms: "One time. Every kit on the shelf, and every kit added after, unlocked on one key.",
+    terms:
+      "One time. Every kit on the shelf, and every kit added after, unlocked on one key.",
     status: "live",
     effectiveDate: "2026-09-21",
     reviewDate: REVIEW,
@@ -258,7 +294,8 @@ export const OFFERS: readonly Offer[] = [
     category: "product",
     priceUsd: PRICES.chaseSheetMonthly,
     priceLabel: usdPerMonth(PRICES.chaseSheetMonthly),
-    terms: "Monthly. Renews on the same date each month until cancelled from inside the sheet; stops at the end of the paid month. You send every message yourself.",
+    terms:
+      "Monthly. Renews on the same date each month until cancelled from inside the sheet; stops at the end of the paid month. You send every message yourself.",
     status: "live",
     effectiveDate: "2026-09-23",
     reviewDate: REVIEW,
@@ -272,7 +309,8 @@ export const OFFERS: readonly Offer[] = [
     category: "product",
     priceUsd: PRICES.chaseSheetLifetime,
     priceLabel: usd(PRICES.chaseSheetLifetime),
-    terms: "One time. The sheet, every trade library and message added after, for as long as it exists. Nothing renews. You send every message yourself.",
+    terms:
+      "One time. The sheet, every trade library and message added after, for as long as it exists. Nothing renews. You send every message yourself.",
     status: "live",
     effectiveDate: "2026-09-23",
     reviewDate: REVIEW,
@@ -312,7 +350,8 @@ export const OFFERS: readonly Offer[] = [
     category: "product",
     priceUsd: PRICES.sellerProofPacket,
     priceLabel: usd(PRICES.sellerProofPacket),
-    terms: "Free preview. One-time export of one dispute packet. You review and submit it yourself.",
+    terms:
+      "Free preview. One-time export of one dispute packet. You review and submit it yourself.",
     status: "live",
     effectiveDate: EFFECTIVE,
     reviewDate: REVIEW,
@@ -325,7 +364,8 @@ export const OFFERS: readonly Offer[] = [
     category: "product",
     priceUsd: PRICES.sellerProofMemberMonthly,
     priceLabel: usdPerMonth(PRICES.sellerProofMemberMonthly),
-    terms: "Unlimited chargeback packets, response drafts, PDF export, evidence library, and deadline tracking in the SellerProof app. Billed monthly until cancelled. Separate from the single packet.",
+    terms:
+      "Unlimited chargeback packets, response drafts, PDF export, evidence library, and deadline tracking in the SellerProof app. Billed monthly until cancelled. Separate from the single packet.",
     status: "live",
     effectiveDate: "2026-09-24",
     reviewDate: REVIEW,
@@ -339,7 +379,8 @@ export const OFFERS: readonly Offer[] = [
     category: "product",
     priceUsd: PRICES.sellerProofMemberLifetime,
     priceLabel: usd(PRICES.sellerProofMemberLifetime),
-    terms: "One payment for lifetime SellerProof app access: unlimited packets, response drafts, PDF export, evidence library, deadline tracking. No renewals. Separate from the single packet.",
+    terms:
+      "One payment for lifetime SellerProof app access: unlimited packets, response drafts, PDF export, evidence library, deadline tracking. No renewals. Separate from the single packet.",
     status: "live",
     effectiveDate: "2026-09-24",
     reviewDate: REVIEW,
@@ -366,7 +407,8 @@ export const OFFERS: readonly Offer[] = [
     category: "product",
     priceUsd: PRICES.toolStudioProduction,
     priceLabel: usd(PRICES.toolStudioProduction),
-    terms: "One time. One single-purpose interactive tool with up to five inputs and one result screen, mobile styling on the approved brand, an embed or stand-alone page, an analytics event, and one correction round. No accounts, uploads, paid APIs, or databases.",
+    terms:
+      "One time. One single-purpose interactive tool with up to five inputs and one result screen, mobile styling on the approved brand, an embed or stand-alone page, an analytics event, and one correction round. No accounts, uploads, paid APIs, or databases.",
     status: "live",
     effectiveDate: "2026-09-21",
     reviewDate: REVIEW,
@@ -379,7 +421,8 @@ export const OFFERS: readonly Offer[] = [
     category: "product",
     priceUsd: PRICES.toolStudioFunnel,
     priceLabel: usd(PRICES.toolStudioFunnel),
-    terms: "One time. One interactive tool with the landing page, lead capture, owner alert, tracking, and two correction rounds. Ad spend, paid vendors, and custom databases are quoted separately.",
+    terms:
+      "One time. One interactive tool with the landing page, lead capture, owner alert, tracking, and two correction rounds. Ad spend, paid vendors, and custom databases are quoted separately.",
     status: "live",
     effectiveDate: "2026-09-21",
     reviewDate: REVIEW,
@@ -394,7 +437,8 @@ export const OFFERS: readonly Offer[] = [
     category: "product",
     priceUsd: PRICES.toolCareMonthly,
     priceLabel: usdPerMonth(PRICES.toolCareMonthly),
-    terms: "Monthly. Monitoring, one minor in-scope update, and a monthly performance note.",
+    terms:
+      "Monthly. Monitoring, one minor in-scope update, and a monthly performance note.",
     status: "live",
     effectiveDate: "2026-09-21",
     reviewDate: REVIEW,
@@ -407,7 +451,8 @@ export const OFFERS: readonly Offer[] = [
     category: "product",
     priceUsd: PRICES.followUpTuneUpMonthly,
     priceLabel: usdPerMonth(PRICES.followUpTuneUpMonthly),
-    terms: "Monthly. Refresh one email, call, or owner-response sequence using the month's real questions.",
+    terms:
+      "Monthly. Refresh one email, call, or owner-response sequence using the month's real questions.",
     status: "live",
     effectiveDate: "2026-09-21",
     reviewDate: REVIEW,
@@ -420,7 +465,8 @@ export const OFFERS: readonly Offer[] = [
     category: "product",
     priceUsd: PRICES.contentRefreshMonthly,
     priceLabel: usdPerMonth(PRICES.contentRefreshMonthly),
-    terms: "Monthly. One new supporting article, landing-page section, or campaign content batch.",
+    terms:
+      "Monthly. One new supporting article, landing-page section, or campaign content batch.",
     status: "live",
     effectiveDate: "2026-09-21",
     reviewDate: REVIEW,
@@ -433,7 +479,8 @@ export const OFFERS: readonly Offer[] = [
     category: "product",
     priceUsd: PRICES.seoArchiveBatchMonthly,
     priceLabel: usdPerMonth(PRICES.seoArchiveBatchMonthly),
-    terms: "Monthly. Add and index one approved batch of niche records, resources, FAQs, or local pages.",
+    terms:
+      "Monthly. Add and index one approved batch of niche records, resources, FAQs, or local pages.",
     status: "live",
     effectiveDate: "2026-09-21",
     reviewDate: REVIEW,
@@ -446,7 +493,8 @@ export const OFFERS: readonly Offer[] = [
     category: "product",
     priceUsd: PRICES.funnelTestMonthly,
     priceLabel: usdPerMonth(PRICES.funnelTestMonthly),
-    terms: "Monthly. One measured offer, form, headline, or result-screen test with a written finding.",
+    terms:
+      "Monthly. One measured offer, form, headline, or result-screen test with a written finding.",
     status: "live",
     effectiveDate: "2026-09-21",
     reviewDate: REVIEW,
@@ -461,7 +509,8 @@ export const OFFERS: readonly Offer[] = [
     category: "hosting",
     priceUsd: PRICES.hostingManagedMonthly,
     priceLabel: usdPerMonth(PRICES.hostingManagedMonthly),
-    terms: "Optional monthly hosting for a site we built. Nothing renews without written approval.",
+    terms:
+      "Optional monthly hosting for a site we built. Nothing renews without written approval.",
     status: "live",
     effectiveDate: EFFECTIVE,
     reviewDate: REVIEW,
@@ -489,7 +538,8 @@ export const OFFERS: readonly Offer[] = [
     category: "event",
     priceUsd: PRICES.workshopSeat,
     priceLabel: usd(PRICES.workshopSeat),
-    terms: "Per attendee. A seat is confirmed only after payment. The database event row is the authority for a published date.",
+    terms:
+      "Per attendee. A seat is confirmed only after payment. The database event row is the authority for a published date.",
     status: "live",
     effectiveDate: EFFECTIVE,
     reviewDate: REVIEW,
@@ -675,7 +725,12 @@ export function priceLabel(id: string): string {
 }
 
 export function liveOffers(category?: OfferCategory): Offer[] {
-  return OFFERS.filter((o) => o.status === "live" && (!category || o.category === category));
+  return OFFERS.filter(
+    (o) =>
+      o.status === "live" &&
+      o.publiclyOffered !== false &&
+      (!category || o.category === category),
+  );
 }
 
 /** Offers still waiting on Ryan, for docs/decisions-needed.md and the tests. */

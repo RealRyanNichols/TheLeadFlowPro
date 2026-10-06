@@ -41,6 +41,7 @@
 import { bookingPage } from "@/lib/site/external-links";
 import { BUSINESS } from "@/lib/site/business";
 import { PRICES, usd } from "@/lib/site/prices";
+import { MANAGED_COMMERCIAL_TERMS } from "@/lib/site/managedPlans";
 import {
   isFreeWebsiteProgramNurtureLead,
   type FreeWebsiteNurtureCandidate,
@@ -92,7 +93,7 @@ export const RENT_RECEIPT_PATHS = {
   scoreboard: "/scoreboard",
   portfolio: "/portfolio",
   academy: "/academy",
-  systemMap: "/packages/system-map",
+  systemMap: "/pricing",
   pricing: "/pricing",
   tools: "/tools",
   about: "/about",
@@ -155,8 +156,8 @@ type RentStep = {
   write: Writer;
 };
 
-const SYSTEM_MAP = usd(PRICES.systemMap);
-const WEBSITE_LAUNCH = usd(PRICES.websiteLaunchTotal);
+const MANAGED_UPFRONT = usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd);
+const CAMPAIGN_DAYS = MANAGED_COMMERCIAL_TERMS.initialCampaignDays;
 const PHONE = BUSINESS.phone.display;
 
 // ----- Week one, per pain -------------------------------------------------
@@ -207,7 +208,7 @@ Here is what the missed call fix looks like when it is built right. No jargon.
 2. Their reply lands in one inbox you actually see. Not six apps.
 3. Every one of those conversations is saved to a customer record you own, so nobody has to remember anything.
 
-That is it. Three parts. The whole thing runs in accounts you own, and nothing about it depends on a monthly plan somebody else can raise.
+That is it. Three parts in accounts you control. Hosting, vendors, and any managed work still have their own written costs.
 
 I run that exact setup for my own businesses. You can look at it live, right now.
 
@@ -450,9 +451,9 @@ ${close(2, c, "Here is the stack I own, running my own business, in public:", "s
 
 The fix for monthly fees is not a cheaper subscription. It is owning the thing.
 
-Concretely: your website lives in an account with your name on it, on hosting with your name on it, with a database with your name on it. The tools cost a few dollars a month at the vendor, and often nothing. No plan to cancel. No seat to pay for. No support ticket to ask for your own data.
+Concretely: your website, hosting, database, and customer records live in accounts you control. We compare the actual costs before changing the stack. Ownership does not make hosting, vendors, or ongoing work free.
 
-The catch, because there is always one: someone has to build it once, properly. That is a project with a start and an end. It is not a subscription.
+Managed acquisition campaigns start at ${MANAGED_UPFRONT} upfront for the first ${CAMPAIGN_DAYS} days. The agreed build and advertising allocation are included in the written campaign scope. You approve it before work starts; there is no automatic monthly renewal.
 
 I have done it for my own businesses and for other people's. The results are public.
 
@@ -480,11 +481,11 @@ Four emails in. Here is where I would start with you.
 
 With the receipt. The list of what you pay, what each one does, and which ones you would keep if you owned the core. Half the time the answer is: keep two, replace three, cancel four.
 
-Then the build, in your accounts, once.
+Then the first 90 day campaign, with the agreed build and advertising allocation scoped in accounts you control.
 
 On a call I ask what you pay, what you use, and what you are afraid of losing if you stop. Then I tell you what it would take. No pitch, no catch, nothing to buy on the call.
 
-${close(5, c, `The written version of that conversation is the System Map, ${SYSTEM_MAP} one time. What you run, what it costs, what to fix first:`, "systemMap")}`,
+${close(5, c, `The first ${CAMPAIGN_DAYS} days start at ${MANAGED_UPFRONT} upfront, with the agreed build and advertising allocation included:`, "pricing")}`,
     },
   ],
 
@@ -616,7 +617,7 @@ ${close(8, c, "The Rent Receipt:", "rent")}`,
 
 The whole philosophy in five words: own the core, rent the edges.
 
-The core is your website, your customer list, and the place your bookings and requests land. Those live in accounts with your name on them, on tools that cost a few dollars a month or nothing. Nobody can raise the price. Nobody can lock you out.
+The core is your website, your customer list, and the place your bookings and requests land. Keep those in accounts you control, with usable exports and documented access. Hosting, vendors, and managed work still have costs and terms.
 
 The edges are everything else. Your accounting software. Your phone plan. A design tool. Rent those. They are cheap to leave.
 
@@ -663,11 +664,11 @@ I would rather tell you now than waste your twenty minutes.
 
 This is not for you if you want a ninety nine dollar template site and nothing else. That is renting with extra steps, and there are cheaper people for it.
 
-It is not for you if you want a guarantee on leads or revenue. Nobody honest can give you one and I will not pretend.
+It is not for you if you want raw names called customers. We agree what counts as an acquired job or completed deal, and use your closing records to measure it. A lead or appointment is a different step.
 
 It is not for you if you need somebody to run your whole marketing department by Friday.
 
-It is for you if you want to own the thing that runs your business, you are willing to spend one afternoon getting it set up right, and you would rather look at real numbers than hear a pitch.
+It is for you if you want to own the thing that runs your business, you are willing to help with setup, follow up, and accurate closing records, and you would rather look at real numbers than hear a pitch.
 
 ${close(12, c, "Who is on the other end of this:", "about")}`,
   },
@@ -813,7 +814,7 @@ The ones who never fix it are not lazy. They are waiting for a quiet week. The q
 
 If the thing you filled out the form about is still there, it is not going to leave on its own.
 
-${close(21, c, `The written plan for which leak first is the System Map, ${SYSTEM_MAP} one time, credited toward the build if you do one:`, "systemMap")}`,
+${close(21, c, `The first 90 day campaign defines the build, acquisition target, and included advertising allocation before you approve. See the upfront terms and day 90 review:`, "pricing")}`,
   },
   {
     day: 22,
@@ -822,13 +823,19 @@ ${close(21, c, `The written plan for which leak first is the System Map, ${SYSTE
 
 You have not asked, so I will just tell you.
 
-A twenty minute call is free. A written System Map is ${SYSTEM_MAP}, one time, credited toward the build if you do one. A five page site you own outright is ${WEBSITE_LAUNCH}. Bigger systems are scoped in writing before anyone starts, because a coffee shop and a three location service company are not the same build.
+A twenty minute call is free. Managed acquisition campaigns start at ${MANAGED_UPFRONT} upfront for the first ${CAMPAIGN_DAYS} days. The agreed build, onboarding, and advertising allocation are included in writing.
 
-Nothing is monthly unless you ask me to keep running it for you, and that is optional.
+Farm and agricultural work targets ${MANAGED_COMMERCIAL_TERMS.farmJobTarget} signed or paid acquired jobs. Extra farm acquisition targets are ${usd(PRICES.farmAcquiredJobPlanningTarget)} each. Real estate and mortgage use ${usd(PRICES.propertyCompletedDealPlanningTarget)} per targeted completed deal while we dial it in: ${MANAGED_COMMERCIAL_TERMS.propertyDealPlanningTarget} at the starting investment.
 
-What you are not paying for: a plan, a seat, a template, or my ability to hold your site hostage.
+Extra acquisition targets are scoped and paid upfront, with no automatic success charge. These are planning targets, not audited results or outcome guarantees. Leads and appointments do not count; you provide follow up and closing records.
 
-${close(22, c, "Every price on one page. No call required to see it:", "pricing")}`,
+Reach the agreed target early and we stop new acquisition. Inquiries already captured stay yours.
+
+At day 90 we review results and capacity, with no automatic extension. Scaling to a higher investment needs a new written scope and price; nothing charges automatically.
+
+Your accounts stay yours. Separate tools and existing signed agreements retain their own terms.
+
+${close(22, c, "The 90 day campaign, on one page:", "pricing")}`,
   },
   {
     day: 23,

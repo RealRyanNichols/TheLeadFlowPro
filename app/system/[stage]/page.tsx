@@ -33,8 +33,11 @@ import {
   type StageSlug,
 } from "@/lib/system-stages";
 import { TOOLS } from "@/lib/tools";
-import { WEBSITE_LAUNCH_CHECKOUT } from "@/lib/offers";
-import { PRICES, usd } from "@/lib/site/prices";
+
+import {
+  managedUpfrontSummary,
+  managedCampaignSummary,
+} from "@/lib/site/managedPlans";
 import CtaLink from "@/components/site/CtaLink";
 import CapabilityWorkflow from "@/components/site/CapabilityWorkflow";
 import ReportingPreview from "./ReportingPreview";
@@ -118,8 +121,14 @@ const STAGE_PRESENTATION: Record<StageSlug, StagePresentation> = {
 
 const OFFER_ICONS: LucideIcon[] = [Workflow, Layers3, Database, Boxes, Gauge];
 const WORKFLOW_EXAMPLES: Record<StageSlug, string> = {
-  attention: "seo", website: "public-website", "lead-capture": "lead-capture", crm: "crm",
-  "follow-up": "email", sale: "payments", delivery: "customer-portals", reporting: "your-analytics",
+  attention: "seo",
+  website: "public-website",
+  "lead-capture": "lead-capture",
+  crm: "crm",
+  "follow-up": "email",
+  sale: "payments",
+  delivery: "customer-portals",
+  reporting: "your-analytics",
 };
 
 // One full page per stage of the connected-company loop. The nodes on the
@@ -220,8 +229,7 @@ export default async function StagePage({
                   <StageIcon aria-hidden="true" />
                 </span>
                 <span>
-                  Stage {stage.num} of 8
-                  <small>{stage.short}</small>
+                  Stage {stage.num} of 8<small>{stage.short}</small>
                 </span>
               </p>
               <h1>
@@ -239,19 +247,17 @@ export default async function StagePage({
                   Map my company
                   <ArrowRight aria-hidden="true" />
                 </CtaLink>
-                <a
+                <Link
                   className={`${styles.button} ${styles.buttonGhost}`}
-                  href={WEBSITE_LAUNCH_CHECKOUT}
+                  href="/pricing"
                   data-analytics={`cta-website-launch-stage-${stage.slug}`}
                 >
-                  Start Website Launch · {usd(PRICES.websiteLaunchDeposit)}
-                </a>
+                  See the 90-day campaign
+                </Link>
               </div>
               <p className={styles.checkoutNote}>
-                {usd(PRICES.websiteLaunchDeposit)} starts the five-page Website Launch. Once intake begins, the deposit
-                is non-refundable, except where the written agreement or applicable law
-                requires otherwise. CRM, automation, portals, and deeper systems are
-                scoped separately.
+                {managedUpfrontSummary()} {managedCampaignSummary()}
+                Advertising spend is included in the plan’s written allocation.
               </p>
               <p className={styles.ownershipLine}>
                 <ShieldCheck aria-hidden="true" />
@@ -261,7 +267,9 @@ export default async function StagePage({
 
             <figure
               className={`${styles.heroVisual} ${
-                presentation.width === presentation.height ? styles.heroVisualSquare : ""
+                presentation.width === presentation.height
+                  ? styles.heroVisualSquare
+                  : ""
               }`}
             >
               <Image
@@ -279,8 +287,13 @@ export default async function StagePage({
             </figure>
           </div>
 
-          <p className={styles.stageNavLabel}>Explore every stage. Start where you need help.</p>
-          <nav className={styles.stageRail} aria-label="The eight connected-company stages">
+          <p className={styles.stageNavLabel}>
+            Explore every stage. Start where you need help.
+          </p>
+          <nav
+            className={styles.stageRail}
+            aria-label="The eight connected-company stages"
+          >
             {STAGES.map((s) => {
               const RailIcon = STAGE_PRESENTATION[s.slug].icon;
               return (
@@ -288,7 +301,9 @@ export default async function StagePage({
                   key={s.slug}
                   href={`/system/${s.slug}`}
                   aria-current={s.slug === stage.slug ? "page" : undefined}
-                  className={s.slug === stage.slug ? styles.stageCurrent : undefined}
+                  className={
+                    s.slug === stage.slug ? styles.stageCurrent : undefined
+                  }
                 >
                   <RailIcon aria-hidden="true" />
                   <span>
@@ -338,7 +353,11 @@ export default async function StagePage({
             <p>{stage.buildLead}</p>
           </div>
           <div className={styles.outputPreview}>
-            {stage.slug === "reporting" ? <ReportingPreview /> : <CapabilityWorkflow id={WORKFLOW_EXAMPLES[stage.slug]} />}
+            {stage.slug === "reporting" ? (
+              <ReportingPreview />
+            ) : (
+              <CapabilityWorkflow id={WORKFLOW_EXAMPLES[stage.slug]} />
+            )}
           </div>
           <div className={styles.offerGrid}>
             {stage.offers.map((o, index) => {
@@ -366,7 +385,10 @@ export default async function StagePage({
               Build this for my company
               <ArrowRight aria-hidden="true" />
             </CtaLink>
-            <Link className={`${styles.button} ${styles.buttonGhost}`} href="/add-ons">
+            <Link
+              className={`${styles.button} ${styles.buttonGhost}`}
+              href="/add-ons"
+            >
               See the full add-on menu
             </Link>
           </div>
@@ -426,13 +448,17 @@ export default async function StagePage({
                 <h2>Free tools for this stage. No signup to use them.</h2>
               </div>
               <p>
-                Try a tool with your own details. Check the assumptions beside the result,
-                then use it to decide what to review next.
+                Try a tool with your own details. Check the assumptions beside
+                the result, then use it to decide what to review next.
               </p>
             </div>
             <div className={styles.toolGrid}>
               {tools.map((t) => (
-                <Link key={t.slug} href={`/tools/${t.slug}`} className={styles.toolCard}>
+                <Link
+                  key={t.slug}
+                  href={`/tools/${t.slug}`}
+                  className={styles.toolCard}
+                >
                   <span className={styles.toolArt}>
                     <Image
                       src={t.image.src}
@@ -447,7 +473,10 @@ export default async function StagePage({
                     <strong>{t.name}</strong>
                     <span>{t.tagline}</span>
                   </span>
-                  <ArrowUpRight aria-hidden="true" className={styles.toolArrow} />
+                  <ArrowUpRight
+                    aria-hidden="true"
+                    className={styles.toolArrow}
+                  />
                 </Link>
               ))}
             </div>
@@ -466,21 +495,28 @@ export default async function StagePage({
               <h2>Already built. Go look.</h2>
             </div>
             <p>
-              Live systems where this stage is running right now. Open any of them and check
-              the work rather than taking our word for it.
+              Available websites and documented builds. Open a case study or
+              website to inspect the work.
             </p>
           </div>
           <div className={styles.proofGrid}>
             {stage.proof.map((p, index) => (
               <article key={p.name}>
-                <span className={styles.proofNumber}>{String(index + 1).padStart(2, "0")}</span>
+                <span className={styles.proofNumber}>
+                  {String(index + 1).padStart(2, "0")}
+                </span>
                 <div>
                   <h3>{p.name}</h3>
                   <p>{p.what}</p>
                 </div>
                 {p.url && (
-                  <a className={styles.proofLink} href={p.url} target="_blank" rel="noreferrer">
-                    Visit it
+                  <a
+                    className={styles.proofLink}
+                    href={p.url}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    Review the work
                     <ExternalLink aria-hidden="true" />
                   </a>
                 )}
@@ -494,12 +530,15 @@ export default async function StagePage({
         <div className={styles.shell}>
           <p className={styles.kicker}>Stage {next.num} is next</p>
           <h2>
-            <em>{stage.name} feeds {next.name.toLowerCase()}.</em>
+            <em>
+              {stage.name} feeds {next.name.toLowerCase()}.
+            </em>
             That is the whole point.
           </h2>
           <p className={styles.finalLead}>
-            Any one stage on its own is a tool. All eight, wired together, is a company that
-            runs. Start with the map and find out which stage is actually costing you money.
+            Any one stage on its own is a tool. All eight, wired together, is a
+            company that runs. Start with the map and find out which stage is
+            actually costing you money.
           </p>
           <div className={styles.actions}>
             <CtaLink

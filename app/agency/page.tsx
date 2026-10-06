@@ -6,7 +6,7 @@ import SiteHero from "@/components/site/system/SiteHero";
 import FinalCta from "@/components/site/system/FinalCta";
 import CaseStudies from "@/components/site/CaseStudy";
 import AgencyIntake from "./start/AgencyIntake";
-import { AGENCY_PAYMENT, agencyFixedPriceUsd, agencyPayHref } from "@/lib/agencyPayment";
+import { AGENCY_PAYMENT } from "@/lib/agencyPayment";
 import { PLUGIN } from "@/lib/pluginDocs";
 import {
   AGENCY_HUB,
@@ -15,69 +15,56 @@ import {
   CORE_AGENCY_SERVICES,
   OWNERSHIP_PROMISE,
   SPECIALTY_AGENCY_SERVICES,
-  agencyOffer,
   countWord,
   type AgencyService,
 } from "@/lib/site/agency";
 import { BUSINESS } from "@/lib/site/business";
-import { TBD_PRICE_LABEL } from "@/lib/site/offers";
+import { PROJECT_QUOTE_SUMMARY } from "@/lib/site/projectQuotes";
+import { productProjectIntakeHref } from "@/lib/site/agencyIntake";
+import { PRICES, usd } from "@/lib/site/prices";
+import {
+  MANAGED_PLANS,
+  managedAdvertisingExplanation,
+  managedBillingExplanation,
+  managedCampaignSummary,
+  managedCompletionExplanation,
+  managedRenewalExplanation,
+  managedPlanPrice,
+  managedUpfrontSummary,
+} from "@/lib/site/managedPlans";
 import { breadcrumbJsonLd, graph, jsonLdText, localBusinessJsonLd } from "@/lib/site/structuredData";
 
-// The agency hub: the "run it for me" lane. Every child page reads from
-// lib/site/agency.ts; pricing reads from lib/site/offers.ts and prints the
-// TBD line until Ryan sets a number.
-//
-// The page has to work, not just describe: the intake form is on the page
-// (section #intake), the written-scope payment has its own door
-// (/agency/pay), account access is one tap away (/connect), and the plugin
-// is where the client watches the leads land.
+// The public campaign is scoped before purchase. Existing clients keep a separate
+// signed-scope payment path; their agreed charge rules are unchanged.
 
 export const metadata: Metadata = withPublicPageMetadata("/agency", {
   title: "Agency: Meta ads, Google Ads, websites, automation, video, content | The LeadFlow Pro",
   description:
-    "Full-service ads, websites, automation, video, and content for East Texas businesses, plus specialty builds for crypto communities, CPA firms, and shops, run in accounts you own. You pay the platforms directly and keep the pixel, audiences, leads, and reporting.",
+    "Managed acquisition campaigns and separately quoted website, storefront, and product projects for East Texas businesses. You keep your accounts and records.",
 });
 
 const ALWAYS_TRUE = [
   "No guaranteed leads, cost per lead, ranking, or return on ad spend. Anyone promising those is guessing with your money.",
-  "Prices for the agency services are confirmed on the scoping call and written down before anything starts. Paying that number happens on this site, by card, against the scope.",
+  managedBillingExplanation(),
 ];
 
 /** One service card: the promise, the price line, and the two doors. */
 function ServiceCard({ service }: { service: AgencyService }) {
-  const offer = agencyOffer(service);
-  const fixed = agencyFixedPriceUsd(service);
-  const live = offer.status === "live";
   return (
     <article className="cb-servicecard" data-service={service.slug}>
       <p className="cb-eyebrow">{service.eyebrow}</p>
       <h3>{service.name}</h3>
       <p>{service.promise}</p>
       <div className="cb-servicecard-price">
-        {live ? (
-          <>
-            <strong>{offer.priceLabel}</strong>
-            <span>{service.slug === "websites" ? "The five-page Website Launch, bought outright." : "Published price. Pay it on this site."}</span>
-          </>
-        ) : (
-          <>
-            {TBD_PRICE_LABEL}
-            <span>Written down before anything starts. Paid by card against the scope.</span>
-          </>
-        )}
+        <strong>{service.inquiryKind === "product-project" ? "A separate project quote" : "Within your agreed acquisition campaign"}</strong>
+        <span>{service.inquiryKind === "product-project" ? "Build, launch, usage costs, and support agreed in writing." : "The work and advertising allocation are agreed in writing."}</span>
       </div>
       <Link href={`/agency/${service.slug}`} className="cb-textlink" data-cta="agency_service_open" data-cta-placement={service.slug}>
         See what is included <ArrowRight aria-hidden="true" />
       </Link>
-      {fixed !== null || service.slug !== "websites" ? (
-        <Link href={agencyPayHref(service.slug)} className="cb-textlink" data-cta="agency_service_pay" data-cta-placement={service.slug}>
-          Pay a written scope <CreditCard aria-hidden="true" />
-        </Link>
-      ) : (
-        <Link href="/packages/launch" className="cb-textlink" data-cta="agency_service_launch" data-cta-placement={service.slug}>
-          Buy the Website Launch <ArrowRight aria-hidden="true" />
-        </Link>
-      )}
+      <Link href={service.intakeHref} className="cb-textlink" data-cta="agency_service_intake" data-cta-placement={service.slug}>
+        {service.inquiryKind === "product-project" ? "Quote this project" : "Scope this campaign"} <ArrowRight aria-hidden="true" />
+      </Link>
     </article>
   );
 }
@@ -88,7 +75,7 @@ export default function AgencyHubPage() {
       id: `${BUSINESS.siteUrl}/agency#localbusiness`,
       name: `${BUSINESS.name} Agency`,
       catalogName: "Agency services",
-      offerIds: AGENCY_SERVICES.map((s) => s.offerId),
+      offerIds: [],
       knowsAbout: ["Meta ads management", "Google Ads management", "Business websites", "Marketing automation", "Video production", "Content marketing", "Community help desks", "Crypto tax client intake", "XRP Ledger treasury alerts", "Crypto payment setup"],
     }),
     breadcrumbJsonLd([
@@ -101,20 +88,79 @@ export default function AgencyHubPage() {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdText(jsonLd) }} />
       <SiteHero
         compact
-        eyebrow={AGENCY_HUB.eyebrow}
-        mutedTitle={AGENCY_HUB.title}
-        title="Ads, websites, automation, video, and content. Run for you. Owned by you."
-        body={AGENCY_HUB.lead}
+        eyebrow="Run my marketing"
+        mutedTitle="Your marketing."
+        title="Handled for you."
+        body={`An acquisition campaign with the agreed ads, website, follow-up, video, and content, managed in accounts you own. ${managedUpfrontSummary()} ${managedCampaignSummary()} Advertising is included.`}
         media={{
-          src: "/images/homepage-v2/company-operating-loop.webp",
-          alt: "The operating loop: capture, record, follow-up, sale, delivery, reporting",
-          kicker: "The loop",
-          caption: "Capture, record, follow up, sell, deliver, report. In your accounts.",
+          src: "/images/services/quote-follow-up-light.webp",
+          alt: "A quote clipboard, reminder bell, calendar, and phone connected across a bright cream desk",
+          kicker: "The work keeps moving",
+          caption: "Ads, inquiries, follow-up, and the next decision. Handled in your accounts.",
         }}
-        primary={{ href: "#intake", label: "Tell Ryan what is leaking" }}
-        secondary={{ href: "#services", label: `See the ${countWord(AGENCY_SERVICES.length)} services` }}
+        primary={{ href: "#intake", label: "Get my scope" }}
+        secondary={{ href: "#plans", label: "See campaign terms" }}
         trustLine={OWNERSHIP_PROMISE.headline}
       />
+
+      <section id="project-quotes" className="cb-band" aria-labelledby="project-quotes-title">
+        <div className="cb-shell">
+          <div className="cb-headrow">
+            <div>
+              <p className="cb-eyebrow">Website, storefront, or product launch</p>
+              <h2 id="project-quotes-title" className="cb-h2 cb-heading">Quote the project you need.</h2>
+            </div>
+            <p className="cb-lead">{PROJECT_QUOTE_SUMMARY}</p>
+          </div>
+          <div className="cb-actions">
+            <Link href={productProjectIntakeHref()} className="cb-btn cb-btn--primary" data-cta="product_project_quote" data-cta-placement="agency_project">
+              Get my project quote <ArrowRight aria-hidden="true" className="h-4 w-4" />
+            </Link>
+            <Link href="/commerce" className="cb-btn cb-btn--ghost">
+              Explore product and storefront work
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section id="plans" className="cb-band cb-band--tint" aria-labelledby="plans-title" tabIndex={-1}>
+        <div className="cb-shell">
+          <div className="cb-headrow">
+            <div>
+              <p className="cb-eyebrow">One minimum starting campaign</p>
+              <h2 id="plans-title" className="cb-h2 cb-heading">Up to 90 days, with a clear target.</h2>
+            </div>
+            <p className="cb-lead">{managedBillingExplanation()}</p>
+          </div>
+          <div className="cb-servicegrid mt-8" style={{ gridTemplateColumns: "minmax(0, 1fr)" }}>
+            {MANAGED_PLANS.map((plan) => {
+              const price = managedPlanPrice(plan);
+              return (
+                <article key={plan.id} className="cb-servicecard" data-managed-plan={plan.id}>
+                  <p className="cb-eyebrow">{plan.badge ?? "Managed marketing"}</p>
+                  <h3>{plan.name}</h3>
+                  <p>{plan.description}</p>
+                  <div className="cb-servicecard-price">
+                    <strong>{price.amount} {price.unit}</strong>
+                    <span>{plan.billingNote}</span>
+                  </div>
+                  <Link href="#intake" className="cb-textlink" data-cta="agency_plan_intake" data-cta-placement={plan.id}>
+                    {plan.cta} <ArrowRight aria-hidden="true" />
+                  </Link>
+                </article>
+              );
+            })}
+          </div>
+          <p className="cb-lead mt-6">{managedAdvertisingExplanation()}</p>
+          <p className="cb-lead mt-6">
+            For farm/ag work, the planning goal is 15 acquired jobs with signed or
+            paid confirmation at a {usd(PRICES.farmAcquiredJobPlanningTarget)} cost per acquisition. It is a target, not
+            a promise. A lead or appointment is not an acquired job.
+          </p>
+          <p className="cb-lead mt-6">{managedCompletionExplanation()}</p>
+          <p className="cb-lead mt-6">{managedRenewalExplanation()}</p>
+        </div>
+      </section>
 
       <section id="services" className="cb-band" tabIndex={-1}>
         <div className="cb-shell">
@@ -124,8 +170,8 @@ export default function AgencyHubPage() {
               <h2 className="cb-h2 cb-heading">Pick the piece that is leaking.</h2>
             </div>
             <p className="cb-lead">
-              Each one is scoped on its own, priced in writing before it starts, and built so it keeps
-              working if we ever part ways.
+              Choose the priorities within your campaign. We define the work, acquisition target, capacity, and advertising allocation before it starts.
+              {" "}<Link href="/services" className="underline underline-offset-4">Want a build your own team runs? Explore build services.</Link>
             </p>
           </div>
           <div className="cb-servicegrid">
@@ -176,15 +222,15 @@ export default function AgencyHubPage() {
           <div className="cb-doors">
             <div className="cb-door">
               <span className="cb-door-num">01 · Tell</span>
-              <h3>Ten questions, one business day.</h3>
+              <h3>Your business. A clear next step.</h3>
               <p>
-                Business, channels, the ad budget you are genuinely prepared to spend, the bottleneck,
-                who decides, and when. Saved the second you send it, with an alert on Ryan&rsquo;s phone.
+                Business, channels, the campaign you are prepared to support, the bottleneck,
+                who decides, and when. Your answers are saved for review.
               </p>
               <ul>
                 <li><Check aria-hidden="true" /> A written reply within one business day</li>
                 <li><Check aria-hidden="true" /> The scope, ownership, and price in writing before anything starts</li>
-                <li><Check aria-hidden="true" /> A $0 ad budget does not disqualify you</li>
+                <li><Check aria-hidden="true" /> Advertising is included in the agreed campaign allocation</li>
               </ul>
               <div className="cb-actions">
                 <Link href="#intake" className="cb-btn cb-btn--primary" data-cta="agency_door_intake" data-cta-placement="agency_hub">
@@ -194,8 +240,8 @@ export default function AgencyHubPage() {
               </div>
             </div>
             <div className="cb-door">
-              <span className="cb-door-num">02 · Pay</span>
-              <h3>Pay the number in writing.</h3>
+              <span className="cb-door-num">Existing clients · Pay</span>
+              <h3>Pay an existing written scope.</h3>
               <p>
                 Already have your scope? Pick the service, one-time or monthly, type the number Ryan
                 wrote down, and pay by card through Stripe. Nothing on the page can change what was
@@ -204,7 +250,7 @@ export default function AgencyHubPage() {
               <ul>
                 <li><Check aria-hidden="true" /> One-time for a setup, build, shoot, or project</li>
                 <li><Check aria-hidden="true" /> Monthly for a management fee, cancel yourself</li>
-                <li><Check aria-hidden="true" /> Ad spend never passes through The LeadFlow Pro</li>
+                <li><Check aria-hidden="true" /> Your existing signed agreement controls this payment</li>
               </ul>
               <div className="cb-actions">
                 <Link href={AGENCY_PAYMENT.payPath} className="cb-btn cb-btn--primary" data-cta="agency_door_pay" data-cta-placement="agency_hub">
@@ -214,7 +260,7 @@ export default function AgencyHubPage() {
               </div>
             </div>
             <div className="cb-door cb-door--ink">
-              <span className="cb-door-num">03 · Connect</span>
+              <span className="cb-door-num">Existing clients · Connect</span>
               <h3>Your accounts, your name, one tap.</h3>
               <p>
                 Log in with Facebook, tap approve, and the Business Manager, ad account, page, and
@@ -224,7 +270,7 @@ export default function AgencyHubPage() {
               <ul>
                 <li><Check aria-hidden="true" /> Nothing is built anywhere but your accounts</li>
                 <li><Check aria-hidden="true" /> The first-party trace from ad to lead to outcome stays in your records</li>
-                <li><Check aria-hidden="true" /> Fire Ryan tomorrow and everything keeps working</li>
+                <li><Check aria-hidden="true" /> Your accounts, records, and owned systems stay with you</li>
               </ul>
               <div className="cb-actions">
                 <Link href="/connect" className="cb-btn cb-btn--ghost" data-cta="agency_door_connect" data-cta-placement="agency_hub">
@@ -385,12 +431,12 @@ export default function AgencyHubPage() {
           <div className="sv-form-intro">
             <p className="cb-eyebrow">The intake</p>
             <h2 id="intake-title" className="cb-h2 cb-heading">
-              Tell Ryan what is leaking.
+              Scope your managed acquisition campaign.
             </h2>
             <p className="cb-lead">
-              Ten questions. The answers land on Ryan&rsquo;s desk the moment you send them, with a
-              note back to your inbox. Expect a text or call within one business day to map the first
-              ninety days.
+              Share your business, services, territory, and capacity so Ryan can scope the first
+              ninety days. Expect an email reply within one business day. With your permission,
+              Ryan may also call or text.
             </p>
             <ul className="sv-form-points">
               <li>
@@ -399,7 +445,7 @@ export default function AgencyHubPage() {
               </li>
               <li>
                 <Check aria-hidden="true" className="h-5 w-5" />
-                Your accounts stay in your name. Ad spend goes from your card to the platform.
+                Your accounts stay in your name. The included advertising allocation is defined in your written campaign scope.
               </li>
               <li>
                 <Check aria-hidden="true" className="h-5 w-5" />
@@ -409,7 +455,7 @@ export default function AgencyHubPage() {
           </div>
           <div className="sv-form-card">
             <AgencyIntake
-              services={AGENCY_SERVICES.map((s) => ({ slug: s.slug, label: s.navLabel }))}
+              services={[...CORE_AGENCY_SERVICES.map((s) => ({ slug: s.slug, label: s.navLabel })), { slug: "custom", label: "A custom build or another priority" }]}
               preselected={null}
               placement="agency_hub"
             />

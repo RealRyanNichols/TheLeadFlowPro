@@ -148,6 +148,7 @@ export function buildProposal(intake: ProposalIntake, now: Date, options: BuildP
   const d = intake.diagnostic ?? {};
   const labels = (d.labels ?? {}) as Record<string, unknown>;
   const rec = (d.recommendation ?? {}) as Record<string, unknown>;
+  const isProductProject = d.inquiry_kind === "product-project" || d.source === "product_project";
   const isAgency = intake.interest === "done_for_you" || d.source === "agency_intake";
   const selection = cleanSelection(options.selection);
 
@@ -160,10 +161,39 @@ export function buildProposal(intake: ProposalIntake, now: Date, options: BuildP
   if (intake.websiteUrl) facts.push(`Website: ${intake.websiteUrl}`);
   for (const s of strList(labels.stages)) facts.push(`Stage: ${s}`);
   if (intake.timeline) facts.push(`Timeline given: ${intake.timeline}`);
-  if (intake.budgetRange) facts.push(`Budget range given: ${BUDGET_LABELS[intake.budgetRange] ?? intake.budgetRange}`);
-  if (str(d.ad_budget)) facts.push(`Monthly ad budget they are prepared to spend: ${BUDGET_LABELS[String(d.ad_budget)] ?? String(d.ad_budget)}`);
+  if (!isProductProject && intake.budgetRange) facts.push(`Budget range given: ${BUDGET_LABELS[intake.budgetRange] ?? intake.budgetRange}`);
+  if (!isProductProject && str(d.ad_budget)) facts.push(`Monthly ad budget they are prepared to spend: ${BUDGET_LABELS[String(d.ad_budget)] ?? String(d.ad_budget)}`);
   if (!intake.goals?.trim()) missing.push("The intake has no goals text. Ask the client what they want in their own words before sending.");
   if (!intake.businessName) missing.push("No business name on the lead. Add it before sending.");
+
+  // A product inquiry is not an approved legacy package selection. This
+  // generator has no separately scoped project-price input, so even a call
+  // selection must wait for a written quote instead of producing pay links.
+  if (isProductProject) {
+    facts.push("Product-project inquiry: deliverables, ownership, timing, operating costs, support and price still need a separate written quote.");
+    const requestedModules = strList(rec.modules).length ? strList(rec.modules) : (intake.desiredModules ?? []);
+    if (requestedModules.length) facts.push(`Build modules requested for review: ${requestedModules.map(humanize).join(", ")}.`);
+    missing.push("A separate written product-project scope and price are required. Do not substitute a legacy package or campaign price, and do not send a payment link from this unpriced draft.");
+    const draft: Proposal = {
+      preparedFor: { name: intake.fullName, business: intake.businessName },
+      preparedBy: { name: BUSINESS.name, operator: BUSINESS.operator, email: BUSINESS.email.hello, phone: BUSINESS.phone.display, legal: BUSINESS.dbaLine },
+      date: localDate(now),
+      validUntil: localDate(new Date(now.getTime() + 30 * 86_400_000)),
+      problem: { quote: intake.goals?.trim() || null, facts },
+      recommended: [],
+      modules: [],
+      deliverables: [],
+      clientOwns: [],
+      vendorCosts: [],
+      notIncluded: [],
+      price: [],
+      acceptance: ["A separate written project quote is required before approval, payment, or work. This scope request does not authorize a charge."],
+      missing,
+      text: "",
+    };
+    draft.text = proposalText(draft);
+    return draft;
+  }
 
   // Recommended offers and everything that hangs off them.
   const recommended: Proposal["recommended"] = [];

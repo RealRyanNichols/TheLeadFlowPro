@@ -11,6 +11,8 @@ import { getPublicOgPage, getPublicOgPages } from "../lib/publicOgCatalog.ts";
 import { PUBLIC_PAGE_CATALOG } from "../lib/publicPageCatalog.ts";
 import {
   AD_PAGE_SOCIAL_IMAGES,
+  PUBLIC_OG_REVISION,
+  PUBLIC_OG_REVISIONS,
   PUBLIC_OG_SIZE,
   PUBLIC_SITE_URL,
   publicPageImagePath,
@@ -25,7 +27,6 @@ const observedAt = new Date("2026-09-06T18:00:00Z");
 
 test("paid-traffic pages use distinct finished 1200 by 630 JPEG artwork", async () => {
   const expected = {
-    "/services": "/images/social/services-20260907.jpg",
     "/scoreboard": "/images/social/scoreboard-20260907.jpg",
     "/premier-system": "/images/social/premier-system-20260907.jpg",
     "/portfolio": "/images/social/portfolio-20260907.jpg",
@@ -72,7 +73,12 @@ test("legacy ad preview URLs return the full finished image bytes and reject que
   const localRequire = (name: string) => {
     if (name === "@/lib/publicOgCatalog") return { getPublicOgPage };
     if (name === "@/lib/publicPageMetadata")
-      return { AD_PAGE_SOCIAL_IMAGES, PUBLIC_OG_SIZE };
+      return {
+        AD_PAGE_SOCIAL_IMAGES,
+        PUBLIC_OG_SIZE,
+        PUBLIC_OG_REVISION,
+        PUBLIC_OG_REVISIONS,
+      };
     if (name === "@/lib/publicOgCard")
       return {
         publicOgCard: () =>
@@ -84,8 +90,7 @@ test("legacy ad preview URLs return the full finished image bytes and reject que
   };
   new Function("require", "exports", compiled)(localRequire, routeExports);
   for (const route of [
-    ...Object.keys(UNIQUE_OG_IMAGES),
-    "/services",
+    ...Object.keys(UNIQUE_OG_IMAGES).filter((route) => route !== "/pricing"),
     "/scoreboard",
     "/premier-system",
     "/portfolio",
@@ -147,6 +152,186 @@ test("every catalogued public URL has one distinct social image URL", () => {
   }
 });
 
+test("website project scope reaches generated share cards without imposing acquisition pricing", async () => {
+  const source = await readFile("lib/publicOgCard.tsx", "utf8");
+  const compiled = ts.transpileModule(source, {
+    compilerOptions: {
+      module: ts.ModuleKind.CommonJS,
+      jsx: ts.JsxEmit.ReactJSX,
+    },
+  }).outputText;
+  const cardExports: { publicOgCard?: (input: unknown) => ReactElement } = {};
+  new Function("require", "exports", compiled)(require, cardExports);
+  assert.ok(cardExports.publicOgCard);
+  const { renderToStaticMarkup } = require("react-dom/server");
+  for (const route of ["/services", "/agency/websites"]) {
+    const page = getPublicOgPage(route, observedAt);
+    assert.ok(page, route);
+    const markup = renderToStaticMarkup(
+      cardExports.publicOgCard({
+        page,
+        logoData: "/images/brand/leadflow-logo.png",
+      }),
+    );
+    assert.match(markup, /separate written quote/, route);
+    assert.match(markup, /[Mm]anaged acquisition is optional/, route);
+    assert.doesNotMatch(
+      markup,
+      /\$7,500|90-day acquisition|within the written acquisition campaign/,
+      route,
+    );
+    const metadata = withPublicPageMetadata(route, { title: page.title });
+    assert.equal(metadata.openGraph?.description, page.description, route);
+    assert.equal(metadata.twitter?.description, page.description, route);
+  }
+});
+
+test("versioned generated routes retain legacy aliases and reject query text or unknown revisions", async () => {
+  const source = await readFile("app/og/pages/[...path]/route.tsx", "utf8");
+  const compiled = ts.transpileModule(source, {
+    compilerOptions: {
+      module: ts.ModuleKind.CommonJS,
+      target: ts.ScriptTarget.ES2022,
+      jsx: ts.JsxEmit.ReactJSX,
+      esModuleInterop: true,
+    },
+  }).outputText;
+  const routeExports = {} as {
+    GET: (
+      request: Request,
+      context: { params: Promise<{ path: string[] }> },
+    ) => Promise<Response>;
+  };
+  const localRequire = (name: string) => {
+    if (name === "@/lib/publicOgCatalog") return { getPublicOgPage };
+    if (name === "@/lib/publicPageMetadata")
+      return {
+        AD_PAGE_SOCIAL_IMAGES,
+        PUBLIC_OG_SIZE,
+        PUBLIC_OG_REVISION,
+        PUBLIC_OG_REVISIONS,
+      };
+    if (name === "@/lib/publicOgCard")
+      return {
+        publicOgCard: ({ page }: { page: { title: string } }) =>
+          require("react").createElement(
+            "div",
+            {
+              style: {
+                display: "flex",
+                fontFamily: "LeadFlow Inter",
+                fontWeight: 900,
+              },
+            },
+            page.title,
+          ),
+      };
+    return require(name);
+  };
+  new Function("require", "exports", compiled)(localRequire, routeExports);
+  const images: Buffer[] = [];
+  for (const suffix of [
+    "",
+    ...PUBLIC_OG_REVISIONS.map((revision) => `/${revision}`),
+  ]) {
+    const response = await routeExports.GET(
+      new Request(`${PUBLIC_SITE_URL}/og/pages/agency${suffix}`),
+      {
+        params: Promise.resolve({
+          path: ["agency", ...suffix.split("/").filter(Boolean)],
+        }),
+      },
+    );
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("Content-Type"), "image/png");
+    assert.equal(response.headers.get("X-Content-Type-Options"), "nosniff");
+    images.push(Buffer.from(await response.arrayBuffer()));
+  }
+  for (const image of images.slice(1)) assert.deepEqual(images[0], image);
+  for (const suffix of [
+    "",
+    ...PUBLIC_OG_REVISIONS.map((revision) => `/${revision}`),
+  ]) {
+    const response = await routeExports.GET(
+      new Request(`${PUBLIC_SITE_URL}/og/pages/services${suffix}`),
+      {
+        params: Promise.resolve({
+          path: ["services", ...suffix.split("/").filter(Boolean)],
+        }),
+      },
+    );
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("Content-Type"), "image/png");
+  }
+  for (const [url, segments] of [
+    [
+      `agency/${PUBLIC_OG_REVISION}?email=private@example.test`,
+      ["agency", PUBLIC_OG_REVISION],
+    ],
+    ["agency/unknown-revision", ["agency", "unknown-revision"]],
+    [`admin/${PUBLIC_OG_REVISION}`, ["admin", PUBLIC_OG_REVISION]],
+  ] as const) {
+    const response = await routeExports.GET(
+      new Request(`${PUBLIC_SITE_URL}/og/pages/${url}`),
+      { params: Promise.resolve({ path: [...segments] }) },
+    );
+    assert.equal(response.status, 404, url);
+    assert.equal(response.headers.get("Cache-Control"), "no-store", url);
+  }
+});
+
+test("generated cards use one finite cache revision while finished scenes retain their public URLs", () => {
+  for (const route of [
+    "/",
+    "/agency",
+    "/services",
+    "/service-areas",
+    "/pricing",
+    "/operatoros",
+  ]) {
+    const image = publicPageImagePath(route);
+    assert.equal(
+      image,
+      `/og/pages${route === "/" ? "/home" : route}/${PUBLIC_OG_REVISION}`,
+    );
+    assert.equal(getPublicOgPage(route)?.imagePath, image);
+  }
+  assert.equal(
+    publicPageImagePath("/tools/job-price-calculator"),
+    uniqueOgImagePath("/tools/job-price-calculator"),
+  );
+});
+
+test("remaining legacy tool previews are distinct light images with versioned URLs", async () => {
+  const previews = getPublicOgPages().filter((page) =>
+    page.imagePath.startsWith("/og/tools/violet-20261003/"),
+  );
+  assert.ok(
+    previews.length > 50,
+    "The active legacy tool cards must enter the new palette",
+  );
+  const hashes = new Set<string>();
+  for (const page of previews) {
+    const bytes = await readFile(
+      path.join(process.cwd(), "public", page.imagePath),
+    );
+    const dimensions = await sharp(bytes).metadata();
+    assert.equal(dimensions.format, "jpeg", page.path);
+    assert.equal(dimensions.width, 1200, page.path);
+    assert.equal(dimensions.height, 630, page.path);
+    assert.ok(bytes.length < 500_000, page.path);
+    const stats = await sharp(bytes).resize(16, 8).stats();
+    const mean =
+      stats.channels
+        .slice(0, 3)
+        .reduce((total, channel) => total + channel.mean, 0) / 3;
+    assert.ok(mean > 150, `${page.path} still has the retired dark background`);
+    const hash = createHash("sha256").update(bytes).digest("hex");
+    assert.ok(!hashes.has(hash), `${page.path} repeats another tool image`);
+    hashes.add(hash);
+  }
+});
+
 test("canonical and social metadata agree while preserving page-specific and privacy fields", () => {
   for (const page of PUBLIC_PAGE_CATALOG) {
     const result = withPublicPageMetadata(page.path, {
@@ -174,6 +359,41 @@ test("canonical and social metadata agree while preserving page-specific and pri
     assert.equal(images[0].width, 1200);
     assert.equal(images[0].height, 630);
     assert.deepEqual(result.twitter?.images, images);
+  }
+});
+
+test("reviewed page descriptions fill missing metadata without replacing explicit copy or privacy flags", () => {
+  for (const path of ["/sellerproof/privacy", "/sellerproof/terms"]) {
+    const page = PUBLIC_PAGE_CATALOG.find((entry) => entry.path === path);
+    assert.ok(page);
+    const inherited = withPublicPageMetadata(path, {
+      title: page.title,
+      robots: { index: false, follow: false },
+      referrer: "no-referrer",
+    });
+    assert.equal(inherited.description, page.description);
+    assert.equal(inherited.openGraph?.description, page.description);
+    assert.equal(inherited.twitter?.description, page.description);
+    assert.deepEqual(inherited.robots, { index: false, follow: false });
+    assert.equal(inherited.referrer, "no-referrer");
+
+    const custom = withPublicPageMetadata(path, {
+      title: "A deliberately distinct page title",
+      description: "A page-specific description remains authoritative.",
+      openGraph: { description: "A separately reviewed share description." },
+    });
+    assert.equal(
+      custom.description,
+      "A page-specific description remains authoritative.",
+    );
+    assert.equal(
+      custom.openGraph?.description,
+      "A separately reviewed share description.",
+    );
+    assert.equal(
+      custom.twitter?.description,
+      "A separately reviewed share description.",
+    );
   }
 });
 
@@ -288,6 +508,20 @@ test("all generated previews really render as distinct 1200 by 630 PNGs", async 
   assert.ok(cardExports.publicOgCard);
   const logoData = `data:image/png;base64,${(await readFile("public/images/brand/leadflow-logo.png")).toString("base64")}`;
   const hashes = new Set<string>();
+  const fonts = [
+    {
+      name: "LeadFlow Inter",
+      data: await readFile("public/fonts/og/inter-latin-400-normal.woff"),
+      weight: 400 as const,
+      style: "normal" as const,
+    },
+    {
+      name: "LeadFlow Inter",
+      data: await readFile("public/fonts/og/inter-latin-900-normal.woff"),
+      weight: 900 as const,
+      style: "normal" as const,
+    },
+  ];
   for (const page of getPublicOgPages(observedAt).filter((page) =>
     page.imagePath.startsWith("/og/pages/"),
   )) {
@@ -302,7 +536,7 @@ test("all generated previews really render as distinct 1200 by 630 PNGs", async 
       : undefined;
     const response: Response = new ImageResponse(
       cardExports.publicOgCard({ page, logoData, artData }),
-      { width: 1200, height: 630 },
+      { width: 1200, height: 630, fonts },
     );
     const bytes: Buffer = Buffer.from(await response.arrayBuffer());
     const dimensions = await sharp(bytes).metadata();
@@ -322,11 +556,12 @@ test("September 12 artwork covers 50 public URLs with distinct optimized 1200 by
   assert.equal(entries.length, 50);
   const hashes = new Set<string>();
   for (const [route, image] of entries) {
-    assert.equal(
-      getPublicOgPage(route, new Date("2026-09-12T23:00:00Z"))?.imagePath,
-      image,
-      route,
-    );
+    if (route !== "/pricing")
+      assert.equal(
+        getPublicOgPage(route, new Date("2026-09-12T23:00:00Z"))?.imagePath,
+        image,
+        route,
+      );
     assert.equal(uniqueOgImagePath(`${route}?token=private`), undefined);
     const bytes = await readFile(path.join(process.cwd(), "public", image));
     const metadata = await sharp(bytes).metadata();

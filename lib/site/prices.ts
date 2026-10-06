@@ -12,6 +12,12 @@
 // a guessed number here.
 
 export const PRICES = {
+  /** Owner-approved minimum upfront investment for the initial 90-day campaign. */
+  managedStartingUpfront: 7500,
+  /** Owner planning targets per completed outcome, not a charge or measured CAC. */
+  farmAcquiredJobPlanningTarget: 500,
+  propertyCompletedDealPlanningTarget: 1500,
+
   /** Ryan-approved September 2026 introductory package, one time. */
   septemberSpecialTotal: 1497,
   septemberSpecialAds: 500,

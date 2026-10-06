@@ -71,11 +71,12 @@ export default function SiteHeader() {
             event.preventDefault();
           }}
         >
-          <summary aria-label="Open navigation menu">
+          <summary aria-label="Navigation menu">
             <Menu aria-hidden="true" className="h-5 w-5" />
           </summary>
-          <div
+          <nav
             className="mobile-nav-panel"
+            aria-label="Primary navigation"
             onClick={(event) => {
               if (
                 event.target instanceof Element &&
@@ -103,7 +104,7 @@ export default function SiteHeader() {
               {HEADER_CTA.label}
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </Link>
-          </div>
+          </nav>
         </details>
       </div>
     </header>

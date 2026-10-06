@@ -5,7 +5,7 @@ import AddOnsMenu from "./AddOnsMenu";
 export const metadata: Metadata = withPublicPageMetadata("/add-ons", {
   title: "The Add-On Menu | The LeadFlow Pro",
   description:
-    "Inspect proven LeadFlow modules and request a written scope. Tools and growth systems are priced separately, in writing, before work begins.",
+    "Choose LeadFlow modules for a written scope. Managed work includes its agreed advertising allocation; custom work beyond that scope is quoted before approval.",
   alternates: { canonical: "https://www.theleadflowpro.com/add-ons" },
   openGraph: {
     title: "Choose the capability. Get the scope before the build.",
@@ -24,6 +24,11 @@ export const metadata: Metadata = withPublicPageMetadata("/add-ons", {
   },
 });
 
-export default function AddOnsPage() {
-  return <AddOnsMenu />;
+export default async function AddOnsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ module?: string | string[] }>;
+}) {
+  const { module } = await searchParams;
+  return <AddOnsMenu initialModule={module === "courses" ? "courses" : null} />;
 }

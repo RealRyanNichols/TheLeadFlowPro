@@ -1482,3 +1482,17 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* A territory is a reviewed agreement, never an automatic form reservation. */
+.lf-territory-callout{display:grid;grid-template-columns:minmax(0,1fr) 230px;align-items:center;gap:40px;padding:clamp(24px,4vw,48px);border:1px solid #cfc1e0;border-radius:24px;background:radial-gradient(ellipse at 90% 10%,#d7c6f580,transparent 60%),linear-gradient(125deg,#f8f3ff,#fff9ef);box-shadow:0 18px 60px #3821520a}
+.lf-territory-callout h2{max-width:750px;margin:12px 0 18px;color:#20212b;font-size:clamp(28px,3.2vw,42px);font-weight:900;letter-spacing:-.04em;line-height:1.12}
+.lf-territory-callout p:not(.lf-eyebrow){max-width:650px;margin-bottom:24px;color:#534c61;font-size:17px;line-height:1.65}
+.lf-territory-visual{position:relative;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;height:230px;color:#5135ba;font-size:13px;font-weight:850}
+.lf-territory-ring{position:absolute;inset:0;border:1px solid #7c58c950;border-radius:50%;background:#b697f00a}
+.lf-territory-ring-inner{inset:27px;border:1px dashed #7c58c960;background:#b697f013}
+.lf-territory-visual svg,.lf-territory-visual>span:last-child{position:relative}
+@media(max-width:700px){.lf-territory-callout{grid-template-columns:1fr;gap:20px}.lf-territory-visual{display:none}}
+
+.lf-plan-expectation { max-width: 35rem; margin: 1.1rem 0; color: #342f56; line-height: 1.6; font-size: .95rem; }
+.lf-plan-expectation a { text-decoration: underline; text-underline-offset: 4px; }
+.lf-plan-expectation strong { color: #231a43; }

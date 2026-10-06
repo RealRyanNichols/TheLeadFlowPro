@@ -54,6 +54,14 @@ import {
   Wrench,
 } from "lucide-react";
 import { SmsConsentText } from "@/components/site/SmsConsentText";
+import { useFormReady } from "@/components/site/useFormReady";
+import { BUSINESS } from "@/lib/site/business";
+import { smsHref } from "@/lib/site/textLinks";
+import { consultationReplyMethod } from "@/lib/site/inquiryValidation";
+import {
+  managedUpfrontSummary,
+  managedCampaignSummary,
+} from "@/lib/site/managedPlans";
 
 declare global {
   interface Window {
@@ -361,7 +369,7 @@ const CATEGORIES: Category[] = [
       {
         id: "blog_engine",
         name: "Blog and article engine",
-        desc: "Long form publishing with categories, sharing, and search engines actually finding it.",
+        desc: "Long form publishing with categories, sharing, and pages prepared for search indexing.",
         icon: Newspaper,
         proof: "Live on all seven properties",
         moduleId: "archive_library",
@@ -448,7 +456,7 @@ const CATEGORIES: Category[] = [
       {
         id: "migration",
         name: "White glove migration",
-        desc: "Your content, records, and customers moved off the old platform without losing a thing.",
+        desc: "An approved migration of content and customer records, with exports, checks, and a recovery plan.",
         icon: Wrench,
         proof: "Done for every build",
         moduleId: "admin_workspace",
@@ -459,8 +467,15 @@ const CATEGORIES: Category[] = [
 
 const ALL_ITEMS: AddOn[] = CATEGORIES.flatMap((c) => c.items);
 
-export default function AddOnsMenu() {
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+export default function AddOnsMenu({
+  initialModule = null,
+}: {
+  initialModule?: "courses" | null;
+}) {
+  const ready = useFormReady();
+  const [selected, setSelected] = useState<Set<string>>(
+    () => new Set(initialModule ? [initialModule] : []),
+  );
   const [sending, setSending] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -486,6 +501,7 @@ export default function AddOnsMenu() {
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!ready || sending) return;
     setSending(true);
     setError(null);
     const form = new FormData(e.currentTarget);
@@ -512,14 +528,14 @@ export default function AddOnsMenu() {
           phone: phone || null,
           website_url: form.get("website_url"),
           desired_modules: moduleIds,
-          interest: "company_os",
+          interest: "done_for_you",
           goals: [
             `ADD-ON SCOPE REQUEST (${names.length} item${names.length === 1 ? "" : "s"}): ${names.join("; ")}.`,
             notes ? `How they want it built: ${notes}` : "",
           ]
             .filter(Boolean)
             .join(" "),
-          best_contact_method: form.get("best_contact_method"),
+          best_contact_method: consultationReplyMethod(form),
           sms_consent: smsConsent,
           marketing_email_consent: form.get("marketing_email_consent") === "on",
           utm_source: params.get("utm_source"),
@@ -585,9 +601,9 @@ export default function AddOnsMenu() {
               <span>Get the scope before the build.</span>
             </h1>
             <p className={styles.heroLead}>
-              This is not a checkout. Select the proven modules your business needs, tell
-              me the outcome, and I will return a written scope, timeline, and price before
-              paid production begins.
+              This is not a checkout. Select the proven modules your business
+              needs, tell me the outcome, and I will return a written scope,
+              timeline, and price before paid production begins.
             </p>
             <div className={styles.heroActions}>
               <a href="#module-menu" className={styles.primaryButton}>
@@ -595,14 +611,15 @@ export default function AddOnsMenu() {
                 <ArrowRight aria-hidden="true" />
               </a>
               <Link href="/pricing" className={styles.secondaryButton}>
-                See Current Offers
+                See the 90-day campaign
               </Link>
             </div>
             <div className={styles.qualifier}>
               <ShieldCheck aria-hidden="true" />
               <p>
-                Funnels, CRM, tools, portals, courses, ads, automation, and
-                every add-on below are optional and scoped separately.
+                {managedUpfrontSummary()} {managedCampaignSummary()} Advertising
+                spend is included in the campaign&apos;s written allocation.
+                Custom work is scoped before approval.
               </p>
             </div>
           </div>
@@ -616,8 +633,9 @@ export default function AddOnsMenu() {
             <h2>Start with the outcome. Select only what supports it.</h2>
           </div>
           <p>
-            Every module is based on a real system already running on a LeadFlow build.
-            Your selections create a scope request, not a purchase or authorization to work.
+            Every module is based on a real system already running on a LeadFlow
+            build. Your selections create a scope request, not a purchase or
+            authorization to work.
           </p>
         </div>
         {CATEGORIES.map((cat) => (
@@ -628,7 +646,8 @@ export default function AddOnsMenu() {
                 <p>{cat.blurb}</p>
               </div>
               <span className={styles.selectedCount}>
-                {cat.items.filter((i) => selected.has(i.id)).length} of {cat.items.length} selected
+                {cat.items.filter((i) => selected.has(i.id)).length} of{" "}
+                {cat.items.length} selected
               </span>
             </div>
             <div className={styles.itemGrid}>
@@ -639,6 +658,7 @@ export default function AddOnsMenu() {
                   <button
                     key={item.id}
                     type="button"
+                    disabled={!ready || sending}
                     aria-pressed={isOn}
                     onClick={() => toggle(item.id)}
                     className={`${styles.item} ${isOn ? styles.itemSelected : ""}`}
@@ -665,13 +685,11 @@ export default function AddOnsMenu() {
         ))}
       </section>
 
-      <section ref={formRef} className={styles.formSection}>
+      <section id="build-request" ref={formRef} className={styles.formSection}>
         {!submitted ? (
           <div className={styles.formCard}>
             <p className={styles.eyebrow}>Your scope request</p>
-            <h2>
-              Tell me how you want it built.
-            </h2>
+            <h2>Tell me how you want it built.</h2>
             <p className={styles.formIntro}>
               {selectedItems.length === 0
                 ? "Nothing checked yet. Pick anything above, or just describe what you want in your own words below."
@@ -679,7 +697,10 @@ export default function AddOnsMenu() {
             </p>
 
             {selectedItems.length > 0 && (
-              <div className={styles.selectedPills} aria-label="Selected add-ons">
+              <div
+                className={styles.selectedPills}
+                aria-label="Selected add-ons"
+              >
                 {selectedItems.map((i) => (
                   <span key={i.id}>
                     <Check aria-hidden="true" strokeWidth={3} />
@@ -689,68 +710,101 @@ export default function AddOnsMenu() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className={styles.form} aria-busy={sending}>
-              <div className={styles.formGrid}>
-                <label className={styles.field}>
-                  <span>Your name *</span>
-                  <input name="full_name" autoComplete="name" required maxLength={200} />
-                </label>
-                <label className={styles.field}>
-                  <span>Business name</span>
-                  <input name="business_name" autoComplete="organization" maxLength={200} />
-                </label>
-                <label className={styles.field}>
-                  <span>Email *</span>
-                  <input name="email" type="email" autoComplete="email" required maxLength={200} />
-                </label>
-                <label className={styles.field}>
-                  <span>Mobile phone</span>
-                  <input name="phone" type="tel" autoComplete="tel" maxLength={50} />
-                </label>
-                <label className={styles.field}>
-                  <span>Website or main profile</span>
-                  <input
-                    name="website_url"
-                    type="text"
-                    inputMode="url"
-                    placeholder="Website, page, or none yet"
-                    maxLength={300}
+            <form
+              method="post"
+              action="/api/leads"
+              onSubmit={handleSubmit}
+              className={styles.form}
+              aria-busy={!ready || sending}
+            >
+              <fieldset
+                className={styles.formFields}
+                disabled={!ready || sending}
+              >
+                <legend className="sr-only">
+                  Your business and scope request
+                </legend>
+                <div className={styles.formGrid}>
+                  <label className={styles.field}>
+                    <span>Your name *</span>
+                    <input
+                      name="full_name"
+                      autoComplete="name"
+                      required
+                      maxLength={200}
+                    />
+                  </label>
+                  <label className={styles.field}>
+                    <span>Business name</span>
+                    <input
+                      name="business_name"
+                      autoComplete="organization"
+                      maxLength={200}
+                    />
+                  </label>
+                  <label className={styles.field}>
+                    <span>Email *</span>
+                    <input
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      maxLength={200}
+                    />
+                  </label>
+                  <label className={styles.field}>
+                    <span>Mobile phone</span>
+                    <input
+                      name="phone"
+                      type="tel"
+                      autoComplete="tel"
+                      maxLength={50}
+                    />
+                  </label>
+                  <label className={styles.field}>
+                    <span>Website or main profile</span>
+                    <input
+                      name="website_url"
+                      type="text"
+                      inputMode="url"
+                      placeholder="Website, page, or none yet"
+                      maxLength={300}
+                    />
+                  </label>
+                  <label className={styles.field}>
+                    <span>Best way to reach you</span>
+                    <select name="best_contact_method" defaultValue="email">
+                      <option value="email">Email</option>
+                      <option value="call">Call</option>
+                      <option value="text">Text</option>
+                    </select>
+                  </label>
+                </div>
+                <label className={`${styles.field} ${styles.notesField}`}>
+                  <span>How do you want it built?</span>
+                  <textarea
+                    name="notes"
+                    rows={4}
+                    maxLength={1000}
+                    placeholder="Your business, your customers, what it should look like, what it should feel like. Talk to me like we are at the counter."
                   />
                 </label>
-                <label className={styles.field}>
-                  <span>Best way to reach you</span>
-                  <select name="best_contact_method" defaultValue="email">
-                    <option value="email">Email</option>
-                    <option value="call">Call</option>
-                    <option value="text">Text</option>
-                    <option value="any">Any</option>
-                  </select>
-                </label>
-              </div>
-              <label className={`${styles.field} ${styles.notesField}`}>
-                <span>How do you want it built?</span>
-                <textarea
-                  name="notes"
-                  rows={4}
-                  maxLength={1000}
-                  placeholder="Your business, your customers, what it should look like, what it should feel like. Talk to me like we are at the counter."
-                />
-              </label>
-              <div className={styles.consentList}>
-                <label>
-                  <input type="checkbox" name="sms_consent" />
-                  <span>
-                    <SmsConsentText topic="this request and related project updates" />
-                  </span>
-                </label>
-                <label>
-                  <input type="checkbox" name="marketing_email_consent" />
-                  <span>
-                    Send me occasional LeadFlow articles, tools, and launch updates by
-                    email. I can unsubscribe at any time.
-                  </span>
-                </label>
-              </div>
+                <div className={styles.consentList}>
+                  <label>
+                    <input type="checkbox" name="sms_consent" />
+                    <span>
+                      <SmsConsentText topic="this request and related project updates" />
+                    </span>
+                  </label>
+                  <label>
+                    <input type="checkbox" name="marketing_email_consent" />
+                    <span>
+                      Send me occasional LeadFlow articles, tools, and launch
+                      updates by email. I can unsubscribe at any time.
+                    </span>
+                  </label>
+                </div>
+              </fieldset>
               {error && (
                 <p className={styles.formError} role="alert">
                   {error}
@@ -759,16 +813,28 @@ export default function AddOnsMenu() {
               <button
                 type="submit"
                 className={styles.submitButton}
-                disabled={sending}
+                disabled={!ready || sending}
               >
                 {sending ? "Sending Your Build List..." : "Send My Build List"}
-                {!sending && <ArrowRight aria-hidden="true" className="h-4 w-4" />}
+                {!sending && (
+                  <ArrowRight aria-hidden="true" className="h-4 w-4" />
+                )}
               </button>
               <p className={styles.formLegal}>
-                By submitting, you agree to our <Link href="/terms">Terms</Link> and
-                acknowledge our <Link href="/privacy">Privacy Policy</Link>. This form does
-                not charge you or authorize work. Selected modules are quoted separately.
+                By submitting, you agree to our <Link href="/terms">Terms</Link>{" "}
+                and acknowledge our <Link href="/privacy">Privacy Policy</Link>.
+                This form does not charge you or authorize work. The proposal
+                defines included work and any separately approved custom scope.
+                Phone contact is optional; without call or text permission, we
+                reply by email.
               </p>
+              <noscript>
+                <p>
+                  Enable JavaScript to send your build list, or{" "}
+                  <a href={BUSINESS.phone.tel}>call Ryan</a> or{" "}
+                  <a href={smsHref("agency_start")}>text Ryan</a> directly.
+                </p>
+              </noscript>
             </form>
           </div>
         ) : (
@@ -776,16 +842,17 @@ export default function AddOnsMenu() {
             <CircleCheck aria-hidden="true" />
             <h2>Your build list is in.</h2>
             <p>
-              I have your picks and your notes. I will reach out within one business day
-              on the channel you chose to confirm the scope, timeline, and price before
-              paid production work begins.
+              I have your picks and your notes. I will reply within one business
+              day by email, or by your preferred phone method if you gave
+              permission. We confirm the scope, timeline, and price in writing
+              before paid production work begins.
             </p>
             <div className={styles.successActions}>
               <Link href="/portfolio" className={styles.secondaryButton}>
                 See the Live Work
               </Link>
-              <Link href="/start" className={styles.secondaryButton}>
-                Map My Whole System
+              <Link href="/pricing" className={styles.secondaryButton}>
+                See the 90-day campaign
               </Link>
             </div>
           </div>
@@ -794,13 +861,12 @@ export default function AddOnsMenu() {
 
       {!submitted && (
         <section className={styles.scopeTerms}>
+          <p>This is a scope request, not a blank check.</p>
           <p>
-            This is a scope request, not a blank check.
-          </p>
-          <p>
-            Funnels, CRM, tools, portals, courses, ads, automation, and other modules are
-            optional and priced separately before work begins. Written scope and
-            outside-cost rules apply.
+            Your managed proposal defines the included work and advertising
+            allocation. Custom work beyond that scope needs a separate written
+            quote. Standalone tools, software, and course purchases keep their
+            own terms.
           </p>
         </section>
       )}
@@ -809,14 +875,16 @@ export default function AddOnsMenu() {
         <div className={styles.stickyBar}>
           <div className={styles.stickyInner}>
             <div className={styles.stickyCount}>
-              <span>
-                {selected.size}
-              </span>
+              <span>{selected.size}</span>
               <strong>
                 add-on{selected.size === 1 ? "" : "s"} on your build list
               </strong>
             </div>
-            <button type="button" className={styles.stickyButton} onClick={scrollToForm}>
+            <button
+              type="button"
+              className={styles.stickyButton}
+              onClick={scrollToForm}
+            >
               Review Scope Request
               <ArrowRight aria-hidden="true" className="h-4 w-4" />
             </button>
