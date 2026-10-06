@@ -33,7 +33,7 @@ import { sendSellerProofReceipt } from "@/lib/sellerproof/receipt";
 import { handleHqStripeEvent } from "@/lib/hq/subscription";
 import { HQ_PLAN } from "@/lib/hq/types";
 import { AGENCY_PAYMENT, agencyPaymentFromMetadata } from "@/lib/agencyPayment";
-import { subscriptionIdOf } from "@/lib/agencyRetainer";
+import { STRIPE_API_VERSION, subscriptionIdOf } from "@/lib/agencyRetainer";
 import { CHASE_SHEET, isChaseSheetKind } from "@/lib/chaseSheet/product";
 import { applyChaseSheetMoneyBack, ensureChaseSheetPaid, handleChaseSheetSubscription, markChaseSheetRenewed } from "@/lib/chaseSheet/subscription";
 import { POST_CREATOR, isPostCreatorKind } from "@/lib/postCreator/product";
@@ -46,7 +46,7 @@ import {
 } from "@/lib/postCreator/subscription";
 import { deliverPaymentEmail } from "@/lib/paymentEmailDelivery";
 import { classifyStripeInvoice, dollars, renewalAction } from "@/lib/stripeInvoiceEvents";
-import { refundOutcome } from "@/lib/stripeRefunds";
+import { invoiceIdFromInvoicePayments, refundOutcome } from "@/lib/stripeRefunds";
 import { BUSINESS } from "@/lib/site/business";
 import { PRICES, usd } from "@/lib/site/prices";
 import { TLFP_CREDITS, TLFP_FOUNDING, findPack, foundingSeatsLeft, foundingTier } from "@/lib/tlfpCredits";
@@ -1912,6 +1912,23 @@ async function creditsAppliedLine(supabase: SupabaseClient, sessionId: string | 
   return `This purchase used ${Math.abs(Number(data.delta))} TLFP Credits. A full refund does not return them automatically: grant them back at /admin/tlfp if that is the deal.`;
 }
 
+/**
+ * The invoice a payment intent paid (lib/stripeRefunds.ts
+ * invoiceIdFromInvoicePayments). A 4xx means none to find (an older API
+ * version, or a payment that paid no invoice); anything else throws so Stripe
+ * retries the event instead of the money back matching nothing for good.
+ */
+async function invoiceForPaymentIntent(paymentIntent: string, stripeKey: string): Promise<string | null> {
+  const query = `payment%5Btype%5D=payment_intent&payment%5Bpayment_intent%5D=${encodeURIComponent(paymentIntent)}&limit=3`;
+  const r = await fetch(`https://api.stripe.com/v1/invoice_payments?${query}`, {
+    headers: { Authorization: `Bearer ${stripeKey}`, "Stripe-Version": STRIPE_API_VERSION },
+    cache: "no-store",
+  });
+  if (r.status >= 400 && r.status < 500 && r.status !== 429) return null;
+  if (!r.ok) throw new Error(`Stripe invoice payment lookup failed: ${r.status}`);
+  return invoiceIdFromInvoicePayments(await r.json().catch(() => null));
+}
+
 async function handleMoneyBack(supabase: SupabaseClient, eventType: string, object: unknown) {
   const outcome = refundOutcome(eventType, object);
   if (!outcome) return false;
@@ -1940,6 +1957,15 @@ async function handleMoneyBack(supabase: SupabaseClient, eventType: string, obje
     const inv = charge?.invoice;
     const id = typeof inv === "string" ? inv : typeof (inv as { id?: unknown })?.id === "string" ? (inv as { id: string }).id : null;
     if (id) candidates.push(id.slice(0, 200));
+  }
+  // On this account's Stripe API version a charge no longer names its
+  // invoice, so an invoice-paid charge (a Sales Desk or dashboard invoice, a
+  // renewal) is mapped through the invoice payment its payment intent made.
+  // Without this, money back on an invoice matched nothing: the purchase kept
+  // reading paid and founding credits on it were never taken back.
+  if (!candidates.length && outcome.paymentIntent && stripeKey && eventType !== "checkout.session.async_payment_failed") {
+    const invoiceId = await invoiceForPaymentIntent(outcome.paymentIntent, stripeKey);
+    if (invoiceId) candidates.push(invoiceId.slice(0, 200));
   }
 
   let purchase: { stripe_session_id: string; email: string | null; kind: string | null; status: string | null } | null = null;
