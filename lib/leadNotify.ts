@@ -193,11 +193,26 @@ function alertInstant(value: OwnerAlertContext["receivedAt"]): Date {
   return Number.isNaN(at.getTime()) ? new Date() : at;
 }
 
+/** A Reply-To accepts one ordinary address, never display names or header syntax. */
+export function ownerAlertReplyTo(value: string): string | null {
+  if (typeof value !== "string" || /[\r\n]/.test(value)) return null;
+  const email = value.trim();
+  const lower = email.toLowerCase();
+  if (lower.includes("@no-email.") || lower.endsWith(".invalid")) return null;
+  if (email.length > 254 || email.split("@")[0].length > 64) return null;
+  const local = "[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+";
+  const domain = "[A-Za-z0-9](?:[A-Za-z0-9-]{0,61}[A-Za-z0-9])?";
+  return new RegExp(`^${local}(?:\\.${local})*@${domain}(?:\\.${domain})+$`).test(email)
+    ? email
+    : null;
+}
+
 function ownerAlertPayload(lead: NotifiableLead, context: OwnerAlertContext = {}) {
   const via = lead.source === "meta_lead_ad" ? " [FACEBOOK LEAD AD]" : "";
+  const replyTo = ownerAlertReplyTo(lead.email);
   return {
     from: OWNER_ALERT_FROM,
-    reply_to: BUSINESS.email.hello,
+    ...(replyTo ? { reply_to: replyTo } : {}),
     to: OWNER_ALERT_RECIPIENTS,
     subject: `NEW LEAD${via}: ${lead.full_name}${lead.business_name ? ` (${lead.business_name})` : ""} | ${INTEREST_LABELS[lead.interest] ?? lead.interest}`,
     text: [
@@ -227,11 +242,13 @@ function ownerAlertPayload(lead: NotifiableLead, context: OwnerAlertContext = {}
 export async function sendOwnerAlertEmail(
   content: { subject: string; text: string },
   idempotencyKey: string,
+  leadEmail?: string | null,
 ): Promise<LeadEmailSendResult> {
+  const replyTo = ownerAlertReplyTo(leadEmail ?? "");
   return sendDetailed(
     {
       from: OWNER_ALERT_FROM,
-      reply_to: BUSINESS.email.hello,
+      ...(replyTo ? { reply_to: replyTo } : {}),
       to: OWNER_ALERT_RECIPIENTS,
       subject: content.subject,
       text: content.text,

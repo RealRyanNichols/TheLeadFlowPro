@@ -9,6 +9,7 @@ type EmailPayload = {
   reply_to: string;
   subject: string;
   text: string;
+  tags?: { name: string; value: string }[];
 };
 export type ContactNotification = {
   message_id: string;
@@ -99,6 +100,7 @@ function payloadFor(row: ContactNotification): EmailPayload {
       process.env.LEADFLOW_NOTIFY_EMAIL?.trim() || "hello@theleadflowpro.com",
     ],
     reply_to: visitor_email,
+    tags: [{ name: "contact_message_id", value: row.message_id }],
     subject: `CONTACT: ${visitor_name.replace(/[\r\n]/g, " ").slice(0, 200)}`,
     text: [
       `From: ${visitor_name} <${visitor_email}>`,

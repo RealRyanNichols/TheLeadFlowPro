@@ -356,7 +356,7 @@ async function sendStaffSms(ctx: Context, claimed: SpeedToLeadJob, lead: SpeedTo
 
 async function sendStaffEmail(ctx: Context, claimed: SpeedToLeadJob, lead: SpeedToLeadLead, now: Date): Promise<SpeedToLeadOutcome> {
   const content = staffAlertEmail(lead, ctx.siteUrl, { firstMessage: await firstInboundMessage(ctx, lead) });
-  const result = await sendOwnerAlertEmail(content, staffEmailIdempotencyKey(lead.id));
+  const result = await sendOwnerAlertEmail(content, staffEmailIdempotencyKey(lead.id), lead.email);
   if (result.ok) return finishSent(ctx, claimed, result.providerMessageId ? [result.providerMessageId] : [], now);
   return finishFailure(ctx, claimed, result.error, now);
 }

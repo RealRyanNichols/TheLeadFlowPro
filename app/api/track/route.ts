@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
+import { persistAnalyticsBatch } from "@/lib/analytics/persistence";
+import { sanitizeCampaignAttribution } from "@/lib/analytics/attribution";
 import {
   validateEvent,
   isBotUserAgent,
@@ -112,6 +114,7 @@ export async function POST(request: Request) {
 
     const rows: EventRow[] = firstValid.map((e) => {
       const referrerHost = referrerHostOf(e.referrer);
+      const attribution = sanitizeCampaignAttribution(e);
       return {
         client_id: e.client_id,
         event_name: e.event_name,
@@ -124,11 +127,11 @@ export async function POST(request: Request) {
         tool_slug: e.tool_slug ?? null,
         referrer: e.referrer ?? null,
         referrer_host: referrerHost,
-        source_family: classifySourceFamily(e.utm_source, e.utm_medium, referrerHost),
-        utm_source: e.utm_source ?? null,
-        utm_medium: e.utm_medium ?? null,
-        utm_campaign: e.utm_campaign ?? null,
-        utm_content: e.utm_content ?? null,
+        source_family: classifySourceFamily(attribution.utm_source, attribution.utm_medium, referrerHost),
+        utm_source: attribution.utm_source ?? null,
+        utm_medium: attribution.utm_medium ?? null,
+        utm_campaign: attribution.utm_campaign ?? null,
+        utm_content: attribution.utm_content ?? null,
         device,
         browser,
         country: country ? country.slice(0, 8) : null,
@@ -142,14 +145,6 @@ export async function POST(request: Request) {
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const supabase = createSupabaseClient(SUPABASE_URL, serviceKey || SUPABASE_ANON_KEY);
 
-    const { error } = await supabase
-      .from("analytics_events")
-      .upsert(rows, { onConflict: "client_id", ignoreDuplicates: true });
-    if (error) {
-      // Fall back to plain inserts (e.g. rows without client_id conflicts).
-      await supabase.from("analytics_events").insert(rows);
-    }
-
     // Keep the original page_views pipe alive for anything still reading it.
     const pageViews = rows
       .filter((r) => r.event_name === "page_view" && !r.is_internal)
@@ -161,11 +156,18 @@ export async function POST(request: Request) {
         utm_medium: r.utm_medium,
         utm_campaign: r.utm_campaign,
       }));
-    if (pageViews.length > 0) {
-      await supabase.from("page_views").insert(pageViews);
+    const result = await persistAnalyticsBatch({
+      upsertEvents: (items) => supabase.from("analytics_events")
+        .upsert(items, { onConflict: "client_id", ignoreDuplicates: true }),
+      insertEvents: (items) => supabase.from("analytics_events").insert(items),
+      insertPageViews: (items) => supabase.from("page_views").insert(items),
+    }, rows, pageViews);
+    if (!result.saved) {
+      console.error("First-party analytics events could not be saved");
+      return NextResponse.json({ ok: false, error: "Analytics storage unavailable" }, { status: 503 });
     }
-
-    return NextResponse.json({ ok: true });
+    if (!result.pageViewsSaved) console.error("Legacy page-view mirror unavailable");
+    return NextResponse.json({ ok: true, pageViewsSaved: result.pageViewsSaved });
   } catch {
     return NextResponse.json({ ok: false }, { status: 400 });
   }

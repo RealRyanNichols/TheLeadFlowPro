@@ -3,6 +3,7 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL } from "@/lib/config";
 import { leadFlowSupabaseRuntimeIssues } from "@/lib/metaCampaignGuard";
 import { recordResendActivity, resendEventActivity, verifyResendSignature } from "@/lib/resendEvents";
+import { contactDeliveryFailure, recordContactDeliveryFailure, type ContactDeliveryRow } from "@/lib/contactDelivery";
 
 // Resend webhook: acceptance, delivery, opens, clicks, bounces and spam reports land on the lead's
 // timeline in the Back Office (lib/resendEvents.ts says what is kept).
@@ -35,7 +36,8 @@ export async function POST(request: Request) {
   }
 
   const activity = resendEventActivity(event);
-  if (!activity) return NextResponse.json({ ok: true, recorded: false });
+  const contactFailure = contactDeliveryFailure(event);
+  if (!activity && !contactFailure) return NextResponse.json({ ok: true, recorded: false });
 
   const identityIssues = leadFlowSupabaseRuntimeIssues(SUPABASE_URL);
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -45,6 +47,33 @@ export async function POST(request: Request) {
   const supabase = createSupabaseClient(SUPABASE_URL, serviceKey);
 
   try {
+    if (contactFailure) {
+      const columns = "message_id,provider_message_id,status,attempt_count";
+      const contactFailed = await recordContactDeliveryFailure(contactFailure, {
+        async byProviderId(id) {
+          const { data, error } = await supabase.from("contact_notifications")
+            .select(columns).eq("provider_message_id", id).maybeSingle();
+          if (error) throw new Error("Contact delivery lookup failed");
+          return data as ContactDeliveryRow | null;
+        },
+        async byContactId(id) {
+          const { data, error } = await supabase.from("contact_notifications")
+            .select(columns).eq("message_id", id).maybeSingle();
+          if (error) throw new Error("Contact delivery lookup failed");
+          return data as ContactDeliveryRow | null;
+        },
+        async fail(row, reason) {
+          const { data, error } = await supabase.from("contact_notifications")
+            .update({ status: "failed", last_error: reason })
+            .eq("message_id", row.message_id).eq("attempt_count", row.attempt_count)
+            .in("status", ["pending", "sent"]).select("message_id").maybeSingle();
+          if (error || !data) throw new Error("Contact delivery status save failed");
+        },
+      });
+      // An owner-alert bounce is not a customer's unsubscribe or lead activity.
+      if (contactFailed) return NextResponse.json({ ok: true, recorded: false, contactAlertFailed: true });
+    }
+    if (!activity) return NextResponse.json({ ok: true, recorded: false });
     const result = await recordResendActivity(activity, {
       async findLead(item) {
         // Which lead: the lead_id tag first, the recipient address second.
