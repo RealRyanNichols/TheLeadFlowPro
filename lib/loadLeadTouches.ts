@@ -10,6 +10,6 @@ export async function loadLeadTouches(supabase: Awaited<ReturnType<typeof create
   ]);
   const unavailable = results.some(r => r.error);
   const limited = results.some(r => (r.data?.length ?? 0) === 1000);
-  const touches = latestTouches(results.flatMap(r => r.data ?? []) as TouchRecord[]);
+  const touches = latestTouches(results.flatMap<TouchRecord>(r => (r.data ?? []) as TouchRecord[]));
   return Object.fromEntries(ids.map(id => [id, { ...(touches[id] ?? { name: null, at: null }), unavailable, limited } satisfies LeadTouch]));
 }
