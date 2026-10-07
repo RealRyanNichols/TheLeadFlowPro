@@ -27,6 +27,8 @@ const EYEBROW = "text-[11px] font-black uppercase tracking-[0.22em] text-[var(--
 /** Rows shown before the list is cut with a count. A person works from the top. */
 export const DUE_LIMIT = 30;
 export const UPCOMING_LIMIT = 12;
+/** leads.source for somebody who called or texted the line and never filled out a form. */
+const PHONE_SOURCES = new Set(["quo_inbound", "quo_call"]);
 
 function lateness(row: NextAction): { text: string; late: boolean } | null {
   if (!row.dueAt) return null;
@@ -58,7 +60,8 @@ function ScriptBlock({ script }: { script: Script }) {
 
 function ActionRow({ row, sender }: { row: NextAction; sender: string | null }) {
   const lead = row.lead;
-  const title = lead.business_name || lead.full_name || "Unnamed lead";
+  // The phone system's own name for a number ("Unknown") is not printed as if it were a person's.
+  const title = lead.unknown_caller ? "Unknown number" : lead.business_name || lead.full_name || "Unnamed lead";
   const tel = dialHref(lead.phone, "tel");
   const sms = lead.can_text ? dialHref(lead.phone, "sms") : null;
   const due = lateness(row);
@@ -69,6 +72,7 @@ function ActionRow({ row, sender }: { row: NextAction; sender: string | null }) 
     day: row.day,
     sender,
     contractor: lead.series === "contractor_owner" || lead.group !== null || Boolean(lead.service),
+    byPhone: PHONE_SOURCES.has(lead.source ?? ""),
   });
   const emailScript = scripts.find((s) => s.channel === "email");
   const reading = [row.opens ? `${row.opens} email${row.opens === 1 ? "" : "s"} opened` : "", row.clicks ? `${row.clicks} link${row.clicks === 1 ? "" : "s"} clicked` : ""].filter(Boolean).join(" · ");
@@ -82,7 +86,7 @@ function ActionRow({ row, sender }: { row: NextAction; sender: string | null }) 
           </p>
           <p className="mt-0.5 truncate font-black text-[var(--heading)]">{title}</p>
           <p className="mt-0.5 text-xs text-[var(--muted)]">
-            {lead.business_name && lead.full_name ? `${lead.full_name} · ` : ""}
+            {!lead.unknown_caller && lead.business_name && lead.full_name ? `${lead.full_name} · ` : ""}
             {lead.phone ? formatPhone(lead.phone) : "no phone on file"}
           </p>
           <p className="mt-2 text-xl font-black tabular-nums text-[var(--heading)]">{row.headline}</p>
@@ -259,39 +263,65 @@ export default function NextActionsView({
   /** Where "the whole list" goes: the call sheet for admins, Today for the sales desk. */
   listHref: string;
 }) {
-  const due = board.due.slice(0, DUE_LIMIT);
+  const today = board.today.slice(0, DUE_LIMIT);
+  const backlog = board.backlog.slice(0, DUE_LIMIT);
   const upcoming = board.upcoming.slice(0, UPCOMING_LIMIT);
   const stale = board.rows.filter((r) => r.kind === "stale");
   const done = board.rows.filter((r) => r.kind === "email_only");
+  const callers = board.rows.filter((r) => r.kind === "sort_caller");
   return (
     <div className="space-y-6">
       <section className={PANEL} aria-labelledby="due-title">
         <p className={EYEBROW}>Do this now</p>
         <h3 id="due-title" className="mt-1 text-xl font-black text-[var(--heading)]">
-          {board.due.length === 0 ? "Nothing is due" : `${board.due.length} due`}
+          {board.today.length === 0 ? "Nothing new is due" : `${board.today.length} due`}
         </h3>
         <p className="mt-1 text-sm text-[var(--text)]">{line}</p>
         <div className="mt-4">
-          {due.length === 0 ? (
+          {today.length === 0 ? (
             <p className="rounded-2xl border border-[var(--green-line)] bg-[var(--green-tint)] px-4 py-3 text-sm text-[var(--text)]">
-              Nobody is owed a call, a reply or a follow-up right now. That is the whole list, not a loading error.
+              {board.backlog.length === 0
+                ? "Nobody is owed a call, a reply or a follow-up right now, by the record. That is the whole list, not a loading error."
+                : "Nothing from the last week is waiting, by the record. The older follow-ups are in the backlog below."}
             </p>
           ) : (
-            <RowList rows={due} sender={sender} />
+            <RowList rows={today} sender={sender} />
           )}
         </div>
-        {board.due.length > due.length ? (
+        {board.today.length > today.length ? (
           <p className="mt-3 text-sm text-[var(--muted)]">
-            Showing the first {due.length} of {board.due.length}. Work from the top; the rest move up as these are logged.
+            Showing the first {today.length} of {board.today.length}. Work from the top; the rest move up as these are logged.
           </p>
         ) : null}
         <p className="mt-3 text-xs text-[var(--muted)]">
-          After each call, save the outcome so the count moves. Then move the lead in Meta&apos;s Leads Center too: Meta uses those stages to look for more people like your best leads.{" "}
+          This list only knows what is on the record. After each call, save the outcome so the count moves. Then move the lead in Meta&apos;s Leads Center too: Meta uses those stages to look for more
+          people like your best leads.{" "}
           <Link href={listHref} className={`font-bold text-[var(--blue)] underline-offset-2 hover:underline ${FOCUS}`}>
             See the whole call list
           </Link>
         </p>
       </section>
+
+      {board.backlog.length > 0 ? (
+        <section className={PANEL} aria-labelledby="backlog-title">
+          <details>
+            <summary id="backlog-title" className={`cursor-pointer text-xl font-black text-[var(--heading)] ${FOCUS}`}>
+              Backlog: {board.backlog.length} follow-up{board.backlog.length === 1 ? "" : "s"} more than a week late
+            </summary>
+            <p className="mt-3 text-sm text-[var(--text)]">
+              Real follow-ups, each more than a week past due, kept under today&apos;s work so they do not bury it. Give each one a call, or close it.
+            </p>
+            <div className="mt-4">
+              <RowList rows={backlog} sender={sender} />
+            </div>
+            {board.backlog.length > backlog.length ? (
+              <p className="mt-3 text-sm text-[var(--muted)]">
+                Showing the first {backlog.length} of {board.backlog.length}.
+              </p>
+            ) : null}
+          </details>
+        </section>
+      ) : null}
 
       {upcoming.length > 0 ? (
         <section className={PANEL} aria-labelledby="upcoming-title">
@@ -306,6 +336,28 @@ export default function NextActionsView({
         </section>
       ) : null}
 
+      {callers.length > 0 ? (
+        <section className={PANEL} aria-labelledby="callers-title">
+          <details>
+            <summary id="callers-title" className={`cursor-pointer text-xl font-black text-[var(--heading)] ${FOCUS}`}>
+              Unknown callers: {callers.length} to name or close
+            </summary>
+            <p className="mt-3 text-sm text-[var(--text)]">
+              The phone line saves a lead record for every number it does not know, sales calls and robocalls included. These are not due and are not counted as leads. Put a name on the real ones.
+              Close the rest.
+            </p>
+            <div className="mt-4">
+              <RowList rows={callers.slice(0, DUE_LIMIT)} sender={sender} />
+              {callers.length > DUE_LIMIT ? (
+                <p className="mt-3 text-sm text-[var(--muted)]">
+                  Showing the first {DUE_LIMIT} of {callers.length}.
+                </p>
+              ) : null}
+            </div>
+          </details>
+        </section>
+      ) : null}
+
       {stale.length > 0 || done.length > 0 ? (
         <section className={PANEL} aria-labelledby="apart-title">
           <details>
@@ -313,7 +365,8 @@ export default function NextActionsView({
               Off the plan: {stale.length} past it, {done.length} with every call made
             </summary>
             <p className="mt-3 text-sm text-[var(--text)]">
-              These are not due and are not counted above. Past the plan means the lead sat beyond its last call day with no call on record, or went quiet for a month. Give each one call, or close it.
+              These are not due and are not counted above. Past the plan means the lead sat beyond its last call day with no call on the record, or has had nothing on the record for a month. Give each
+              one call, or close it.
             </p>
             {stale.length > 0 ? (
               <div className="mt-4">

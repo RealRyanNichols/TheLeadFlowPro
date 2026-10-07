@@ -22,6 +22,7 @@
 //
 // Nothing here sends anything. A person reads, copies, dials and types.
 
+import { isPlaceholderFirstName } from "@/lib/leadNotify";
 import { BUSINESS } from "@/lib/site/business";
 import { MANAGED_COMMERCIAL_TERMS } from "@/lib/site/managedPlans";
 import { PRICES } from "@/lib/site/prices";
@@ -54,6 +55,12 @@ export type ScriptContext = {
    * no story about a business that is nothing like theirs.
    */
   contractor?: boolean;
+  /**
+   * True for a lead who called or texted the line and never filled out a
+   * form. Those scripts say "you got in touch with us", never "the form you
+   * filled out".
+   */
+  byPhone?: boolean;
 };
 
 const PHONE = BUSINESS.phone.display;
@@ -113,7 +120,18 @@ function whenTheyApplied(ctx: ScriptContext): string {
   const day = ctx.day ?? 0;
   if (day <= 0) return "a little while ago";
   if (day === 1) return "yesterday";
-  return "the other day";
+  if (day <= 6) return "the other day";
+  return "a while back";
+}
+
+/** "You filled out our form yesterday about getting more jobs", or the same thing for somebody who called or texted. */
+function youReachedOut(ctx: ScriptContext): string {
+  return ctx.byPhone ? `You got in touch with us ${whenTheyApplied(ctx)}` : `You filled out our form ${whenTheyApplied(ctx)} about getting ${moreJobs(ctx)}`;
+}
+
+/** "about the form you filled out for more jobs", or "about your message" for somebody who called or texted. */
+function aboutTheirAsk(ctx: ScriptContext): string {
+  return ctx.byPhone ? "about your message to us" : `about the form you filled out for ${moreJobs(ctx)}`;
 }
 
 function groupLine(ctx: ScriptContext): string {
@@ -132,7 +150,7 @@ const SCRIPTS: Record<string, Builder> = {
   "call.first": (ctx) => ({
     channel: "call",
     title: "First call: the opener",
-    body: `"${hello(ctx)} this is ${sender(ctx)} with The LeadFlow Pro. You filled out our form ${whenTheyApplied(ctx)} about getting ${moreJobs(ctx)}. Did I catch you at a decent time?"
+    body: `"${hello(ctx)} this is ${sender(ctx)} with The LeadFlow Pro. ${youReachedOut(ctx)}. Did I catch you at a decent time?"
 
 One question, then let them talk:
 "${theQuestion(ctx)}"
@@ -146,7 +164,7 @@ No price on this call. Before you hang up, book the second one:
   "call.attempt": (ctx) => ({
     channel: "call",
     title: "They picked up this time",
-    body: `"${hello(ctx)} ${sender(ctx)} with The LeadFlow Pro. I have tried you a couple of times about the form you filled out for ${moreJobs(ctx)}. Is now a bad time?"
+    body: `"${hello(ctx)} ${sender(ctx)} with The LeadFlow Pro. I have tried you a couple of times ${aboutTheirAsk(ctx)}. Is now a bad time?"
 
 If they have two minutes: "${theQuestion(ctx)}"
 
@@ -156,13 +174,13 @@ If they are busy: "When is a good time today or tomorrow? I will call you then."
   "call.last": (ctx) => ({
     channel: "call",
     title: "Last call",
-    body: `"${hello(ctx)} ${sender(ctx)} with The LeadFlow Pro. This is my last call about the form you filled out. If ${moreJobs(ctx)} still matter to you, I am glad to talk. If the timing is wrong, tell me and I will close your file."`,
+    body: `"${hello(ctx)} ${sender(ctx)} with The LeadFlow Pro. This is my last call ${ctx.byPhone ? "about your message to us" : "about the form you filled out"}. If ${moreJobs(ctx)} still matter to you, I am glad to talk. If the timing is wrong, tell me and I will close your file."`,
   }),
 
   "call.reopen": (ctx) => ({
     channel: "call",
     title: "One call to reopen or close",
-    body: `"${hello(ctx)} this is ${sender(ctx)} with The LeadFlow Pro. You reached out to us a while back and we never connected. That is on us. Are you still looking for ${moreJobs(ctx)}, or should I close your file?"
+    body: `"${hello(ctx)} this is ${sender(ctx)} with The LeadFlow Pro. You reached out to us a while back, and I wanted to check in before I close your file. Are you still looking for ${moreJobs(ctx)}, or should I close it?"
 
 Whatever they say, save it on the call card: a next step with a time, or not a fit with the reason.`,
   }),
@@ -170,7 +188,7 @@ Whatever they say, save it on the call card: a next step with a time, or not a f
   "voicemail.1": (ctx) => ({
     channel: "voicemail",
     title: "Voicemail 1",
-    body: `${hello(ctx)} this is ${sender(ctx)} with The LeadFlow Pro, calling about the form you filled out for ${moreJobs(ctx)}. I have one question for you and it takes two minutes. Call or text me back at ${PHONE}. That is ${PHONE}.`,
+    body: `${hello(ctx)} this is ${sender(ctx)} with The LeadFlow Pro, calling ${aboutTheirAsk(ctx)}. I have one question for you and it takes two minutes. Call or text me back at ${PHONE}. That is ${PHONE}.`,
   }),
   "voicemail.2": (ctx) => ({
     channel: "voicemail",
@@ -203,7 +221,7 @@ Whatever they say, save it on the call card: a next step with a time, or not a f
   "text.1": (ctx) => ({
     channel: "text",
     title: "Text 1",
-    body: `${hello(ctx)} this is ${sender(ctx)} with The LeadFlow Pro. I just tried to call about the form you filled out. What is a good time to talk today? Reply STOP to opt out.`,
+    body: `${hello(ctx)} this is ${sender(ctx)} with The LeadFlow Pro. I just tried to call ${ctx.byPhone ? "about your message" : "about the form you filled out"}. What is a good time to talk today? Reply STOP to opt out.`,
   }),
   "text.2": (ctx) => ({
     channel: "text",
@@ -232,7 +250,7 @@ Whatever they say, save it on the call card: a next step with a time, or not a f
     subject: "Tried to call you just now",
     body: `${hello(ctx)}
 
-I just tried to call you about the form you filled out for ${moreJobs(ctx)}.
+I just tried to call you ${aboutTheirAsk(ctx)}.
 
 I have one question, and it takes two minutes: ${theQuestionShort(ctx)}
 
@@ -298,8 +316,8 @@ The LeadFlow Pro`,
     body: `Answer in the same place they used, inside five minutes if you can.
 
 1. Read what they wrote, or listen to the voicemail, before you answer.
-2. Call first. A call back beats a text back.
-3. No answer: one line and one question back. "This is ${sender(ctx)} with The LeadFlow Pro. Got your message. When is a good time to talk today?"
+2. Call first.
+3. No answer, and they texted you: one line and one question back. "This is ${sender(ctx)} with The LeadFlow Pro. Got your message. When is a good time to talk today?"
 4. Save what happened on the call card, so the record shows they were answered.`,
   }),
 
@@ -322,7 +340,7 @@ End the call with the next step and a time, and save it on the call card.`,
 3. Call back: the day and time they asked for.
 4. Not a fit: the reason, in their words.
 
-A conversation with no next step is where deals go quiet.`,
+Without a next step saved, the board cannot bring this lead back to you.`,
   }),
 
   "booked.prep": (ctx) => ({
@@ -395,7 +413,7 @@ If it is not now: "What would have to change for it to be a yes?" Write the answ
 2. No: mark it lost, with the reason in their words.
 3. Not now: set one follow-up 30 days out, and tell them you will.
 
-Do not leave it at proposal with no date. That is how a board fills up with money that is not real.`,
+Do not leave it at proposal with no date. It stays on the board as open money and nobody is asked for the answer.`,
   }),
 };
 
@@ -417,9 +435,13 @@ export function scriptsFor(keys: readonly string[], ctx: ScriptContext): Script[
   return out;
 }
 
-/** "Riley" from "Riley Example". Empty when the record has no name worth saying out loud. */
+/**
+ * "Riley" from "Riley Example". Empty when the record has no name worth
+ * saying out loud, which includes the names the software makes up: a number
+ * the phone line saved as "Unknown" is greeted with "Hello", never "Unknown".
+ */
 export function scriptFirstName(fullName: string | null | undefined): string {
   const first = String(fullName ?? "").trim().split(/\s+/)[0] ?? "";
-  if (!first || /[^\p{L}'-]/u.test(first)) return "";
+  if (!first || /[^\p{L}'-]/u.test(first) || isPlaceholderFirstName(first)) return "";
   return first.charAt(0).toUpperCase() + first.slice(1);
 }

@@ -25,13 +25,33 @@
 //
 // What counts, and what does not:
 //   - An attempt is a call we placed: an outgoing Quo call about the company,
-//     or a call outcome a person logged on the call card. A call logged both
-//     ways inside thirty minutes is one attempt, not two.
+//     a call outcome a person logged on the call card, or a call a person
+//     wrote down in words on the lead ("Patrick Grabbs: Call ... answered,
+//     rescheduled"). A call logged twice inside thirty minutes is one attempt.
 //   - A note is a human touch only when a person wrote it. Notes written by
 //     software (a recording review, a sync) are history, not follow-up: on
-//     Oct 7, 2026 nine of ten new leads carried a note and none had a call.
+//     Oct 7, 2026 nine of ten new leads carried a note and none had a call
+//     logged.
 //   - The automatic first text and the automatic emails are counted and
 //     shown, and never count as a person reaching out.
+//   - A text that asks for nothing is not a reply owed: a STOP, a "Thanks!",
+//     or a machine's own message ("Reply Y to receive msgs").
+//
+// The board only knows the record. A call from a personal phone that nobody
+// logged is not on it, so every sentence here says "on the record" and never
+// "nobody called".
+//
+// What the first run against the real leads changed in the order (Oct 7, 2026):
+//   - Due work older than a week is the backlog, listed under today's work
+//     instead of on top of it: 58 leads shared one follow-up date stamped in
+//     a batch two weeks earlier, and outranked that week's proposals.
+//   - A lead inside its first hour goes to the very top.
+//   - A record the phone system made for a number nobody named (14 in two
+//     days: 13 calls, 11 of them the same sales robocall by their summaries,
+//     and one real text) is listed apart to be named or closed, and is not
+//     worked as a lead. A text or a missed call from one is still answered.
+//   - The first call is due the moment the form lands. Five minutes is the
+//     deadline, not a wait.
 //
 // Pure module. `now` is passed in. Nothing here reads, writes or sends.
 
@@ -41,6 +61,7 @@ import {
   EMAIL_SERIES,
   PROPOSAL_FOLLOW_UP_DAYS,
   dayNumber,
+  intoCallWindow,
   nextAttempt,
   planIdFor,
   proposalFollowUpDue,
@@ -89,6 +110,14 @@ export type NextActionLead = {
   next_follow_up_at: string | null;
   is_test: boolean | null;
   expected_value_cents: number | null;
+  /**
+   * True for a record the phone system made for a number nobody has named:
+   * it came in by a call or a text, the name is one the software invented
+   * ("Unknown"), and there is no business on it.
+   */
+  unknown_caller?: boolean;
+  /** True when they texted STOP. The calls and emails go on; no text ever does, and the row says so. */
+  texts_stopped?: boolean;
 };
 
 export type TouchKind =
@@ -106,6 +135,8 @@ export type TouchKind =
   | "text_auto"
   /** A text or email from the lead: a reply owed. */
   | "text_in"
+  /** A text that asks for nothing: a STOP, a thank-you, or a machine's own message. Kept in the history, never a reply owed. */
+  | "text_in_no_reply"
   /** An email a person wrote from the lead's record. */
   | "email_out"
   /** A note a person wrote. */
@@ -192,6 +223,72 @@ function ms(value: string | null | undefined): number {
   return Number.isFinite(n) ? n : Number.NaN;
 }
 
+// A call a person wrote down in words instead of tapping an outcome. Two real
+// shapes: the Sales Desk's "Name: marked contacted from the Uncalled list"
+// (kind "call"), and a call brought in from a recording, "Name: Call
+// (Fieldy-imported by Codex) ... answered, unavailable; rescheduled" (kind
+// "sales"). Without this, a lead Pat had already talked to showed as "no call
+// on the record" with his promised call back ignored.
+const ACTOR_PREFIX = /^\p{L}[\p{L}.'-]*(?: \p{L}[\p{L}.'-]*){0,3}:\s*/u;
+const CALL_WORD = /^(?:call|called|phone call|outbound call|outgoing call)\b/i;
+const UNREACHED_WORDS = /\b(?:no answer|no-answer|not answer(?:ed|ing)?|unanswered|did(?: not|n'?t) (?:answer|pick up)|no pick-?up|voicemail|left (?:a )?(?:message|vm)|line (?:was )?busy|wrong number|disconnected|not in service)\b/i;
+const REACHED_WORDS = /\b(?:answered|picked up|reached|spoke|talked|rescheduled|agreed|asked for)\b/i;
+
+/**
+ * Whether an activity row with no outcome marker is a call a person wrote
+ * down, and whether its words say somebody picked up. Null when it is not a
+ * call we placed. When the words say neither, it is an attempt: the record
+ * does not show a conversation, so the board does not claim one.
+ */
+export function describedCall(kind: string, detail: string): "talked" | "attempt" | null {
+  const whole = detail.trim();
+  const said = whole.replace(ACTOR_PREFIX, "").trim();
+  if (kind === "call") {
+    // Their call to us is in lead_calls, and is theirs, not an attempt of ours.
+    if (/^incoming\b/i.test(said) || /^incoming\b/i.test(whole)) return null;
+  } else if (kind === "sales") {
+    if (!CALL_WORD.test(said) && !CALL_WORD.test(whole)) return null;
+  } else {
+    return null;
+  }
+  if (UNREACHED_WORDS.test(whole)) return "attempt";
+  return REACHED_WORDS.test(whole) ? "talked" : "attempt";
+}
+
+const STOP_WORDS = new Set(["stop", "stopall", "stop all", "unsubscribe", "cancel", "end", "quit", "remove me"]);
+const CLOSING_WORDS = new Set([
+  "thanks", "thank you", "thank u", "thanks so much", "thank you so much", "thanks a lot", "thx", "ty", "ok", "okay", "k", "kk", "ok thanks", "ok thank you", "okay thanks",
+  "okay thank you", "great", "great thanks", "great thank you", "perfect", "perfect thanks", "sounds good", "sounds great", "got it", "got it thanks", "will do", "cool",
+  "awesome", "appreciate it", "you too", "no problem", "np", "bye", "thumbs up",
+]);
+/** A phone's tapback, which arrives as a text of its own: Liked "See you at 10". */
+const TAPBACK = /^(?:liked|loved|emphasized|laughed at)\s+["\u201c]/i;
+const MACHINE_TEXT = /\b(?:reply|text) (?:stop|help|y)\b|\bmsg ?(?:&|and) ?data rates\b|\b(?:verification|security|login|confirmation) code\b|\bis your [\w ]{0,30}code\b/i;
+/** A closing word is short. Anything longer is read by a person. */
+const SHORT_TEXT = 40;
+
+/**
+ * True for an inbound text nobody is waiting on an answer to: the opt-out
+ * word itself, a short thank-you or OK, or a message a machine sent (a short
+ * code asking for "Reply Y", a login code). Real ones from Oct 7, 2026: a
+ * STOP, a "Thanks!" and a Zoom opt-in prompt all showed as "answer them now".
+ * A body that was not read is never waved through.
+ */
+export function inboundNeedsNoReply(body: string | null | undefined): boolean {
+  const text = String(body ?? "").trim();
+  if (!text) return false;
+  if (MACHINE_TEXT.test(text) || TAPBACK.test(text)) return true;
+  if (text.length > SHORT_TEXT) return false;
+  const words = text
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  // Nothing but emoji or punctuation: a thumbs up.
+  if (!words) return true;
+  return STOP_WORDS.has(words) || CLOSING_WORDS.has(words);
+}
+
 /**
  * Turn the history tables into touches. `isAutomatedText` lets the server
  * pass the exact rule the call sheet uses (the software's own text bodies);
@@ -229,12 +326,18 @@ export function touchesFromHistory(
     if (!a.lead_id || !a.created_at || typeof a.detail !== "string" || Number.isNaN(ms(a.created_at))) continue;
     if (a.kind !== "call" && a.kind !== "sales") continue;
     const outcome = lastOutcome(a.detail);
-    if (!outcome) continue;
     if (outcome === "proposal_sent") {
       touches.push({ lead_id: a.lead_id, at: a.created_at, kind: "proposal_sent" });
       continue;
     }
-    const kind: TouchKind | null = TALKED.has(outcome) ? "call_out_answered" : UNANSWERED.has(outcome) ? "call_out_missed" : null;
+    let kind: TouchKind | null = null;
+    if (outcome) {
+      kind = TALKED.has(outcome) ? "call_out_answered" : UNANSWERED.has(outcome) ? "call_out_missed" : null;
+    } else {
+      // No outcome was tapped. A call a person wrote down in words still counts.
+      const described = describedCall(a.kind, a.detail);
+      kind = described === "talked" ? "call_out_answered" : described === "attempt" ? "call_out_missed" : null;
+    }
     if (!kind) continue;
     // The same call, logged by Quo and by hand: one attempt. The person's own
     // word on whether they talked wins over the provider's.
@@ -250,7 +353,8 @@ export function touchesFromHistory(
     if (!m.lead_id || !m.created_at || Number.isNaN(ms(m.created_at))) continue;
     if (m.direction === "in") {
       // A reply a person logged by hand is their note about the conversation.
-      touches.push({ lead_id: m.lead_id, at: m.created_at, kind: m.channel === "note" ? "note" : "text_in" });
+      // A STOP, a thank-you or a machine's message is history, not a reply owed.
+      touches.push({ lead_id: m.lead_id, at: m.created_at, kind: m.channel === "note" ? "note" : inboundNeedsNoReply(m.body) ? "text_in_no_reply" : "text_in" });
       continue;
     }
     if (m.delivered === false) continue;
@@ -281,7 +385,8 @@ export type ActionKind =
   | "call_attempt"
   | "email_only"
   | "stale"
-  | "wait";
+  | "wait"
+  | "sort_caller";
 
 export const ACTION_LABELS: Record<ActionKind, string> = {
   reply: "They reached out",
@@ -296,6 +401,7 @@ export const ACTION_LABELS: Record<ActionKind, string> = {
   email_only: "Calls done",
   stale: "Past the plan",
   wait: "Nothing due yet",
+  sort_caller: "Unknown caller",
 };
 
 /** Display and sort order, most urgent first. */
@@ -312,6 +418,7 @@ export const ACTION_ORDER: readonly ActionKind[] = [
   "wait",
   "email_only",
   "stale",
+  "sort_caller",
 ];
 
 export type NextAction = {
@@ -328,6 +435,10 @@ export type NextAction = {
   due: boolean;
   /** Hours past due, 0 when not due yet. */
   overdueHours: number;
+  /** Due for more than BACKLOG_DAYS. Listed under today's work, not on top of it. A reply owed is never backlog. */
+  backlog: boolean;
+  /** A first call on a lead inside its first HOT_LEAD_MINUTES. Sorted above everything. */
+  hot: boolean;
   /** Call attempts on the record, and how many the plan holds. */
   callsMade: number;
   callsPlanned: number;
@@ -357,8 +468,12 @@ export type NextActionBoard = {
   generatedAt: string;
   /** Every open lead with its action, most urgent first. */
   rows: NextAction[];
-  /** Rows due now or overdue. */
+  /** Rows due now or overdue: `today` then `backlog`. */
   due: NextAction[];
+  /** Due rows that are not backlog: the work for today, in order. */
+  today: NextAction[];
+  /** Due rows more than BACKLOG_DAYS late. Real work, but not ahead of today's. */
+  backlog: NextAction[];
   /** Rows with a due time still ahead, soonest first. */
   upcoming: NextAction[];
   counts: Record<ActionKind, number>;
@@ -369,6 +484,10 @@ export type NextActionBoard = {
 const OPEN_STATUSES = new Set(["new", "contacted", "call_booked", "proposal"]);
 /** Past its plan's last day and untouched for this long, a lead is listed as past the plan. */
 export const STALE_QUIET_DAYS = 30;
+/** Due work older than this is the backlog. */
+export const BACKLOG_DAYS = 7;
+/** A lead this new goes to the very top of the list. */
+export const HOT_LEAD_MINUTES = 60;
 const GROUP_WEIGHT: Record<string, number> = { priority: 0, funding_review: 1, standard: 2, fit_check: 3 };
 
 function hoursBetween(later: number, earlier: number): number {
@@ -383,9 +502,18 @@ function agoLabel(hours: number): string {
 }
 
 function who(lead: NextActionLead): string {
+  // The phone system's own name for a number ("Unknown") is not a name to print.
+  if (lead.unknown_caller) return "An unnamed caller";
   const name = String(lead.full_name || "").trim() || "Unnamed lead";
   return lead.business_name ? `${name} at ${lead.business_name}` : name;
 }
+
+const TOUCH_WORDS: Partial<Record<TouchKind, string>> = {
+  text_out: "a text",
+  email_out: "an email",
+  note: "a note",
+  proposal_sent: "a proposal",
+};
 
 /** Which numbered voicemail, text or email this step's companion is: the 3 in "voicemail 3". */
 function companionNumber(steps: readonly CallStep[], uptoN: number, companion: Companion): number {
@@ -502,6 +630,8 @@ export function buildNextActions(input: {
     const attempts = mine.filter(isAttempt);
     const talks = mine.filter(isConversation);
     const humans = mine.filter(isHuman);
+    // What somebody on our side did. A call the lead placed and we answered is a conversation, not our outreach.
+    const outreach = humans.filter((t) => t.kind !== "call_in_answered");
     const inbound = mine.filter(isInboundOwed);
     const lastHumanMs = humans.length ? ms(humans[humans.length - 1].at) : null;
     const lastInboundMs = inbound.length ? ms(inbound[inbound.length - 1].at) : null;
@@ -537,6 +667,11 @@ export function buildNextActions(input: {
       href: hrefFor(lead.id),
     };
     const name = who(lead);
+    /**
+     * `dueAtMs` is the deadline the row prints. `openFromMs` is when the work
+     * can start, for the one action whose deadline is ahead of its start: the
+     * first call is due the moment the form lands, with five minutes to make it.
+     */
     const finish = (
       kind: ActionKind,
       headline: string,
@@ -544,16 +679,24 @@ export function buildNextActions(input: {
       dueAtMs: number | null,
       templateKeys: string[],
       companions: Companion[] = [],
+      openFromMs: number | null = null,
     ) => {
-      const due = dueAtMs !== null && dueAtMs <= nowMs;
+      const due = dueAtMs !== null && (openFromMs ?? dueAtMs) <= nowMs;
+      const overdueHours = due && dueAtMs !== null ? hoursBetween(nowMs, dueAtMs) : 0;
       rows.push({
         ...base,
         kind,
         headline,
-        why,
+        // A STOP is said on the row itself, so nobody has to remember it.
+        why: lead.texts_stopped ? `${why} They texted STOP, so no text goes to them.` : why,
         dueAt: dueAtMs === null ? null : new Date(dueAtMs).toISOString(),
         due,
-        overdueHours: due && dueAtMs !== null ? hoursBetween(nowMs, dueAtMs) : 0,
+        overdueHours,
+        // A number nobody has named is not on a call plan, so it carries no "Calls 0 of 9".
+        ...(kind === "sort_caller" ? { position: `Day ${day}` } : {}),
+        // Somebody waiting on an answer is never filed under old work.
+        backlog: due && kind !== "reply" && overdueHours > BACKLOG_DAYS * 24,
+        hot: due && kind === "first_call" && nowMs - createdMs < HOT_LEAD_MINUTES * 60_000,
         companions,
         templateKeys,
       });
@@ -562,7 +705,21 @@ export function buildNextActions(input: {
     // 1. They reached out and nothing has gone back.
     if (lastInboundMs !== null && (lastHumanMs === null || lastInboundMs > lastHumanMs)) {
       const how = inbound[inbound.length - 1].kind === "call_in_missed" ? "called and nobody picked up" : "sent a message";
-      finish("reply", "Answer them now", `${name} ${how} ${agoLabel(hoursBetween(nowMs, lastInboundMs))} and nothing has gone back since.`, lastInboundMs, ["reply"]);
+      finish("reply", "Answer them now", `${name} ${how} ${agoLabel(hoursBetween(nowMs, lastInboundMs))} and no reply is on the record.`, lastInboundMs, ["reply"]);
+      continue;
+    }
+
+    // A number the phone system saved and nobody on our side has worked: not a
+    // lead to call on a plan. One decision, listed apart: name it or close it.
+    if (lead.unknown_caller && outreach.length === 0 && lead.status !== "proposal" && lead.status !== "call_booked") {
+      const lastSeenMs = mine.length ? ms(mine[mine.length - 1].at) : createdMs;
+      finish(
+        "sort_caller",
+        "Name them, or close it",
+        `An unknown number ${talks.length > 0 ? "called and somebody picked up" : "reached the line"} on ${formatCentral(new Date(lastSeenMs))}. If it was a customer, put a name on the record. If it was a sales call, a wrong number or a machine, close it.`,
+        null,
+        [],
+      );
       continue;
     }
 
@@ -595,7 +752,7 @@ export function buildNextActions(input: {
       finish(
         "proposal_follow_up",
         `Proposal follow-up ${followUps + 1} of ${total}`,
-        `${since} ${followUps === 0 ? "Nobody has followed up yet." : `Followed up ${followUps} time${followUps === 1 ? "" : "s"} so far.`}`,
+        `${since} ${followUps === 0 ? "No follow-up is on the record yet." : `${followUps} follow-up${followUps === 1 ? " is" : "s are"} on the record so far.`}`,
         dueMs,
         [`proposal.${followUps + 1}`],
       );
@@ -644,16 +801,26 @@ export function buildNextActions(input: {
       continue;
     }
 
-    // 5. Nobody has called yet.
+    // 5. No call is on the record yet.
     if (neverCalled) {
       const first = nextAttempt({ createdAt: created, planId, attemptsMade: 0, lastAttemptAt: null });
       const dueMs = first ? first.dueAt.getTime() : createdMs;
+      const cameIn = agoLabel(hoursBetween(nowMs, createdMs));
+      const lastOurs = outreach.length ? outreach[outreach.length - 1] : null;
+      const lastWord = lastOurs ? TOUCH_WORDS[lastOurs.kind] : undefined;
       finish(
         "first_call",
         `Call 1 of ${plan.steps.length}`,
-        `${name} came in ${agoLabel(hoursBetween(nowMs, createdMs))} and no call is on the record.${lead.group ? ` ${GROUP_LABELS[lead.group]} lead.` : ""}`,
+        `${
+          lead.status === "contacted"
+            ? `${name} came in ${cameIn}. The record says contacted, but no call is on it. If you talked, save the outcome so the plan can count it.`
+            : `${name} came in ${cameIn} and no call is on the record.`
+        }${lastOurs && lastWord ? ` Last on the record: ${lastWord} on ${formatCentral(new Date(ms(lastOurs.at)))}.` : ""}${lead.group ? ` ${GROUP_LABELS[lead.group]} lead.` : ""}`,
         dueMs,
         ["call.first", "voicemail.1", ...(lead.can_text ? ["text.1"] : []), ...(lead.can_email ? ["email.1"] : [])],
+        [],
+        // Due the moment the form lands (inside calling hours). Five minutes is the deadline, not a wait.
+        Math.min(dueMs, intoCallWindow(created).getTime()),
       );
       continue;
     }
@@ -687,38 +854,48 @@ export function buildNextActions(input: {
     finish(
       "call_attempt",
       `Call ${next.step.n} of ${plan.steps.length}`,
-      `${name} has had ${callsMade} attempt${callsMade === 1 ? "" : "s"} and no conversation yet.${
+      `${name} has ${callsMade} call attempt${callsMade === 1 ? "" : "s"} on the record and no conversation on it yet.${
         companions.length ? ` No answer: leave ${companions.join(", ").replace(/, ([^,]*)$/, " and $1")}.` : ""
-      }${skippedText ? " No text: there is no texting consent on file." : ""}`,
+      }${skippedText && !lead.texts_stopped ? " No text: there is no texting consent on file." : ""}`,
       next.dueAt.getTime(),
       templatesForAttempt(plan.steps, next.step, companions),
       companions,
     );
   }
 
+  // Dates are compared as instants: one row's time may come from the database and another's from this file.
+  const at = (value: string | null) => (value === null ? 0 : ms(value));
   rows.sort((a, b) => {
     if (a.due !== b.due) return a.due ? -1 : 1;
     if (a.due) {
+      // A lead inside its first hour, before anything else on the board. Two of them: the newest first, whatever its group.
+      if (a.hot !== b.hot) return a.hot ? -1 : 1;
+      if (a.hot && b.hot) return at(b.dueAt) - at(a.dueAt);
+      // Today's work, then the backlog.
+      if (a.backlog !== b.backlog) return a.backlog ? 1 : -1;
       const kind = ACTION_ORDER.indexOf(a.kind) - ACTION_ORDER.indexOf(b.kind);
       if (kind !== 0) return kind;
       const group = (GROUP_WEIGHT[a.lead.group ?? "standard"] ?? 2) - (GROUP_WEIGHT[b.lead.group ?? "standard"] ?? 2);
       if (group !== 0) return group;
-      // A first call goes to the newest lead: they are the most likely to pick up.
-      if (a.kind === "first_call") return b.lead.created_at.localeCompare(a.lead.created_at);
-      return (a.dueAt ?? "").localeCompare(b.dueAt ?? "");
+      // The freshest first: the lead that just came in, the message that just arrived, the promise due this morning.
+      return at(b.dueAt) - at(a.dueAt);
     }
     // Not due: the soonest first, and anything with no time last.
     if ((a.dueAt === null) !== (b.dueAt === null)) return a.dueAt === null ? 1 : -1;
-    return (a.dueAt ?? "").localeCompare(b.dueAt ?? "");
+    if (a.dueAt !== null && b.dueAt !== null) return at(a.dueAt) - at(b.dueAt);
+    return ACTION_ORDER.indexOf(a.kind) - ACTION_ORDER.indexOf(b.kind);
   });
 
   const counts = Object.fromEntries(ACTION_ORDER.map((k) => [k, 0])) as Record<ActionKind, number>;
   for (const r of rows) counts[r.kind] += 1;
 
+  const due = rows.filter((r) => r.due);
   return {
     generatedAt: now.toISOString(),
     rows,
-    due: rows.filter((r) => r.due),
+    due,
+    today: due.filter((r) => !r.backlog),
+    backlog: due.filter((r) => r.backlog),
     upcoming: rows.filter((r) => !r.due && r.dueAt !== null),
     counts,
     excluded,
@@ -727,22 +904,25 @@ export function buildNextActions(input: {
 
 /** One sentence for the top of the board: where the work is right now. */
 export function nextActionLine(board: NextActionBoard): string {
-  const due = board.due;
-  if (due.length === 0) {
-    return board.rows.length === 0
-      ? "No open leads on the board."
-      : "Nothing is due right now. The next one is listed under Coming up.";
+  const today = board.today;
+  if (today.length === 0) {
+    if (board.backlog.length > 0) {
+      return `Nothing new is due. ${board.backlog.length} older follow-up${board.backlog.length === 1 ? " is" : "s are"} waiting in the backlog below.`;
+    }
+    return board.rows.length === 0 ? "No open leads on the board." : "Nothing is due right now. The next one is listed under Coming up.";
   }
-  const count = (kind: ActionKind) => due.filter((r) => r.kind === kind).length;
+  const count = (kind: ActionKind) => today.filter((r) => r.kind === kind).length;
+  const hot = today.filter((r) => r.hot).length;
   const replies = count("reply");
   const first = count("first_call");
   const promised = count("callback") + count("booked_passed");
   const proposals = count("proposal_follow_up") + count("proposal_decide");
-  if (replies > 0) return `${replies} ${replies === 1 ? "person has" : "people have"} reached out and ${replies === 1 ? "is" : "are"} waiting on an answer. Start there.`;
+  if (hot > 0) return `${hot} new lead${hot === 1 ? " came in" : "s came in"} inside the last hour. Call ${hot === 1 ? "them" : "the newest"} now, before anything else.`;
+  if (replies > 0) return `${replies} ${replies === 1 ? "person has" : "people have"} reached out with no reply on the record. Start there.`;
   if (promised > 0) return `${promised} call${promised === 1 ? "" : "s"} you promised ${promised === 1 ? "is" : "are"} due. Keep your word first.`;
   if (proposals > 0) return `${proposals} proposal${proposals === 1 ? "" : "s"} ${proposals === 1 ? "needs" : "need"} a follow-up. That is the closest money on the board.`;
-  if (first > 0) return `${first} lead${first === 1 ? " has" : "s have"} never had a call. Call the newest one now.`;
-  return `${due.length} follow-up${due.length === 1 ? " is" : "s are"} due on the plan.`;
+  if (first > 0) return `${first} lead${first === 1 ? " has" : "s have"} no call on the record. Call the newest one now.`;
+  return `${today.length} follow-up${today.length === 1 ? " is" : "s are"} due on the plan.`;
 }
 
 // ------------------------------------------------------------- the pace --

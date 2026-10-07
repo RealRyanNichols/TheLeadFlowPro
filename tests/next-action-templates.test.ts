@@ -154,3 +154,35 @@ test("every script the engine can name exists", () => {
   // And nothing is written that no action ever uses.
   for (const key of SCRIPT_KEYS) assert.ok(named.has(key), `${key} is used by an action`);
 });
+
+test("a name the software made up is never said out loud", () => {
+  // The phone line saves an unknown number as "Unknown". Meta fills in "Facebook User".
+  for (const name of ["Unknown", "unknown caller", "Facebook User", "Text-in lead", "Unnamed", "N/A", "test"]) assert.equal(scriptFirstName(name), "", name);
+  assert.equal(scriptFirstName("Riley Example"), "Riley");
+  const opener = script("call.first", { firstName: scriptFirstName("Unknown"), byPhone: true })!.body;
+  assert.match(opener, /^"Hello, this is Ryan with The LeadFlow Pro\./);
+  assert.ok(!opener.includes("Unknown"));
+});
+
+test("somebody who called or texted is never told about a form they did not fill out", () => {
+  const PHONE: ScriptContext = { firstName: "Jordan", day: 1, byPhone: true, contractor: false };
+  for (const key of SCRIPT_KEYS) {
+    const s = script(key, PHONE)!;
+    assert.ok(!/\bform\b/i.test(`${s.subject ?? ""} ${s.body}`), `${key} does not mention a form`);
+    assert.deepEqual(copyProblems(`${s.title}\n${s.subject ?? ""}\n${s.body}`), [], key);
+  }
+  assert.match(script("call.first", PHONE)!.body, /^"Jordan, this is Ryan with The LeadFlow Pro\. You got in touch with us yesterday\. Did I catch you at a decent time\?"/);
+  assert.match(script("voicemail.1", PHONE)!.body, /calling about your message to us\./);
+  // A form lead still hears about the form, and how long ago it was.
+  assert.match(script("call.first", { ...CONTRACTOR, day: 0 })!.body, /You filled out our form a little while ago about getting more dirt work jobs\./);
+  assert.match(script("call.first", { ...CONTRACTOR, day: 3 })!.body, /You filled out our form the other day/);
+  assert.match(script("call.first", { ...CONTRACTOR, day: 17 })!.body, /You filled out our form a while back/);
+});
+
+test("the checklists say what the board does, and claim nothing about what works", () => {
+  const all = SCRIPT_KEYS.map((key) => script(key, CONTRACTOR)!.body).join("\n");
+  for (const claim of ["beats a text back", "where deals go quiet", "money that is not real", "we never connected"]) assert.ok(!all.includes(claim), claim);
+  assert.match(script("next_step", CONTRACTOR)!.body, /Without a next step saved, the board cannot bring this lead back to you\.$/);
+  assert.match(script("reply", CONTRACTOR)!.body, /3\. No answer, and they texted you: one line and one question back\./);
+  assert.match(script("call.reopen", CONTRACTOR)!.body, /I wanted to check in before I close your file\./);
+});

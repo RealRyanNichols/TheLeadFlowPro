@@ -88,6 +88,7 @@ export default async function NextActionsPage({ searchParams }: { searchParams: 
   if (load.partial) notices.push("Some history came back cut short, so a count here may be low.");
   if (load.unavailable.includes("email history")) notices.push("The email history could not be read with this sign-in. Email counts are left out, not shown as zero.");
   else if (load.unavailable.includes("welcome emails")) notices.push("The welcome emails could not be read with this sign-in, so the email counts leave the welcome out.");
+  if (load.unavailable.includes("email opens")) notices.push("Email opens could not be read with this sign-in, so no open count shows on any lead or in the numbers.");
 
   return (
     <div className="space-y-6">

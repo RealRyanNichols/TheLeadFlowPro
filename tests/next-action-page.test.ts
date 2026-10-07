@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import test from "node:test";
+import test, { mock } from "node:test";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { createElement, type ReactNode } from "react";
@@ -7,6 +7,7 @@ import { renderToStaticMarkup } from "react-dom/server";
 import ts from "typescript";
 import * as callSheet from "../lib/callSheet.ts";
 import * as contractorSeries from "../lib/contractorSeries.ts";
+import * as leadNotify from "../lib/leadNotify.ts";
 import * as metaLeadAnswers from "../lib/metaLeadAnswers.ts";
 import * as nextAction from "../lib/nextAction.ts";
 import * as growthSignals from "../lib/growthSignals.ts";
@@ -40,6 +41,8 @@ function fakeClient(db: Db, failed: Set<string>, reads: string[], calls: string[
     from(table: string) {
       reads.push(table);
       let single = false;
+      // One table read two ways can fail one way: "lead_activity:email" fails only the read that asks for kind = email.
+      let kind: unknown = null;
       const chain: unknown = new Proxy(
         {},
         {
@@ -47,7 +50,14 @@ function fakeClient(db: Db, failed: Set<string>, reads: string[], calls: string[
             if (key === "then") {
               return (resolve: (value: unknown) => void) => {
                 const rows = db[table] ?? [];
-                resolve({ data: failed.has(table) ? null : single ? (rows[0] ?? null) : rows, error: failed.has(table) ? { message: `${table} unavailable` } : null });
+                const down = failed.has(table) || failed.has(`${table}:${String(kind)}`);
+                resolve({ data: down ? null : single ? (rows[0] ?? null) : rows, error: down ? { message: `${table} unavailable` } : null });
+              };
+            }
+            if (key === "eq") {
+              return (column: string, value: unknown) => {
+                if (column === "kind") kind = value;
+                return chain;
               };
             }
             if (typeof key === "string" && WRITES.has(key)) calls.push(`${table}.${key}`);
@@ -88,6 +98,7 @@ const server = evalModule("lib/nextActionServer.ts", {
   "server-only": {},
   "@/lib/callSheet": callSheet,
   "@/lib/contractorSeries": contractorSeries,
+  "@/lib/leadNotify": leadNotify,
   "@/lib/metaLeadAnswers": metaLeadAnswers,
   "@/lib/nextAction": nextAction,
   "@/lib/growthSignals": growthSignals,
@@ -95,10 +106,17 @@ const server = evalModule("lib/nextActionServer.ts", {
   loadNextActions: (client: unknown, now: Date, options: { days: number; ads: growthSignals.AdRow[] | null; hrefFor: (id: string) => string }) => Promise<Record<string, unknown>>;
   toNextActionLead: (row: Record<string, unknown>) => nextAction.NextActionLead;
   isRealEmail: (email: string | null | undefined) => boolean;
+  isUnknownCaller: (row: { source: string | null; full_name: string | null; business_name: string | null }) => boolean;
   emailEventKind: (detail: string) => string | null;
+  isDeliveredEvent: (detail: string) => boolean;
+  emailSubject: (detail: string) => string;
   LEAD_LIMIT: number;
 };
 
+// The page reads the clock itself, so the clock is pinned: Wednesday, October
+// 7, 2026 at 1:00 PM Central, inside calling hours. Unpinned, "2 due" and
+// "Day 1" would change with the hour and the day this file happened to run.
+mock.timers.enable({ apis: ["Date"], now: new Date("2026-10-07T18:00:00.000Z") });
 const NOW = new Date();
 const hoursAgo = (h: number) => new Date(NOW.getTime() - h * 3_600_000).toISOString();
 const id = (n: number) => `0a1b2c3d-0000-4000-8000-${String(n).padStart(12, "0")}`;
@@ -188,7 +206,7 @@ test("the owner's page: who is due, the count against the plan, the script, the 
   });
   assert.match(text, /Next actions/);
   assert.match(text, /2 due/);
-  assert.match(text, /1 person has reached out and is waiting on an answer\. Start there\./);
+  assert.match(text, /1 person has reached out with no reply on the record\. Start there\./);
   // The reply is first, the first call second. A software note did not clear the first call.
   assert.ok(text.indexOf("Answer them now") < text.indexOf("Call 1 of 25"));
   assert.match(text, /Calls 0 of 25 · Emails 1 of 81 · Day 0/);
@@ -245,7 +263,7 @@ test("when the leads cannot be read the page says so and shows no numbers at all
   const { text } = await renderPage({ failed: ["leads"] });
   assert.match(text, /Next actions could not load\./);
   assert.match(text, /This is a connection or access error, not an empty list\./);
-  assert.ok(!/\b0 due\b|Nothing is due|Leads in/.test(text), "no zero that looks like a quiet day");
+  assert.ok(!/\b0 due\b|Nothing is due|Nothing new is due|Leads in/.test(text), "no zero that looks like a quiet day");
 });
 
 test("when a history table that decides who is owed what cannot be read, the board refuses to guess", async () => {
@@ -271,6 +289,25 @@ test("when only the email history cannot be read, the calls still show and the e
   assert.match(partial.text, /The welcome emails could not be read with this sign-in, so the email counts leave the welcome out\./);
 });
 
+test("when only the email opens cannot be read, the calls still count and no open count is shown as zero", async () => {
+  const { text } = await renderPage({
+    failed: ["lead_activity:email"],
+    rows: {
+      leads: [leadRow(1, { created_at: hoursAgo(30), status: "contacted" })],
+      // The call history is the same table, read on its own, and it still decides the row.
+      lead_activity: [
+        { lead_id: id(1), kind: "call", detail: "Call: no answer. Outcome: no_answer. Ref 0123456789abcdefghij", created_at: hoursAgo(20) },
+        { lead_id: id(1), kind: "email", detail: 'Opened "Subject" (contractor_owner, day 1). Ref open-1', created_at: hoursAgo(10) },
+      ],
+      lead_emails: Array.from({ length: 60 }, (_, i) => ({ lead_id: id(1), step: 601 + i, delivery_status: "sent", sent_at: hoursAgo(12) })),
+    },
+  });
+  assert.match(text, /Call 2 of 25/);
+  assert.match(text, /Email opens could not be read with this sign-in, so no open count shows on any lead or in the numbers\./);
+  assert.ok(!/emails? opened/.test(text), "no open count on the lead");
+  assert.ok(!/Email tracking|delivered emails|No email delivery or open/.test(text), "and no verdict built on a number that was not read");
+});
+
 test("when Meta is not connected the owner is told, and no ad number is shown as zero", async () => {
   const off = await renderPage({ rows: { leads: [leadRow(1)] } });
   assert.match(off.text, /Ad spend is not read on this server yet/);
@@ -282,9 +319,10 @@ test("when Meta is not connected the owner is told, and no ad number is shown as
 
 test("an empty board reads as empty, in words", async () => {
   const { text } = await renderPage({ rows: { leads: [] } });
-  assert.match(text, /Nothing is due/);
+  assert.match(text, /Nothing new is due/);
   assert.match(text, /No open leads on the board\./);
   assert.match(text, /That is the whole list, not a loading error\./);
+  assert.ok(!/Backlog|Unknown callers/.test(text), "no empty sections");
 });
 
 test("a CRM row becomes an engine lead by rules that are written down", () => {
@@ -320,6 +358,85 @@ test("a CRM row becomes an engine lead by rules that are written down", () => {
   assert.equal(server.emailEventKind('Email bounced for good ("Subject"). Emails stopped.'), "bounced");
   assert.equal(server.emailEventKind('Delivered "Subject" to the recipient\'s mail server.'), null);
   assert.equal(server.emailEventKind('Resend accepted "Subject" for delivery.'), null);
+  // Delivery is its own event: the base opens are measured against.
+  assert.equal(server.isDeliveredEvent('Delivered "Subject" (free_build, day 14) to the recipient\'s mail server. Ref delivered-abc'), true);
+  assert.equal(server.isDeliveredEvent('Opened "Subject". Ref open-abc'), false);
+  assert.equal(server.emailSubject('Opened "The Sunday inbox" (free_build, day 9). Ref open-abc'), "The Sunday inbox");
+  assert.equal(server.emailSubject("Email bounced"), "Email bounced");
+
+  // A number the phone line saved: came in by phone, a name the software made up, no business.
+  const unknown = server.toNextActionLead(leadRow(7, { source: "quo_inbound", full_name: "Unknown", business_name: null, diagnostic: null, email: "quo+19035550100@unknown.invalid" }));
+  assert.equal(unknown.unknown_caller, true);
+  for (const named of [
+    { source: "quo_inbound", full_name: "Riley Example", business_name: null },
+    { source: "quo_inbound", full_name: "Unknown", business_name: "Example Dirt Work (fictional)" },
+    // A form lead with a made-up name is still a lead: it has a form behind it.
+    { source: "meta_lead_ad", full_name: "Facebook User", business_name: null },
+    { source: null, full_name: null, business_name: null },
+  ]) assert.equal(server.isUnknownCaller(named), false, JSON.stringify(named));
+  for (const saved of [{ source: "quo_call", full_name: "unknown caller", business_name: " " }, { source: "quo_inbound", full_name: null, business_name: null }]) assert.equal(server.isUnknownCaller(saved), true, JSON.stringify(saved));
+  assert.equal(server.toNextActionLead(leadRow(8, { sms_unsubscribed_at: hoursAgo(1) })).texts_stopped, true);
+  assert.equal(mapped.texts_stopped, false);
+  assert.equal(mapped.unknown_caller, false);
+});
+
+test("today's work on top, the backlog under it, unknown callers apart, and none of them padding the numbers", async () => {
+  const caller = (n: number) => leadRow(n, { source: "quo_inbound", full_name: "Unknown", business_name: null, diagnostic: null, email: "quo+19035550100@unknown.invalid", status: "contacted", priority: "normal", utm_campaign: null, marketing_email_consent: false, created_at: hoursAgo(24) });
+  const { text, html, calls } = await renderPage({
+    rows: {
+      leads: [
+        leadRow(1, { created_at: new Date(NOW.getTime() - 4 * 60_000).toISOString(), priority: "normal" }), // four minutes old
+        leadRow(2, { created_at: hoursAgo(24 * 5), status: "contacted", next_follow_up_at: hoursAgo(5) }), // promised this morning
+        leadRow(3, { created_at: hoursAgo(24 * 20), status: "contacted", next_follow_up_at: hoursAgo(24 * 14), diagnostic: null, priority: "normal" }), // a two-week-old date
+        ...[10, 11, 12, 13, 14].map(caller), // five robocalls somebody picked up
+        caller(15), // and one real person texting from a number nobody knows
+        leadRow(4, { created_at: hoursAgo(24 * 3), status: "contacted", sms_consent: true, sms_unsubscribed_at: hoursAgo(24 * 2) }), // texted STOP
+      ],
+      lead_calls: [10, 11, 12, 13, 14].map((n) => ({ lead_id: id(n), started_at: hoursAgo(24), direction: "incoming", outcome: "completed", duration_seconds: null, scope_status: "company" })),
+      lead_messages: [
+        { lead_id: id(15), direction: "in", channel: "sms", body: "Do you have a scheduler link by chance", created_at: hoursAgo(28), delivered: true, author: null },
+        { lead_id: id(3), direction: "out", channel: "sms", body: "Following up on your request.", created_at: hoursAgo(24 * 15), delivered: true, author: null },
+        { lead_id: id(4), direction: "in", channel: "sms", body: "Stop", created_at: hoursAgo(24 * 2), delivered: true, author: null },
+      ],
+      lead_activity: [
+        // A call brought in from a recording, in words, with no outcome tapped.
+        { lead_id: id(2), kind: "sales", detail: "Sam Example: Call (Fieldy-imported by Codex) - Riley answered, unavailable; rescheduled to tomorrow after about 8:30", created_at: hoursAgo(19) },
+        // One day of email tracking: 60 delivered, 4 opened.
+        ...Array.from({ length: 60 }, (_, i) => ({ lead_id: id(2), kind: "email", detail: `Delivered "Subject ${i}" (contractor_owner, day ${i}) to the recipient's mail server. Ref delivered-${i}`, created_at: hoursAgo(20) })),
+        ...[1, 2, 3, 4, 4].map((i) => ({ lead_id: id(2), kind: "email", detail: `Opened "Subject ${i}" (contractor_owner, day ${i}). Ref open-${i}`, created_at: hoursAgo(18) })),
+      ],
+      lead_emails: Array.from({ length: 60 }, (_, i) => ({ lead_id: id(2), step: 601 + (i % 80), delivery_status: "sent", sent_at: hoursAgo(20) })),
+    },
+  });
+  const top = text.split("Backlog:")[0];
+  // The newest lead first, then the person waiting on an answer, then the promised call.
+  assert.match(top, /4 due/);
+  assert.match(top, /1 new lead came in inside the last hour\. Call them now, before anything else\./);
+  assert.ok(top.indexOf("Call 1 of 25") < top.indexOf("Answer them now"), "the four-minute-old lead is above the reply");
+  assert.ok(top.indexOf("Answer them now") < top.indexOf("Call back, as promised"));
+  assert.match(top, /An unnamed caller sent a message 28 hours ago and no reply is on the record\./);
+  // The call written down in words counted, so the promise is honored. One email opened twice is one email opened.
+  assert.match(top, /Calls 1 of 25 · Emails 60 of 81 · Day 5 · 4 emails opened/);
+  // The lead who texted STOP is still on the call plan, with no text button, and the row says why.
+  assert.match(top, /They texted STOP, so no text goes to them\./);
+  assert.ok(!html.includes("sms:"), "nobody on this page has both consent and no STOP");
+  // The two-week-old follow-up date is real work, kept under today's.
+  assert.match(text, /Backlog: 1 follow-up more than a week late/);
+  assert.ok(!top.includes(`Example Dirt Work 3 (fictional)`), "the old one is not in today's list");
+  // The robocalls are listed apart, never as "Set the next step", and "Unknown" is never printed as a name.
+  assert.match(text, /Unknown callers: 5 to name or close/);
+  assert.ok(!/Set the next step/.test(top));
+  assert.match(text, /Unknown number/);
+  assert.ok(!/Unknown, this is|Unknown at /.test(text));
+  // And they are not counted as leads, or as people talked to.
+  assert.match(text, /Leads in 3 3 leads from Meta ads, the last 7 days\. Not counted: 6 unknown numbers the phone line saved\./);
+  assert.match(text, /Talked to 1 of 3/);
+  assert.match(text, /6 unknown numbers were saved as leads/);
+  // Opens against delivered emails, counted once each, with tracking one day old: too early to judge.
+  assert.match(text, /Email tracking is one day old/);
+  assert.match(text, /4 of 60 delivered emails show as opened so far\./);
+  assert.deepEqual(calls, []);
+  assert.deepEqual(copyProblems(text), []);
 });
 
 test("Meta's ad list and its ad numbers are merged by ad, and a foreign account is refused", async () => {

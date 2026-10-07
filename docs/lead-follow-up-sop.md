@@ -11,6 +11,10 @@ page comes from `lib/followUpPlan.ts`; change it there and the page, the
 scripts and this document's tables follow (a test fails if the tables here
 drift from that file).
 
+**Checked against the real leads on October 7, 2026** (a read-only run at
+2:10 PM Central, 125 leads, numbers only). Five rules changed because of what
+that run showed. They are marked "from the first real run" below.
+
 Nothing in this plan is sent by software except the emails that were already
 automatic. A person dials, a person leaves the voicemail, a person presses
 send on a text or a personal email.
@@ -33,8 +37,10 @@ So on any day the board can say, for example, "Call 3 of 25 · Emails 8 of 81 ·
 
 1. **Automatic, already running:** the lead is saved, the owner alert email
    goes to hello@ and pat@, and the welcome email goes to the lead.
-2. **A person, inside five minutes:** call. This is the whole game. The form
-   is still open on their phone.
+2. **A person, right away:** call. The first call is due the moment the form
+   lands. Five minutes is the deadline, not a wait. A lead inside its first
+   hour sits at the very top of the Next actions list, above everything else
+   on it (from the first real run).
 3. **No answer:** call straight back (the double dial). Still no answer:
    leave voicemail 1, send text 1 if texting is allowed, and send personal
    email 1 ("Tried to call you just now").
@@ -93,7 +99,7 @@ always wins over the plan.
 | 25 | Day 90 | morning | Last call | voicemail, email |
 <!-- /plan:full -->
 
-A lead nobody called for a few days is not asked for nine calls in one
+A lead with no call for a few days is not asked for nine calls in one
 afternoon. It owes the next call now, and the one after that as far behind it
 as the plan put them.
 
@@ -150,8 +156,8 @@ as the plan put them.
 ## 6. After somebody picks up
 
 1. Save the outcome on the call card before doing anything else: booked,
-   wants a proposal, call back, or not a fit. A conversation with no next
-   step is where deals go quiet.
+   wants a proposal, call back, or not a fit. Without a next step saved, the
+   board cannot bring the lead back to you.
 2. Call two is the numbers call. Before it: read the notes, look at their
    area, work the numbers, and have Scott's result ready in his own words.
 3. **After a proposal goes out:** five follow-ups, on days 1, 3, 5, 7 and 14.
@@ -165,12 +171,60 @@ the outcome after every call, answered or not. That is what moves "Call 3 of
 
 Until the two are joined, also move the lead in Meta's Leads Center. Meta
 uses those stages (Initial Call Made, Qualified, Converted) to look for more
-people like the best leads. On Oct 7, 2026 the team was marking stages there
-and not on the call card, which is why the back office showed no call on any
-new lead.
+people like the best leads.
 
-A call made from a personal cell phone is on no record at all. Call from the
-LeadFlow line, or log it.
+**The board only knows the record.** A call made from a personal cell phone is
+on no record at all, so the page says "no call is on the record" and never
+"nobody called". On Oct 7, 2026 the calls on the newest leads had been made
+from a cell phone and recorded on Fieldy. One of them was on the lead as a
+line of words, and the rest were not on it at all. Call from the LeadFlow
+line, or log it.
+
+What the board counts as a call we placed:
+
+- an outgoing call on the LeadFlow line;
+- an outcome tapped on the call card or the sales desk lead page;
+- a call a person wrote down in words on the lead, such as "Name: Call ...
+  answered, rescheduled to tomorrow" (from the first real run: the lead it
+  was on showed "no call on the record" and its promised call back was
+  ignored). When the words do not say whether anybody picked up, it counts as
+  an attempt and no conversation is claimed.
+
+A note written by software (a recording review, a sync) is history. It is not
+a call and it is not follow-up.
+
+## 7a. How the list is ordered (from the first real run)
+
+1. **A lead inside its first hour.**
+2. **Somebody who reached out and has no reply on the record.** Never filed
+   under old work, however long it has been.
+3. **A call you promised**, then **proposals**, then **first calls**, then
+   **set the next step**, then **the next attempt on the plan**. Inside each,
+   Priority leads first, and the freshest first.
+4. **The backlog:** anything more than 7 days past due. It is real work, and
+   it sits under today's list instead of on top of it. On Oct 7, 58 leads
+   shared one follow-up date that had been stamped in a batch two weeks
+   earlier, and they outranked that week's proposals until this rule.
+
+Three kinds of text are not "they reached out":
+
+- the opt-out word itself (STOP, unsubscribe);
+- a short closing word (thanks, OK, a thumbs up, a tapback);
+- a machine's own message ("Reply Y to receive msgs", a login code).
+
+A lead who texted STOP stays on the call and email plan. No text goes to
+them, and their row says so.
+
+**Unknown callers.** The phone line saves a lead record for every number it
+does not know, and names it "Unknown". On Oct 7 fourteen of the thirty
+"leads" from the week were these. Thirteen were calls somebody had picked up:
+by their call summaries, eleven were the same sales robocall about a Google
+listing, and two had no summary to go by. They are listed apart, for one
+decision each: put a name on it, or close it. They are not due, they get no
+script, and they are not counted as leads or as people talked to. One
+exception: an unknown number that texts or calls with nobody answering is
+still "they reached out". The fourteenth was exactly that: a text asking for
+a scheduling link.
 
 ## 8. When to stop
 
@@ -199,9 +253,19 @@ plain words what to fix, do less of, do more of, or keep.
 These targets are the plan's own. They are not industry statistics, and
 nothing here promises a result.
 
-Small numbers do not get verdicts. An ad needs 10 leads before its cost is
-compared with another ad's, and 8 form answers are needed before the board
-says who the ad is pulling.
+Small numbers do not get verdicts:
+
+- An ad needs 10 leads before its cost is compared with another ad's.
+- 8 form answers are needed before the board says who the ad is pulling.
+- A wait to the first call is only called typical with at least 3 calls on
+  the record, on at least half the leads. Three logged calls out of sixty-six
+  say the calls are not being logged, not that they are slow.
+- The share of emails opened is measured against delivered emails, never
+  against emails sent, and gets a verdict only after 50 delivered emails and
+  7 days of tracking. Delivery and open events began recording on Oct 6,
+  2026; before this rule, six opens against a week of sends read as 2%.
+- Unknown callers are left out of every number, and get a line of their own
+  once 5 pile up in the window.
 
 ## 10. Who owns what
 
@@ -223,4 +287,8 @@ they go out. That is context, not an assignment. Write the names in here.
 - Off: the instant text alert to the team's phones and the automatic first
   text to the lead. 36 of each were queued and never sent, which is what the
   queue looks like when the switch (`SPEED_TO_LEAD_ENABLED`) is not on.
+- Not on the record: any answer, automatic or typed, to a text that came in
+  on the LeadFlow line on Oct 6. No outgoing text of any kind is on record
+  after it. Whether the automatic "got your text" answer is switched off or
+  failing was not checked.
 - Not built: any automatic text or call cadence. This plan adds none.

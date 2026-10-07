@@ -3,7 +3,11 @@ import test from "node:test";
 import {
   ACTION_LABELS,
   ACTION_ORDER,
+  BACKLOG_DAYS,
+  HOT_LEAD_MINUTES,
   buildNextActions,
+  describedCall,
+  inboundNeedsNoReply,
   isAutomatedAuthor,
   leadPace,
   nextActionLine,
@@ -150,9 +154,9 @@ test("they reached out and nothing has gone back: answer them, ahead of everythi
   assert.equal(board.rows[0].lead.id, id(2));
   assert.equal(board.rows[0].kind, "reply");
   assert.equal(board.rows[0].headline, "Answer them now");
-  assert.match(board.rows[0].why, /sent a message 2 hours ago and nothing has gone back since/);
+  assert.match(board.rows[0].why, /sent a message 2 hours ago and no reply is on the record\./);
   assert.deepEqual(board.rows[0].templateKeys, ["reply"]);
-  assert.equal(nextActionLine(board), "1 person has reached out and is waiting on an answer. Start there.");
+  assert.equal(nextActionLine(board), "1 person has reached out with no reply on the record. Start there.");
 
   // A missed call from them reads as a call, and a call back after it clears the reply.
   const missed = only([lead(3)], [touch(3, "call_in_missed", hoursAgo(1))]);
@@ -171,7 +175,7 @@ test("unanswered calls count against the plan, and a text is only suggested with
   assert.equal(noConsent.callsMade, 4);
   assert.deepEqual(noConsent.companions, []);
   assert.deepEqual(noConsent.templateKeys, ["call.attempt"]);
-  assert.match(noConsent.why, /has had 4 attempts and no conversation yet\. No text: there is no texting consent on file\./);
+  assert.match(noConsent.why, /has 4 call attempts on the record and no conversation on it yet\. No text: there is no texting consent on file\./);
 
   const consent = only([lead(1, { created_at: created, can_text: true })], touches).rows[0];
   assert.deepEqual(consent.companions, ["text"]);
@@ -232,13 +236,13 @@ test("a proposal is followed up five times in two weeks, then it is a decision",
   assert.equal(first.headline, "Proposal follow-up 1 of 5");
   assert.equal(first.dueAt, "2026-10-07T15:00:00.000Z"); // Wed 10:00 AM
   assert.equal(first.due, true);
-  assert.match(first.why, /has had the proposal since Tue, Oct 6 at 3:00 PM\. Nobody has followed up yet\./);
+  assert.match(first.why, /has had the proposal since Tue, Oct 6 at 3:00 PM\. No follow-up is on the record yet\./);
   assert.deepEqual(first.templateKeys, ["proposal.1"]);
 
   const second = only([base], [touch(1, "proposal_sent", sentAt), touch(1, "call_out_missed", hoursAgo(1))]).rows[0];
   assert.equal(second.headline, "Proposal follow-up 2 of 5");
   assert.equal(second.due, false);
-  assert.match(second.why, /Followed up 1 time so far\./);
+  assert.match(second.why, /1 follow-up is on the record so far\./);
 
   // A date a person set after sending wins over the ladder.
   const promised = only([{ ...base, next_follow_up_at: hoursAhead(50) }], [touch(1, "proposal_sent", sentAt)]).rows[0];
@@ -360,7 +364,7 @@ test("the sales desk gets its own link to log the outcome", () => {
 
 test("the line at the top names where the work is", () => {
   assert.equal(nextActionLine(only([])), "No open leads on the board.");
-  assert.equal(nextActionLine(only([lead(1), lead(2)])), "2 leads have never had a call. Call the newest one now.");
+  assert.equal(nextActionLine(only([lead(1), lead(2)])), "2 leads have no call on the record. Call the newest one now.");
   assert.equal(
     nextActionLine(only([lead(1, { status: "proposal", created_at: daysAgo(4) })], [touch(1, "proposal_sent", daysAgo(3))])),
     "1 proposal needs a follow-up. That is the closest money on the board.",
@@ -411,4 +415,177 @@ test("the pace of the first call is measured from the form to the first attempt"
   assert.deepEqual(pace.map((p) => p.minutesToFirstCall), [3, 52 * 60, null]);
   assert.deepEqual(pace.map((p) => p.attemptsIn48h), [2, 0, 0]);
   assert.deepEqual(pace.map((p) => p.talked), [true, false, false]);
+});
+
+// ---------------------------------------------------------------------------
+// What the first run against the real leads changed (October 7, 2026). Every
+// row below is fictional, shaped like a real one that the board got wrong.
+
+test("a call a person wrote down in words counts, and its words say whether somebody picked up", () => {
+  // Brought in from a recording, on the Sales Desk's own "Name: detail" form.
+  assert.equal(describedCall("sales", "Sam Example: Call (Fieldy-imported by Codex) - Riley answered, unavailable; rescheduled to October 7 after about 8:30 a.m. Central"), "talked");
+  assert.equal(describedCall("sales", "Sam Example: Called, no answer, left a voicemail"), "attempt");
+  assert.equal(describedCall("sales", "Call: line was busy"), "attempt");
+  // The Sales Desk's Uncalled list writes this one. It does not say how the call went, so no conversation is claimed.
+  assert.equal(describedCall("call", "Sam Example: marked contacted from the Uncalled list"), "attempt");
+  assert.equal(describedCall("call", "Spoke with the owner, wants numbers Thursday"), "talked");
+  // Their call to us is not an attempt of ours.
+  assert.equal(describedCall("call", "Incoming call, answered"), null);
+  // Everything else the Sales Desk logs is not a call.
+  for (const detail of ["Sam Example: Stage changed to lost", "Sam Example: Priority set to high", "Owner set to Sam", "Sam Example: Callback window noted"]) assert.equal(describedCall("sales", detail), null, detail);
+  assert.equal(describedCall("note", "Called and talked"), null);
+});
+
+test("a described call is one attempt, and the call back it promised is honored", () => {
+  const history = {
+    calls: [],
+    messages: [],
+    // Software wrote the brief. It is history, not a touch.
+    notes: [{ lead_id: id(1), created_at: hoursAgo(21), author: "Codex · Patrick-requested Fieldy review" }],
+    activity: [{ lead_id: id(1), kind: "sales", detail: "Sam Example: Call (Fieldy-imported by Codex) - Riley answered, unavailable; rescheduled to tomorrow after about 8:30", created_at: hoursAgo(20) }],
+  };
+  const touches = touchesFromHistory(history);
+  assert.deepEqual(touches.map((t) => t.kind), ["call_out_answered"]);
+  const row = only([lead(1, { created_at: daysAgo(5), status: "contacted", next_follow_up_at: hoursAgo(6) })], touches).rows[0];
+  assert.equal(row.kind, "callback");
+  assert.equal(row.callsMade, 1);
+  assert.equal(row.conversations, 1);
+  assert.equal(Math.round(row.overdueHours), 6);
+  assert.equal(row.backlog, false);
+
+  // The same call on the phone system and in words, inside thirty minutes: one attempt.
+  const twice = touchesFromHistory({ ...history, calls: [{ lead_id: id(1), started_at: hoursAgo(20.2), direction: "outgoing", outcome: "completed", duration_seconds: 12 }] });
+  assert.deepEqual(twice.map((t) => t.kind), ["call_out_answered"]);
+});
+
+test("a text that asks for nothing is not a reply owed: a STOP, a thank-you, a tapback, a machine", () => {
+  for (const body of ["Stop", "STOP", "stop.", "Unsubscribe", "Thanks! \u{1F642}", "thank you so much!!", "Ok", "ok thanks", "(thumbs up)", "\u{1F44D}", 'Liked "See you at 10"', "Zoom: Reply Y to receive recurring msgs from Zoom. Consent not needed to buy. Reply HELP for HELP.", "Your verification code is 482913"]) {
+    assert.equal(inboundNeedsNoReply(body), true, body);
+  }
+  for (const body of ["Do you have a scheduler link by chance", "Yes", "ok what time", "Thanks, can you call me after 3?", "this is a bot..... I expect better", "How much is it", "", null, undefined]) {
+    assert.equal(inboundNeedsNoReply(body), false, String(body));
+  }
+
+  const texts = (bodies: string[]) =>
+    touchesFromHistory({ calls: [], messages: bodies.map((body, i) => ({ lead_id: id(1), direction: "in", channel: "sms", created_at: hoursAgo(5 - i), body })), notes: [], activity: [] });
+  const base = lead(1, { created_at: daysAgo(2), status: "contacted" });
+  // The opt-out word, alone: nothing to answer, and the row says no text goes out.
+  const stopped = only([{ ...base, texts_stopped: true }], texts(["Stop"])).rows[0];
+  assert.equal(stopped.kind, "first_call");
+  assert.match(stopped.why, /They texted STOP, so no text goes to them\.$/);
+  assert.equal(only([base], texts(["Thanks! \u{1F642}"])).rows[0].kind, "first_call");
+  // A real question after the thank-you is owed an answer.
+  const asked = only([base], texts(["Thanks!", "Do you have a scheduler link by chance"])).rows[0];
+  assert.equal(asked.kind, "reply");
+  // A body that was not read is never waved through.
+  assert.equal(only([base], touchesFromHistory({ calls: [], messages: [{ lead_id: id(1), direction: "in", channel: "sms", created_at: hoursAgo(1) }], notes: [], activity: [] })).rows[0].kind, "reply");
+});
+
+test("a number the phone line saved is named or closed, not worked as a lead", () => {
+  const caller = (n: number, overrides: Partial<NextActionLead> = {}) =>
+    lead(n, { full_name: "Unknown", business_name: null, email: null, source: "quo_inbound", campaign: null, group: null, service: null, series: null, priority: "normal", status: "contacted", unknown_caller: true, created_at: daysAgo(1), ...overrides });
+
+  // A sales robocall somebody picked up: one decision, not due, never "set the next step".
+  const robo = only([caller(1)], [touch(1, "call_in_answered", daysAgo(1))]);
+  assert.equal(robo.rows[0].kind, "sort_caller");
+  assert.equal(robo.rows[0].headline, "Name them, or close it");
+  assert.equal(robo.rows[0].due, false);
+  assert.equal(robo.rows[0].dueAt, null);
+  assert.match(robo.rows[0].why, /^An unknown number called and somebody picked up on Tue, Oct 6 at 1:00 PM\. If it was a customer, put a name on the record\. If it was a sales call, a wrong number or a machine, close it\.$/);
+  assert.deepEqual(robo.rows[0].templateKeys, []);
+  assert.equal(robo.due.length, 0);
+  assert.equal(robo.counts.sort_caller, 1);
+  assert.equal(nextActionLine(robo), "Nothing is due right now. The next one is listed under Coming up.");
+
+  // A real person can text from a number nobody knows. Still owed an answer, and never called "Unknown".
+  const asked = only([caller(2)], [touch(2, "text_in", hoursAgo(29))]).rows[0];
+  assert.equal(asked.kind, "reply");
+  assert.match(asked.why, /^An unnamed caller sent a message 29 hours ago and no reply is on the record\.$/);
+
+  // Once somebody on our side has worked it, it is on the plan like any lead.
+  assert.equal(only([caller(3)], [touch(3, "call_in_answered", daysAgo(1)), touch(3, "text_out", hoursAgo(20))]).rows[0].kind, "set_next_step");
+  // And an unnamed caller somebody took to a proposal stays a proposal.
+  const proposal = only([caller(4, { status: "proposal", created_at: daysAgo(3) })], [touch(4, "call_in_answered", daysAgo(3))]).rows[0];
+  assert.equal(proposal.kind, "proposal_follow_up");
+  assert.match(proposal.why, /^An unnamed caller is at the proposal stage/);
+});
+
+test("due work more than a week old is the backlog: under today's work, never on top of it", () => {
+  assert.equal(BACKLOG_DAYS, 7);
+  const board = only(
+    [
+      // Fifty-eight real leads shared one follow-up date, stamped in a batch two weeks earlier.
+      lead(1, { created_at: daysAgo(20), status: "contacted", next_follow_up_at: daysAgo(14), group: null, priority: "normal", series: null }),
+      lead(2, { created_at: daysAgo(21), status: "contacted", next_follow_up_at: daysAgo(14), group: null, priority: "normal", series: null }),
+      // This week: a proposal, a promised call from this morning, and a first call.
+      lead(3, { created_at: daysAgo(5), status: "proposal" }),
+      lead(4, { created_at: daysAgo(5), status: "contacted", next_follow_up_at: hoursAgo(6) }),
+      lead(5, { created_at: hoursAgo(4), group: "standard", priority: "normal" }),
+      // Somebody waiting on an answer is never filed under old work, however long it has been.
+      lead(6, { created_at: daysAgo(20), status: "contacted" }),
+    ],
+    [touch(1, "text_out", daysAgo(15)), touch(2, "text_out", daysAgo(15)), touch(4, "call_out_answered", daysAgo(1)), touch(6, "text_in", daysAgo(15))],
+  );
+  assert.deepEqual(board.today.map((r) => [r.lead.id, r.kind]), [[id(6), "reply"], [id(4), "callback"], [id(3), "proposal_follow_up"], [id(5), "first_call"]]);
+  assert.deepEqual(board.backlog.map((r) => r.kind), ["callback", "callback"]);
+  assert.deepEqual(board.due, [...board.today, ...board.backlog]);
+  assert.ok(board.backlog.every((r) => r.backlog && r.overdueHours > 7 * 24));
+  assert.ok(board.today.every((r) => !r.backlog));
+  assert.equal(nextActionLine(board), "1 person has reached out with no reply on the record. Start there.");
+
+  // Only old work left: the line says so, and does not call it today's.
+  const old = only([lead(1, { created_at: daysAgo(20), status: "contacted", next_follow_up_at: daysAgo(14) })], [touch(1, "text_out", daysAgo(15))]);
+  assert.equal(old.today.length, 0);
+  assert.equal(nextActionLine(old), "Nothing new is due. 1 older follow-up is waiting in the backlog below.");
+});
+
+test("a lead inside its first hour is due at once and sits above everything, a waiting reply included", () => {
+  assert.equal(HOT_LEAD_MINUTES, 60);
+  const fresh = lead(1, { created_at: new Date(NOW.getTime() - 2 * 60_000).toISOString(), group: "standard", priority: "normal" });
+  const board = only([lead(2, { created_at: daysAgo(1) }), lead(3, { created_at: hoursAgo(3) }), fresh], [touch(2, "text_in", hoursAgo(2))]);
+  assert.deepEqual(board.rows.map((r) => r.lead.id), [id(1), id(2), id(3)]);
+  const row = board.rows[0];
+  assert.equal(row.kind, "first_call");
+  assert.equal(row.hot, true);
+  // Two minutes old: due now, with three minutes left on the five. Not "coming up".
+  assert.equal(row.due, true);
+  assert.equal(row.overdueHours, 0);
+  assert.equal(Date.parse(row.dueAt!) - Date.parse(fresh.created_at), 5 * 60_000);
+  assert.equal(board.upcoming.length, 0);
+  assert.equal(board.rows[2].hot, false, "three hours old is a first call like any other");
+  assert.equal(nextActionLine(board), "1 new lead came in inside the last hour. Call them now, before anything else.");
+
+  // Two inside the hour: the newest first, even when the older one is the priority lead.
+  const two = only([lead(5, { created_at: new Date(NOW.getTime() - 30 * 60_000).toISOString() }), fresh]);
+  assert.deepEqual(two.rows.map((r) => r.lead.id), [id(1), id(5)]);
+  assert.equal(nextActionLine(two), "2 new leads came in inside the last hour. Call the newest now, before anything else.");
+
+  // A form that lands at night is due when calling hours open, not before.
+  const night = buildNextActions({ leads: [lead(4, { created_at: "2026-10-08T03:30:00.000Z" })], touches: [], now: new Date("2026-10-08T04:00:00.000Z") }).rows[0]; // 10:30 PM, read at 11:00 PM
+  assert.equal(night.due, false);
+  assert.equal(night.dueAt, "2026-10-08T14:00:00.000Z"); // Thu 9:00 AM
+});
+
+test("a lead marked contacted with no call on the record says so, and names the last thing that is on it", () => {
+  const row = only([lead(1, { created_at: daysAgo(3), status: "contacted" })], [touch(1, "text_out", daysAgo(2))]).rows[0];
+  assert.equal(row.kind, "first_call");
+  assert.match(row.why, /came in 3 days ago\. The record says contacted, but no call is on it\. If you talked, save the outcome so the plan can count it\. Last on the record: a text on Mon, Oct 5 at 1:00 PM\. Priority lead\.$/);
+  // A new lead with nothing on it reads the plain way.
+  assert.match(only([lead(2, { created_at: daysAgo(3) })]).rows[0].why, /came in 3 days ago and no call is on the record\. Priority lead\.$/);
+});
+
+test("the new sentences pass the house copy rules too", () => {
+  const board = only(
+    [
+      lead(1, { created_at: daysAgo(3), status: "contacted", texts_stopped: true }),
+      lead(2, { full_name: "Unknown", business_name: null, source: "quo_inbound", unknown_caller: true, group: null, series: null, status: "contacted", created_at: daysAgo(1) }),
+      lead(3, { full_name: "Unknown", business_name: null, source: "quo_inbound", unknown_caller: true, group: null, series: null, status: "contacted", created_at: daysAgo(1) }),
+      lead(4, { created_at: daysAgo(20), status: "contacted", next_follow_up_at: daysAgo(14) }),
+      lead(5, { created_at: new Date(NOW.getTime() - 60_000).toISOString() }),
+    ],
+    [touch(1, "text_out", daysAgo(2)), touch(2, "call_in_answered", daysAgo(1)), touch(3, "text_in", hoursAgo(5)), touch(4, "text_out", daysAgo(15))],
+  );
+  assert.deepEqual(board.rows.map((r) => r.kind).sort(), ["callback", "first_call", "first_call", "reply", "sort_caller"]);
+  for (const row of board.rows) assert.deepEqual(copyProblems(`${row.headline} ${row.why} ${row.position}`), [], row.kind);
+  assert.deepEqual(copyProblems(nextActionLine(board)), []);
 });

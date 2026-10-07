@@ -79,10 +79,14 @@ export type AdRow = {
 export type EmailTotals = {
   /** Automatic emails sent in the window. */
   sent: number;
+  /** Emails a mail server accepted, by the delivery events on record. Null when they are not read. The base opens are measured against. */
+  delivered: number | null;
   /** Emails with at least one open on record. Null when opens are not read. */
   opened: number | null;
   clicked: number | null;
   bounced: number | null;
+  /** When the first delivery or open event was recorded. Null when none is on record. */
+  trackedSince: string | null;
 };
 
 /** An ad needs this many leads before its cost is compared with another ad's. */
@@ -91,6 +95,14 @@ export const MIN_LEADS_TO_JUDGE = 10;
 export const MIN_ANSWERS_TO_JUDGE = 8;
 /** An ad that has spent this much with no lead is worth a look, whatever else is true. */
 export const SPEND_WITHOUT_LEAD_CENTS = 7_500;
+/** Delivered emails needed before the share opened gets a verdict. */
+export const MIN_DELIVERED_TO_JUDGE = 50;
+/** Days of open tracking needed before the share opened gets a verdict. */
+export const MIN_TRACKING_DAYS = 7;
+/** Leads with a call on the record needed before a wait is called typical. */
+export const MIN_CALLS_FOR_TYPICAL = 3;
+/** Unknown numbers saved as leads in the window before the board says to deal with them. */
+export const UNKNOWN_CALLERS_TO_FLAG = 5;
 /** The plan's own target: attempts in the first two days (three on day 0, two on day 1). */
 export const ATTEMPTS_IN_48H_TARGET = FULL_CALL_PLAN.filter((s) => s.day <= 1).length;
 
@@ -125,10 +137,11 @@ export type Scorecard = { days: number; kpis: Kpi[]; signals: Signal[] };
  * Build the scorecard for the last `days` days.
  *
  * `leads` are the real (non-test, not deleted) leads created in the window,
- * open or closed. `pace` is lib/nextAction.ts leadPace over the same leads.
- * `board` is the next-action board over every open lead. `ads` is one row per
- * ad for the same window, or null when Meta was not read. `email` is null
- * when the email history was not read.
+ * open or closed, without the unknown numbers the phone system saved; those
+ * are counted in `unknownCallers`. `pace` is lib/nextAction.ts leadPace over
+ * the same leads. `board` is the next-action board over every open lead.
+ * `ads` is one row per ad for the same window, or null when Meta was not
+ * read. `email` is null when the email history was not read.
  */
 export function scorecard(input: {
   days: number;
@@ -138,8 +151,11 @@ export function scorecard(input: {
   board: NextActionBoard;
   ads: readonly AdRow[] | null;
   email: EmailTotals | null;
+  /** Records in the window that are an unknown number, not a named lead. */
+  unknownCallers?: number;
 }): Scorecard {
   const { days, now, leads, board, ads, email } = input;
+  const unknownCallers = input.unknownCallers ?? 0;
   const nowMs = now.getTime();
   const paceById = new Map(input.pace.map((p) => [p.lead_id, p]));
   const signals: Signal[] = [];
@@ -161,13 +177,19 @@ export function scorecard(input: {
   const waits = withCall.map((l) => paceById.get(l.id)?.minutesToFirstCall).filter((m): m is number => typeof m === "number");
   const fast = waits.filter((m) => m <= FIRST_CALL_MINUTES).length;
   const typicalWait = median(waits);
+  // A wait is only called typical when it is: at least three calls on the
+  // record, on at least half the leads. Three logged calls out of sixty-six
+  // (Oct 7, 2026) say the calls are not being logged, not that they are slow.
+  const waitIsTypical = waits.length >= MIN_CALLS_FOR_TYPICAL && waits.length * 2 >= settled.length;
   const talked = leads.filter((l) => paceById.get(l.id)?.talked).length;
 
   kpis.push({
     key: "leads",
     label: "Leads in",
     value: String(leads.length),
-    detail: leads.length === 0 ? `None in ${windowWords}.` : `${plural(metaLeads.length, "lead")} from Meta ads, ${windowWords}.`,
+    detail: `${leads.length === 0 ? `None in ${windowWords}.` : `${plural(metaLeads.length, "lead")} from Meta ads, ${windowWords}.`}${
+      unknownCallers > 0 ? ` Not counted: ${plural(unknownCallers, "unknown number")} the phone line saved.` : ""
+    }`,
     tone: "plain",
   });
   kpis.push({
@@ -179,7 +201,14 @@ export function scorecard(input: {
         ? settled.length === 0
           ? "Nothing to call yet."
           : "No call is on the record for any of them."
-        : `Typical wait to the first call: ${waitLabel(typicalWait)}.${noCall > 0 ? ` No call on record for ${noCall}.` : ""}`,
+        : // One or two calls are not a pattern, so they are counted and not called typical.
+          `${
+            waitIsTypical
+              ? `Typical wait to the first call on the record: ${waitLabel(typicalWait)}.`
+              : waits.length === 1
+                ? `1 lead has a call on the record, ${waitLabel(typicalWait)} after the form.`
+                : `${waits.length} leads have a call on the record. The middle one came ${waitLabel(typicalWait)} after the form.`
+          }${noCall > 0 ? ` No call on the record for ${noCall}.` : ""}`,
     tone: settled.length > 0 && fast === settled.length ? "good" : settled.length > 0 ? "warn" : "plain",
   });
   kpis.push({
@@ -211,9 +240,19 @@ export function scorecard(input: {
     signals.push({
       id: "replies_owed",
       verdict: "fix",
-      title: `${plural(board.counts.reply, "person is", "people are")} waiting on an answer`,
-      detail: "They texted, emailed or called, and nothing has gone back since.",
-      action: "Start at the top of Next actions. A person who reached out is the warmest lead on the board.",
+      title: `${plural(board.counts.reply, "person", "people")} reached out with no reply on the record`,
+      detail: "They texted, emailed or called, and nothing going back is on the record. A reply from a personal phone would not show here.",
+      action: "Start at the top of Next actions. They contacted you first.",
+    });
+  }
+
+  if (unknownCallers >= UNKNOWN_CALLERS_TO_FLAG) {
+    signals.push({
+      id: "unknown_callers",
+      verdict: "fix",
+      title: `${plural(unknownCallers, "unknown number")} were saved as leads`,
+      detail: `Over ${windowWords}. The phone line makes a lead record for every number it does not know, sales calls and robocalls included. They are left out of the numbers here.`,
+      action: "Open Unknown callers on Next actions. Put a name on the real ones and close the rest, so the call list shows leads.",
     });
   }
 
@@ -227,7 +266,7 @@ export function scorecard(input: {
     });
   }
 
-  if (typicalWait !== null && waits.length >= 3) {
+  if (typicalWait !== null && waitIsTypical) {
     if (typicalWait <= FIRST_CALL_MINUTES) {
       signals.push({
         id: "speed_good",
@@ -252,12 +291,14 @@ export function scorecard(input: {
   if (twoDaysOld.length >= 3) {
     const total = twoDaysOld.reduce((sum, l) => sum + (paceById.get(l.id)?.attemptsIn48h ?? 0), 0);
     const average = total / twoDaysOld.length;
-    if (average < ATTEMPTS_IN_48H_TARGET - 2) {
+    // When most leads have no call on the record at all, "no call on the record" above has already said it once.
+    const mostlyUnlogged = noCall * 2 > settled.length && average < 0.5;
+    if (!mostlyUnlogged && average < ATTEMPTS_IN_48H_TARGET - 2) {
       signals.push({
         id: "too_few_attempts",
         verdict: "fix",
-        title: `Unreached leads are getting ${average.toFixed(1)} call attempts in their first two days`,
-        detail: `Over ${plural(twoDaysOld.length, "lead")} from ${windowWords} that nobody has talked to yet. The plan is ${ATTEMPTS_IN_48H_TARGET}.`,
+        title: `${average.toFixed(1)} call attempts on the record in a lead's first two days`,
+        detail: `On average, over ${plural(twoDaysOld.length, "lead")} from ${windowWords} with no conversation on the record. The plan is ${ATTEMPTS_IN_48H_TARGET}.`,
         action: "Work the plan in order: three tries the day the form comes in, two the next day.",
       });
     } else if (average >= ATTEMPTS_IN_48H_TARGET - 1) {
@@ -265,21 +306,36 @@ export function scorecard(input: {
         id: "attempts_good",
         verdict: "keep",
         title: "Leads are getting chased hard in the first two days",
-        detail: `${average.toFixed(1)} attempts on average, over ${plural(twoDaysOld.length, "lead")} not reached yet. The plan is ${ATTEMPTS_IN_48H_TARGET}.`,
+        detail: `${average.toFixed(1)} attempts on the record on average, over ${plural(twoDaysOld.length, "lead")} with no conversation yet. The plan is ${ATTEMPTS_IN_48H_TARGET}.`,
         action: "Keep it up through day five. The plan has a call on every one of those days.",
       });
     }
   }
 
-  const late = board.due.filter((r) => r.kind !== "reply" && r.overdueHours >= 24);
+  // This week's late work is one line; the backlog (more than a week late) is another, so neither hides the other.
+  const late = board.today.filter((r) => r.kind !== "reply" && r.overdueHours >= 24);
   if (late.length > 0) {
     const lateProposals = late.filter((r) => r.kind === "proposal_follow_up" || r.kind === "proposal_decide").length;
     signals.push({
       id: "plan_behind",
       verdict: "fix",
-      title: `${plural(late.length, "follow-up is", "follow-ups are")} more than a day late`,
+      title: `${plural(late.length, "follow-up from this week is", "follow-ups from this week are")} more than a day late`,
       detail: lateProposals > 0 ? `${plural(lateProposals, "of them is a proposal", "of them are proposals")}, the closest money on the board.` : "Counted across every open lead on the plan.",
       action: "Clear proposals first, then promised calls, then first calls.",
+    });
+  }
+
+  if (board.backlog.length > 0) {
+    const promised = board.backlog.filter((r) => r.kind === "callback" || r.kind === "booked_passed").length;
+    signals.push({
+      id: "backlog",
+      verdict: "watch",
+      title: `${plural(board.backlog.length, "follow-up is", "follow-ups are")} more than a week late`,
+      detail:
+        promised > 0
+          ? `${plural(promised, "of them is a follow-up date", "of them are follow-up dates")} that passed with nothing on the record since. They sit under today's work, not on top of it.`
+          : "They sit under today's work, not on top of it.",
+      action: "Work today's list first. Then give each old one a call, or close it.",
     });
   }
 
@@ -288,8 +344,8 @@ export function scorecard(input: {
       id: "stale",
       verdict: "watch",
       title: `${plural(board.counts.stale, "old lead is", "old leads are")} past the end of the plan`,
-      detail: "Never called, or untouched for more than a month.",
-      action: "Give each one call, or close it. A long list of dead leads hides the live ones.",
+      detail: "No call on the record, or nothing on the record for more than a month.",
+      action: "Give each one call, or close it, so the list shows live leads.",
     });
   }
 
@@ -319,8 +375,8 @@ export function scorecard(input: {
         id: "quality_good",
         verdict: "more",
         title: `${priority.length} of ${answered.length} form leads are priority`,
-        detail: `Owner or manager, ready to invest, wants jobs soon. Over ${windowWords}.`,
-        action: "The ad is finding buyers. Keep the message and put the calls on it.",
+        detail: `Owner or manager, says yes to the investment, wants jobs soon. Over ${windowWords}. That is what they answered on the form, not a sale.`,
+        action: "Keep the ad's message, and put the calls on these leads first.",
       });
     } else if (share < 0.15) {
       signals.push({
@@ -393,7 +449,7 @@ export function scorecard(input: {
           verdict: "more",
           title: `"${best.ad.ad_name}" is bringing leads for less`,
           detail: `${money(Math.round(best.cpl))} a lead over ${best.ad.platformLeads}, against ${money(Math.round(worst.cpl))} a lead over ${worst.ad.platformLeads} on "${worst.ad.ad_name}".`,
-          action: "Check which one brought the priority leads before moving money. A cheap lead who is not a buyer costs more.",
+          action: "Check which one brought the priority leads before moving money. The cheaper lead is not always the better one.",
         });
       }
     } else {
@@ -445,43 +501,60 @@ export function scorecard(input: {
   }
 
   // ------------------------------------------------------------ the email --
+  // Opens are measured against delivered emails, never against emails sent:
+  // on Oct 7, 2026 delivery and open events had been recorded for one day,
+  // and six opens against a week of sends read as 2% when the tracked base
+  // said nothing of the kind.
   if (email !== null && email.sent > 0) {
+    const delivered = email.delivered ?? 0;
+    const trackedMs = Date.parse(email.trackedSince ?? "");
+    const trackingDays = Number.isFinite(trackedMs) ? (nowMs - trackedMs) / 86_400_000 : null;
     if (email.opened === null) {
       // Opens were not read at all: say nothing about them.
-    } else if (email.sent >= 30 && email.opened === 0) {
+    } else if (delivered === 0 && email.opened === 0 && email.sent >= 30) {
       signals.push({
         id: "email_opens_missing",
         verdict: "fix",
-        title: "No email open is on the record",
-        detail: `${plural(email.sent, "automatic email")} went out in ${windowWords} and none shows as opened. That points to opens not being recorded, rather than to nobody opening one.`,
+        title: "No email delivery or open is on the record",
+        detail: `${plural(email.sent, "automatic email")} went out in ${windowWords} and none shows as delivered or opened. That points to the events not being recorded, rather than to nobody opening one.`,
         action: "Check that open tracking is on for the sending domain in Resend, and that its webhook points at this site.",
       });
-    } else if (email.sent >= 50) {
-      const rate = email.opened / email.sent;
-      if (rate < 0.15) {
+    } else if (delivered >= MIN_DELIVERED_TO_JUDGE) {
+      const rate = email.opened / delivered;
+      const counted = `${email.opened} of ${delivered} delivered emails show as opened`;
+      if (trackingDays !== null && trackingDays < MIN_TRACKING_DAYS) {
+        signals.push({
+          id: "email_tracking_new",
+          verdict: "watch",
+          title: `Email tracking is ${trackingDays < 1.5 ? "one day" : `${Math.round(trackingDays)} days`} old`,
+          detail: `${counted} so far. Emails sent before tracking began are not in that count.`,
+          action: `Give it ${MIN_TRACKING_DAYS} days before judging the subject lines.`,
+        });
+      } else if (rate < 0.15) {
         signals.push({
           id: "email_opens_low",
           verdict: "fix",
-          title: `${Math.round(rate * 100)}% of automatic emails show as opened`,
-          detail: `${email.opened} of ${email.sent} in ${windowWords}. Opens are undercounted by some mail apps, so read this as a floor.`,
-          action: "Look at where the emails are landing and at the subject lines. If tracking only started recently, give it a week first.",
+          title: `${Math.round(rate * 100)}% of delivered emails show as opened`,
+          detail: `${counted} in ${windowWords}. Open counts are approximate: a mail app can hide an open, or record one nobody made.`,
+          action: "Look at where the emails are landing and at the subject lines.",
         });
       } else if (rate >= 0.35) {
         signals.push({
           id: "email_opens_good",
           verdict: "keep",
-          title: `${Math.round(rate * 100)}% of automatic emails show as opened`,
-          detail: `${email.opened} of ${email.sent} in ${windowWords}.`,
-          action: "Call the people who opened three or more. They are reading.",
+          title: `${Math.round(rate * 100)}% of delivered emails show as opened`,
+          detail: `${counted} in ${windowWords}.`,
+          action: "The Next actions list shows who opened. Put those calls first.",
         });
       }
     }
-    if (email.bounced !== null && email.sent >= 30 && email.bounced / email.sent > 0.05) {
+    const bounceBase = delivered > 0 && email.bounced !== null ? delivered + email.bounced : email.sent;
+    if (email.bounced !== null && bounceBase >= 30 && email.bounced / bounceBase > 0.05) {
       signals.push({
         id: "email_bounces",
         verdict: "fix",
-        title: `${email.bounced} of ${email.sent} automatic emails bounced`,
-        detail: `Over ${windowWords}. A high bounce rate hurts delivery for everyone on the list.`,
+        title: `${email.bounced} of ${bounceBase} emails bounced`,
+        detail: `Over ${windowWords}. Mail providers count bounces against the sender.`,
         action: "Those leads are phone only. Check the form is collecting real addresses.",
       });
     }

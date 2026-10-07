@@ -318,7 +318,7 @@ export function seriesLength(series: EmailSeries): number {
 /**
  * After a proposal goes out: five follow-ups in two weeks, counted in days
  * from the day it was sent. Then it is a yes, a no, or parked for 30 days.
- * A proposal nobody chases is the most expensive lead on the board.
+ * These are the plan's own days, Ryan's and Pat's to change.
  */
 export const PROPOSAL_FOLLOW_UP_DAYS: readonly number[] = [1, 3, 5, 7, 14];
 
