@@ -134,25 +134,57 @@ so that email volume can never crowd it out.
 
 ## Not deployed, and why it cannot simply be released
 
-The live site reports commit `8f96f9c` at `/api/health`. That commit is not
-on any GitHub branch. The live back office (the dark workspace, the Hub
-frame, Special Effects) exists only on the droplet. Releasing this branch by
-itself would replace that with an older site.
+The live site reports commit `8f96f9c` at `/api/health` (checked again at
+2:55 PM on October 7). That commit is not on any GitHub branch. The live back
+office (the dark workspace, the Hub frame, Special Effects) exists only on the
+droplet. Releasing this branch by itself would replace that with an older
+site.
 
-So the order has to be:
+There is a second catch. This branch is built on GitHub `main`, and `main`
+has work the live copy does not (the October 6 lead-to-cash board is one
+piece: the live `/admin/command-center` is still the older page). So merging
+this branch onto the live code also brings in everything on `main` that the
+live copy lacks. That is a real merge, with likely conflicts where both sides
+changed the back office shell (`app/admin/backOfficeNav.ts`,
+`app/sales/layout.tsx`). It should be done once, in the open, with the tests
+and the build run on the result.
 
-1. In the droplet console, save the live code to GitHub as its own branch.
-2. Merge `claude/next-action-engine` onto it. This work is additive: new
-   files, plus one menu entry in `app/admin/backOfficeNav.ts`, one link in
-   `app/sales/layout.tsx` and two ad ids in `lib/metaCampaignGuard.ts`.
-3. Check memory and disk, then `leadflow-release <sha>`. `--rollback` goes
-   back one release.
+### The safest order
 
-The exact commands were given to Ryan in chat on October 7. They are
-untested, because this session cannot open the droplet console. Coordinate
-with whoever owns the release pipeline before running them.
+1. **Save the live code to GitHub.** One line in the droplet console. It
+   changes nothing on the server:
 
-To take the page back out: remove the two links. Nothing else depends on it.
+   ```
+   cd /srv/sites/leadflow
+   git log origin/main..8f96f9cada726fe8015e4f22c13eb05c319d78b7 --oneline | tail -20
+   git push origin 8f96f9cada726fe8015e4f22c13eb05c319d78b7:refs/heads/droplet/live-2026-10-07
+   ```
+
+   The repository is public. Look at that list of commits first, and do not
+   push if any of them carries a key, a token or a customer's details.
+2. **Merge and test off the server.** With the live code on GitHub, the merge
+   of `main`, this branch and the live copy can be done in a pull request:
+   conflicts resolved, the full test suite and `npm run build` run on the
+   result. The Next actions page itself only adds files, one menu entry, one
+   link and two ad ids.
+3. **Release the tested commit.** Check memory and disk first (the build
+   guard needs 5.5 GiB and 12 GiB free), then:
+
+   ```
+   cd /srv/sites/leadflow
+   git fetch origin <the merged branch>
+   leadflow-release <the merged sha>
+   leadflow-release --status
+   ```
+
+   `leadflow-release --rollback` goes back one release.
+
+These commands are untested: this session cannot open the droplet console.
+Another session set the release pipeline up and owns it. Coordinate with
+whoever that is before running step 3.
+
+To take the page back out after a release: remove the two links. Nothing else
+depends on it.
 
 ## Decisions waiting on Ryan and Pat
 
