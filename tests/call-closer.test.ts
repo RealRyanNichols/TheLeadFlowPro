@@ -138,8 +138,8 @@ function everyPlan(): CallPlan[] {
 // ------------------------------------------------------------ constants --
 
 test("outcomes, labels, and panel order are the contract the UI and route code against", () => {
-  assert.deepEqual([...CALL_OUTCOMES], ["booked", "wants_proposal", "ready_to_pay", "call_back", "no_answer", "voicemail", "not_a_fit", "proposal_sent"]);
-  assert.deepEqual([...PANEL_OUTCOMES], ["booked", "wants_proposal", "ready_to_pay", "call_back", "no_answer", "voicemail", "not_a_fit"]);
+  assert.deepEqual([...CALL_OUTCOMES], ["discovery_completed", "booked", "wants_proposal", "ready_to_pay", "call_back", "no_answer", "voicemail", "not_a_fit", "proposal_sent"]);
+  assert.deepEqual([...PANEL_OUTCOMES], ["discovery_completed", "booked", "wants_proposal", "ready_to_pay", "call_back", "no_answer", "voicemail", "not_a_fit"]);
   assert.deepEqual(OUTCOME_LABELS, {
     booked: "Booked the sit-down",
     wants_proposal: "Wants a proposal",
@@ -149,8 +149,9 @@ test("outcomes, labels, and panel order are the contract the UI and route code a
     voicemail: "Left a voicemail",
     not_a_fit: "Not a fit",
     proposal_sent: "Proposal sent",
+    discovery_completed: "Discovery completed",
   });
-  assert.deepEqual([...TALKED_OUTCOMES], ["booked", "wants_proposal", "ready_to_pay", "call_back", "not_a_fit", "proposal_sent"]);
+  assert.deepEqual([...TALKED_OUTCOMES], ["discovery_completed", "booked", "wants_proposal", "ready_to_pay", "call_back", "not_a_fit", "proposal_sent"]);
   assert.deepEqual([...STAGE_ORDER], ["new", "contacted", "call_booked", "proposal"]);
   assert.deepEqual(LOST_REASONS.map((r) => r.id), ["not_owner", "no_budget", "has_someone", "wrong_number", "other"]);
   for (const text of [...Object.values(OUTCOME_LABELS), ...LOST_REASONS.map((r) => r.label), ...MEETING_PLACES.flatMap((p) => [p.label, p.place])]) {
@@ -1133,4 +1134,21 @@ test("import guard: the pure Call Closer modules import no channel, database, or
   assert.ok(!runtimeImports(src("lib/proposals/build.ts")).some((s) => /callCloser/.test(s)));
   // The guard itself sees through a type-only import and catches a real one.
   assert.deepEqual(runtimeImports('import type { A } from "@/lib/callSheet";\nimport { b } from "@/lib/quo";\nconst c = await import("@/lib/leadNotify");'), ["@/lib/quo", "@/lib/leadNotify"]);
+});
+
+test("explicit discovery keeps advanced stage and promises without inventing a booking", () => {
+  for (const status of ["new", "proposal"]) {
+    const p = ok(plan(request("discovery_completed"), {lead: {...lead(), status, next_follow_up_at: "2026-09-28T14:00:00.000Z"}}));
+    assert.equal(p.leadPatch.status, status === "new" ? "contacted" : undefined);
+    assert.equal(p.leadPatch.last_contacted_at, TUE_10AM.toISOString());
+    assert.equal(p.leadPatch.next_follow_up_at, undefined);
+    assert.equal(p.task, null);
+    assert.equal(outcomeFromDetail(p.activity.detail), "discovery_completed");
+    assert.ok(p.activity.detail.includes(refMarker(KEY)));
+  }
+  for (const outcome of ["no_answer", "voicemail"] as const) {
+    const p=ok(plan(request(outcome)));
+    assert.notEqual(outcomeFromDetail(p.activity.detail), "discovery_completed");
+    assert.equal(p.leadPatch.last_contacted_at, undefined);
+  }
 });

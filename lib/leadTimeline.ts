@@ -80,7 +80,7 @@ const ACTIVITY_MARKER_TAIL =
 /** An activity detail for display: the Call Closer's trailing markers removed. The stored detail is unchanged. */
 export function stripActivityMarkers(detail: string): string {
   if (typeof detail !== "string") return "";
-  const stripped = detail.replace(ACTIVITY_MARKER_TAIL, "");
+  const stripped = detail.replace(/\s*TeamEvent:[A-Za-z0-9_-]+/g, "").replace(ACTIVITY_MARKER_TAIL, "");
   return stripped || detail.trim();
 }
 

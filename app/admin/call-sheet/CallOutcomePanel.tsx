@@ -1156,7 +1156,7 @@ export default function CallOutcomePanel({
                   return (
                     <label key={o} htmlFor={id} className={`${TILE} ${on ? TILE_ON : TILE_OFF}`}>
                       <input id={id} type="radio" name={`${uid}-outcome`} value={o} checked={on} onChange={() => choose(o)} className={RADIO} />
-                      <span className="min-w-0">{nextStepLabel(o)}</span>
+                      <span className="min-w-0">{nextStepLabel(o)}{o === "discovery_completed" ? <span className="mt-1 block text-xs font-normal">Finished a substantive prospect discovery conversation</span> : null}</span>
                     </label>
                   );
                 })}

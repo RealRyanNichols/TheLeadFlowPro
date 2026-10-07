@@ -60,6 +60,7 @@ import { CONSULTATION } from "@/lib/site/consultation";
 // ------------------------------------------------------------ outcomes --
 
 export const CALL_OUTCOMES = [
+  "discovery_completed",
   "booked",
   "wants_proposal",
   "ready_to_pay",
@@ -76,6 +77,7 @@ export type CallOutcome = (typeof CALL_OUTCOMES)[number];
 export const PANEL_OUTCOMES: readonly CallOutcome[] = CALL_OUTCOMES.filter((o) => o !== "proposal_sent");
 
 export const OUTCOME_LABELS: Record<CallOutcome, string> = {
+  discovery_completed: "Discovery completed",
   booked: "Booked the sit-down",
   wants_proposal: "Wants a proposal",
   ready_to_pay: "Ready to pay now",
@@ -92,6 +94,7 @@ export const OUTCOME_LABELS: Record<CallOutcome, string> = {
  * countPriorAttempts read CALL_HISTORY_KINDS, not only "call".
  */
 export const TALKED_OUTCOMES: readonly CallOutcome[] = [
+  "discovery_completed",
   "booked",
   "wants_proposal",
   "ready_to_pay",
@@ -516,6 +519,13 @@ export function planCallOutcome(input: {
   };
 
   switch (request.outcome) {
+    case "discovery_completed": {
+      draft.sentence = `Call: completed a substantive prospect discovery conversation.${talkedAbout}`;
+      moveTo("contacted");
+      draft.patch.last_contacted_at = nowIso;
+      draft.summary = "Discovery completed and recorded.";
+      break;
+    }
     case "booked": {
       if (!request.meeting) return bad("Pick the day and time of the sit-down.");
       const at = instantFor(request.meeting);
@@ -684,6 +694,7 @@ export function planCallOutcome(input: {
   // Neutral about where: an admin sees the lead on the call sheet, a sales
   // user on Today. The same planner runs for both.
   if (draft.next) preview.push(`Next follow-up: ${formatCentral(draft.next)}. The lead shows as due again then.`);
+  else if (request.outcome === "discovery_completed") preview.push("Keeps any existing follow-up; no appointment or callback date is added.");
   else preview.push("Clears the next follow-up.");
   preview.push(...draft.lines);
   preview.push(request.outcome === "proposal_sent" ? "Saves a note and adds it to the timeline." : "Saves a note and adds the call to the timeline.");

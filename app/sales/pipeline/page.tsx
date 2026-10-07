@@ -3,6 +3,9 @@ import { loadLeadTouches } from "@/lib/loadLeadTouches";
 import { leadStanding } from "@/lib/leadStanding";
 import { createClient } from "@/lib/supabase/server";
 import SalesLeadsTable from "../SalesLeadsTable";
+import { ownerDashboardLoginFor } from "@/lib/adminOwnerAccess";
+import { ownerClientSalesReport } from "@/lib/clientSalesServer";
+import ClientSalesWorkspace from "@/components/ClientSalesWorkspace";
 
 // The full lead table. This used to be the sales desk home screen; Today took
 // that spot, because the first question in the morning is who to touch, not
@@ -10,17 +13,30 @@ import SalesLeadsTable from "../SalesLeadsTable";
 
 export const metadata = { title: "Pipeline | LeadFlow Pro Sales Desk" };
 
-export default async function SalesPipeline() {
+export default async function SalesPipeline({ searchParams }: { searchParams: Promise<{ client?: string }> }) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=%2Fadmin%2Fsales%2Fpipeline");
   const { data: profile } = await supabase.from("profiles").select("role, full_name").eq("id", user.id).single();
   if (profile?.role !== "admin" && profile?.role !== "sales") redirect("/dashboard");
   const actorName = profile.full_name || "Team member";
+  if (profile.role === "admin" && ownerDashboardLoginFor(user.email)) {
+    const report = await ownerClientSalesReport();
+    const query = await searchParams;
+    if (report) {
+      const native = report.clients.find(client => client.key === "leadflow");
+      if (native) {
+        const touches = await loadLeadTouches(supabase, native.opportunities.map(lead => lead.id));
+        native.opportunities = native.opportunities.map(lead => ({ ...lead, lastTouch: touches[lead.id]?.name ? touches[lead.id] : lead.lastTouch }));
+      }
+      return <ClientSalesWorkspace report={report} ownerAccess initialClient={query.client} />;
+    }
+    if (query.client && query.client !== "leadflow") return <section className="card" role="alert"><h1 className="text-xl font-semibold">Client reporting is temporarily unavailable</h1><p className="mt-2 text-[var(--muted)]">The client records could not be loaded. Refresh in a moment.</p><a className="btn-primary mt-4 inline-flex" href="/admin/sales/pipeline?client=leadflow">Open LeadFlow sales</a></section>;
+  }
   const { data: leads, error } = await supabase
     .from("leads")
     .select(
-      "id, created_at, full_name, email, phone, business_name, current_platform, industry, interest, goals, timeline, best_contact_method, status, priority, next_follow_up_at, expected_value_cents, close_probability, owner, notes",
+      "id, created_at, full_name, email, phone, business_name, current_platform, industry, interest, goals, timeline, best_contact_method, status, priority, next_follow_up_at, expected_value_cents, close_probability, owner, notes, source",
     )
     .is("deleted_at", null)
     .eq("is_test", false)

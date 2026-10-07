@@ -13,6 +13,8 @@ export default function AdminShell({ children, ownerAccess, name, ownerLogin, sc
   const pathname = usePathname();
   const params = useSearchParams();
   const view = params.get("view") || "today";
+  const selectedClient = params.get("client") || "leadflow";
+  const salesClients = [{ key: "leadflow", label: "LeadFlow Pro" }, ...(ownerAccess ? [{ key: "premier-dental-academy-of-longview", label: "Premier Dental Academy" }, { key: "ol-guy-farms", label: "OL Guy Farms" }] : [])];
   const [menuOpen, setMenuOpen] = useState(false);
   const [theme, setTheme] = useState("dark");
   const [query, setQuery] = useState("");
@@ -29,7 +31,7 @@ export default function AdminShell({ children, ownerAccess, name, ownerLogin, sc
   const current = destinations.find(item => destinationActive(item.href, pathname, view));
   const matches = destinations.filter(item => !query || `${item.label} ${item.hint || ""} ${item.group}`.toLowerCase().includes(query.toLowerCase()));
 
-  useEffect(() => { setMenuOpen(false); dialog.current?.close(); }, [pathname, view]);
+  useEffect(() => { setMenuOpen(false); dialog.current?.close(); }, [pathname, view, selectedClient]);
   useEffect(() => { try { if (localStorage.getItem("leadflow-admin-theme") === "light") setTheme("light"); } catch {} }, []);
   useEffect(() => {
     const key = (event: KeyboardEvent) => {
@@ -54,7 +56,7 @@ export default function AdminShell({ children, ownerAccess, name, ownerLogin, sc
         <span>LeadFlow<small>BUSINESS WORKSPACE</small></span>
       </Link>
       <div className="lf-admin-nav-scroll" role="region" aria-label="Navigation links" tabIndex={0} ref={navigationScroll}>
-      <nav className="lf-admin-primary" aria-label="Main destinations">{primary.map(item=><Link key={item.href} href={item.href} className={`lf-admin-nav-item ${destinationActive(item.href,pathname,view)?"is-active":""}`} aria-current={destinationActive(item.href,pathname,view)?"page":undefined}>{item.label}</Link>)}</nav>
+      <nav className="lf-admin-primary" aria-label="Main destinations">{primary.map(item => item.label === "Sales" ? <details key={item.href} className="lf-admin-nav-group" open={pathname === "/admin/sales/pipeline"}><summary>Sales<ChevronDown size={13} aria-hidden="true" /></summary><nav aria-label="Sales clients">{salesClients.map(client => <Link key={client.key} href={`/admin/sales/pipeline?client=${client.key}`} className={`lf-admin-nav-item ${pathname === "/admin/sales/pipeline" && selectedClient === client.key ? "is-active" : ""}`} aria-current={pathname === "/admin/sales/pipeline" && selectedClient === client.key ? "page" : undefined}>{client.label}</Link>)}</nav></details> : <Link key={item.href} href={item.href} className={`lf-admin-nav-item ${destinationActive(item.href,pathname,view)?"is-active":""}`} aria-current={destinationActive(item.href,pathname,view)?"page":undefined}>{item.label}</Link>)}</nav>
       <details className="lf-admin-more" key={`${pathname}:${view}`} open={additionalGroups.some(group=>group.items.some(item=>destinationActive(item.href,pathname,view)))} onToggle={event => {
         if (!event.currentTarget.open) return;
         const scroller = navigationScroll.current, link = showcaseLink.current;

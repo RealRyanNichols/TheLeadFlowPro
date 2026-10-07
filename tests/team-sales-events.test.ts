@@ -1,0 +1,10 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { mkdtemp, readdir, readFile, rm, stat } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
+import { recordVerifiedSalesEvent, validateSalesEvent, savedSalesEvent, salesEventMarker, type VerifiedSalesEvent } from "../lib/teamSalesEvents.ts";
+const event: VerifiedSalesEvent = {id:"source:one",clientKey:"leadflow",type:"proposal_sent",at:"2026-10-07T20:00:00Z",leadId:"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",leadName:"Example",actor:"Team",href:"https://www.theleadflowpro.com/admin/leads/aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee",sourceId:"source:one",verified:true};
+test("allowlist excludes private note payload and rejects scope/path",()=>{const clean=validateSalesEvent({...event,notes:"secret budget",email:"private@example.test"});assert.equal("notes" in clean,false);assert.equal("email" in clean,false);assert.throws(()=>validateSalesEvent({...event,clientKey:"pda"}));assert.throws(()=>validateSalesEvent({...event,href:"https://evil.example/admin"}));assert.throws(()=>validateSalesEvent({...event,type:"note"}));});
+test("atomic unique filename, mode and content conflict",async()=>{process.env.NODE_ENV="test";const dir=await mkdtemp(path.join(tmpdir(),"team-spool-"));try{assert.equal((await recordVerifiedSalesEvent(event,dir)).duplicate,false);assert.equal((await recordVerifiedSalesEvent(event,dir)).duplicate,true);const files=await readdir(dir);assert.equal(files.length,1);assert.match(files[0],/^[a-f0-9]{64}\.json$/);assert.equal((await stat(path.join(dir,files[0]))).mode&0o777,0o640);assert.equal(JSON.parse(await readFile(path.join(dir,files[0]),"utf8")).id,event.id);await assert.rejects(recordVerifiedSalesEvent({...event,actor:"Other"},dir));}finally{await rm(dir,{recursive:true,force:true});}});
+test("saved marker preserves original outcome metadata",()=>{const detail=`Proposal sent. Outcome: proposal_sent. ${salesEventMarker(event)} Ref abc`;assert.deepEqual(savedSalesEvent(detail),event);assert.equal(savedSalesEvent("TeamEvent:bad Ref abc"),null);});

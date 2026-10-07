@@ -1,3 +1,4 @@
+import { recordVerifiedSalesEvent, salesEventMarker, savedSalesEvent, type VerifiedSalesEvent } from "@/lib/teamSalesEvents";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { leadMessageAuthor } from "@/lib/leadMessageAuthor";
@@ -192,12 +193,18 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
         });
         if (replay.ok) shown = { payDoors: replay.payDoors, payMessage: replay.payMessage, proposalHref: replay.proposalHref };
       }
+      const replayWarnings: string[] = [];
+      const savedEvent = savedSalesEvent(savedDetail);
+      if (savedEvent && savedEvent.leadId === id && savedEvent.id === `native:${id}:${step.idempotencyKey}` && ((savedOutcome === "booked" && savedEvent.type === "appointment_booked") || (savedOutcome === "proposal_sent" && savedEvent.type === "proposal_sent") || (savedOutcome === "discovery_completed" && savedEvent.type === "discovery_completed"))) {
+        try { await recordVerifiedSalesEvent(savedEvent); }
+        catch { replayWarnings.push("The CRM outcome is saved, but the internal team event could not be queued. Retry this saved action or ask an owner to check reporting."); }
+      }
       return NextResponse.json({
         ok: true,
         duplicate: true,
         outcome: savedOutcome,
         landed: [],
-        warnings: [],
+        warnings: replayWarnings,
         retryable: false,
         summary: "This call was already saved. Nothing was saved twice.",
         nextFollowUpAt: lead.next_follow_up_at,
@@ -327,12 +334,34 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       else landed.push("proposal_tasks");
     }
 
+    // Only verified persisted human outcomes enter the private event spool.
+    const teamEvent: VerifiedSalesEvent | null = plan.outcome === "booked" || plan.outcome === "proposal_sent" || plan.outcome === "discovery_completed" ? {
+      id: `native:${id}:${step.idempotencyKey}`, clientKey: "leadflow",
+      type: plan.outcome === "booked" ? "appointment_booked" : plan.outcome,
+      at: now.toISOString(), leadId: id, leadName: (lead.full_name || "Prospect").replace(/[\x00-\x1f]/g, " ").slice(0,80), actor: signer.replace(/[\x00-\x1f]/g, " ").slice(0,80),
+      ...(plan.outcome === "booked" && plan.nextFollowUpAt ? { startsAt: plan.nextFollowUpAt } : {}),
+      href: `https://www.theleadflowpro.com/admin/leads/${id}`,
+      sourceId: `native:${id}:${step.idempotencyKey}`, verified: true,
+    } : null;
+    // Saved minimal metadata makes a dropped-response replay independent of edited request data.
+    let activityDetail = plan.activity.detail;
+    if (teamEvent) {
+      const markerStart = plan.activity.detail.indexOf(" Outcome:");
+      const suffix = plan.activity.detail.slice(markerStart).replace(marker, `${salesEventMarker(teamEvent)} ${marker}`);
+      activityDetail = plan.activity.detail.slice(0, Math.max(0, 1000 - suffix.length)).split(" Outcome:")[0] + suffix;
+    }
     // 5. The timeline entry, last. Its Ref marker is what makes a retry safe.
     const activity = await supabase
       .from("lead_activity")
-      .insert({ lead_id: id, kind: plan.activity.kind, detail: plan.activity.detail });
+      .insert({ lead_id: id, kind: plan.activity.kind, detail: activityDetail });
     if (activity.error) warnings.push("The call did not reach the timeline. The note and the next follow-up are saved.");
-    else landed.push("activity");
+    else {
+      landed.push("activity");
+      if (teamEvent) {
+        try { await recordVerifiedSalesEvent(teamEvent); }
+        catch { warnings.push("The CRM outcome is saved, but the internal team event could not be queued. Retry this saved action or ask an owner to check reporting."); }
+      }
+    }
 
     return NextResponse.json({
       ok: true,

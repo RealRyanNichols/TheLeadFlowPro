@@ -15,6 +15,7 @@ import { createClient } from "@/lib/supabase/client";
 type Lead = {
   brief?: LeadStanding;
   lastTouch?: LeadTouch;
+  source?: string | null;
   id: string;
   created_at: string;
   full_name: string;
@@ -183,7 +184,7 @@ export default function SalesLeadsTable({
                   </span>
                 )}
               </div>
-              <OpportunityContact phone={lead.phone} touch={lead.lastTouch} />
+              <OpportunityContact phone={lead.phone} touch={lead.lastTouch} source={lead.source} />
               <LeadStandingBrief brief={lead.brief} />
             </div>
             <select

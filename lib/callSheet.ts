@@ -147,7 +147,7 @@ export function noteSummary(body: string | null | undefined): string | null {
     .map((line) => line.trim())
     .find((line) => line.length > 0);
   if (!first) return null;
-  const text = first.replace(ACTIVITY_MARKER_TAIL, "").replace(/\s+/g, " ").trim();
+  const text = first.replace(/\s*TeamEvent:[A-Za-z0-9_-]+/g, "").replace(ACTIVITY_MARKER_TAIL, "").replace(/\s+/g, " ").trim();
   return text ? clip(text, NOTE_SUMMARY_MAX) : null;
 }
 

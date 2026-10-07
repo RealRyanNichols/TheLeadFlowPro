@@ -19,6 +19,7 @@ import vm from "node:vm";
 import ts from "typescript";
 import * as authorModule from "../lib/leadMessageAuthor.ts";
 import * as callCloserModule from "../lib/callCloser.ts";
+import * as teamSalesEventsModule from "../lib/teamSalesEvents.ts";
 import * as businessTimeModule from "../lib/businessTime.ts";
 import { formatCentral } from "../lib/businessTime.ts";
 import { CALL_OUTCOMES, refMarker, type CallOutcome } from "../lib/callCloser.ts";
@@ -219,6 +220,7 @@ class FixedDate extends Date {
 }
 
 const MODULES: Record<string, unknown> = {
+  "@/lib/teamSalesEvents": { ...teamSalesEventsModule, recordVerifiedSalesEvent: async () => ({ duplicate: false }) },
   "@/lib/leadMessageAuthor": authorModule,
   "@/lib/callCloser": callCloserModule,
   "@/lib/businessTime": businessTimeModule,
@@ -284,6 +286,7 @@ async function run(options: Options = {}, tables: Tables = makeTables(options)):
 
 function bodyFor(outcome: CallOutcome, extra: Row = {}): Row {
   const base: Record<CallOutcome, Row> = {
+    discovery_completed: {},
     booked: {
       meeting_date: "2026-09-24",
       meeting_time: "14:00",
@@ -922,7 +925,7 @@ test("once a closing update has landed, a crash is not offered as a retry the cl
 
 test("the route imports only what it needs and never reaches a channel, the service key, or the call log", () => {
   const specifiers = [...source.matchAll(/\bfrom\s+"([^"]+)"/g)].map((m) => m[1]).sort();
-  assert.deepEqual(specifiers, ["@/lib/businessTime", "@/lib/callCloser", "@/lib/leadMessageAuthor", "@/lib/supabase/server", "next/server"]);
+  assert.deepEqual(specifiers, ["@/lib/businessTime", "@/lib/callCloser", "@/lib/leadMessageAuthor", "@/lib/supabase/server", "@/lib/teamSalesEvents", "next/server"]);
   assert.doesNotMatch(source, /\brequire\s*\(|\bimport\s*\(/);
   for (const banned of [
     /lead_calls/,
@@ -957,4 +960,34 @@ test("the route exports POST and force-dynamic only", async () => {
 test("every message the route returned passes the copy rules", () => {
   assert.ok(everyMessage.length > 20, "the earlier tests collected the route's messages");
   for (const message of everyMessage) assert.deepEqual(copyProblems(message), [], message);
+});
+
+test("team event retry uses saved metadata after an edited retry body", async () => {
+  const events: teamSalesEventsModule.VerifiedSalesEvent[] = [];
+  MODULES["@/lib/teamSalesEvents"] = { ...teamSalesEventsModule, recordVerifiedSalesEvent: async (event: teamSalesEventsModule.VerifiedSalesEvent) => { events.push(event); return { duplicate: events.length > 1 }; } };
+  try {
+    const first = await run({ body: bodyFor("booked") });
+    assert.equal(first.status, 200); assert.equal(events.length, 1);
+    const retry = await run({ body: bodyFor("proposal_sent") }, first.tables);
+    assert.equal(retry.json.duplicate, true); assert.equal(events.length, 2);
+    assert.deepEqual(JSON.parse(JSON.stringify(events[1])), JSON.parse(JSON.stringify(events[0]))); assert.equal(events[1].type, "appointment_booked");
+  } finally { MODULES["@/lib/teamSalesEvents"] = { ...teamSalesEventsModule, recordVerifiedSalesEvent: async () => ({ duplicate: false }) }; }
+});
+test("spool failure preserves completed CRM save with warning", async () => {
+  MODULES["@/lib/teamSalesEvents"] = { ...teamSalesEventsModule, recordVerifiedSalesEvent: async () => { throw new Error("Disk unavailable"); } };
+  try { const r = await run({body:bodyFor("proposal_sent")}); assert.equal(r.status,200); assert.ok((r.json.landed as string[]).includes("activity")); assert.ok((r.json.warnings as string[]).some(w=>w.includes("internal team event"))); }
+  finally { MODULES["@/lib/teamSalesEvents"] = { ...teamSalesEventsModule, recordVerifiedSalesEvent: async () => ({ duplicate: false }) }; }
+});
+
+test("explicit discovery saves one stable event across retry; voicemail adds none", async () => {
+  const events = new Map<string, teamSalesEventsModule.VerifiedSalesEvent>();
+  MODULES["@/lib/teamSalesEvents"] = { ...teamSalesEventsModule, recordVerifiedSalesEvent: async (event: teamSalesEventsModule.VerifiedSalesEvent) => { const duplicate=events.has(event.id);events.set(event.id,event);return {duplicate}; } };
+  try {
+    const first=await run({body:bodyFor("discovery_completed")});
+    assert.equal(first.status,200); assert.equal(events.size,1);
+    assert.equal([...events.values()][0].type,"discovery_completed");
+    const replay=await run({body:bodyFor("discovery_completed")},first.tables);
+    assert.equal(replay.json.duplicate,true);assert.equal(events.size,1);
+    await run({body:bodyFor("voicemail")});assert.equal(events.size,1);
+  } finally { MODULES["@/lib/teamSalesEvents"] = { ...teamSalesEventsModule, recordVerifiedSalesEvent: async () => ({ duplicate: false }) }; }
 });
