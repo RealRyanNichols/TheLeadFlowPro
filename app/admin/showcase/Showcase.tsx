@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowUpRight, BookOpen, Boxes, ChevronRight, Expand, Factory, GraduationCap, Layers3, Pause, Play, Radio, ShieldCheck, Sparkles, Tractor, TrendingUp, Zap } from "lucide-react";
 import { forecast, type ShowcaseData, type ModelInput } from "@/lib/showcaseData";
 import "./showcase.css";
+import { SHOWCASE_PROOF as PROOF } from "@/lib/site/showcaseProof";
 const money = (n: number | null, decimals = 0) => n === null ? "—" : new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: decimals }).format(n);
 const compact = (n: number | null) => n === null ? "—" : new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 }).format(n);
 const count = (n: number | null) => n === null ? "—" : Math.round(n).toLocaleString();
@@ -10,16 +11,7 @@ const DEFAULTS: Record<"dirt" | "education", ModelInput> = {
   dirt: { budget: 1500, cpl: 25, ticket: 4500, margin: 40, fee: 7000, convert: 27, repeat: 0, booking: 40, show: 75, enrollment: 30, capacity: 48 },
   education: { budget: 1500, cpl: 25, ticket: 3000, margin: 60, fee: 1000, convert: 27, repeat: 0, booking: 40, show: 75, enrollment: 30, capacity: 20 },
 };
-const PROOF = [
-  { id: "solar", industry: "SOLAR & SALES TRAINING", value: "$250K+", unit: "MONTHLY BUSINESS", detail: "Founder-reported business volume as the company grew from a concept. Historical team contribution.", signal: "BUSINESS SCALE", color: "gold" },
-  { id: "programs", industry: "ONLINE EDUCATION & COACHING", value: "6 FIGURES", unit: "ANNUAL PROGRAM REVENUE", detail: "A founder reported a mastermind generating hundreds of thousands annually after offer and advisory work.", signal: "OFFER ENGINEERING", color: "violet" },
-  { id: "professional", industry: "PROFESSIONAL SERVICES", value: "$70K+", unit: "REPORTED CAMPAIGN REVENUE", detail: "Reported revenue against less than $5K in advertising. Revenue and ad spend, rather than audited profit.", signal: "14×+ REPORTED REVENUE / ADS", color: "cyan" },
-  { id: "funnels", industry: "SALES TRAINING & DIGITAL FUNNELS", value: "100s", unit: "FUNNELS OVER YEARS", detail: "A past client described hundreds of funnels built over years and reliable delivery.", signal: "SYSTEMS DELIVERY", color: "blue" },
-  { id: "property", industry: "REAL ESTATE", value: "27", unit: "REPORTED LEADS", detail: "Four active prospect conversations in the same historical account. Conversations remain separate from closed deals.", signal: "4 ACTIVE CONVERSATIONS", color: "cyan" },
-  { id: "firstdeal", industry: "REAL ESTATE", value: "~6 WKS", unit: "TO FIRST REPORTED DEAL", detail: "A historical client described the timing of their first deal. Individual experience, not a future time guarantee.", signal: "FIRST-DEAL MOMENTUM", color: "blue" },
-  { id: "land", industry: "LAND SERVICES", value: "$4.3–4.5K", unit: "ESTIMATED JOB MARGIN", detail: "Customer-estimated operating margin on a reported $8K project, before marketing. Recalled marketing investment was about $800; exact figures remain unverified.", signal: "CUSTOMER-REPORTED PROJECT", color: "gold" },
-  { id: "leadership", industry: "BUSINESS & LEADERSHIP COACHING", value: "CLARITY", unit: "& EXECUTION", detail: "Historical references described support, confidence, work ethic and execution. Qualitative feedback.", signal: "QUALITATIVE EXPERIENCE", color: "violet" },
-];
+
 function SectorArt({ sector }: { sector: "dirt" | "education" }) {
   return <svg className="sector-art" viewBox="0 0 640 320" aria-hidden="true"><defs><linearGradient id="wire-light"><stop stopColor="#49dbff"/><stop offset="1" stopColor="#7568ff"/></linearGradient><filter id="wire-bloom"><feGaussianBlur stdDeviation="2"/></filter></defs><g className="wire-grid" fill="none" stroke="currentColor" opacity=".25">{Array.from({ length: 12 }, (_, i) => <path key={i} d={`M${i * 60 - 40},320 L320,120 L${i * 60 + 60},320`}/>)}{[180,200,230,270,310].map(y => <path key={y} d={`M0,${y}H640`}/>)}</g><g fill="none" stroke="url(#wire-light)" strokeWidth="2.2" strokeLinejoin="round">{sector === "dirt" ? <><path d="M145 210h275l24 26-17 30H133l-16-27z M160 224h252v27H153z M178 207v-71l58-19h59v91 M187 136h52v59h-52z M251 130h33v65h-33z M294 165l102-66 101 27 39 96 M392 101l14-13 98 25 38 112-27 23-29-7 20-35 M300 185h72l-16 23H299 M137 237h290"/><circle cx="165" cy="239" r="14"/><circle cx="219" cy="239" r="14"/><circle cx="272" cy="239" r="14"/><circle cx="326" cy="239" r="14"/><circle cx="379" cy="239" r="14"/><path d="M285 111l13-25 90-27 18 29 M515 244l45 15-8 21-48-4-17-20"/></> : <><path d="M126 223l188-47 197 45-182 58z M139 193l177-62 183 60-172 66z M182 201v-89l133-51 137 51v89 M176 112l138-55 145 55-142 56z M204 121v71 M245 138v65 M282 151v63 M351 152v63 M390 139v65 M428 123v72 M157 218v21l166 56 161-53v-19 M268 188v43 M283 188v43 M337 193v43 M352 191v43"/>{[204,245,283,351,392,429].map((x,i) => <path key={x} d={`M${x} ${i < 3 ? 121+i*15 : 151-(i-3)*14}l18-6v42l-18 6z`}/>)}</g><g className="art-scan"><path d="M80 175h480" stroke="#74ecff" opacity=".8"/><circle cx="320" cy="175" r="5" fill="#9cf5ff"/></g></svg>;
 }
