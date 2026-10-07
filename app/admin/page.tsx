@@ -1,3 +1,4 @@
+import { loadLeadTouches } from "@/lib/loadLeadTouches";
 import { leadStanding } from "@/lib/leadStanding";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -14,7 +15,7 @@ export default async function AdminLeads() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/login?next=/admin");
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+  const { data: profile } = await supabase.from("profiles").select("role, full_name").eq("id", user.id).single();
   if (profile?.role !== "admin") redirect("/dashboard");
 
   const { data: leads, error } = await supabase
@@ -39,7 +40,8 @@ export default async function AdminLeads() {
         </div>
       </>
     );
-  const all = (leads ?? []).map(({ notes, ...lead }) => ({ ...lead, brief: leadStanding({ notes, status: lead.status }) }));
+  const touches = await loadLeadTouches(supabase, (leads ?? []).map(lead => lead.id));
+  const all = (leads ?? []).map(({ notes, ...lead }) => ({ ...lead, lastTouch: touches[lead.id], brief: leadStanding({ notes, status: lead.status }) }));
   const counts = {
     total: all.length,
     new: all.filter((l) => l.status === "new").length,
@@ -55,7 +57,7 @@ export default async function AdminLeads() {
           <h2 className="text-2xl font-black">Leads & conversations</h2>
           <p className="mt-1 text-sm text-[var(--muted)]">
             Open a lead to see their original answers, source, calls, and team
-            history. Showing the latest 200 saved records.
+            history. Showing up to 200 recent records, hottest first.
           </p>
         </div>
         <LiveRefresh />
@@ -104,7 +106,7 @@ export default async function AdminLeads() {
           </div>
         </div>
       </div>
-      <LeadsTable initialLeads={all} />
+      <LeadsTable initialLeads={all} actorName={profile.full_name || "Team member"} />
     </>
   );
 }

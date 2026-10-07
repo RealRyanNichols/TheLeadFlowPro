@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { loadLeadTouches } from "@/lib/loadLeadTouches";
 import { leadStanding } from "@/lib/leadStanding";
 import { createClient } from "@/lib/supabase/server";
 import SalesLeadsTable from "../SalesLeadsTable";
@@ -10,6 +12,11 @@ export const metadata = { title: "Pipeline | LeadFlow Pro Sales Desk" };
 
 export default async function SalesPipeline() {
   const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect("/login?next=%2Fadmin%2Fsales%2Fpipeline");
+  const { data: profile } = await supabase.from("profiles").select("role, full_name").eq("id", user.id).single();
+  if (profile?.role !== "admin" && profile?.role !== "sales") redirect("/dashboard");
+  const actorName = profile.full_name || "Team member";
   const { data: leads, error } = await supabase
     .from("leads")
     .select(
@@ -36,7 +43,8 @@ export default async function SalesPipeline() {
       </section>
     );
 
-  const all = (leads ?? []).map(({ notes, ...lead }) => ({ ...lead, brief: leadStanding({ notes, status: lead.status }) }));
+  const touches = await loadLeadTouches(supabase, (leads ?? []).map(lead => lead.id));
+  const all = (leads ?? []).map(({ notes, ...lead }) => ({ ...lead, lastTouch: touches[lead.id], brief: leadStanding({ notes, status: lead.status }) }));
   const counts = {
     total: all.length,
     new: all.filter((lead) => lead.status === "new").length,
@@ -55,11 +63,11 @@ export default async function SalesPipeline() {
         <Metric label="Won" value={counts.won} tone="text-mint" />
       </div>
       <p className="mb-3 text-xs text-[var(--muted)]">
-        Newest {all.length} leads shown
+        {all.length} opportunities shown · hottest first
         {all.length === 200 ? " · first 200 records" : ""}. Open a call sheet
         for the shared conversation and next action.
       </p>
-      <SalesLeadsTable initialLeads={all} />
+      <SalesLeadsTable initialLeads={all} actorName={actorName} />
     </>
   );
 }

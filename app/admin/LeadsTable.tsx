@@ -2,12 +2,17 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import LeadStandingBrief from "@/components/LeadStandingBrief";
+import OpportunityContact from "@/components/OpportunityContact";
+import { compareOpportunities } from "@/lib/opportunityOrder";
+import type { LeadTouch } from "@/lib/leadTouch";
 import type { LeadStanding } from "@/lib/leadStanding";
 import { createClient } from "@/lib/supabase/client";
 
 type Lead = {
   brief?: LeadStanding;
+  lastTouch?: LeadTouch;
   id: string;
   created_at: string;
   full_name: string;
@@ -21,6 +26,9 @@ type Lead = {
   timeline: string | null;
   best_contact_method: string | null;
   status: string;
+  priority?: string | null;
+  close_probability?: number | null;
+  next_follow_up_at?: string | null;
   notes?: string | null;
   is_test?: boolean;
 };
@@ -43,8 +51,12 @@ const INTEREST_LABELS: Record<string, string> = {
   operations: "Operations Partner",
 };
 
-export default function LeadsTable({ initialLeads }: { initialLeads: Lead[] }) {
+export default function LeadsTable({ initialLeads, actorName }: { initialLeads: Lead[]; actorName: string }) {
+  const router = useRouter();
+  const [statusError, setStatusError] = useState("");
   const [leads, setLeads] = useState(initialLeads);
+  const [sort, setSort] = useState("hottest");
+  const orderedLeads = [...leads].sort(sort === "hottest" ? compareOpportunities : (a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
   useEffect(() => {
     setLeads(initialLeads);
   }, [initialLeads]);
@@ -82,9 +94,15 @@ export default function LeadsTable({ initialLeads }: { initialLeads: Lead[] }) {
   }
 
   async function setStatus(id: string, status: string) {
-    setLeads((ls) => ls.map((l) => (l.id === id ? { ...l, status } : l)));
+    setStatusError("");
     const supabase = createClient();
-    await supabase.from("leads").update({ status }).eq("id", id);
+    const { data, error } = await supabase.from("leads").update({ status }).eq("id", id).select("id").maybeSingle();
+    if (error || !data) { setStatusError("The stage could not be saved. Refresh and try again."); return; }
+    setLeads(ls => ls.map(l => l.id === id ? { ...l, status } : l));
+    const { error: historyError } = await supabase.from("lead_activity").insert({ lead_id: id, kind: "sales", detail: `${actorName}: Stage changed to ${status.replace(/_/g, " ")}` });
+    if (historyError) setStatusError("Stage saved, but the team touch could not be recorded. Refresh to check history.");
+    else setLeads(ls => ls.map(l => l.id === id ? { ...l, lastTouch: { name: actorName, at: new Date().toISOString() } } : l));
+    router.refresh();
   }
 
   if (leads.length === 0) {
@@ -97,6 +115,13 @@ export default function LeadsTable({ initialLeads }: { initialLeads: Lead[] }) {
 
   return (
     <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--muted)]">
+        <p>Active prospects first · heat, stage, confidence, then follow-up.</p>
+        <select className="input !w-auto !py-2 text-sm" aria-label="Sort opportunities" value={sort} onChange={event => setSort(event.target.value)}>
+          <option value="hottest">Hottest first</option><option value="newest">Newest first</option>
+        </select>
+      </div>
+      {statusError && <p role="alert" className="text-sm text-[var(--danger)]">{statusError}</p>}
       {selected.size > 0 && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--danger-line)] bg-[var(--danger-tint)] px-4 py-3">
           <span className="text-sm font-bold text-[var(--danger)]">
@@ -131,7 +156,7 @@ export default function LeadsTable({ initialLeads }: { initialLeads: Lead[] }) {
           </div>
         </div>
       )}
-      {leads.map((l) => (
+      {orderedLeads.map((l) => (
         <div key={l.id} className="card !p-4">
           <div
             className="flex cursor-pointer flex-wrap items-center gap-3"
@@ -165,6 +190,7 @@ export default function LeadsTable({ initialLeads }: { initialLeads: Lead[] }) {
                   </span>
                 )}
               </div>
+              <OpportunityContact phone={l.phone} touch={l.lastTouch} />
               <LeadStandingBrief brief={l.brief} />
             </div>
             <select

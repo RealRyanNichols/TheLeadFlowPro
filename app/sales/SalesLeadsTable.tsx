@@ -4,11 +4,15 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import LeadStandingBrief from "@/components/LeadStandingBrief";
+import OpportunityContact from "@/components/OpportunityContact";
+import { compareOpportunities } from "@/lib/opportunityOrder";
+import type { LeadTouch } from "@/lib/leadTouch";
 import type { LeadStanding } from "@/lib/leadStanding";
 import { createClient } from "@/lib/supabase/client";
 
 type Lead = {
   brief?: LeadStanding;
+  lastTouch?: LeadTouch;
   id: string;
   created_at: string;
   full_name: string;
@@ -36,11 +40,14 @@ function pretty(value: string | null | undefined) {
 }
 
 export default function SalesLeadsTable({
-  initialLeads,
+  initialLeads, actorName,
 }: {
   initialLeads: Lead[];
+  actorName: string;
 }) {
   const [leads, setLeads] = useState(initialLeads);
+  const [sort, setSort] = useState("hottest");
+  const orderedLeads = [...leads].sort(sort === "hottest" ? compareOpportunities : (a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
   const [open, setOpen] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [pending, setPending] = useState<Set<string>>(new Set());
@@ -77,6 +84,9 @@ export default function SalesLeadsTable({
           updateError?.message ||
             "The lead was not updated. Refresh and check your access.",
         );
+      const { error: historyError } = await createClient().from("lead_activity").insert({ lead_id: id, kind: "sales", detail: `${actorName}: Stage changed to ${pretty(status)}` });
+      if (historyError) setError("Stage saved, but the team touch could not be recorded. Refresh to check the history.");
+      else setLeads(items => items.map(lead => lead.id === id ? { ...lead, lastTouch: { name: actorName, at: new Date().toISOString() } } : lead));
       router.refresh();
     } catch (failure) {
       setError(
@@ -105,6 +115,12 @@ export default function SalesLeadsTable({
 
   return (
     <div className="space-y-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--muted)]">
+        <p>Active prospects first · heat, stage, confidence, then follow-up.</p>
+        <select className="input !w-auto !py-2 text-sm" aria-label="Sort opportunities" value={sort} onChange={event => setSort(event.target.value)}>
+          <option value="hottest">Hottest first</option><option value="newest">Newest first</option>
+        </select>
+      </div>
       {error && (
         <p
           role="alert"
@@ -113,7 +129,7 @@ export default function SalesLeadsTable({
           {error}
         </p>
       )}
-      {leads.map((lead) => (
+      {orderedLeads.map((lead) => (
         <div key={lead.id} className="card !p-4">
           <div className="flex flex-wrap items-center gap-3">
             <div className="min-w-0 flex-1">
@@ -163,6 +179,7 @@ export default function SalesLeadsTable({
                   </span>
                 )}
               </div>
+              <OpportunityContact phone={lead.phone} touch={lead.lastTouch} />
               <LeadStandingBrief brief={lead.brief} />
             </div>
             <select
