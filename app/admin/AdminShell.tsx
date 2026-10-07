@@ -35,6 +35,8 @@ export default function AdminShell({ children, ownerAccess, name, ownerLogin, sc
     window.addEventListener("keydown", key); return () => window.removeEventListener("keydown", key);
   }, []);
   function toggleTheme() { const next = theme === "dark" ? "light" : "dark"; setTheme(next); try { localStorage.setItem("leadflow-admin-theme", next); } catch {} }
+  const portrait = ownerLogin === "pat" ? "/admin-workspace/owner-pat.jpg" : ownerLogin === "ryan" ? "/admin-workspace/owner-ryan.webp" : null;
+  const [portraitFailed, setPortraitFailed] = useState(false);
   const initials = name.split(" ").map(value => value[0]).slice(0, 2).join("");
 
   return <section id="lf-admin-shell" data-admin-theme={theme}>
@@ -52,7 +54,7 @@ export default function AdminShell({ children, ownerAccess, name, ownerLogin, sc
           ? <a key={item.href} className="lf-admin-nav-item" href={item.href} target="_blank" rel="noreferrer">{item.label}<ArrowUpRight size={13} aria-hidden="true" /></a>
           : <Link key={item.href} className={`lf-admin-nav-item ${destinationActive(item.href, pathname, view) ? "is-active" : ""}`} aria-current={destinationActive(item.href, pathname, view) ? "page" : undefined} href={item.href}>{item.label}</Link>)}</nav>
       </details>)}</div></details>
-      <div className="lf-admin-profile"><span className="lf-admin-avatar">{initials}</span><div><strong>{name}</strong><small>{ownerLogin === "ryan" ? "CEO · Direction & relationships" : ownerLogin === "pat" ? "Strategy, creative & systems" : "Admin workspace"}</small></div><SignOutButton className="lf-admin-signout" /></div>
+      <div className="lf-admin-profile"><span className="lf-admin-avatar">{portrait && !portraitFailed ? <img src={portrait} alt={`${name} profile`} width="36" height="36" onError={() => setPortraitFailed(true)} style={{ objectPosition: ownerLogin === "ryan" ? "24% 40%" : "center" }} /> : initials}</span><div><strong>{name}</strong><small>{ownerLogin === "ryan" ? "CEO · Direction & relationships" : ownerLogin === "pat" ? "Strategy, creative & systems" : "Admin workspace"}</small></div><SignOutButton className="lf-admin-signout" /></div>
     </aside>
     <div className="lf-admin-body">
       <header className="lf-admin-topbar" data-admin-workspace-nav>
