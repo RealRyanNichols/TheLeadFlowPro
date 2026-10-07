@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import LeadStandingBrief from "@/components/LeadStandingBrief";
+import ContactPagination from "@/components/ContactPagination";
+import { contactPage } from "@/lib/contactPagination";
 import OpportunityContact from "@/components/OpportunityContact";
 import { compareOpportunities } from "@/lib/opportunityOrder";
 import type { LeadTouch } from "@/lib/leadTouch";
@@ -47,7 +49,9 @@ export default function SalesLeadsTable({
 }) {
   const [leads, setLeads] = useState(initialLeads);
   const [sort, setSort] = useState("hottest");
+  const [page, setPage] = useState(1);
   const orderedLeads = [...leads].sort(sort === "hottest" ? compareOpportunities : (a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
+  const pagination = contactPage(orderedLeads, page);
   const [open, setOpen] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [pending, setPending] = useState<Set<string>>(new Set());
@@ -117,8 +121,8 @@ export default function SalesLeadsTable({
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--muted)]">
         <p>Active prospects first · heat, stage, confidence, then follow-up.</p>
-        <select className="input !w-auto !py-2 text-sm" aria-label="Sort opportunities" value={sort} onChange={event => setSort(event.target.value)}>
-          <option value="hottest">Hottest first</option><option value="newest">Newest first</option>
+        <select className="input !w-auto !py-2 text-sm" aria-label="Sort opportunities" value={sort} onChange={event => { setSort(event.target.value); setPage(1); }}>
+          <option value="hottest">Hot leads first</option><option value="newest">Most recent</option>
         </select>
       </div>
       {error && (
@@ -129,7 +133,7 @@ export default function SalesLeadsTable({
           {error}
         </p>
       )}
-      {orderedLeads.map((lead) => (
+      {pagination.rows.map((lead) => (
         <div key={lead.id} className="card !p-4">
           <div className="flex flex-wrap items-center gap-3">
             <div className="min-w-0 basis-full sm:basis-0 sm:flex-1">
@@ -247,6 +251,7 @@ export default function SalesLeadsTable({
           )}
         </div>
       ))}
+      <ContactPagination {...pagination} onChange={setPage} />
     </div>
   );
 }

@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import LeadStandingBrief from "@/components/LeadStandingBrief";
+import ContactPagination from "@/components/ContactPagination";
+import { contactPage } from "@/lib/contactPagination";
 import OpportunityContact from "@/components/OpportunityContact";
 import { compareOpportunities } from "@/lib/opportunityOrder";
 import type { LeadTouch } from "@/lib/leadTouch";
@@ -56,7 +58,9 @@ export default function LeadsTable({ initialLeads, actorName }: { initialLeads: 
   const [statusError, setStatusError] = useState("");
   const [leads, setLeads] = useState(initialLeads);
   const [sort, setSort] = useState("hottest");
+  const [page, setPage] = useState(1);
   const orderedLeads = [...leads].sort(sort === "hottest" ? compareOpportunities : (a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
+  const pagination = contactPage(orderedLeads, page);
   useEffect(() => {
     setLeads(initialLeads);
   }, [initialLeads]);
@@ -117,8 +121,8 @@ export default function LeadsTable({ initialLeads, actorName }: { initialLeads: 
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--muted)]">
         <p>Active prospects first · heat, stage, confidence, then follow-up.</p>
-        <select className="input !w-auto !py-2 text-sm" aria-label="Sort opportunities" value={sort} onChange={event => setSort(event.target.value)}>
-          <option value="hottest">Hottest first</option><option value="newest">Newest first</option>
+        <select className="input !w-auto !py-2 text-sm" aria-label="Sort opportunities" value={sort} onChange={event => { setSort(event.target.value); setPage(1); }}>
+          <option value="hottest">Hot leads first</option><option value="newest">Most recent</option>
         </select>
       </div>
       {statusError && <p role="alert" className="text-sm text-[var(--danger)]">{statusError}</p>}
@@ -156,7 +160,7 @@ export default function LeadsTable({ initialLeads, actorName }: { initialLeads: 
           </div>
         </div>
       )}
-      {orderedLeads.map((l) => (
+      {pagination.rows.map((l) => (
         <div key={l.id} className="card !p-4">
           <div
             className="flex cursor-pointer flex-wrap items-center gap-3"
@@ -259,6 +263,7 @@ export default function LeadsTable({ initialLeads, actorName }: { initialLeads: 
           )}
         </div>
       ))}
+      <ContactPagination {...pagination} onChange={setPage} />
     </div>
   );
 }
