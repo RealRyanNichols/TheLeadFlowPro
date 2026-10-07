@@ -11,6 +11,7 @@ export const ADMIN_GROUPS: AdminGroup[] = [
     { href: "/admin/overview?view=library", label: "Business library", hint: "Reviewed conversation context" },
     { href: "/admin/overview?view=connections", label: "API readiness", hint: "What passed and what remains" },
     { href: "/admin/overview?view=tools", label: "Tools & reports", hint: "Existing operational destinations" },
+    { href: "/admin/showcase", label: "Special Effects", hint: "Camera-safe industries, historical proof and forecast lab" },
   ] },
   ...MENU_GROUPS.map(group => ({ label: group.title, items: group.links.map(link => ({ href: link.href, label: link.label, hint: link.description, external: link.external })) })),
 

@@ -39,6 +39,8 @@ export default function AdminShell({ children, ownerAccess, name, ownerLogin, sc
   const [portraitFailed, setPortraitFailed] = useState(false);
   const initials = name.split(" ").map(value => value[0]).slice(0, 2).join("");
 
+  if (pathname === "/admin/showcase") return <main id="lf-admin-main">{children}</main>;
+
   return <section id="lf-admin-shell" data-admin-theme={theme}>
     <a className="lf-admin-skip" href="#lf-admin-main">Skip to admin content</a>
     {menuOpen && <button className="lf-admin-backdrop" onClick={() => setMenuOpen(false)} aria-label="Close navigation" />}
