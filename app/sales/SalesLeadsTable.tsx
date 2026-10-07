@@ -132,7 +132,7 @@ export default function SalesLeadsTable({
       {orderedLeads.map((lead) => (
         <div key={lead.id} className="card !p-4">
           <div className="flex flex-wrap items-center gap-3">
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 basis-full sm:basis-0 sm:flex-1">
               <button
                 type="button"
                 className="min-h-[44px] text-left font-bold text-[var(--heading)]"

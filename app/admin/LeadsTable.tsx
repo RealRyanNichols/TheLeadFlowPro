@@ -170,7 +170,7 @@ export default function LeadsTable({ initialLeads, actorName }: { initialLeads: 
               aria-label={`Select ${l.full_name}`}
               className="h-4 w-4 flex-none"
             />
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 flex-1 basis-[calc(100%_-_2rem)] sm:basis-0">
               <span className="font-bold text-[var(--heading)]">
                 {l.full_name}
               </span>
