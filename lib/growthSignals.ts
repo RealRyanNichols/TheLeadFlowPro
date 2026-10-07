@@ -1,7 +1,7 @@
 // The scorecard: is the follow-up plan being worked, and are the ads paying
 // for the right people. A handful of numbers, then the signals in plain
-// words: fix this, do less of this, do more of this, keep doing this, too
-// early to call.
+// words: fix this, do less of this, do more of this, keep doing this, watch
+// this.
 //
 // Ryan, October 7, 2026: "Here's our numbers. Here's what you're doing right.
 // Here's what you're doing wrong. This is what you should do more of. This is
@@ -31,7 +31,8 @@ export const VERDICT_LABELS: Record<SignalVerdict, string> = {
   less: "Do less of this",
   more: "Do more of this",
   keep: "Keep doing this",
-  watch: "Too early to call",
+  // Covers both "not enough yet to judge" and "not urgent, do not lose sight of it" (the backlog, old leads).
+  watch: "Watch this",
 };
 
 /** Display order: what is costing money first. */

@@ -23,7 +23,7 @@ and the sales desk open the same page. It is linked from the back office menu
 | `lib/followUpPlan.ts` | The plan: 25 calls over 90 days (full), 9 over 21 (standard), 3 over 3 (light), calling hours, the email series lengths, the proposal follow-up days |
 | `lib/nextAction.ts` | The rules: for each open lead, the one next thing, when it is due, and "Calls 3 of 25 · Emails 8 of 81 · Day 7" |
 | `lib/nextActionTemplates.ts` | 29 scripts: call openers, voicemails, texts, personal emails, checklists |
-| `lib/growthSignals.ts` | The scorecard: the numbers, and fix / less / more / keep / too early |
+| `lib/growthSignals.ts` | The scorecard: the numbers, and fix / less / more / keep / watch |
 | `lib/nextActionServer.ts` | The reads, with the signed-in person's own access. No writes |
 | `lib/metaAdLevel.ts` | Ad spend and leads per ad, read-only, owner only |
 | `app/sales/next-actions/` | The page |
