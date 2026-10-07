@@ -14,3 +14,15 @@ body:has(#lf-admin-shell) .site-frame,body:has(#lf-admin-shell) .site-content{ma
 #lf-admin-shell .lf-admin-primary{display:grid;gap:8px;padding:24px 0 12px}#lf-admin-shell .lf-admin-primary .lf-admin-nav-item{padding:13px 16px;font-size:15px;font-weight:650;border-radius:10px}#lf-admin-shell .lf-admin-more{margin-top:8px;border-top:1px solid var(--line)}#lf-admin-shell .lf-admin-more>summary{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:18px 14px;font-size:12px;color:var(--muted);list-style:none}#lf-admin-shell .lf-admin-more>summary::-webkit-details-marker{display:none}#lf-admin-shell .lf-admin-more .lf-admin-nav-groups{padding-top:0}#lf-admin-shell .lf-admin-more .lf-admin-nav-item{font-size:12px}#lf-admin-shell .lf-admin-more[open]>summary svg{transform:rotate(180deg)}
 
 .lf-admin-avatar{flex-shrink:0;overflow:hidden}.lf-admin-avatar img{display:block;width:100%;height:100%;object-fit:cover;border-radius:50%}
+
+/* One bounded scrolling menu keeps every expanded link reachable at normal zoom. */
+#lf-admin-shell .lf-admin-sidebar{height:100dvh;overflow:hidden;padding-bottom:max(14px,env(safe-area-inset-bottom))}
+#lf-admin-shell .lf-admin-brand,#lf-admin-shell .lf-admin-profile{flex-shrink:0}
+#lf-admin-shell .lf-admin-nav-scroll{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent;scrollbar-gutter:stable;scroll-padding-block:12px;padding:0 3px}
+#lf-admin-shell .lf-admin-nav-groups{overflow:visible;padding-right:0}
+#lf-admin-shell .lf-admin-featured{display:flex;align-items:center;gap:10px;margin:0 3px 14px;padding:13px 11px;border:1px solid var(--accent-line);border-radius:10px;color:var(--blue);background:linear-gradient(120deg,var(--accent-tint),var(--panel-2))}
+#lf-admin-shell .lf-admin-featured:hover{border-color:var(--blue);background:var(--accent-tint)}
+#lf-admin-shell .lf-admin-featured>span{flex:1;min-width:0}
+#lf-admin-shell .lf-admin-featured strong{display:block;font-size:13px;color:var(--heading)}
+#lf-admin-shell .lf-admin-featured small{display:block;font-size:10px;color:var(--muted);margin-top:2px}
+@media(max-height:650px){#lf-admin-shell .lf-admin-sidebar{padding-top:14px}#lf-admin-shell .lf-admin-brand{padding-bottom:12px}#lf-admin-shell .lf-admin-primary{padding-top:10px;gap:4px}}

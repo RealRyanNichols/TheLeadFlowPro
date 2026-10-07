@@ -36,6 +36,7 @@ export function adminGroupsFor(ownerAccess: boolean, scope: "admin" | "sales" = 
 export function destinationActive(href: string, pathname: string, view = "today"): boolean {
   if (href.startsWith("https:")) return false;
   const [path, query = ""] = href.split("?");
+  if (path === "/admin/showcase") return pathname === path;
   if (path === "/admin/overview") return pathname === path && (new URLSearchParams(query).get("view") || "today") === view;
   const extra = ["/admin/sales/pipeline", "/admin/sales/delivery"];
   const selected = extra.find(href => pathname === href || pathname.startsWith(href + "/")) || currentHref(pathname);
