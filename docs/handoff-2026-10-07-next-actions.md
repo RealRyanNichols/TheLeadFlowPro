@@ -149,6 +149,17 @@ changed the back office shell (`app/admin/backOfficeNav.ts`,
 `app/sales/layout.tsx`). It should be done once, in the open, with the tests
 and the build run on the result.
 
+### One join, not two (added 3:25 PM, after a note on pull request #123)
+
+The session that built the October 6 board wrote the same first step into
+`docs/lanes.md` (draft pull request #124) and says there that it will do the
+join: `main` layered onto the droplet's code, the droplet's version kept
+wherever both changed a file. Two sessions doing that merge would be the
+duplicate work that file exists to prevent. So unless Ryan says otherwise,
+this session leaves the join to that one, and Next actions rides in through
+pull request #123. The branch name below is the one `docs/lanes.md` uses.
+At 3:25 PM no `droplet/` branch was on GitHub yet.
+
 ### The safest order
 
 1. **Save the live code to GitHub.** One line in the droplet console. It
@@ -156,17 +167,18 @@ and the build run on the result.
 
    ```
    cd /srv/sites/leadflow
+   git status --short
    git log origin/main..8f96f9cada726fe8015e4f22c13eb05c319d78b7 --oneline | tail -20
-   git push origin 8f96f9cada726fe8015e4f22c13eb05c319d78b7:refs/heads/droplet/live-2026-10-07
+   git push origin 8f96f9cada726fe8015e4f22c13eb05c319d78b7:refs/heads/droplet/live
    ```
 
    The repository is public. Look at that list of commits first, and do not
    push if any of them carries a key, a token or a customer's details.
-2. **Merge and test off the server.** With the live code on GitHub, the merge
-   of `main`, this branch and the live copy can be done in a pull request:
-   conflicts resolved, the full test suite and `npm run build` run on the
-   result. The Next actions page itself only adds files, one menu entry, one
-   link and two ad ids.
+2. **Merge and test off the server.** With the live code on GitHub, the join
+   is done in a pull request: conflicts resolved, the full test suite and
+   `npm run build` run on the result. The Next actions page itself only adds
+   files, one menu entry, one link and two ad ids, so it merges after the
+   join or along with it.
 3. **Release the tested commit.** Check memory and disk first (the build
    guard needs 5.5 GiB and 12 GiB free), then:
 
