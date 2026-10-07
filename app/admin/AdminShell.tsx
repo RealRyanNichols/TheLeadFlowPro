@@ -18,6 +18,8 @@ export default function AdminShell({ children, ownerAccess, name, ownerLogin, sc
   const [query, setQuery] = useState("");
   const dialog = useRef<HTMLDialogElement>(null);
   const searchInput = useRef<HTMLInputElement>(null);
+  const navigationScroll = useRef<HTMLDivElement>(null);
+  const showcaseLink = useRef<HTMLAnchorElement>(null);
   const groups = useMemo(() => adminGroupsFor(ownerAccess, scope), [ownerAccess, scope]);
   const primary = primaryDestinationsFor(ownerAccess, scope);
   const additionalGroups = groups.map(group => ({ ...group, items: group.items.filter(item => !primary.some(link => link.href === item.href)) })).filter(group => group.items.length);
@@ -51,10 +53,14 @@ export default function AdminShell({ children, ownerAccess, name, ownerLogin, sc
         <img src="/admin-workspace/leadflow-logo.webp" width="44" height="44" alt="" />
         <span>LeadFlow<small>BUSINESS WORKSPACE</small></span>
       </Link>
-      <div className="lf-admin-nav-scroll" role="region" aria-label="Navigation links" tabIndex={0}>
+      <div className="lf-admin-nav-scroll" role="region" aria-label="Navigation links" tabIndex={0} ref={navigationScroll}>
       <nav className="lf-admin-primary" aria-label="Main destinations">{primary.map(item=><Link key={item.href} href={item.href} className={`lf-admin-nav-item ${destinationActive(item.href,pathname,view)?"is-active":""}`} aria-current={destinationActive(item.href,pathname,view)?"page":undefined}>{item.label}</Link>)}</nav>
-      <details className="lf-admin-more" key={`${pathname}:${view}`} open={additionalGroups.some(group=>group.items.some(item=>destinationActive(item.href,pathname,view)))}><summary>More tools &amp; reports<ChevronDown size={13} aria-hidden="true" /></summary>
-      {showcase && <Link className="lf-admin-featured" href={showcase.href}><Sparkles size={20} aria-hidden="true" /><span><strong>{showcase.label}</strong><small>Industry showcase</small></span><ChevronRight size={16} aria-hidden="true" /></Link>}
+      <details className="lf-admin-more" key={`${pathname}:${view}`} open={additionalGroups.some(group=>group.items.some(item=>destinationActive(item.href,pathname,view)))} onToggle={event => {
+        if (!event.currentTarget.open) return;
+        const scroller = navigationScroll.current, link = showcaseLink.current;
+        if (scroller && link) { const hidden = link.getBoundingClientRect().bottom - scroller.getBoundingClientRect().bottom; if (hidden > 0) scroller.scrollTop += hidden + 12; }
+      }}><summary>More tools &amp; reports<ChevronDown size={13} aria-hidden="true" /></summary>
+      {showcase && <Link className="lf-admin-featured" href={showcase.href} ref={showcaseLink}><Sparkles size={18} aria-hidden="true" /><span><strong>{showcase.label}</strong><small>Industry showcase</small></span><ChevronRight size={14} aria-hidden="true" /></Link>}
       <div className="lf-admin-nav-groups">{directoryGroups.map(group => <details key={group.label} open={group.items.some(item=>destinationActive(item.href,pathname,view))} className="lf-admin-nav-group">
         <summary>{group.label}<ChevronDown size={13} aria-hidden="true" /></summary>
         <nav aria-label={group.label}>{group.items.map(item => item.external
