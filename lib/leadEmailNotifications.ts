@@ -314,7 +314,7 @@ async function deliverNotification(
   await addActivity(
     supabase,
     claimed.lead_id,
-    `${claimed.notification_type} email delivered on attempt ${claimed.attempt_count}.`,
+    `${claimed.notification_type} email accepted by email provider on attempt ${claimed.attempt_count}; recipient delivery is not confirmed by this response.`,
   );
   return "sent";
 }
