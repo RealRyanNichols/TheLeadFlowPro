@@ -12,6 +12,7 @@ import * as guard from "../lib/metaCampaignGuard";
 import * as contractorSeries from "../lib/contractorSeries";
 import * as contractorEmailHtml from "../lib/contractorEmailHtml";
 import * as metaSalesSeries from "../lib/metaSalesSeries";
+import * as metaSalesDailySeries from "../lib/metaSalesDailySeries";
 
 const require = createRequire(import.meta.url);
 const website = {
@@ -148,6 +149,7 @@ async function recipients(rows: Lead[], now = "2026-09-07T00:00:00Z") {
       if (name === "@/lib/contractorSeries") return contractorSeries;
       if (name === "@/lib/contractorEmailHtml") return contractorEmailHtml;
       if (name === "@/lib/metaSalesSeries") return metaSalesSeries;
+      if (name === "@/lib/metaSalesDailySeries") return metaSalesDailySeries;
       if (name === "@/lib/resendContacts") return {
         readResendContactOptOuts: async () => ({ ok: true, emails: new Set<string>() }),
       };

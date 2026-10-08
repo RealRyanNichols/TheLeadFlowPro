@@ -60,6 +60,17 @@ import {
   renderMetaSalesStep,
   type MetaSalesStep,
 } from "@/lib/metaSalesSeries";
+import {
+  isMetaSalesDailySeriesLead,
+  META_SALES_DAILY_CAMPAIGN,
+  META_SALES_DAILY_FIRST_STEP,
+  META_SALES_DAILY_LAST_STEP,
+  META_SALES_DAILY_STEPS,
+  metaSalesDailyAgeInDays,
+  metaSalesDailyNewSendAllowed,
+  metaSalesDailyStepsDueBy,
+  renderMetaSalesDailyStep,
+} from "@/lib/metaSalesDailySeries";
 import { BUSINESS } from "@/lib/site/business";
 import { readResendContactOptOuts } from "@/lib/resendContacts";
 import { unsubscribeSecret, unsubscribeUrl } from "@/lib/unsubscribe";
@@ -69,7 +80,10 @@ import { unsubscribeSecret, unsubscribeUrl } from "@/lib/unsubscribe";
 // build its first series sold was retired on 2026-09-22; see below for who
 // still finishes that series and who gets Rent Receipt instead.
 //
-// FOUR SEQUENCES share this sender and a lead belongs to exactly one:
+// SIX SEQUENCES share this sender and a lead belongs to exactly one:
+//   - immutable new Meta daily v1 (801–830) for unclaimed captures since
+//     Oct 8, 2026 12:00 UTC; calendar days 1–30 in America/Chicago
+//   - immutable Meta sales v1 (701–709) retains any already claimed cohort
 //   - the contractor owner series (steps 601 and up, lib/contractorSeries.ts)
 //     for leads from the Scott video form. Up to day 180, so its leads are
 //     read back CONTRACTOR_LOOKBACK_DAYS; every other lead keeps 45 days.
@@ -87,7 +101,9 @@ import { unsubscribeSecret, unsubscribeUrl } from "@/lib/unsubscribe";
 // countdown keeps the plain look. Every send is tagged campaign, day and
 // track so Resend can be filtered without reading a body.
 //
-// ONE SUCCESSFUL EMAIL PER LEAD PER 24 HOURS. A lead that has been sitting for
+// ONE SUCCESSFUL EMAIL PER LEAD PER 24 HOURS for existing cohorts. New daily
+// Meta leads get at most one per local date, with a 20-hour spacing floor.
+// A lead that has been sitting for
 // three weeks with nothing sent does not get slammed with six emails at once.
 // It gets the oldest one it is owed today and the next one tomorrow.
 //
@@ -179,6 +195,14 @@ const META_SALES_SEQUENCE: Sequence = {
   dueBy: metaSalesStepsDueBy,
 };
 
+const META_SALES_DAILY_SEQUENCE: Sequence = {
+  campaign: META_SALES_DAILY_CAMPAIGN,
+  steps: META_SALES_DAILY_STEPS,
+  firstStep: META_SALES_DAILY_FIRST_STEP,
+  lastStep: META_SALES_DAILY_LAST_STEP,
+  dueBy: metaSalesDailyStepsDueBy,
+};
+
 /** The highest step any sequence here writes; the send-history read stops there. */
 const HISTORY_LAST_STEP = Math.max(
   FREE_BUILD_SEQUENCE.lastStep,
@@ -186,6 +210,7 @@ const HISTORY_LAST_STEP = Math.max(
   RENT_RECEIPT_SEQUENCE.lastStep,
   CONTRACTOR_SEQUENCE.lastStep,
   META_SALES_SEQUENCE.lastStep,
+  META_SALES_DAILY_SEQUENCE.lastStep,
 );
 
 /**
@@ -194,6 +219,7 @@ const HISTORY_LAST_STEP = Math.max(
  * lands after RENT_RECEIPT_SERIES_START can never hand anyone two series.
  */
 function sequenceFor(lead: EligibleLead, history: NurtureDeliveryRow[]): Sequence {
+  if (isMetaSalesDailySeriesLead(lead, history)) return META_SALES_DAILY_SEQUENCE;
   if (isMetaSalesSeriesLead(lead, history)) return META_SALES_SEQUENCE;
   if (isContractorSeriesLead(lead)) return CONTRACTOR_SEQUENCE;
   if (isWorkshopNurtureLead(lead)) return WORKSHOP_SEQUENCE;
@@ -423,10 +449,13 @@ export async function GET(request: Request) {
     const allRows = deliveryRowsByLead.get(lead.id) ?? [];
     const sequence = sequenceFor(lead, allRows);
     const sequenceSteps = sequence.steps;
-    const due = sequence.dueBy(ageInDays(lead.created_at));
+    const due = sequence.dueBy(sequence === META_SALES_DAILY_SEQUENCE
+      ? metaSalesDailyAgeInDays(lead.created_at, Date.now())
+      : ageInDays(lead.created_at));
     // V1 stops NEW sends after day 30. A previously claimed request may still
     // retry with the identical provider key inside its existing safe window.
-    const pendingMetaSalesClaim = sequence === META_SALES_SEQUENCE && allRows.some(
+    const pendingMetaSalesClaim =
+      (sequence === META_SALES_SEQUENCE || sequence === META_SALES_DAILY_SEQUENCE) && allRows.some(
       (row) => row.delivery_status === "pending" &&
         row.step >= sequence.firstStep && row.step <= sequence.lastStep,
     );
@@ -510,7 +539,9 @@ export async function GET(request: Request) {
       // One successful email per lead per 24 hours. The hourly cron is for
       // retrying the SAME pending step, never for advancing the sequence.
       const last = lastSentAt.get(lead.id);
-      if (last && Date.now() - last < MIN_HOURS_BETWEEN_SENDS * 3600_000) {
+      if (last && (sequence === META_SALES_DAILY_SEQUENCE
+        ? !metaSalesDailyNewSendAllowed(last, Date.now())
+        : Date.now() - last < MIN_HOURS_BETWEEN_SENDS * 3600_000)) {
         throttled++;
         continue;
       }
@@ -547,13 +578,15 @@ export async function GET(request: Request) {
     let text: string;
     let html: string | undefined;
     let track: string;
-    if (sequence === META_SALES_SEQUENCE) {
+    if (sequence === META_SALES_SEQUENCE || sequence === META_SALES_DAILY_SEQUENCE) {
       const email = next as MetaSalesStep;
-      const rendered = renderMetaSalesStep(email, unsubUrl);
+      const rendered = sequence === META_SALES_DAILY_SEQUENCE
+        ? renderMetaSalesDailyStep(email, unsubUrl)
+        : renderMetaSalesStep(email, unsubUrl);
       subject = email.subject;
       text = rendered.text;
       html = rendered.html;
-      track = "meta_sales_v1";
+      track = sequence === META_SALES_DAILY_SEQUENCE ? "meta_sales_daily_v1" : "meta_sales_v1";
       // Consent and sales status can change while the batch is running.
       // Fail closed immediately before submitting a new-series message.
       const current = await supabase.from("leads")
@@ -600,7 +633,7 @@ export async function GET(request: Request) {
       resendKey,
       nurtureEmailIdempotencyKey(lead.id, next.step, sequence.campaign),
       {
-        from: sequence === META_SALES_SEQUENCE
+        from: sequence === META_SALES_SEQUENCE || sequence === META_SALES_DAILY_SEQUENCE
           ? `Ryan | The LeadFlow Pro <${BUSINESS.email.hello}>`
           : `${BUSINESS.operator} <${BUSINESS.email.ryan}>`,
         reply_to: BUSINESS.email.hello,

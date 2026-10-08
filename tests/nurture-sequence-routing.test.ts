@@ -14,6 +14,7 @@ import * as guard from "../lib/metaCampaignGuard";
 import * as contractorSeries from "../lib/contractorSeries";
 import * as contractorEmailHtml from "../lib/contractorEmailHtml";
 import * as metaSalesSeries from "../lib/metaSalesSeries";
+import * as metaSalesDailySeries from "../lib/metaSalesDailySeries";
 import { bookingPage } from "../lib/site/external-links";
 
 // Runs the actual cron route against an in-memory leads and lead_emails
@@ -107,6 +108,9 @@ async function runRoute(leads: Row[], emails: Row[], nowMs: number, sendWindow =
   ).outputText;
   const loaded = { exports: {} as { GET: (request: Request) => Promise<Response> } };
   class Clock extends Date {
+    constructor(value?: string | number) {
+      super(value === undefined ? nowMs : value);
+    }
     static now() {
       return nowMs;
     }
@@ -132,6 +136,7 @@ async function runRoute(leads: Row[], emails: Row[], nowMs: number, sendWindow =
       if (name === "@/lib/contractorSeries") return contractorSeries;
       if (name === "@/lib/contractorEmailHtml") return contractorEmailHtml;
       if (name === "@/lib/metaSalesSeries") return metaSalesSeries;
+      if (name === "@/lib/metaSalesDailySeries") return metaSalesDailySeries;
       if (name === "@/lib/resendContacts") return {
         readResendContactOptOuts: async () => {
           providerReads++;
@@ -149,6 +154,8 @@ async function runRoute(leads: Row[], emails: Row[], nowMs: number, sendWindow =
       if (name === "@/lib/nurtureDelivery")
         return {
           ...nurtureDelivery,
+          nurtureRetryWindowExpired: (firstAttempt: string | null) =>
+            nurtureDelivery.nurtureRetryWindowExpired(firstAttempt, nowMs),
           sendNurtureEmail: async (_key: string, idempotencyKey: string, payload: Record<string, unknown>) => {
             sends.push({ key: idempotencyKey, payload });
             return { ok: true, providerMessageId: `msg-${sends.length}` };
@@ -541,7 +548,7 @@ test("restored forms keep the daily throttle and stable pending provider claim",
   assert.equal(resumed.emails.find((r) => r.step === 105)?.attempt_count, 2);
 });
 
-test("future Meta cohorts use the nine new follow-ups while earlier contractor cohorts stay intact", async () => {
+test("unclaimed Meta cohorts use daily follow-ups while earlier contractor cohorts stay intact", async () => {
   const cutoff = Date.parse(metaSalesSeries.META_SALES_START);
   const now = cutoff + DAY + HOUR;
   const lead = (id: string, created: number): Row => ({
@@ -551,9 +558,9 @@ test("future Meta cohorts use the nine new follow-ups while earlier contractor c
   const result = await runRoute([lead("before-cutoff", cutoff - 1), lead("new-cohort", cutoff)], [], now);
   assert.equal(result.sends.length, 2);
   assert.ok(result.sends.some((s) => s.key === `nurture-contractor_owner-${nurtureDelivery.NURTURE_SEQUENCE_VERSION}-before-cutoff-601`));
-  const sales = result.sends.find((s) => s.key.includes("-new-cohort-701"));
+  const sales = result.sends.find((s) => s.key.includes("-new-cohort-801"));
   assert.ok(sales);
-  assert.equal(sales.payload.subject, metaSalesSeries.META_SALES_STEPS[0].subject);
+  assert.equal(sales.payload.subject, metaSalesDailySeries.META_SALES_DAILY_STEPS[0].subject);
   assert.equal(sales.payload.from, "Ryan | The LeadFlow Pro <hello@theleadflowpro.com>");
   assert.equal(sales.payload.reply_to, "hello@theleadflowpro.com");
   assert.ok(String(sales.payload.html).includes("No login required."));
@@ -589,7 +596,7 @@ test("new Meta sales submission rechecks revocation, sales exits and database fa
   for (const exit of exits) {
     const result = await runRoute([lead()], [], now, "off", exit);
     assert.equal(result.sends.length, 0);
-    const claim = result.emails.find((r) => r.step === 701);
+    const claim = result.emails.find((r) => r.step === 801);
     assert.equal(claim?.delivery_status, exit === "error" ? "pending" : "failed");
   }
 });
@@ -663,4 +670,140 @@ test("a failed CRM opt-out mirror still holds native opted-out recipients", asyn
   assert.equal(result.sends.length, 0);
   assert.equal(result.emails.length, 0);
   assert.equal(lead.email_unsubscribed_at, null);
+});
+
+function dailyLead(id: string, created = metaSalesSeries.META_SALES_START): Row {
+  return { ...base, id, email: `${id}@example.com`, full_name: "Fixture Owner",
+    created_at: created, diagnostic: { form_id: "2084381329108926" } };
+}
+
+function acceptedStep(id: string, step: number, at: number): Row {
+  return { id: `${id}-${step}`, lead_id: id, step, delivery_status: "sent",
+    sent_at: new Date(at).toISOString(), first_attempt_at: new Date(at).toISOString(),
+    last_attempt_at: new Date(at).toISOString(), attempt_count: 1 };
+}
+
+test("daily calendar clock starts next local date inside the window without another welcome", async () => {
+  const captured = "2026-10-08T23:30:00.000Z";
+  const sameDate = await runRoute([dailyLead("daily-first", captured)], [], Date.parse("2026-10-09T04:59:00Z"));
+  assert.equal(sameDate.sends.length, 0);
+  assert.equal(sameDate.emails.length, 0);
+  const held = await runRoute([dailyLead("daily-first", captured)], [], Date.parse("2026-10-09T11:59:59Z"), "7-20");
+  assert.equal(held.sends.length, 0);
+  assert.equal(held.body.held_for_window, 1);
+  const morning = await runRoute([dailyLead("daily-first", captured)], [], Date.parse("2026-10-09T12:00:00Z"), "7-20");
+  assert.equal(morning.sends.length, 1);
+  assert.equal(morning.sends[0].key, `nurture-meta_sales_daily30_v1-${nurtureDelivery.NURTURE_SEQUENCE_VERSION}-daily-first-801`);
+  assert.equal(morning.emails.some((row) => row.step === 800 || row.step === 700 || row.step === 0), false);
+});
+
+test("daily next morning tolerates latency while legacy contractor spacing stays exactly24h", async () => {
+  const now = Date.parse("2026-10-10T12:00:00Z");
+  const last = Date.parse("2026-10-09T12:00:05Z");
+  const legacy = dailyLead("legacy-contract", "2026-10-08T11:59:59.999Z");
+  const result = await runRoute([dailyLead("daily-latency"), legacy], [
+    acceptedStep("daily-latency", 801, last), acceptedStep("legacy-contract", 601, last),
+  ], now, "7-20");
+  assert.equal(result.sends.length, 1);
+  assert.ok(result.sends[0].key.endsWith("-daily-latency-802"));
+  assert.equal(result.body.throttled, 1);
+  assert.equal(result.emails.some((row) => row.lead_id === "legacy-contract" && row.step === 602), false);
+});
+
+test("daily same-date acceptance blocks a second copy even after20h", async () => {
+  const last = Date.parse("2026-10-10T05:01:00Z");
+  const result = await runRoute([dailyLead("daily-same-date")], [acceptedStep("daily-same-date", 801, last)],
+    Date.parse("2026-10-11T01:02:00Z"));
+  assert.equal(result.sends.length, 0);
+  assert.equal(result.body.throttled, 1);
+  assert.equal(result.emails.length, 1);
+});
+
+test("a late daily first send continues once per next date after its20h safety floor", async () => {
+  const lead = dailyLead("daily-late");
+  const emails = [acceptedStep("daily-late", 801, Date.parse("2026-10-10T00:00:00Z"))];
+  const early = await runRoute([lead], emails, Date.parse("2026-10-10T12:00:00Z"), "7-20");
+  assert.equal(early.sends.length, 0);
+  const safe = await runRoute([lead], emails, Date.parse("2026-10-10T20:00:00Z"), "7-20");
+  assert.equal(safe.sends.length, 1);
+  assert.ok(safe.sends[0].key.endsWith("-802"));
+  const repeat = await runRoute([lead], emails, Date.parse("2026-10-10T21:00:00Z"), "7-20");
+  assert.equal(repeat.sends.length, 0);
+  const nextEarly = await runRoute([lead], emails, Date.parse("2026-10-11T12:00:00Z"), "7-20");
+  assert.equal(nextEarly.sends.length, 0);
+  const nextSafe = await runRoute([lead], emails, Date.parse("2026-10-11T16:00:00Z"), "7-20");
+  assert.equal(nextSafe.sends.length, 1);
+  assert.ok(nextSafe.sends[0].key.endsWith("-803"));
+});
+
+test("daily pending retries retain one claim/key and cannot advance into a catch-up burst", async () => {
+  const now = Date.parse("2026-10-15T12:00:00Z");
+  const claim: Row = { id: "daily-pending-801", lead_id: "daily-pending", step: 801,
+    delivery_status: "pending", sent_at: null, first_attempt_at: new Date(now - HOUR).toISOString(),
+    last_attempt_at: new Date(now - 31 * 60_000).toISOString(), attempt_count: 1 };
+  const emails = [claim];
+  const result = await runRoute([dailyLead("daily-pending")], emails, now);
+  assert.equal(result.sends.length, 1);
+  assert.equal(result.sends[0].key, `nurture-meta_sales_daily30_v1-${nurtureDelivery.NURTURE_SEQUENCE_VERSION}-daily-pending-801`);
+  assert.equal(emails.length, 1);
+  assert.equal(claim.attempt_count, 2);
+  const repeat = await runRoute([dailyLead("daily-pending")], emails, now + 60_000);
+  assert.equal(repeat.sends.length, 0);
+  assert.equal(emails.length, 1);
+});
+
+test("daily final slot follows the local calendar through DST and fresh sends stop after day30", async () => {
+  const day30 = Date.parse("2026-11-07T13:00:00Z");
+  const history = () => Array.from({ length: 29 }, (_, i) => acceptedStep("daily-last", 801 + i, day30 - 25 * HOUR));
+  const final = await runRoute([dailyLead("daily-last")], history(), day30, "7-20");
+  assert.equal(final.sends.length, 1);
+  assert.ok(final.sends[0].key.endsWith("-830"));
+  const expired = await runRoute([dailyLead("daily-last")], history(), day30 + DAY, "7-20");
+  assert.equal(expired.sends.length, 0);
+  assert.equal(expired.emails.length, 29);
+  const complete = await runRoute([dailyLead("daily-last")], final.emails, day30 + DAY, "7-20");
+  assert.equal(complete.sends.length, 0);
+  assert.equal(complete.emails.length, 30);
+  const pending: Row = { id: "daily-last-pending", lead_id: "daily-last", step: 830,
+    delivery_status: "pending", sent_at: null, first_attempt_at: "2026-11-07T23:00:00.000Z",
+    last_attempt_at: "2026-11-07T23:00:00.000Z", attempt_count: 1 };
+  const safeRetry = await runRoute([dailyLead("daily-last")], [...history(), pending], day30 + DAY, "7-20");
+  assert.equal(safeRetry.sends.length, 1);
+  assert.ok(safeRetry.sends[0].key.endsWith("-830"));
+});
+
+test("v1 claimed history stays on its immutable payload and24h spacing", async () => {
+  const now = Date.parse("2026-10-11T12:00:00Z");
+  const recent = acceptedStep("v1-pinned", 701, now - DAY + 5_000);
+  const held = await runRoute([dailyLead("v1-pinned")], [recent], now);
+  assert.equal(held.sends.length, 0);
+  assert.equal(held.body.throttled, 1);
+  const old = acceptedStep("v1-pinned", 701, now - DAY);
+  const result = await runRoute([dailyLead("v1-pinned")], [old], now);
+  assert.equal(result.sends.length, 1);
+  assert.ok(result.sends[0].key.endsWith("-v1-pinned-702"));
+  assert.equal(result.sends[0].payload.subject, metaSalesSeries.META_SALES_STEPS[1].subject);
+  assert.equal(result.emails.some((row) => Number(row.step) >= 801), false);
+});
+
+test("healthy daily sequence sends exactly one copy on all thirty local dates including DST", async () => {
+  const lead = dailyLead("daily-complete");
+  const emails: Row[] = [];
+  const keys = new Set<string>();
+  for (let day = 1; day <= 30; day++) {
+    // DST ends Nov1 (programday24); 7AM Chicago moves from12UTC to13UTC.
+    const now = Date.UTC(2026, 9, 8 + day, day >= 24 ? 13 : 12);
+    const result = await runRoute([lead], emails, now + (day % 2 ? 5_000 : 0), "7-20");
+    assert.equal(result.sends.length, 1, `one follow-up on local day${day}`);
+    assert.ok(result.sends[0].key.endsWith(`-${800 + day}`));
+    keys.add(result.sends[0].key);
+    const second = await runRoute([lead], emails, now + HOUR, "7-20");
+    assert.equal(second.sends.length, 0, `no second follow-up on local day${day}`);
+    assert.equal(emails.length, day);
+  }
+  assert.equal(keys.size, 30);
+  assert.deepEqual(emails.map((row) => row.step), Array.from({ length: 30 }, (_, i) => 801 + i));
+  const after = await runRoute([lead], emails, Date.parse("2026-11-08T13:00:00Z"), "7-20");
+  assert.equal(after.sends.length, 0);
+  assert.equal(emails.length, 30);
 });
