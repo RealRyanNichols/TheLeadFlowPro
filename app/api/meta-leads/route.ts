@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
+import { reconcileGeneralNewsletter } from "@/lib/generalNewsletterContacts";
 import { createHmac, timingSafeEqual } from "crypto";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from "@/lib/config";
-import { sendInternalLeadAlert } from "@/lib/leadNotify";
+import { META_SALES_WELCOME_FUNNEL, sendInternalLeadAlert } from "@/lib/leadNotify";
 import { deliverLeadEmailNotificationsForLead } from "@/lib/leadEmailNotifications";
 import { dispatchSpeedToLeadWithBudget } from "@/lib/speedToLeadAlertsServer";
 import { contractorFollowUp, metaAnswerLines } from "@/lib/metaLeadAnswers";
@@ -264,7 +265,9 @@ function mapLead(raw: MetaLead) {
       consent_at: smsConsent || marketingEmailConsent ? capturedAt : null,
       external_id: `meta:${raw.id}`,
       diagnostic: {
-        source: registration?.funnel ?? "meta_lead_form",
+        // The existing outbox freezes this source into a NEW capture's funnel.
+        // Existing matches keep their immutable welcome version and history.
+        source: registration?.funnel ?? (registration ? META_SALES_WELCOME_FUNNEL : "meta_lead_form"),
         notification_pipeline: "lead_intake_v1",
         meta_lead_id: raw.id,
         form_id: raw.form_id ?? null,
@@ -789,8 +792,26 @@ export async function GET(request: Request) {
   }
 
   const resendContacts = await syncLiveMetaLeadsToResend();
+  // Full CRM, every source and lifecycle: newsletter membership is independent
+  // of daily follow-up. This uses only the existing lead table/credentials.
+  let generalNewsletter: unknown = { skipped: "missing database or email configuration" };
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const emailKey = process.env.RESEND_API_KEY;
+  if (serviceKey && emailKey) {
+    const crm = createSupabaseClient(SUPABASE_URL, serviceKey);
+    generalNewsletter = await reconcileGeneralNewsletter({
+      apiKey: emailKey,
+      readCrmPage: async (from, to) => {
+        const page = await crm.from("leads")
+          .select("id,email,marketing_email_consent,email_unsubscribed_at,deleted_at,is_test", { count: "exact" })
+          .order("id", { ascending: true }).range(from, to);
+        return { data: page.data, count: page.count, error: page.error };
+      },
+    });
+    console.info("General newsletter membership reconciliation:", generalNewsletter);
+  }
   return NextResponse.json({ ok: incompleteForms === 0, seen, imported,
-    incomplete_forms: incompleteForms, resend_contacts: resendContacts },
+    incomplete_forms: incompleteForms, resend_contacts: resendContacts, general_newsletter: generalNewsletter },
     { status: incompleteForms ? 503 : 200 });
 }
 

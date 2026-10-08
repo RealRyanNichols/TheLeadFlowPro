@@ -609,11 +609,86 @@ function contractorWelcome(lead: NotifiableLead, context: OwnerAlertContext) {
   };
 }
 
-export function leadWelcomePayload(lead: NotifiableLead, context: OwnerAlertContext = {}) {
-  if (lead.funnel === CONTRACTOR_FUNNEL) return contractorWelcome(lead, context);
-  const first = String(lead.full_name || "").trim().split(" ")[0] || "there";
-  const funnelSpecific = funnelWelcome(lead, first);
-  if (funnelSpecific) return funnelSpecific;
+// The version is captured atomically by the existing outbox as its funnel.
+// Older snapshots keep their original plaintext template and retry key.
+export const META_SALES_WELCOME_FUNNEL = "meta_sales_welcome_v1";
+export const META_SALES_WELCOME_CAMPAIGN = "meta_sales_welcome_v1";
+
+function welcomeEscape(value: string): string {
+  return value.replaceAll("&", "&amp;").replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;");
+}
+
+function trackedWelcomeLink(value: string, content: string): string {
+  const url = new URL(value);
+  url.searchParams.set("utm_source", "resend");
+  url.searchParams.set("utm_medium", "email");
+  url.searchParams.set("utm_campaign", META_SALES_WELCOME_CAMPAIGN);
+  url.searchParams.set("utm_content", `day00_${content}`);
+  return url.toString();
+}
+
+/** Only our known public destinations become links; customer text is escaped. */
+function welcomeParagraph(value: string, links: ReadonlyMap<string, string>): string {
+  let output = "", offset = 0;
+  for (const match of value.matchAll(/https:\/\/[^\s<>"']+/g)) {
+    const at = match.index!, url = match[0], label = links.get(url);
+    output += welcomeEscape(value.slice(offset, at));
+    output += label
+      ? `<a href="${welcomeEscape(url)}" style="color:#76510f;text-decoration:underline;word-break:break-word;">${welcomeEscape(label)}</a>`
+      : welcomeEscape(url);
+    offset = at + url.length;
+  }
+  return (output + welcomeEscape(value.slice(offset))).replaceAll("\n", "<br>");
+}
+
+function genericMetaWelcomePayload(lead: NotifiableLead, first: string, context: OwnerAlertContext) {
+  const legacy = genericWelcomePayload(lead, first);
+  const secret = unsubscribeSecret();
+  if (!secret || !context.leadId || !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i.test(context.leadId)) {
+    // The outbox retries with its existing key; never send a marketing-shaped
+    // welcome with an absent or malformed unsubscribe path.
+    throw new Error("Generic Meta welcome signing configuration is unavailable");
+  }
+  const unsubUrl = unsubscribeUrl(context.leadId, secret);
+  const booking = bookingPage();
+  const primary = trackedWelcomeLink(booking || `${BUSINESS.siteUrl}/agency/start?plan=recommended`, booking ? "book" : "fit_review");
+  const originals = new Map<string, string>([
+    [`${BUSINESS.siteUrl}/portfolio`, trackedWelcomeLink(`${BUSINESS.siteUrl}/portfolio`, "portfolio")],
+    [BUSINESS.siteUrl, trackedWelcomeLink(BUSINESS.siteUrl, "site")],
+    ...(booking ? [[booking, primary] as [string, string]] : []),
+  ]);
+  const links = new Map([...originals].map(([original, tracked]) => [tracked,
+    original === booking ? "Book a 20-minute call" : original.endsWith("/portfolio") ? "See our work" : BUSINESS.name]));
+  let body = legacy.text.replace(/https:\/\/[^\s<>"']+/g, (url) => originals.get(url) || url);
+  if (!booking) body += `\n\nStart your fit review:\n${primary}`;
+  const postal = `${BUSINESS.address.street}, ${BUSINESS.address.city}, ${BUSINESS.address.region} ${BUSINESS.address.postalCode}`;
+  const footer = `${BUSINESS.dbaLine}\n${postal}\n\nUnsubscribe from follow-up emails: ${unsubUrl}\nNo login required.`;
+  const paragraphs = body.split(/\n\s*\n/).map((paragraph) =>
+    `<p style="font-family:Arial,Helvetica,sans-serif;font-size:17px;line-height:28px;color:#243047;margin:0 0 20px;">${welcomeParagraph(paragraph, links)}</p>`).join("");
+  const label = booking ? "Pick a time to talk" : "Start my fit review";
+  const html = `<!DOCTYPE html><html lang="en" dir="ltr"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="x-apple-disable-message-reformatting"><title>${welcomeEscape(legacy.subject)}</title><style>@media screen and (max-width:420px){.welcome-cell{padding-left:22px!important;padding-right:22px!important}.welcome-title{font-size:30px!important;line-height:36px!important}}</style></head><body style="margin:0;background-color:#e9edf3;">
+<span style="display:none;max-height:0;overflow:hidden;opacity:0;">Your request is in. Here is the next practical step.</span>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" bgcolor="#e9edf3" style="padding:24px 12px;">
+<!--[if mso]><table role="presentation" width="600"><tr><td><![endif]-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;">
+<tr><td class="welcome-cell" bgcolor="#0e192c" style="padding:26px;"><p style="font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:20px;color:#e9b457;font-weight:700;letter-spacing:2px;margin:0 0 18px;">THE LEADFLOW PRO</p><h1 class="welcome-title" style="font-family:Arial,Helvetica,sans-serif;font-size:34px;line-height:40px;color:#ffffff;margin:0;">Your request is in.</h1></td></tr>
+<tr><td bgcolor="#e9b457" height="4" style="font-size:1px;line-height:4px;">&nbsp;</td></tr>
+<tr><td class="welcome-cell" bgcolor="#ffffff" style="padding:28px 26px 12px;">${paragraphs}</td></tr>
+<tr><td class="welcome-cell" bgcolor="#ffffff" style="padding:0 26px 30px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" bgcolor="#e9b457" style="border-radius:6px;"><a href="${welcomeEscape(primary)}" style="font-family:Arial,Helvetica,sans-serif;font-size:17px;line-height:24px;color:#15243d;font-weight:700;text-decoration:none;display:block;padding:17px 20px;">${welcomeEscape(label)} &rarr;</a></td></tr></table></td></tr>
+<tr><td class="welcome-cell" bgcolor="#0e192c" style="padding:22px 26px;"><p style="font-family:Arial,Helvetica,sans-serif;font-size:13px;line-height:21px;color:#c8d3e5;margin:0 0 12px;">${welcomeEscape(BUSINESS.dbaLine)}<br>${welcomeEscape(postal)}</p><p style="font-family:Arial,Helvetica,sans-serif;font-size:14px;line-height:22px;color:#c8d3e5;margin:0;"><a href="${welcomeEscape(unsubUrl)}" style="color:#e9b457;text-decoration:underline;">Unsubscribe from follow-up emails</a><br>No login required.</p></td></tr>
+</table><!--[if mso]></td></tr></table><![endif]--></td></tr></table></body></html>`;
+  return {
+    ...legacy,
+    from: `Ryan | ${BUSINESS.name} <${BUSINESS.email.hello}>`,
+    text: `${body}\n\n${footer}`,
+    html,
+    headers: { "List-Unsubscribe": `<${unsubUrl}>`, "List-Unsubscribe-Post": "List-Unsubscribe=One-Click" },
+    tags: [{ name: "campaign", value: META_SALES_WELCOME_CAMPAIGN }, { name: "day", value: "00" }],
+  };
+}
+
+function genericWelcomePayload(lead: NotifiableLead, first: string) {
   return {
     from: FROM_RYAN,
     to: [lead.email],
@@ -642,6 +717,17 @@ export function leadWelcomePayload(lead: NotifiableLead, context: OwnerAlertCont
       `https://www.theleadflowpro.com`,
     ].join("\n"),
   };
+}
+
+export function leadWelcomePayload(lead: NotifiableLead, context: OwnerAlertContext = {}) {
+  if (lead.funnel === CONTRACTOR_FUNNEL) return contractorWelcome(lead, context);
+  const first = String(lead.full_name || "").trim().split(" ")[0] || "there";
+  if (lead.funnel === META_SALES_WELCOME_FUNNEL && lead.source === "meta_lead_ad") {
+    return genericMetaWelcomePayload(lead, first, context);
+  }
+  const funnelSpecific = funnelWelcome(lead, first);
+  if (funnelSpecific) return funnelSpecific;
+  return genericWelcomePayload(lead, first);
 }
 
 /**

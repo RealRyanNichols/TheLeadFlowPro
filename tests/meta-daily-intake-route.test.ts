@@ -18,13 +18,18 @@ function database(seed: Row[] = [], ledger: Row[] = [], casFails = false, emailC
   const leads = seed.map(x => ({ ...x }));
   const emails = ledger.map(x => ({ ...x }));
   const activities: Row[] = [];
+  const queries: { table: string; selected?: string; exactCount?: boolean; orders: string[]; range?: number[]; filters: string[] }[] = [];
   let nextID = 0;
   function from(table: string) {
     const rows = table === "leads" ? leads : table === "lead_emails" ? emails : activities;
-    const state = { op: "select", payload: null as Row | null, filters: [] as ((r: Row) => boolean)[], single: false, limit: Infinity };
+    const audit = { table, orders: [] as string[], filters: [] as string[] } as { table: string; selected?: string; exactCount?: boolean; orders: string[]; range?: number[]; filters: string[] };
+    queries.push(audit);
+    const state = { start: 0, op: "select", payload: null as Row | null, filters: [] as ((r: Row) => boolean)[], single: false, limit: Infinity };
     const q: Record<string, unknown> = {};
     Object.assign(q, {
-      select: () => q,
+      select: (columns: string, options?: { count?: string }) => ((audit.selected = columns), (audit.exactCount = options?.count === "exact"), q),
+      order: (key: string) => (audit.orders.push(key), q),
+      range: (from: number, to: number) => ((state.start = from), (state.limit = to - from + 1), (audit.range = [from, to]), q),
       insert: (value: Row) => ((state.op = "insert"), (state.payload = value), q),
       update: (value: Row) => ((state.op = "update"), (state.payload = value), q),
       eq: (key: string, value: unknown) => (state.filters.push(r => key === "diagnostic" && typeof value === "string"
@@ -34,7 +39,7 @@ function database(seed: Row[] = [], ledger: Row[] = [], casFails = false, emailC
       is: (key: string, value: unknown) => (state.filters.push(r => (r[key] ?? null) === value), q),
       not: (key: string, _op: string, value: unknown) => (state.filters.push(r => r[key] !== value), q),
       in: (key: string, values: unknown[]) => (state.filters.push(r => values.includes(r[key])), q),
-      or: (raw: string) => (state.filters.push(r => raw.split(",").some(part => {
+      or: (raw: string) => (audit.filters.push(raw), state.filters.push(r => raw.split(",").some(part => {
         const [key, op, ...value] = part.split(".");
         if (key === "diagnostic->meta_daily30") return Boolean((r.diagnostic as Row | undefined)?.meta_daily30);
         if (op === "eq") return r[key] === value.join(".");
@@ -47,19 +52,19 @@ function database(seed: Row[] = [], ledger: Row[] = [], casFails = false, emailC
         if (state.op === "update" && state.payload?.diagnostic && emailChangedAtCAS) {
           for (const row of rows) row.email = "staff-changed@example.com";
         }
-        const matches = state.op === "update" && state.payload?.diagnostic && casFails ? [] : rows.filter(r => state.filters.every(f => f(r))).slice(0, state.limit);
+        const matches = state.op === "update" && state.payload?.diagnostic && casFails ? [] : rows.filter(r => state.filters.every(f => f(r))).slice(state.start, state.start + state.limit);
         if (state.op === "insert") {
           if (table === "leads" && leads.some(r => r.external_id === state.payload?.external_id && state.payload?.external_id)) return { data: null, error: { code: "23505" } };
           const row = { id: `fixture-${++nextID}`, deleted_at: null, is_test: false, email_unsubscribed_at: null, status: "new", ...state.payload };
           rows.push(row); return { data: state.single ? row : [row], error: null };
         }
         if (state.op === "update") for (const row of matches) Object.assign(row, state.payload);
-        return { data: state.single ? matches[0] ?? null : matches, error: null };
+        return { data: state.single ? matches[0] ?? null : matches, error: null, ...(audit.exactCount ? { count: rows.filter(r => state.filters.every(f => f(r))).length } : {}) };
       }).then(resolve, reject),
     });
     return q;
   }
-  return { db: { from }, leads, activities, emails };
+  return { db: { from }, leads, activities, emails, queries };
 }
 
 function rawLead(id = "9001001", form = FORM, checked = false) {
@@ -70,7 +75,7 @@ function rawLead(id = "9001001", form = FORM, checked = false) {
 
 function fixture(options: { raw?: Row; seed?: Row[]; ledger?: Row[]; casFails?: boolean; emailChangedAtCAS?: boolean; providerOptOuts?: string[]; providerReadFails?: boolean; pages?: Row[]; syncThrows?: boolean; syncRetryAfter?: number; pollThrows?: boolean } = {}) {
   const db = database(options.seed, options.ledger, options.casFails, options.emailChangedAtCAS);
-  const welcome: string[] = [], speed: string[] = [], contactSync: Row[] = [], alerts: Row[] = [], requested: URL[] = [];
+  const welcome: string[] = [], speed: string[] = [], contactSync: Row[] = [], generalSync: Row[] = [], generalReads: Row[] = [], alerts: Row[] = [], requested: URL[] = [];
   const logs: string[] = [];
   const raw = options.raw ?? rawLead();
   const code = ts.transpileModule(readFileSync(new URL("../app/api/meta-leads/route.ts", import.meta.url), "utf8"),
@@ -97,11 +102,17 @@ function fixture(options: { raw?: Row; seed?: Row[]; ledger?: Row[]; casFails?: 
   runner((name: string) => {
     if (name === "next/server") return { NextResponse: class extends Response { static json(value: unknown, init?: ResponseInit) { return Response.json(value, init); } } };
     if (name === "@supabase/supabase-js") return { createClient: () => db.db };
+    if (name === "@/lib/generalNewsletterContacts") return { reconcileGeneralNewsletter: async (value: Row) => {
+      generalSync.push(value);
+      const page = await (value.readCrmPage as (from: number, to: number) => Promise<Row>)(0, 499);
+      generalReads.push(page);
+      return { ok: true, crm_rows: Array.isArray(page.data) ? page.data.length : 0, crm_eligible: 0 };
+    } };
     if (name === "@/lib/config") return { SUPABASE_URL: `https://${guard.LEADFLOW_META.supabaseProjectRef}.supabase.co`, SUPABASE_ANON_KEY: "fixture-anon" };
     if (name === "@/lib/metaCampaignGuard") return guard;
     if (name === "@/lib/metaDailyEnrollment") return enrollment;
     if (name === "@/lib/metaLeadAnswers") return { contractorFollowUp: () => null, metaAnswerLines: () => [] };
-    if (name === "@/lib/leadNotify") return { sendInternalLeadAlert: async (value: Row) => { alerts.push(value); } };
+    if (name === "@/lib/leadNotify") return { META_SALES_WELCOME_FUNNEL: "meta_sales_welcome_v1", sendInternalLeadAlert: async (value: Row) => { alerts.push(value); } };
     if (name === "@/lib/leadEmailNotifications") return { deliverLeadEmailNotificationsForLead: async (_db: unknown, id: string) => { welcome.push(id); } };
     if (name === "@/lib/speedToLeadAlertsServer") return { dispatchSpeedToLeadWithBudget: async (_db: unknown, id: string) => { speed.push(id); } };
     if (name === "@/lib/resendContacts") return { readResendContactOptOuts: async () => options.providerReadFails
@@ -117,13 +128,14 @@ function fixture(options: { raw?: Row; seed?: Row[]; ledger?: Row[]; casFails?: 
     const signature = createHmac("sha256", "fixture-secret").update(body).digest("hex");
     return loaded.exports.POST(new Request("https://example.com/api/meta-leads", { method: "POST", body, headers: { "x-hub-signature-256": `sha256=${badSignature ? "0".repeat(64) : signature}` } }));
   }
-  return { ...db, welcome, speed, contactSync, alerts, requested, logs, post, get: () => loaded.exports.GET(new Request("https://example.com/api/meta-leads", { headers: { authorization: "Bearer fixture-cron" } })) };
+  return { ...db, welcome, speed, contactSync, generalSync, generalReads, alerts, requested, logs, post, get: () => loaded.exports.GET(new Request("https://example.com/api/meta-leads", { headers: { authorization: "Bearer fixture-cron" } })) };
 }
 
 test("owned consented webhook capture commits daily marker, synchronizes one contact and attempts one welcome", async () => {
   const f = fixture(); const response = await f.post(); assert.equal(response.status, 200);
   assert.equal((await response.json()).imported, 1); assert.equal(f.leads.length, 1);
   const diagnostic = f.leads[0].diagnostic as Row;
+  assert.equal(diagnostic.source, "contractor_owner");
   const marker = enrollment.readMetaDailyEnrollment(diagnostic);
   assert.equal(marker?.enrolled_at, "2026-10-08T18:10:00.000Z"); assert.equal(marker?.meta_lead_id, "9001001");
   assert.equal(f.welcome.length, 1); assert.equal(f.speed.length, 1); assert.equal(f.contactSync.length, 1);
@@ -145,6 +157,7 @@ test("checked single-box registered lead joins daily follow-up; workshop stays i
   assert.equal(enrollment.hasMetaDailyEnrollment(f.leads[0].diagnostic), true);
   const workshop = fixture({ raw: rawLead("9001004", "1749164796410610") }); await workshop.post();
   assert.equal(workshop.leads[0].marketing_email_consent, true);
+  assert.equal((workshop.leads[0].diagnostic as Row).source, "workshop_sep17");
   assert.equal(enrollment.hasMetaDailyEnrollment(workshop.leads[0].diagnostic), false);
 });
 
@@ -177,7 +190,17 @@ test("new verified Meta inquiry enrolls one eligible existing website prospect o
   assert.equal(f.leads.length, 1); assert.equal(f.welcome.length, 0); assert.equal(f.contactSync.length, 1);
   assert.equal(enrollment.readMetaDailyEnrollment(f.leads[0].diagnostic)?.enrolled_at, "2026-10-08T18:10:00.000Z");
   assert.equal((f.leads[0].diagnostic as Row).answer, "preserve");
+  assert.equal((f.leads[0].diagnostic as Row).source, "free_build_funnel");
   assert.deepEqual(f.emails, ledger); await f.post(); assert.equal(f.contactSync.length, 1);
+});
+
+test("only a new registered generic capture stamps the versioned HTML welcome", async () => {
+  const f = fixture({ raw: rawLead("9001010", "1001553739566746") }); await f.post();
+  assert.equal((f.leads[0].diagnostic as Row).source, "meta_sales_welcome_v1");
+  assert.equal(f.welcome.length, 1);
+  const prior = fixture({ raw: rawLead("9001001", "1001553739566746"), seed: [existingProspect()] }); await prior.post();
+  assert.equal((prior.leads[0].diagnostic as Row).source, "free_build_funnel");
+  assert.equal(prior.welcome.length, 0);
 });
 
 test("existing refusal, CRM/native holds, false consent and ambiguous claims cannot be enrolled by a new form", async () => {
@@ -283,4 +306,21 @@ test("public website intake strips enrollment and duplicate holds while preservi
   assert.equal(diagnostic.notification_pipeline, "lead_intake_v1");
   assert.equal(enrollment.hasMetaDailyEnrollment(diagnostic), false); assert.equal(enrollment.hasMetaDailyDuplicateHold(diagnostic), false);
   assert.equal(db.leads[0].marketing_email_consent, false);
+});
+
+
+test("protected poll reconciles full CRM General membership independently of Meta or sales lifecycle", async () => {
+  const seed = [
+    { id: "website-won", email: "website@example.com", source: "website", status: "won", marketing_email_consent: true },
+    { id: "meta-new", email: "meta@example.com", source: "meta_lead_ad", status: "new", marketing_email_consent: true },
+    { id: "workshop-complete", email: "workshop@example.com", source: "meta_lead_ad", status: "contacted", diagnostic: { source: "workshop" }, marketing_email_consent: true },
+  ];
+  const f = fixture({ seed }); const before = JSON.stringify(f.leads); const response = await f.get();
+  assert.equal(response.status, 200); assert.equal(f.generalSync.length, 1);
+  assert.equal((f.generalReads[0].data as Row[]).length, 3);
+  const q = f.queries.find(q => q.selected === "id,email,marketing_email_consent,email_unsubscribed_at,deleted_at,is_test");
+  assert.ok(q); assert.equal(q.exactCount, true); assert.deepEqual(q.orders, ["id"]); assert.deepEqual(q.range, [0, 499]);
+  assert.deepEqual(q.filters, []); assert.equal(JSON.stringify(f.leads), before);
+  const result = await response.json(); assert.equal(result.general_newsletter.ok, true);
+  assert.equal(f.contactSync.at(-1)?.segmentId, "f500eae4-6d02-4825-9aad-24808610deef");
 });
