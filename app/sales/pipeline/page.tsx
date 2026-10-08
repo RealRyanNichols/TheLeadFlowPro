@@ -36,7 +36,7 @@ export default async function SalesPipeline({ searchParams }: { searchParams: Pr
   const { data: leads, error } = await supabase
     .from("leads")
     .select(
-      "id, created_at, full_name, email, phone, business_name, current_platform, industry, interest, goals, timeline, best_contact_method, status, priority, next_follow_up_at, expected_value_cents, close_probability, owner, notes, source",
+      "id, created_at, full_name, email, phone, business_name, current_platform, industry, interest, goals, timeline, best_contact_method, status, priority, next_follow_up_at, expected_value_cents, close_probability, owner, notes, source, utm_campaign",
     )
     .is("deleted_at", null)
     .eq("is_test", false)
@@ -60,7 +60,7 @@ export default async function SalesPipeline({ searchParams }: { searchParams: Pr
     );
 
   const touches = await loadLeadTouches(supabase, (leads ?? []).map(lead => lead.id));
-  const all = (leads ?? []).map(({ notes, ...lead }) => ({ ...lead, lastTouch: touches[lead.id], brief: leadStanding({ notes, status: lead.status, source: lead.source, industry: lead.industry, interest: lead.interest, timeline: lead.timeline, goals: lead.goals }) }));
+  const all = (leads ?? []).map(({ notes, ...lead }) => ({ ...lead, lastTouch: touches[lead.id], brief: leadStanding({ notes, status: lead.status, source: lead.source, industry: lead.industry, interest: lead.interest, timeline: lead.timeline, goals: lead.goals, utm_campaign: lead.utm_campaign }) }));
   const counts = {
     total: all.length,
     new: all.filter((lead) => lead.status === "new").length,
