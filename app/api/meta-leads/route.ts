@@ -7,7 +7,15 @@ import { deliverLeadEmailNotificationsForLead } from "@/lib/leadEmailNotificatio
 import { dispatchSpeedToLeadWithBudget } from "@/lib/speedToLeadAlertsServer";
 import { contractorFollowUp, metaAnswerLines } from "@/lib/metaLeadAnswers";
 import {
+  createMetaDailyEnrollment,
+  hasMetaDailyEnrollment,
+  hasMetaDailyDuplicateHold,
+  readMetaDailyEnrollment,
+} from "@/lib/metaDailyEnrollment";
+import {
   syncResendContacts,
+  readResendContactOptOuts,
+  type ResendContactLead,
   type ResendContactSyncResult,
 } from "@/lib/resendContacts";
 import {
@@ -42,6 +50,9 @@ import {
 
 const GRAPH = "https://graph.facebook.com/v21.0";
 const LEADFLOW_META_RESEND_SEGMENT_ID = "f500eae4-6d02-4825-9aad-24808610deef";
+const WORKSHOP_META_FORM_ID = "1749164796410610";
+const MAX_FORM_PAGES = 100;
+const NEW_META_REENTRY_START = Date.parse("2026-10-08T12:00:00.000Z");
 
 export const maxDuration = 60;
 
@@ -200,6 +211,17 @@ function mapLead(raw: MetaLead) {
   // submission itself is the request to hear about that offer (Ryan,
   // 2026-09-07).
   const marketingEmailConsent = consents.marketing || !!registration?.inquiryOptIn;
+  const capturedAt = new Date().toISOString();
+  const hasDeliverableEmail = /^[^\s@<>(),;:"\\]+@[^\s@<>(),;:"\\]+\.[^\s@<>(),;:"\\]+$/.test(email.trim()) &&
+    !email.toLowerCase().includes("@no-email.");
+  // This marker is server-owned and committed with the captured lead. Its
+  // clock starts now, rather than restarting a provider-created old ledger.
+  // Existing humans return from ingest before an insert, so their refusals,
+  // opt-outs, prior claims and enrollment clocks remain unchanged.
+  const dailyEnrollment = registration && marketingEmailConsent && hasDeliverableEmail &&
+    raw.form_id !== WORKSHOP_META_FORM_ID
+    ? createMetaDailyEnrollment(capturedAt, raw.id)
+    : null;
   const campaign = registration?.campaign ?? "meta_lead_form";
   // The free website build was retired on 2026-09-22. Leads from the forms
   // that sold it are website leads now, filed under the paid Website Launch.
@@ -239,7 +261,7 @@ function mapLead(raw: MetaLead) {
       // a checked box or from an inquiryOptIn form (see registry).
       sms_consent: smsConsent,
       marketing_email_consent: marketingEmailConsent,
-      consent_at: smsConsent || marketingEmailConsent ? new Date().toISOString() : null,
+      consent_at: smsConsent || marketingEmailConsent ? capturedAt : null,
       external_id: `meta:${raw.id}`,
       diagnostic: {
         source: registration?.funnel ?? "meta_lead_form",
@@ -249,6 +271,7 @@ function mapLead(raw: MetaLead) {
         ad_id: raw.ad_id ?? null,
         ad_attribution: raw.ad_id ? "ad_id_present" : "unverified_no_ad_id",
         fields: Object.fromEntries(fields),
+        ...(dailyEnrollment ? { meta_daily30: dailyEnrollment } : {}),
       },
     },
   };
@@ -374,14 +397,97 @@ async function paidLeadBelongsToLeadFlow(raw: MetaLead, token: string): Promise<
 // already here, stamp the external_id onto the row we already have and stay
 // quiet. Nobody gets contacted twice, and the next poll now dedupes on the
 // index like everything else.
-type ExistingLead = { id: string; external_id: string | null };
+type ExistingLead = {
+  id: string; external_id: string | null; full_name: string | null; email: string | null;
+  status: string; marketing_email_consent: boolean | null; email_unsubscribed_at: string | null;
+  diagnostic: unknown;
+};
+
+async function syncCapturedLeadToResend(lead: ResendContactLead): Promise<void> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey || lead.marketing_email_consent !== true || lead.email_unsubscribed_at ||
+      !lead.email || lead.email.includes("@no-email.")) return;
+  try {
+    const deadlineAt = Date.now() + 8000;
+    const signal = AbortSignal.timeout(8000);
+    const result = await syncResendContacts({
+      apiKey, segmentId: LEADFLOW_META_RESEND_SEGMENT_ID, leads: [lead], maxMutations: 2,
+      fetcher: async (url, init) => {
+        if (Date.now() >= deadlineAt) throw new Error("Contact sync deadline");
+        const response = await fetch(url, { ...init, signal });
+        if (response.status === 429) {
+          const retryAfter = Number(response.headers.get("retry-after"));
+          const delay = Number.isFinite(retryAfter) ? Math.max(550, retryAfter * 1000) : 1000;
+          if (Date.now() + delay >= deadlineAt) throw new Error("Contact sync deadline");
+        }
+        return response;
+      },
+    });
+    console.info("Immediate Meta contact reconciliation:", {
+      ok: result.ok, created: result.created, added_to_segment: result.added_to_segment,
+      preserved_provider_opt_out: result.preserved_provider_opt_out, failed: result.failed,
+    });
+  } catch {
+    console.error("Immediate Meta contact reconciliation deferred to the existing poll");
+  }
+}
+
+type MappedLead = ReturnType<typeof mapLead>["lead"];
+
+async function enrollExistingMetaMatch(
+  supabase: { from: (table: string) => any }, hit: ExistingLead,
+  lead: MappedLead, raw: MetaLead, token: string,
+): Promise<void> {
+  const marker = readMetaDailyEnrollment(lead.diagnostic);
+  const apiKey = process.env.RESEND_API_KEY;
+  const email = String(hit.email ?? "").trim().toLowerCase();
+  const submittedAt = Date.parse(raw.created_time ?? "");
+  if (!marker || !apiKey || hit.marketing_email_consent !== true || hit.email_unsubscribed_at ||
+      !["new", "contacted"].includes(hit.status) || !email || email.includes("@no-email.") ||
+      email !== lead.email.trim().toLowerCase() || hasMetaDailyEnrollment(hit.diagnostic) ||
+      hasMetaDailyDuplicateHold(hit.diagnostic)) return;
+  // The routine recovery poll must not silently migrate old cohorts before
+  // the reviewed owner-only migration. Only a genuinely new verified Meta
+  // submission may enroll an existing unmarked website/legacy prospect.
+  if (!Number.isFinite(submittedAt) || submittedAt < NEW_META_REENTRY_START ||
+      submittedAt > Date.now() + 5 * 60_000) return;
+  const exactEmailPattern = email.replace(/[\\%_]/g, character => `\\${character}`);
+  const { data: sameAddress, error: addressError } = await supabase.from("leads")
+    .select("id,diagnostic").ilike("email", exactEmailPattern).is("deleted_at", null).not("is_test", "is", true);
+  if (addressError || !Array.isArray(sameAddress) || sameAddress.some((row: { id: string; diagnostic?: unknown }) =>
+    row.id !== hit.id && !(row.diagnostic && typeof row.diagnostic === "object" &&
+      !Array.isArray(row.diagnostic) &&
+      (row.diagnostic as Record<string, unknown>).meta_daily30_duplicate_of === hit.id))) return;
+  if (!(await paidLeadBelongsToLeadFlow(raw, token))) return;
+  const { data: history, error: historyError } = await supabase.from("lead_emails")
+    .select("step,delivery_status").eq("lead_id", hit.id);
+  if (historyError || !Array.isArray(history) || history.some((row: { step: number; delivery_status: string }) =>
+    row.delivery_status !== "sent" || (row.step >= 701 && row.step <= 830))) return;
+  const provider = await readResendContactOptOuts({ apiKey });
+  if (!provider.ok || provider.emails.has(email)) return;
+  const prior = hit.diagnostic && typeof hit.diagnostic === "object" && !Array.isArray(hit.diagnostic)
+    ? hit.diagnostic as Record<string, unknown> : {};
+  // Merge exactly once against the complete previously read JSON. Lifecycle
+  // filters are repeated in this write so a staff refusal/opt-out wins a race.
+  let update = supabase.from("leads").update({ diagnostic: { ...prior, meta_daily30: marker } })
+    .eq("id", hit.id).eq("email", hit.email).eq("marketing_email_consent", true).is("email_unsubscribed_at", null)
+    .is("deleted_at", null).not("is_test", "is", true).in("status", ["new", "contacted"]);
+  update = hit.diagnostic === null || hit.diagnostic === undefined
+    ? update.is("diagnostic", null) : update.eq("diagnostic", JSON.stringify(hit.diagnostic));
+  const { data: changed, error } = await update.select("id").maybeSingle();
+  if (error || !changed) return;
+  await syncCapturedLeadToResend({ full_name: hit.full_name, email: hit.email,
+    marketing_email_consent: true, email_unsubscribed_at: null });
+}
 
 async function claimExisting(
   supabase: { from: (t: string) => any },
   external_id: string,
   email: string,
   phone: string | null,
-  lead?: { full_name?: string | null; business_name?: string | null; interest?: string; goals?: string | null; utm_source?: string | null },
+  lead: MappedLead,
+  raw: MetaLead,
+  token: string,
 ): Promise<boolean> {
   const real = email && !email.endsWith("@no-email.facebook.lead") ? email : null;
   const digits = phone ? phone.replace(/\D/g, "").slice(-10) : null;
@@ -399,14 +505,20 @@ async function claimExisting(
   // lead disappear.
   const { data } = await supabase
     .from("leads")
-    .select("id, external_id")
+    .select("id,external_id,full_name,email,status,marketing_email_consent,email_unsubscribed_at,diagnostic")
     .is("deleted_at", null)
     .not("is_test", "is", true)
     .or(or.join(","))
-    .limit(1);
+    .limit(100);
 
-  const hit = (data as ExistingLead[] | null)?.[0];
+  const matches = (data as ExistingLead[] | null) ?? [];
+  const hit = matches.find(row => hasMetaDailyEnrollment(row.diagnostic)) ??
+    matches.find(row => !hasMetaDailyDuplicateHold(row.diagnostic)) ?? matches[0];
   if (!hit) return false;
+
+  // Multiple pre-existing records require the reviewed canonical/duplicate
+  // repair. Never enroll a new second ledger or override conflicting consent.
+  if (matches.length === 1) await enrollExistingMetaMatch(supabase, hit, lead, raw, token);
 
   if (!hit.external_id) {
     await supabase.from("leads").update({ external_id }).eq("id", hit.id);
@@ -438,11 +550,8 @@ async function claimExisting(
         sms_consent: false,
       }, { leadId: hit.id });
       await supabase.from("lead_activity").insert({ lead_id: hit.id, kind: "system", detail });
-      await supabase
-        .from("leads")
-        .update({ status: "new" })
-        .eq("id", hit.id)
-        .in("status", ["lost"]);
+      // A repeat inquiry is recorded for staff; it does not undo a previous
+      // refusal, sales status, unsubscribe or automatic-series decision.
     }
   } catch (e) {
     console.error("meta repeat-lead alert failed:", e instanceof Error ? e.message : e);
@@ -464,15 +573,18 @@ async function ingest(raw: MetaLead, token: string): Promise<boolean> {
   // (and re-logged) 288 times a day.
   const { data: known } = await supabase
     .from("leads")
-    .select("id")
+    .select("id,external_id,full_name,email,status,marketing_email_consent,email_unsubscribed_at,diagnostic")
     .eq("external_id", external_id)
     .limit(1)
     .maybeSingle();
-  if (known) return false;
+  if (known) {
+    await enrollExistingMetaMatch(supabase, known as ExistingLead, lead, raw, token);
+    return false;
+  }
 
   if (!(await paidLeadBelongsToLeadFlow(raw, token))) return false;
 
-  if (await claimExisting(supabase, external_id, lead.email, lead.phone, lead)) return false;
+  if (await claimExisting(supabase, external_id, lead.email, lead.phone, lead, raw, token)) return false;
 
   const { data, error } = await supabase
     .from("leads")
@@ -489,6 +601,12 @@ async function ingest(raw: MetaLead, token: string): Promise<boolean> {
   if (!data) return false;
 
   await Promise.all([
+    // Contact creation sends no email. Try this individual persisted lead
+    // now, so a signed webhook need not wait for the five-minute poll. The
+    // existing reconciler preserves native opt-outs; the poll retries a
+    // temporary contact-provider failure without replaying the welcome.
+    syncCapturedLeadToResend({ full_name: lead.full_name, email: lead.email,
+      marketing_email_consent: lead.marketing_email_consent, email_unsubscribed_at: null }),
     // The lead insert trigger committed both email jobs with the lead. Attempt
     // them immediately; a protected cron retries any provider failure without
     // relying on Meta to redeliver an already-persisted lead.
@@ -519,8 +637,8 @@ async function syncLiveMetaLeadsToResend(): Promise<ResendContactSyncResult | { 
   const supabase = createSupabaseClient(SUPABASE_URL, serviceKey);
   const { data, error } = await supabase
     .from("leads")
-    .select("full_name, email, marketing_email_consent, email_unsubscribed_at")
-    .eq("source", "meta_lead_ad")
+    .select("full_name,email,source,diagnostic,marketing_email_consent,email_unsubscribed_at")
+    .or("source.eq.meta_lead_ad,diagnostic->meta_daily30.not.is.null")
     .is("deleted_at", null)
     .not("is_test", "is", true);
   if (error) {
@@ -530,7 +648,7 @@ async function syncLiveMetaLeadsToResend(): Promise<ResendContactSyncResult | { 
 
   const result = await syncResendContacts({
     apiKey: resendKey,
-    leads: data ?? [],
+    leads: (data ?? []).filter(lead => lead.source === "meta_lead_ad" || readMetaDailyEnrollment(lead.diagnostic)),
     segmentId: LEADFLOW_META_RESEND_SEGMENT_ID,
   });
   console.info("Resend contact reconciliation:", {
@@ -623,31 +741,57 @@ export async function GET(request: Request) {
   let diagnosed = false;
   let imported = 0;
   let seen = 0;
+  let incompleteForms = 0;
   for (const formId of formIds) {
-    const r = await fetch(
-      `${GRAPH}/${formId}/leads?fields=id,created_time,form_id,ad_id,field_data,custom_disclaimer_responses&limit=100&access_token=${encodeURIComponent(readToken)}`,
-    );
-    if (!r.ok) {
-      console.error("Meta form poll failed:", formId, r.status, await r.text().catch(() => ""));
-      // Subcode 33 on a form id reads like "wrong id" and is almost always
-      // "wrong token" or "app cannot see this Page". Guessing costs a deploy
-      // per guess, so say plainly what Meta thinks this token is. Names and
-      // ids only, never the token itself.
-      if (!diagnosed) {
-        diagnosed = true;
-        await logTokenDiagnostics(token, readToken);
+    let after: string | null = null;
+    const cursors = new Set<string>();
+    let complete = false;
+    for (let page = 0; page < MAX_FORM_PAGES; page++) {
+      const url = new URL(`${GRAPH}/${formId}/leads`);
+      url.searchParams.set("fields", "id,created_time,form_id,ad_id,field_data,custom_disclaimer_responses");
+      url.searchParams.set("limit", "100");
+      url.searchParams.set("access_token", readToken);
+      if (after) url.searchParams.set("after", after);
+      let r: Response;
+      try {
+        r = await fetch(url.toString(), { signal: AbortSignal.timeout(8000) });
+      } catch {
+        console.error("Meta form poll transport failure:", formId);
+        break;
       }
-      continue;
+      if (!r.ok) {
+        // Response bodies and opaque paging URLs can contain credentials or
+        // private lead values. Only aggregate/status diagnostics are needed.
+        console.error("Meta form poll failed:", formId, r.status);
+        // Use the existing redacted ownership diagnostics once per run.
+        if (!diagnosed) {
+          diagnosed = true;
+          await logTokenDiagnostics(token, readToken);
+        }
+        break;
+      }
+      let body: {
+        data?: MetaLead[]; paging?: { next?: string; cursors?: { after?: string } };
+      };
+      try { body = await r.json(); } catch { break; }
+      if (!Array.isArray(body.data)) break;
+      for (const raw of body.data) {
+        seen++;
+        if (await ingest(raw, token)) imported++;
+      }
+      if (!body.paging?.next) { complete = true; break; }
+      const cursor = body.paging.cursors?.after;
+      if (typeof cursor !== "string" || !cursor || cursor.length > 2000 || cursors.has(cursor)) break;
+      cursors.add(cursor);
+      after = cursor;
     }
-    const { data } = (await r.json()) as { data?: MetaLead[] };
-    for (const raw of data ?? []) {
-      seen++;
-      if (await ingest(raw, token)) imported++;
-    }
+    if (!complete) incompleteForms++;
   }
 
   const resendContacts = await syncLiveMetaLeadsToResend();
-  return NextResponse.json({ ok: true, seen, imported, resend_contacts: resendContacts });
+  return NextResponse.json({ ok: incompleteForms === 0, seen, imported,
+    incomplete_forms: incompleteForms, resend_contacts: resendContacts },
+    { status: incompleteForms ? 503 : 200 });
 }
 
 export async function POST(request: Request) {

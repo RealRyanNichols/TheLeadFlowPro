@@ -13,6 +13,7 @@ import * as contractorSeries from "../lib/contractorSeries";
 import * as contractorEmailHtml from "../lib/contractorEmailHtml";
 import * as metaSalesSeries from "../lib/metaSalesSeries";
 import * as metaSalesDailySeries from "../lib/metaSalesDailySeries";
+import * as metaDailyEnrollment from "../lib/metaDailyEnrollment";
 
 const require = createRequire(import.meta.url);
 const website = {
@@ -48,6 +49,7 @@ async function recipients(rows: Lead[], now = "2026-09-07T00:00:00Z") {
     from(table: string) {
       assert.ok(["leads", "lead_emails"].includes(table));
       let data = [...rows];
+      let count = 0;
       const query = {
         select: () => query,
         is(column: string, value: unknown) {
@@ -64,7 +66,7 @@ async function recipients(rows: Lead[], now = "2026-09-07T00:00:00Z") {
         in(column: string, values: unknown[]) {
           if (table === "lead_emails") {
             assert.equal(column, "lead_id");
-            selected = [...values] as string[];
+            selected.push(...values as string[]);
           } else
             data = data.filter((row) =>
               values.includes(row[column as keyof Lead]),
@@ -78,12 +80,23 @@ async function recipients(rows: Lead[], now = "2026-09-07T00:00:00Z") {
             );
           return query;
         },
+        or(expression: string) {
+          const parts = expression.split(",");
+          assert.equal(parts.length, 2);
+          assert.ok(parts[0].startsWith("created_at.gte.") && parts[1].startsWith("diagnostic->meta_daily30->>enrolled_at.gte."));
+          const createdSince = parts[0].slice("created_at.gte.".length);
+          const enrolledSince = parts[1].slice("diagnostic->meta_daily30->>enrolled_at.gte.".length);
+          data = data.filter((row) => String(row.created_at) >= createdSince ||
+            String((row.diagnostic as Record<string, Record<string, unknown>> | null)?.meta_daily30?.enrolled_at ?? "") >= enrolledSince);
+          return query;
+        },
         lte: () => query,
         order: () => query,
+        range(from: number, to: number) { count = data.length; data = data.slice(from, to + 1); return query; },
         then(resolve: (value: unknown) => unknown) {
           return Promise.resolve(
             table === "leads"
-              ? { data, error: null }
+              ? { data, count, error: null }
               : {
                   data: null,
                   error: { message: "Fixture stops before email delivery" },
@@ -150,6 +163,7 @@ async function recipients(rows: Lead[], now = "2026-09-07T00:00:00Z") {
       if (name === "@/lib/contractorEmailHtml") return contractorEmailHtml;
       if (name === "@/lib/metaSalesSeries") return metaSalesSeries;
       if (name === "@/lib/metaSalesDailySeries") return metaSalesDailySeries;
+      if (name === "@/lib/metaDailyEnrollment") return metaDailyEnrollment;
       if (name === "@/lib/resendContacts") return {
         readResendContactOptOuts: async () => ({ ok: true, emails: new Set<string>() }),
       };

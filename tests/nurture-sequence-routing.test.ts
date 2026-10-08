@@ -15,6 +15,7 @@ import * as contractorSeries from "../lib/contractorSeries";
 import * as contractorEmailHtml from "../lib/contractorEmailHtml";
 import * as metaSalesSeries from "../lib/metaSalesSeries";
 import * as metaSalesDailySeries from "../lib/metaSalesDailySeries";
+import * as metaDailyEnrollment from "../lib/metaDailyEnrollment";
 import { bookingPage } from "../lib/site/external-links";
 
 // Runs the actual cron route against an in-memory leads and lead_emails
@@ -29,24 +30,25 @@ const DAY = 24 * HOUR;
 
 type Row = Record<string, unknown>;
 
-function makeDb(leads: Row[], emails: Row[], finalLifecycle?: Row | "error", optOutSyncFails = false) {
+function makeDb(leads: Row[], emails: Row[], finalLifecycle?: Row | "error", optOutSyncFails = false, queryFailure?: { table: string; from: number; malformed?: boolean; truncated?: boolean }) {
   const activity: Row[] = [];
   let nextId = 1;
   function builder(table: string) {
     const rows = table === "leads" ? leads : table === "lead_emails" ? emails : activity;
-    const state: { op: "select" | "insert" | "update"; payload: Row | null; filters: ((r: Row) => boolean)[]; single: boolean; finalRead: boolean } = {
+    const state: { op: "select" | "insert" | "update"; payload: Row | null; filters: ((r: Row) => boolean)[]; single: boolean; finalRead: boolean; range?: [number, number]; order: string[] } = {
       op: "select",
       payload: null,
       filters: [],
       single: false,
       finalRead: false,
+      order: [],
     };
     const cmp = (a: unknown, b: unknown) =>
       typeof b === "number" ? Number(a) : String(a);
     const q: Record<string, unknown> = {};
     Object.assign(q, {
       select: (columns?: string) => {
-        state.finalRead = table === "leads" && columns === "status,deleted_at,is_test,marketing_email_consent,email_unsubscribed_at";
+        state.finalRead = table === "leads" && columns === "status,deleted_at,is_test,marketing_email_consent,email_unsubscribed_at,diagnostic";
         return q;
       },
       insert: (p: Row) => ((state.op = "insert"), (state.payload = p), q),
@@ -54,10 +56,24 @@ function makeDb(leads: Row[], emails: Row[], finalLifecycle?: Row | "error", opt
       is: (c: string, v: unknown) => (state.filters.push((r) => r[c] === v), q),
       eq: (c: string, v: unknown) => (state.filters.push((r) => r[c] === v), q),
       not: (c: string, _o: string, v: unknown) => (state.filters.push((r) => r[c] !== v), q),
-      in: (c: string, vs: unknown[]) => (state.filters.push((r) => vs.includes(r[c])), q),
+      in: (c: string, vs: unknown[]) => {
+        if (table === "lead_emails" && c === "lead_id") assert.ok(vs.length <= 100, "bounded history URL ID filter");
+        state.filters.push((r) => vs.includes(r[c])); return q;
+      },
       gte: (c: string, v: unknown) => (state.filters.push((r) => cmp(r[c], v) >= (typeof v === "number" ? v : String(v))), q),
       lte: (c: string, v: unknown) => (state.filters.push((r) => cmp(r[c], v) <= (typeof v === "number" ? v : String(v))), q),
-      order: () => q,
+      or: (expression: string) => {
+        const parts = expression.split(",");
+        assert.equal(parts.length, 2);
+        const createdSince = parts[0].replace("created_at.gte.", "");
+        const enrolledSince = parts[1].replace("diagnostic->meta_daily30->>enrolled_at.gte.", "");
+        assert.ok(parts[0].startsWith("created_at.gte.") && parts[1].startsWith("diagnostic->meta_daily30->>enrolled_at.gte."));
+        state.filters.push((r) => String(r.created_at) >= createdSince ||
+          String((r.diagnostic as Record<string, Record<string, unknown>> | null)?.meta_daily30?.enrolled_at ?? "") >= enrolledSince);
+        return q;
+      },
+      order: (column: string) => (state.order.push(column), q),
+      range: (from: number, to: number) => ((state.range = [from, to]), q),
       single: () => ((state.single = true), q),
       maybeSingle: () => ((state.single = true), q),
       then(resolve: (v: unknown) => unknown, reject?: (e: unknown) => unknown) {
@@ -65,7 +81,25 @@ function makeDb(leads: Row[], emails: Row[], finalLifecycle?: Row | "error", opt
       },
     });
     function execute() {
-      const match = rows.filter((r) => state.filters.every((f) => f(r)));
+      let match = rows.filter((r) => state.filters.every((f) => f(r)));
+      const count = match.length;
+      if (state.range) {
+        if (queryFailure?.table === table && queryFailure.from === state.range[0]) {
+          return queryFailure.truncated
+            ? { data: [], count, error: null }
+            : queryFailure.malformed
+              ? { data: null, count, error: null }
+              : { data: null, count, error: { message: "Fixture second-page failure" } };
+        }
+        match.sort((a, b) => {
+          for (const column of state.order) {
+            const value = String(a[column]).localeCompare(String(b[column]));
+            if (value) return value;
+          }
+          return 0;
+        });
+        match = match.slice(state.range[0], state.range[1] + 1);
+      }
       if (state.finalRead && finalLifecycle === "error") {
         return { data: null, error: { message: "Fixture eligibility read failed" } };
       }
@@ -80,7 +114,9 @@ function makeDb(leads: Row[], emails: Row[], finalLifecycle?: Row | "error", opt
         ) {
           return { data: null, error: { code: "23505", message: "duplicate key" } };
         }
-        const row: Row = { id: `row-${nextId++}`, sent_at: null, provider_message_id: null, last_error: null, ...p };
+        let id: string;
+        do { id = `row-${nextId++}`; } while (rows.some((row) => row.id === id));
+        const row: Row = { id, sent_at: null, provider_message_id: null, last_error: null, ...p };
         rows.push(row);
         return { data: state.single ? row : [row], error: null };
       }
@@ -91,15 +127,15 @@ function makeDb(leads: Row[], emails: Row[], finalLifecycle?: Row | "error", opt
         for (const r of match) Object.assign(r, state.payload);
         return { data: state.single ? (match[0] ?? null) : match, error: null };
       }
-      return { data: state.single ? (match[0] ?? null) : match, error: null };
+      return { data: state.single ? (match[0] ?? null) : match, count, error: null };
     }
     return q;
   }
   return { db: { from: builder }, activity };
 }
 
-async function runRoute(leads: Row[], emails: Row[], nowMs: number, sendWindow = "off", finalLifecycle?: Row | "error", provider?: { emails?: string[]; failed?: boolean; syncFails?: boolean }) {
-  const { db, activity } = makeDb(leads, emails, finalLifecycle, provider?.syncFails);
+async function runRoute(leads: Row[], emails: Row[], nowMs: number, sendWindow = "off", finalLifecycle?: Row | "error", provider?: { emails?: string[]; failed?: boolean; syncFails?: boolean; queryFailure?: { table: string; from: number; malformed?: boolean; truncated?: boolean } }) {
+  const { db, activity } = makeDb(leads, emails, finalLifecycle, provider?.syncFails, provider?.queryFailure);
   let providerReads = 0;
   const sends: { key: string; payload: Record<string, unknown> }[] = [];
   const code = ts.transpileModule(
@@ -137,6 +173,7 @@ async function runRoute(leads: Row[], emails: Row[], nowMs: number, sendWindow =
       if (name === "@/lib/contractorEmailHtml") return contractorEmailHtml;
       if (name === "@/lib/metaSalesSeries") return metaSalesSeries;
       if (name === "@/lib/metaSalesDailySeries") return metaSalesDailySeries;
+      if (name === "@/lib/metaDailyEnrollment") return metaDailyEnrollment;
       if (name === "@/lib/resendContacts") return {
         readResendContactOptOuts: async () => {
           providerReads++;
@@ -806,4 +843,158 @@ test("healthy daily sequence sends exactly one copy on all thirty local dates in
   const after = await runRoute([lead], emails, Date.parse("2026-11-08T13:00:00Z"), "7-20");
   assert.equal(after.sends.length, 0);
   assert.equal(emails.length, 30);
+});
+
+const markerAt = "2026-10-08T18:00:00.000Z";
+function migratedLead(id = "migrated", source = "meta_lead_ad"): Row {
+  return { ...base, id, source, full_name: "Owner", email: `${id}@example.com`,
+    created_at: "2026-01-01T00:00:00.000Z", diagnostic: {
+      form_id: "1001553739566746", untouched: "keep",
+      meta_daily30: metaDailyEnrollment.createMetaDailyEnrollment(markerAt, "123456789"),
+    } };
+}
+function acceptedLegacy(id: string, at = "2026-10-08T12:00:05.000Z"): Row {
+  return { id: "prior-row", lead_id: id, step: 105, delivery_status: "sent", sent_at: at,
+    first_attempt_at: at, last_attempt_at: at, attempt_count: 1 };
+}
+
+test("explicit old-lead enrollment sends Day1 next Chicago date at7AM and preserves accepted legacy rows", async () => {
+  for (const source of ["meta_lead_ad", "facebook-lead-ad", "website"]) {
+    const lead = migratedLead(`migration-${source}`, source);
+    const prior = acceptedLegacy(String(lead.id));
+    const before = JSON.stringify(prior);
+    const day0 = await runRoute([lead], [prior], Date.parse("2026-10-08T19:00:00Z"));
+    assert.equal(day0.sends.length, 0);
+    const result = await runRoute([lead], [prior], Date.parse("2026-10-09T12:00:00Z"));
+    assert.equal(result.sends.length, 1);
+    assert.equal(result.emails.at(-1)?.step, 801);
+    assert.equal(JSON.stringify(prior), before, "accepted history remains byte-equivalent");
+    assert.ok(JSON.stringify(result.sends[0].payload.tags).includes("meta_sales_daily30_v1"));
+  }
+});
+
+test("marked first and later steps share any accepted legacy spacing floor and Chicago-date gate", async () => {
+  const lead = migratedLead();
+  const now = Date.parse("2026-10-09T12:00:00Z");
+  const lateLegacy = acceptedLegacy(String(lead.id), "2026-10-09T00:00:00.000Z");
+  const blocked = await runRoute([lead], [lateLegacy], now);
+  assert.equal(blocked.sends.length, 0);
+  assert.equal(blocked.body.throttled, 1);
+  const accepted = await runRoute([lead], [lateLegacy], Date.parse("2026-10-09T20:00:00Z"));
+  assert.equal(accepted.sends.length, 1);
+  const again = await runRoute([lead], accepted.emails, Date.parse("2026-10-10T04:59:00Z"));
+  assert.equal(again.sends.length, 0);
+});
+
+test("invalid markers, duplicate holds, workshop markers and unresolved legacy claims never fall back to old lanes", async () => {
+  const now = Date.parse("2026-10-09T12:00:00Z");
+  const valid = migratedLead();
+  const diagnostic = valid.diagnostic as Row;
+  const invalid = { ...valid, created_at: "2026-10-01T12:00:00.000Z", diagnostic: { ...diagnostic, meta_daily30: null } };
+  const duplicate = { ...valid, diagnostic: { ...diagnostic, meta_daily30_duplicate_of: "canonical" } };
+  const workshop = { ...valid, diagnostic: { ...diagnostic, form_id: "1749164796410610" } };
+  for (const lead of [invalid, duplicate, workshop, { ...workshop, source: "website" }]) assert.equal((await runRoute([lead], [], now)).sends.length, 0);
+  for (const delivery_status of ["pending", "failed"]) {
+    const row = { ...acceptedLegacy(String(valid.id)), delivery_status };
+    const result = await runRoute([valid], [row], now);
+    assert.equal(result.sends.length, 0);
+    assert.equal(result.emails.length, 1, "no daily claim and no old-row mutation");
+    assert.equal(result.body.blocked, 1);
+  }
+});
+
+test("legacy batch final-check detects enrollment or duplicate marker introduced after initial read", async () => {
+  const now = Date.parse("2026-10-08T18:00:00Z");
+  const lead = { ...migratedLead("race"), created_at: "2026-10-01T12:00:00.000Z", diagnostic: { form_id: "1001553739566746" } };
+  for (const diagnostic of [migratedLead().diagnostic, { form_id: "1001553739566746", meta_daily30_duplicate_of: "canonical" }]) {
+    const result = await runRoute([lead], [], now, "off", { diagnostic });
+    assert.equal(result.sends.length, 0);
+    assert.equal(result.body.blocked, 1);
+    assert.equal(result.emails[0]?.delivery_status, "failed");
+  }
+});
+
+test("marked daily permission/provider/status changes fail closed and day31 only retries immutable own pending claim", async () => {
+  const now = Date.parse("2026-10-09T12:00:00Z");
+  for (const finalLifecycle of [{ status: "call_booked" }, { status: "proposal" }, { status: "won" }, { status: "lost" }, { marketing_email_consent: false }, { email_unsubscribed_at: markerAt }, "error"] as const) {
+    const result = await runRoute([migratedLead()], [], now, "off", finalLifecycle);
+    assert.equal(result.sends.length, 0);
+  }
+  const held = await runRoute([migratedLead()], [], now, "off", undefined, { emails: ["migrated@example.com"] });
+  assert.equal(held.sends.length, 0);
+  assert.equal(held.emails.length, 0);
+  const day31 = Date.parse("2026-11-08T13:00:00Z");
+  assert.equal((await runRoute([migratedLead()], [], day31)).sends.length, 0);
+  const pendingAt = new Date(day31 - HOUR).toISOString();
+  const pending: Row = { id: "pending-day30", lead_id: "migrated", step: 830, delivery_status: "pending", sent_at: null, first_attempt_at: pendingAt, last_attempt_at: pendingAt, attempt_count: 1 };
+  const retried = await runRoute([migratedLead()], [pending], day31);
+  assert.equal(retried.sends.length, 1);
+  assert.equal(retried.emails.length, 1);
+  assert.equal(retried.sends[0].key, `nurture-meta_sales_daily30_v1-${nurtureDelivery.NURTURE_SEQUENCE_VERSION}-migrated-830`);
+});
+
+
+test("daily enrollment holds malformed accepted timestamps rather than guessing spacing", async () => {
+  const lead = migratedLead();
+  for (const sent_at of [null, "invalid", ""]) {
+    const prior = { ...acceptedLegacy(String(lead.id)), sent_at };
+    const result = await runRoute([lead], [prior], Date.parse("2026-10-09T12:00:00Z"));
+    assert.equal(result.sends.length, 0);
+    assert.equal(result.emails.length, 1);
+    assert.equal(result.body.blocked, 1);
+  }
+});
+
+test("complete paged ledger reads retain more than1000 prior claims and advance every lead at Day17", async () => {
+  const leads = Array.from({ length: 30 }, (_, i) => migratedLead(`paged-${String(i).padStart(2, "0")}`));
+  const emails: Row[] = [];
+  for (const lead of leads) {
+    for (let step = 101; step <= 130; step++) emails.push({ ...acceptedLegacy(String(lead.id)), id: `${lead.id}-legacy-${step}`, step });
+    for (let step = 801; step <= 816; step++) {
+      const at = "2026-10-24T12:00:05.000Z";
+      emails.push({ ...acceptedLegacy(String(lead.id), at), id: `${lead.id}-daily-${step}`, step });
+    }
+  }
+  assert.equal(emails.length, 1380);
+  const result = await runRoute(leads, emails, Date.parse("2026-10-25T12:00:00Z"));
+  assert.equal(result.sends.length, 30);
+  assert.equal(result.emails.filter((row) => row.step === 817).length, 30);
+  assert.equal(result.emails.length, 1410);
+  assert.equal(result.body.failed, 0);
+});
+
+test("complete paged recipient reads include more than1000 eligible rows without dispatching expired daily slots", async () => {
+  const leads = Array.from({ length: 1001 }, (_, i) => migratedLead(`recipient-${String(i).padStart(4, "0")}`));
+  const result = await runRoute(leads, [], Date.parse("2026-11-08T13:00:00Z"));
+  assert.equal(result.body.checked, 1001);
+  assert.equal(result.sends.length, 0);
+  assert.equal(result.emails.length, 0);
+});
+
+test("a failed or malformed later recipient/history page stops before any send or claim", async () => {
+  const leads = Array.from({ length: 501 }, (_, i) => migratedLead(`partial-${String(i).padStart(4, "0")}`));
+  const emails = Array.from({ length: 501 }, (_, i) => ({ ...acceptedLegacy(String(leads[Math.floor(i / 17)].id)), step: 101 + i % 17, id: `prior-${String(i).padStart(4, "0")}` }));
+  for (const table of ["leads", "lead_emails"]) {
+    for (const malformed of [false, true]) {
+      const result = await runRoute(leads, emails.map((row) => ({ ...row })), Date.parse("2026-10-09T12:00:00Z"), "off", undefined,
+        { queryFailure: { table, from: 500, malformed } });
+      assert.equal(result.status, 500);
+      assert.equal(result.sends.length, 0);
+      assert.equal(result.emails.length, 501);
+      assert.equal(result.emails.some((row) => row.step === 801), false);
+      if (table === "leads") assert.equal(result.providerReads, 0);
+    }
+  }
+});
+
+test("valid-shaped but silently truncated pages fail closed against exact database counts", async () => {
+  const leads = Array.from({ length: 501 }, (_, i) => migratedLead(`truncated-${String(i).padStart(4, "0")}`));
+  const emails = Array.from({ length: 501 }, (_, i) => ({ ...acceptedLegacy(String(leads[Math.floor(i / 17)].id)), step: 101 + i % 17, id: `truncated-history-${String(i).padStart(4, "0")}` }));
+  for (const table of ["leads", "lead_emails"]) {
+    const result = await runRoute(leads, emails.map((row) => ({ ...row })), Date.parse("2026-10-09T12:00:00Z"), "off", undefined,
+      { queryFailure: { table, from: 500, truncated: true } });
+    assert.equal(result.status, 500);
+    assert.equal(result.sends.length, 0);
+    assert.equal(result.emails.length, 501);
+  }
 });

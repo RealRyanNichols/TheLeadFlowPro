@@ -15,6 +15,7 @@ import {
   workshopSequenceClosed,
   workshopStepsDueBy,
   WORKSHOP_FIRST_STEP,
+  WORKSHOP_META_FORM_ID,
   WORKSHOP_LAST_STEP,
   WORKSHOP_STEPS,
   type NurtureStep,
@@ -67,10 +68,15 @@ import {
   META_SALES_DAILY_LAST_STEP,
   META_SALES_DAILY_STEPS,
   metaSalesDailyAgeInDays,
+  metaSalesDailyAnchor,
   metaSalesDailyNewSendAllowed,
   metaSalesDailyStepsDueBy,
   renderMetaSalesDailyStep,
 } from "@/lib/metaSalesDailySeries";
+import {
+  hasMetaDailyEnrollment, hasMetaDailyDuplicateHold, readMetaDailyEnrollment,
+  metaDailyEnrollmentFingerprint,
+} from "@/lib/metaDailyEnrollment";
 import { BUSINESS } from "@/lib/site/business";
 import { readResendContactOptOuts } from "@/lib/resendContacts";
 import { unsubscribeSecret, unsubscribeUrl } from "@/lib/unsubscribe";
@@ -81,8 +87,9 @@ import { unsubscribeSecret, unsubscribeUrl } from "@/lib/unsubscribe";
 // still finishes that series and who gets Rent Receipt instead.
 //
 // SIX SEQUENCES share this sender and a lead belongs to exactly one:
-//   - immutable new Meta daily v1 (801–830) for unclaimed captures since
-//     Oct 8, 2026 12:00 UTC; calendar days 1–30 in America/Chicago
+//   - Meta daily v1 (801–830), anchored by server-owned enrollment markers
+//     for eligible reconciled captures, plus original unclaimed future
+//     captures since Oct 8, 2026 12:00 UTC; Chicago calendar days 1–30
 //   - immutable Meta sales v1 (701–709) retains any already claimed cohort
 //   - the contractor owner series (steps 601 and up, lib/contractorSeries.ts)
 //     for leads from the Scott video form. Up to day 180, so its leads are
@@ -144,6 +151,42 @@ type EligibleLead = {
   timeline: string | null;
   goals: string | null;
 };
+
+const QUERY_PAGE_SIZE = 500;
+const MAX_QUERY_PAGES = 200;
+const HISTORY_ID_BATCH_SIZE = 100;
+
+/** Supabase caps unpaged responses; an incomplete ledger must never select a send. */
+async function readCompleteRows<T extends { id: string }>(
+  readPage: (from: number, to: number) => PromiseLike<{ data: T[] | null; error: unknown; count: number | null }>,
+): Promise<{ data: T[] | null; error: { message: string } | null }> {
+  const rows = new Map<string, T>();
+  let expectedCount: number | undefined;
+  for (let page = 0; page < MAX_QUERY_PAGES; page++) {
+    let result;
+    try {
+      result = await readPage(page * QUERY_PAGE_SIZE, (page + 1) * QUERY_PAGE_SIZE - 1);
+    } catch {
+      return { data: null, error: { message: "Paged query failed" } };
+    }
+    const count = result.count;
+    if (result.error || !Array.isArray(result.data) || !Number.isSafeInteger(count) ||
+        count === null || count < 0 || count > MAX_QUERY_PAGES * QUERY_PAGE_SIZE ||
+        (expectedCount !== undefined && count !== expectedCount) ||
+        result.data.length !== Math.min(QUERY_PAGE_SIZE, Math.max(0, count - page * QUERY_PAGE_SIZE)) ||
+        result.data.some((row) => !row || typeof row.id !== "string" || !row.id)) {
+      return { data: null, error: { message: "Paged query returned an incomplete or invalid result" } };
+    }
+    expectedCount = count;
+    for (const row of result.data) rows.set(row.id, row);
+    if ((page + 1) * QUERY_PAGE_SIZE >= count) {
+      return rows.size === count
+        ? { data: [...rows.values()], error: null }
+        : { data: null, error: { message: "Paged query changed while reading" } };
+    }
+  }
+  return { data: null, error: { message: "Paged query exceeded its safety bound" } };
+}
 
 type SequenceStep = NurtureStep | ContractorStep | MetaSalesStep;
 
@@ -218,8 +261,11 @@ const HISTORY_LAST_STEP = Math.max(
  * step stays on Free Build no matter when it was created, so a deploy that
  * lands after RENT_RECEIPT_SERIES_START can never hand anyone two series.
  */
-function sequenceFor(lead: EligibleLead, history: NurtureDeliveryRow[]): Sequence {
+function sequenceFor(lead: EligibleLead, history: NurtureDeliveryRow[]): Sequence | null {
+  if (hasMetaDailyDuplicateHold(lead.diagnostic)) return null;
   if (isMetaSalesDailySeriesLead(lead, history)) return META_SALES_DAILY_SEQUENCE;
+  // Marker presence owns the lane even when invalid or held. Never fall back.
+  if (hasMetaDailyEnrollment(lead.diagnostic)) return null;
   if (isMetaSalesSeriesLead(lead, history)) return META_SALES_SEQUENCE;
   if (isContractorSeriesLead(lead)) return CONTRACTOR_SEQUENCE;
   if (isWorkshopNurtureLead(lead)) return WORKSHOP_SEQUENCE;
@@ -302,19 +348,22 @@ export async function GET(request: Request) {
 
   const supabase = createSupabaseClient(SUPABASE_URL, serviceKey);
   const since = new Date(Date.now() - QUERY_LOOKBACK_DAYS * 86400e3).toISOString();
+  const enrolledSince = new Date(Date.now() - 32 * 86400e3).toISOString();
 
-  const { data: leads, error: leadsError } = await supabase
+  const { data: leads, error: leadsError } = await readCompleteRows<EligibleLead>((from, to) => supabase
     .from("leads")
     .select(
       "id, created_at, full_name, email, source, interest, marketing_email_consent, diagnostic, timeline, goals",
+      { count: "exact" },
     )
     .is("deleted_at", null)
     .is("email_unsubscribed_at", null)
     .not("is_test", "is", true)
     .eq("marketing_email_consent", true)
     .in("status", ["new", "contacted"])
-    .gte("created_at", since)
-    .order("created_at", { ascending: true });
+    .or(`created_at.gte.${since},diagnostic->meta_daily30->>enrolled_at.gte.${enrolledSince}`)
+    .order("created_at", { ascending: true })
+    .order("id", { ascending: true }).range(from, to));
 
   if (leadsError) {
     console.error("Nurture lead query failed:", leadsError.message);
@@ -335,13 +384,23 @@ export async function GET(request: Request) {
   // Contractor leads stay in for their whole 180 day series. Everyone else is
   // held to their general window. The restored daily-email checkbox form has
   // a narrow recovery window so its interrupted original steps can finish.
-  const eligibleLeads = nonDiagnosticLeads.filter((lead) =>
-    isContractorSeriesLead(lead)
+  const eligibleLeads = nonDiagnosticLeads.filter((lead) => {
+    if (hasMetaDailyDuplicateHold(lead.diagnostic)) return false;
+    if (hasMetaDailyEnrollment(lead.diagnostic)) {
+      // Service-owned enrollment can include reconciled older Meta captures
+      // whose canonical CRM source predates the current Meta source name.
+      const marker = readMetaDailyEnrollment(lead.diagnostic);
+      const age = metaSalesDailyAgeInDays(marker?.enrolled_at, Date.now());
+      const formId = lead.diagnostic && typeof lead.diagnostic === "object" && !Array.isArray(lead.diagnostic)
+        ? (lead.diagnostic as Record<string, unknown>).form_id : undefined;
+      return Boolean(marker) && formId !== WORKSHOP_META_FORM_ID && age >= 0 && age <= 31;
+    }
+    return isContractorSeriesLead(lead)
       ? ageInDays(lead.created_at) <= CONTRACTOR_LOOKBACK_DAYS
       : ageInDays(lead.created_at) <= generalNurtureLookbackDays(lead) &&
         (isFreeWebsiteProgramNurtureLead(lead) ||
-          (isWorkshopNurtureLead(lead) && !workshopSequenceClosed())),
-  );
+          (isWorkshopNurtureLead(lead) && !workshopSequenceClosed()));
+  });
   const excludedDiagnostic = (leads ?? []).length - nonDiagnosticLeads.length;
   const excludedWrongProgram = nonDiagnosticLeads.length - eligibleLeads.length;
   if (!eligibleLeads.length) {
@@ -390,19 +449,26 @@ export async function GET(request: Request) {
     });
   }
 
-  // One read for the whole batch instead of a query per lead.
-  const { data: sentRows, error: sentRowsError } = await supabase
-    .from("lead_emails")
-    .select(
-      "id, lead_id, step, sent_at, delivery_status, first_attempt_at, last_attempt_at, attempt_count",
-    )
-    .in("lead_id", ids)
-    .gte("step", 0)
-    .lte("step", HISTORY_LAST_STEP);
-
-  if (sentRowsError) {
-    console.error("Nurture send-history query failed:", sentRowsError.message);
-    return NextResponse.json({ error: "send history query failed" }, { status: 500 });
+  // Bound the ID filter as well as response pages: a growing audience must
+  // not exceed the provider's URL limit or silently truncate its ledger.
+  const sentRows: NurtureDeliveryRow[] = [];
+  for (let offset = 0; offset < ids.length; offset += HISTORY_ID_BATCH_SIZE) {
+    const batchIds = ids.slice(offset, offset + HISTORY_ID_BATCH_SIZE);
+    const history = await readCompleteRows<NurtureDeliveryRow>((from, to) => supabase
+      .from("lead_emails")
+      .select(
+        "id, lead_id, step, sent_at, delivery_status, first_attempt_at, last_attempt_at, attempt_count",
+        { count: "exact" },
+      )
+      .in("lead_id", batchIds)
+      .gte("step", 0)
+      .lte("step", HISTORY_LAST_STEP)
+      .order("id", { ascending: true }).range(from, to));
+    if (history.error || !history.data) {
+      console.error("Nurture send-history query failed: incomplete ledger");
+      return NextResponse.json({ error: "send history query failed" }, { status: 500 });
+    }
+    sentRows.push(...history.data);
   }
 
   const alreadySent = new Map<string, Set<number>>();
@@ -443,14 +509,21 @@ export async function GET(request: Request) {
     if (!lead.email || lead.email.includes("@no-email.")) continue;
 
     // Which sequence owns this lead decides both the steps that exist for it
-    // and which of them are due at its age. Only that sequence's own rows
-    // count as its history; a pending row from another sequence's range is
-    // that sequence's business.
+    // and which of them are due at its age. Accepted earlier lanes remain
+    // history; an unresolved earlier claim prevents marked cohort switching.
     const allRows = deliveryRowsByLead.get(lead.id) ?? [];
     const sequence = sequenceFor(lead, allRows);
+    if (!sequence) { blocked++; continue; }
+    // A daily migration cannot prove spacing from an accepted row without
+    // a valid acceptance timestamp. Preserve it and require reconciliation.
+    if (sequence === META_SALES_DAILY_SEQUENCE && allRows.some((row) =>
+      row.delivery_status === "sent" && !Number.isFinite(Date.parse(row.sent_at)))) {
+      blocked++;
+      continue;
+    }
     const sequenceSteps = sequence.steps;
     const due = sequence.dueBy(sequence === META_SALES_DAILY_SEQUENCE
-      ? metaSalesDailyAgeInDays(lead.created_at, Date.now())
+      ? metaSalesDailyAgeInDays(metaSalesDailyAnchor(lead), Date.now())
       : ageInDays(lead.created_at));
     // V1 stops NEW sends after day 30. A previously claimed request may still
     // retry with the identical provider key inside its existing safe window.
@@ -536,8 +609,8 @@ export async function GET(request: Request) {
         continue;
       }
 
-      // One successful email per lead per 24 hours. The hourly cron is for
-      // retrying the SAME pending step, never for advancing the sequence.
+      // Existing lanes keep 24h. Daily uses any latest accepted follow-up,
+      // at least 20h and a different Chicago date, including at migration.
       const last = lastSentAt.get(lead.id);
       if (last && (sequence === META_SALES_DAILY_SEQUENCE
         ? !metaSalesDailyNewSendAllowed(last, Date.now())
@@ -587,26 +660,6 @@ export async function GET(request: Request) {
       text = rendered.text;
       html = rendered.html;
       track = sequence === META_SALES_DAILY_SEQUENCE ? "meta_sales_daily_v1" : "meta_sales_v1";
-      // Consent and sales status can change while the batch is running.
-      // Fail closed immediately before submitting a new-series message.
-      const current = await supabase.from("leads")
-        .select("status,deleted_at,is_test,marketing_email_consent,email_unsubscribed_at")
-        .eq("id", lead.id).maybeSingle();
-      if (current.error) {
-        failed++;
-        errors.push(`step ${next.step}: current eligibility could not be verified`);
-        continue;
-      }
-      const row = current.data;
-      if (!row || row.deleted_at || row.is_test === true || row.marketing_email_consent !== true ||
-          row.email_unsubscribed_at || !["new", "contacted"].includes(row.status)) {
-        const held = await supabase.from("lead_emails")
-          .update({ delivery_status: "failed", last_error: "Lead is no longer eligible for this email series" })
-          .eq("id", deliveryRow.id).eq("delivery_status", "pending");
-        if (held.error) failed++;
-        blocked++;
-        continue;
-      }
     } else if (sequence === CONTRACTOR_SEQUENCE) {
       // The contractor series renders its own words and design; the pain and
       // hot or cool context of the other series does not apply to it.
@@ -628,6 +681,30 @@ export async function GET(request: Request) {
           ? undefined
           : renderNurtureHtml({ step, firstName: context.first, unsubUrl, context });
       track = `${context.pain}_${context.hot ? "hot" : "cool"}`;
+    }
+    // Recheck every lane immediately before provider submission. A trusted
+    // enrollment/duplicate marker may have changed after this batch read,
+    // including migration from a legacy lane. Keep the claim; never replay
+    // it under another campaign key after the marker changed.
+    const current = await supabase.from("leads")
+      .select("status,deleted_at,is_test,marketing_email_consent,email_unsubscribed_at,diagnostic")
+      .eq("id", lead.id).maybeSingle();
+    if (current.error) {
+      failed++;
+      errors.push(`step ${next.step}: current eligibility could not be verified`);
+      continue;
+    }
+    const row = current.data;
+    if (!row || row.deleted_at || row.is_test === true || row.marketing_email_consent !== true ||
+        row.email_unsubscribed_at || !["new", "contacted"].includes(row.status) ||
+        hasMetaDailyDuplicateHold(row.diagnostic) ||
+        metaDailyEnrollmentFingerprint(row.diagnostic) !== metaDailyEnrollmentFingerprint(lead.diagnostic)) {
+      const held = await supabase.from("lead_emails")
+        .update({ delivery_status: "failed", last_error: "Lead is no longer eligible for this email series" })
+        .eq("id", deliveryRow.id).eq("delivery_status", "pending");
+      if (held.error) failed++;
+      blocked++;
+      continue;
     }
     const delivery = await sendNurtureEmail(
       resendKey,

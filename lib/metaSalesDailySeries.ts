@@ -7,6 +7,8 @@ import {
   type MetaSalesStep,
 } from "@/lib/metaSalesSeries";
 
+import { hasMetaDailyEnrollment, hasMetaDailyDuplicateHold, readMetaDailyEnrollment } from "@/lib/metaDailyEnrollment";
+
 export const META_SALES_DAILY_CAMPAIGN = "meta_sales_daily30_v1";
 export const META_SALES_DAILY_FIRST_STEP = 801;
 export const META_SALES_DAILY_LAST_STEP = 830;
@@ -32,13 +34,26 @@ export function metaSalesDailyAgeInDays(createdAt: unknown, nowMs = Date.now()):
 
 export function isMetaSalesDailySeriesLead(
   lead: MetaSalesCandidate,
-  history: readonly { step: number }[] = [],
+  history: readonly { step: number; delivery_status?: string }[] = [],
 ): boolean {
+  if (hasMetaDailyDuplicateHold(lead.diagnostic)) return false;
+  if (hasMetaDailyEnrollment(lead.diagnostic)) {
+    if (!readMetaDailyEnrollment(lead.diagnostic) || lead.marketing_email_consent !== true) return false;
+    // Accepted older steps remain immutable. Unresolved older claims require
+    // manual reconciliation, so they cannot switch provider idempotency keys.
+    return history.every((row) => row.step >= META_SALES_DAILY_FIRST_STEP &&
+      row.step <= META_SALES_DAILY_LAST_STEP || row.delivery_status === "sent");
+  }
   // Reuse the original verified source/form/consent/capture cutoff. Any older
   // accepted, pending or failed claim keeps its original sequence and key.
   if (!isMetaSalesSeriesLead(lead, history)) return false;
   return history.every((row) => row.step >= META_SALES_DAILY_FIRST_STEP &&
     row.step <= META_SALES_DAILY_LAST_STEP);
+}
+
+export function metaSalesDailyAnchor(lead: MetaSalesCandidate): unknown {
+  return hasMetaDailyEnrollment(lead.diagnostic)
+    ? readMetaDailyEnrollment(lead.diagnostic)?.enrolled_at : lead.created_at;
 }
 
 export function metaSalesDailyNewSendAllowed(lastAcceptedAt: number | undefined, nowMs: number): boolean {

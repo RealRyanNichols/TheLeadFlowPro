@@ -7,6 +7,7 @@ import { deliverLeadEmailNotificationsForLead } from "@/lib/leadEmailNotificatio
 import { dispatchSpeedToLeadWithBudget } from "@/lib/speedToLeadAlertsServer";
 import { leadFlowSupabaseRuntimeIssues } from "@/lib/metaCampaignGuard";
 import { recordServerEvent } from "@/lib/analytics/server";
+import { stripMetaDailyEnrollment } from "@/lib/metaDailyEnrollment";
 
 // free_website_program keeps its label for old rows only. The free website
 // build was retired on 2026-09-22, so a stale form that still posts it is
@@ -86,7 +87,7 @@ export async function POST(request: Request) {
     let diagnostic: object | null = null;
     if (body.diagnostic && typeof body.diagnostic === "object") {
       const raw = JSON.stringify(body.diagnostic);
-      if (raw.length <= 16000) diagnostic = JSON.parse(raw);
+      if (raw.length <= 16000) diagnostic = stripMetaDailyEnrollment(JSON.parse(raw));
     }
     // Server-controlled outbox marker. The database trigger queues immediate
     // emails only for the two lead-intake APIs, not every internal workflow
