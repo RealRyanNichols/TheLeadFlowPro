@@ -24,7 +24,7 @@ export async function nativeOwnerOverview() {
     if (raw.schema !== 1 || raw.business !== "leadflow" || !raw.overview || !Number.isFinite(Date.parse(raw.publishedAt)) || Date.parse(raw.publishedAt) > Date.now() + 300_000) throw new Error("Invalid owner snapshot");
     const out = raw.overview;
     out.tools = raw.toolSets?.[login] || { common: [], operations: [], ryan: [] };
-    out.viewer = { login, name: login === "ryan" ? "Ryan Nichols" : "Patrick Grabbs", workAccess: true, avatarUrl: `/admin-workspace/owner-${login}.${login === "pat" ? "jpg" : "webp"}` };
+    out.viewer = { login, name: login === "ryan" ? "Ryan Nichols" : "Patrick", workAccess: true, avatarUrl: `/admin-workspace/owner-${login}.${login === "pat" ? "jpg" : "webp"}` };
     const stale = Date.now() - Date.parse(raw.publishedAt) > 2 * 3_600_000;
     out.snapshot = { publishedAt: raw.publishedAt, status: stale ? "stale" : "available", mode: "Existing hourly source snapshots and reviewed work; CRM edits save in the native CRM." };
     if (stale) {

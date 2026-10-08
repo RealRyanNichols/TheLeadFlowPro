@@ -32,8 +32,8 @@ import styles from "./services.module.css";
 const SITE = "https://www.theleadflowpro.com";
 
 const SERVICES_TITLE =
-  "Website Design and Lead Systems for Longview, TX Businesses | The LeadFlow Pro";
-const SERVICES_DESCRIPTION = "Website and storefront projects quoted to your scope. Connect payments, delivery, and customer records. Managed acquisition is a separate decision.";
+  "Websites & Business Systems for Businesses and Communities | The LeadFlow Pro";
+const SERVICES_DESCRIPTION = "Website and storefront projects for local businesses, online businesses and communities, quoted to your scope. Connect payments, delivery and customer records. Managed acquisition is a separate decision.";
 
 export const metadata: Metadata = withPublicPageMetadata("/services", {
   title: SERVICES_TITLE,
@@ -101,14 +101,14 @@ export default function ServicesPage() {
           <div className={styles.heroCopy}>
             <p className={styles.eyebrow}>WEBSITES + THE WORK BEHIND THEM</p>
             <h1>
-              A better website for your Longview business.
+              A better home for your business or community.
               <br />
               <em>A clearer workday.</em>
             </h1>
             <p className={styles.lead}>
-              Help customers find you, ask for a quote, and get an answer. We
-              build the website and connect the next steps, then show your team
-              how to run it.
+              Help people discover your work, buy from you, or join your community.
+              We build the website and connect the next steps, then show your
+              team how to run it.
             </p>
             <div className={styles.actions}>
               <CtaLink

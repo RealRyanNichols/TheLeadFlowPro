@@ -1,7 +1,7 @@
 import type { PublicOgPage } from "./publicOgCatalog";
 
-const INK = "#211831";
-const VIOLET = "#6540bc";
+const INK = "#10264a";
+const BLUE = "#1557d2";
 
 /** Original, editable brand geometry. It illustrates a service, never results or availability. */
 function ServiceMotif({ page }: { page: PublicOgPage }) {
@@ -12,12 +12,12 @@ function ServiceMotif({ page }: { page: PublicOgPage }) {
     <svg width="356" height="310" viewBox="0 0 356 310">
       <defs>
         <linearGradient id="brand-flow" x1="0" y1="0" x2="1" y2="1">
-          <stop stopColor="#bda6ed" />
-          <stop offset="1" stopColor="#523894" />
+          <stop stopColor="#8ed8ff" />
+          <stop offset="1" stopColor="#0b4fbe" />
         </linearGradient>
         <linearGradient id="brand-glass" x1="0" y1="0" x2="1" y2="1">
           <stop stopColor="#ffffff" />
-          <stop offset="1" stopColor="#e8def7" />
+          <stop offset="1" stopColor="#e2f1ff" />
         </linearGradient>
       </defs>
       {territory ? (
@@ -25,21 +25,21 @@ function ServiceMotif({ page }: { page: PublicOgPage }) {
           <path
             d="M35 65L107 37L179 62L253 32L318 79L306 244L230 272L157 248L78 277L31 223Z"
             fill="url(#brand-glass)"
-            stroke="#cabbe4"
+            stroke="#bed7f4"
             strokeWidth="2"
           />
           <path
             d="M107 37L110 238M179 62L177 255M253 32L250 251M36 137L314 143M33 213L308 209"
             fill="none"
-            stroke="#d9cdeb"
+            stroke="#d7e6f7"
             strokeWidth="1.5"
           />
           <circle
             cx="171"
             cy="157"
             r="96"
-            fill="#9777d530"
-            stroke="#8662c7"
+            fill="#1aaad530"
+            stroke="#1557d2"
             strokeWidth="2"
             strokeDasharray="6 5"
           />
@@ -49,7 +49,7 @@ function ServiceMotif({ page }: { page: PublicOgPage }) {
             r="65"
             fill="url(#brand-flow)"
             fillOpacity=".2"
-            stroke="#5e399f"
+            stroke="#0b4fbe"
             strokeWidth="3"
           />
           <circle
@@ -63,7 +63,7 @@ function ServiceMotif({ page }: { page: PublicOgPage }) {
           <path
             d="M258 88L274 105L301 72"
             fill="none"
-            stroke="#6540bc"
+            stroke="#1557d2"
             strokeWidth="8"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -74,7 +74,7 @@ function ServiceMotif({ page }: { page: PublicOgPage }) {
           <path
             d="M35 237C104 237 96 69 165 69S208 205 312 124"
             fill="none"
-            stroke="#c9b7e7"
+            stroke="#bddafa"
             strokeWidth="26"
             strokeLinecap="round"
           />
@@ -92,13 +92,13 @@ function ServiceMotif({ page }: { page: PublicOgPage }) {
             height="82"
             rx="16"
             fill="url(#brand-glass)"
-            stroke="#c7b5e3"
+            stroke="#bed7f4"
             strokeWidth="2"
           />
           <path
             d="M34 237L49 251L74 220"
             fill="none"
-            stroke={VIOLET}
+            stroke={BLUE}
             strokeWidth="5"
             strokeLinecap="round"
           />
@@ -106,7 +106,7 @@ function ServiceMotif({ page }: { page: PublicOgPage }) {
           <path
             d="M144 83V68M165 83V53M186 83V42"
             fill="none"
-            stroke="#d4bffe"
+            stroke="#8ed8ff"
             strokeWidth="9"
             strokeLinecap="round"
           />
@@ -117,47 +117,47 @@ function ServiceMotif({ page }: { page: PublicOgPage }) {
             height="84"
             rx="16"
             fill="url(#brand-glass)"
-            stroke="#c7b5e3"
+            stroke="#bed7f4"
             strokeWidth="2"
           />
           <path
             d="M277 132H318M305 119L318 132L305 145"
             fill="none"
-            stroke={VIOLET}
+            stroke={BLUE}
             strokeWidth="5"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
-          <ellipse cx="177" cy="294" rx="143" ry="9" fill="#2118310d" />
+          <ellipse cx="177" cy="294" rx="143" ry="9" fill="#10264a0d" />
         </g>
       ) : (
         <g>
-          <ellipse cx="179" cy="283" rx="140" ry="14" fill="#21183110" />
+          <ellipse cx="179" cy="283" rx="140" ry="14" fill="#10264a10" />
           <path
             d="M31 183L178 111L325 182L179 256Z"
-            fill="#372451"
-            stroke="#372451"
+            fill="#163e77"
+            stroke="#163e77"
             strokeWidth="3"
           />
           <path d="M31 183V207L179 281L325 207V182L179 256Z" fill={INK} />
           <path
             d="M46 142L178 78L310 142L179 209Z"
             fill="url(#brand-flow)"
-            stroke="#7f5bbb"
+            stroke="#1aaad5"
             strokeWidth="2"
           />
-          <path d="M46 142V158L179 225L310 158V142L179 209Z" fill="#7151a8" />
+          <path d="M46 142V158L179 225L310 158V142L179 209Z" fill="#1557d2" />
           <path
             d="M63 98L178 42L294 98L179 156Z"
             fill="url(#brand-glass)"
-            stroke="#c8b6e5"
+            stroke="#bed7f4"
             strokeWidth="2"
           />
-          <path d="M63 98V112L179 171L294 112V98L179 156Z" fill="#d4c3ed" />
+          <path d="M63 98V112L179 171L294 112V98L179 156Z" fill="#c8e3fa" />
           <path
             d="M146 98L169 110L213 87"
             fill="none"
-            stroke={VIOLET}
+            stroke={BLUE}
             strokeWidth="6"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -197,9 +197,9 @@ export function publicOgCard({
         display: "flex",
         flexDirection: "column",
         padding: "46px 54px 38px",
-        background: "#f8f5fc",
+        background: "#ffffff",
         backgroundImage:
-          "linear-gradient(125deg, #fbf8ff 0%, #ebe4f8 65%, #eeebfc 100%)",
+          "linear-gradient(125deg, #ffffff 0%, #f0f7ff 65%, #e4f3ff 100%)",
         color: INK,
         fontFamily: "LeadFlow Inter, sans-serif",
       }}
@@ -220,7 +220,7 @@ export function publicOgCard({
           style={{
             marginLeft: "auto",
             fontSize: 12,
-            color: VIOLET,
+            color: BLUE,
             fontWeight: 900,
             letterSpacing: 2.2,
           }}
@@ -249,7 +249,7 @@ export function publicOgCard({
             style={{
               fontSize: 13,
               fontWeight: 900,
-              color: VIOLET,
+              color: BLUE,
               letterSpacing: 2.1,
               textTransform: "uppercase",
               marginBottom: 17,
@@ -273,7 +273,7 @@ export function publicOgCard({
               fontSize: 21,
               fontWeight: 400,
               lineHeight: 1.45,
-              color: "#60566e",
+              color: "#425f82",
               marginTop: 21,
               marginBottom: 0,
             }}
@@ -291,7 +291,7 @@ export function publicOgCard({
             justifyContent: "center",
             borderRadius: 22,
             background: artData ? "#ffffff70" : "transparent",
-            border: artData ? "1px solid #d6c6eb" : "0",
+            border: artData ? "1px solid #bed7f4" : "0",
             padding: artData ? 10 : 0,
             overflow: "hidden",
           }}
@@ -323,18 +323,18 @@ export function publicOgCard({
           justifyContent: "space-between",
           paddingTop: 21,
           marginTop: 20,
-          borderTop: "1px solid #d9cdec",
+          borderTop: "1px solid #d7e6f7",
         }}
       >
         <span
           style={{
             fontSize: page.path.length > 46 ? 12 : 16,
-            color: "#5e526d",
+            color: "#425f82",
           }}
         >
           theleadflowpro.com{page.path === "/" ? "" : page.path}
         </span>
-        <span style={{ fontSize: 18, fontWeight: 900, color: VIOLET }}>
+        <span style={{ fontSize: 18, fontWeight: 900, color: BLUE }}>
           Take the next step →
         </span>
       </div>

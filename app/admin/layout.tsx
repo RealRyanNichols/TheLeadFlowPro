@@ -15,6 +15,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
   if (profile?.role !== "admin") redirect("/dashboard");
   const ownerLogin = ownerDashboardLoginFor(user.email);
-  const name = ownerLogin === "ryan" ? "Ryan Nichols" : ownerLogin === "pat" ? "Patrick Grabbs" : "LeadFlow admin";
+  const name = ownerLogin === "ryan" ? "Ryan Nichols" : ownerLogin === "pat" ? "Patrick" : "LeadFlow admin";
   return <><InternalTrafficMarker /><AdminShell ownerAccess={!!ownerLogin} ownerLogin={ownerLogin} name={name}>{children}</AdminShell></>;
 }

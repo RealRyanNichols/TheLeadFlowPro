@@ -15,8 +15,8 @@ import {
 // identity; pat@dripgate.org is the temporary bridge and gets revoked once the
 // company login is verified.
 const KNOWN_OPERATORS: Record<string, string> = {
-  [BUSINESS.email.pat]: "Patrick Grabbs",
-  "pat@dripgate.org": "Patrick Grabbs",
+  [BUSINESS.email.pat]: "Patrick",
+  "pat@dripgate.org": "Patrick",
 };
 
 export default function LoginForm() {

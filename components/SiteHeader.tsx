@@ -3,107 +3,52 @@
 import Link from "next/link";
 import BrandLockup from "@/components/BrandLockup";
 import { usePathname } from "next/navigation";
-import { ArrowRight, Menu, LogIn, MessageSquareText } from "lucide-react";
+import { ArrowRight, ChevronDown, Menu, LogIn, MessageSquareText } from "lucide-react";
 import { useRef } from "react";
-import {
-  HEADER_CTA,
-  HEADER_PORTAL,
-  NAV_LINKS,
-  hidesSiteChrome,
-} from "@/lib/site/navigation";
+import { HEADER_CTA, HEADER_PORTAL, NAV_GROUPS, hidesSiteChrome } from "@/lib/site/navigation";
 import { smsHref } from "@/lib/site/textLinks";
-
-// The one public header. Links come from lib/site/navigation.ts; nothing
-// here defines a destination. The Portal link is always present so signed-in
-// members and staff can reach the workspace from any public page.
+import styles from "./SiteChrome.module.css";
 
 export default function SiteHeader() {
   const pathname = usePathname();
   const mobileMenu = useRef<HTMLDetailsElement>(null);
+  const header = useRef<HTMLElement>(null);
   if (hidesSiteChrome(pathname)) return null;
-  const current = (href: string) =>
-    pathname === href || (href !== "/" && pathname.startsWith(`${href}/`)) ? "page" : undefined;
+  const current = (href: string) => pathname === href ? "page" : undefined;
+  const closeMenus = () => header.current?.querySelectorAll<HTMLDetailsElement>("details[open]").forEach((menu) => { menu.open = false; });
   return (
-    <header className="site-header">
-      <div className="site-header-inner">
+    <header data-public-site="leadflow" ref={header} key={pathname} className={styles.header} onKeyDown={(event) => {
+      if (event.key !== "Escape") return;
+      const menu = (event.target as Element).closest<HTMLDetailsElement>("details[open]");
+      if (menu) { menu.open = false; menu.querySelector("summary")?.focus(); event.preventDefault(); }
+    }} onBlur={(event) => {
+      if (!event.currentTarget.contains(event.relatedTarget as Node | null)) closeMenus();
+    }}>
+      <div className={styles.headerInner}>
         <BrandLockup />
-        <nav className="desktop-nav" aria-label="Primary navigation">
-          {NAV_LINKS.map((link) => (
-            <Link key={link.href} href={link.href} aria-current={current(link.href)}>
-              {link.label}
-            </Link>
+        {/* header-text-mobile stays outside the collapsed navigation. */}
+        <a href={smsHref("header_mobile")} className={styles.mobileText} aria-label="Text Ryan" data-cta="text" data-cta-placement="header_mobile"><MessageSquareText size={20} aria-hidden="true" /></a>
+        <nav className={styles.desktopNav} aria-label="Primary navigation" onClick={(event) => { if ((event.target as Element).closest("a")) closeMenus(); }}>
+          {NAV_GROUPS.map((group) => (
+            <details className={styles.dropdown} key={group.href} onToggle={(event) => {
+              if (event.currentTarget.open) header.current?.querySelectorAll<HTMLDetailsElement>("details[open]").forEach((other) => { if (other !== event.currentTarget) other.open = false; });
+            }}>
+              <summary>{group.label}<ChevronDown size={14} aria-hidden="true" /></summary>
+              <div className={styles.dropdownPanel}>
+                <p>{group.label}</p>
+                {group.links.map((link) => <Link key={link.href} href={link.href} aria-current={current(link.href)}>{link.label}<ArrowRight size={15} aria-hidden="true" /></Link>)}
+              </div>
+            </details>
           ))}
-          <Link
-            href={HEADER_PORTAL.href}
-            className="header-portal inline-flex items-center gap-1.5"
-            aria-label="Member and staff portal"
-          >
-            <LogIn aria-hidden="true" className="h-4 w-4" /> {HEADER_PORTAL.label}
-          </Link>
-          <Link
-            href={HEADER_CTA.href}
-            className="header-cta"
-            data-cta="consultation_cta"
-            data-cta-placement="header"
-          >
-            {HEADER_CTA.label}
-            <ArrowRight aria-hidden="true" className="h-4 w-4" />
-          </Link>
+          <Link href={HEADER_PORTAL.href} className={styles.portal} aria-label="Member and staff portal"><LogIn size={16} aria-hidden="true" />{HEADER_PORTAL.label}</Link>
+          <Link href={HEADER_CTA.href} className={styles.cta} data-cta="consultation_cta" data-cta-placement="header">{HEADER_CTA.label}<ArrowRight size={17} aria-hidden="true" /></Link>
         </nav>
-        {/* On a phone the menu hides every link; the one-tap text stays outside it. */}
-        <a
-          href={smsHref("header_mobile")}
-          className="header-text-mobile"
-          aria-label="Text Ryan"
-          data-cta="text"
-          data-cta-placement="header_mobile"
-        >
-          <MessageSquareText aria-hidden="true" className="h-5 w-5" />
-        </a>
-        <details
-          key={pathname}
-          ref={mobileMenu}
-          className="mobile-nav"
-          onKeyDown={(event) => {
-            if (event.key !== "Escape" || !mobileMenu.current?.open) return;
-            mobileMenu.current.open = false;
-            mobileMenu.current.querySelector("summary")?.focus();
-            event.preventDefault();
-          }}
-        >
-          <summary aria-label="Navigation menu">
-            <Menu aria-hidden="true" className="h-5 w-5" />
-          </summary>
-          <nav
-            className="mobile-nav-panel"
-            aria-label="Primary navigation"
-            onClick={(event) => {
-              if (
-                event.target instanceof Element &&
-                event.target.closest("a") &&
-                mobileMenu.current
-              ) {
-                mobileMenu.current.open = false;
-              }
-            }}
-          >
-            {NAV_LINKS.map((link) => (
-              <Link key={link.href} href={link.href} aria-current={current(link.href)}>
-                {link.label}
-              </Link>
-            ))}
-            <Link href={HEADER_PORTAL.href}>
-              Member & staff portal <LogIn aria-hidden="true" className="h-4 w-4" />
-            </Link>
-            <Link
-              href={HEADER_CTA.href}
-              className="header-cta"
-              data-cta="consultation_cta"
-              data-cta-placement="header_mobile"
-            >
-              {HEADER_CTA.label}
-              <ArrowRight aria-hidden="true" className="h-4 w-4" />
-            </Link>
+        <details ref={mobileMenu} className={styles.mobileNav}>
+          <summary aria-label="Navigation menu"><Menu size={23} aria-hidden="true" /></summary>
+          <nav className={styles.mobilePanel} aria-label="Primary navigation" onClick={(event) => { if ((event.target as Element).closest("a")) { closeMenus(); mobileMenu.current?.querySelector("summary")?.focus(); } }}>
+            {NAV_GROUPS.map((group) => <div className={styles.mobileGroup} key={group.href}><p>{group.label}</p>{group.links.map((link) => <Link key={link.href} href={link.href} aria-current={current(link.href)}>{link.label}</Link>)}</div>)}
+            <Link href={HEADER_PORTAL.href} className={styles.portal}>Member & staff portal<LogIn size={16} aria-hidden="true" /></Link>
+            <Link href={HEADER_CTA.href} className={styles.cta} data-cta="consultation_cta" data-cta-placement="header_mobile">{HEADER_CTA.label}<ArrowRight size={17} aria-hidden="true" /></Link>
           </nav>
         </details>
       </div>

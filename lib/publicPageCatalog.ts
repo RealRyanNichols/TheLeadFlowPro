@@ -137,18 +137,18 @@ export const PUBLIC_PAGE_CATALOG = [
   },
   {
     path: "/",
-    title: "Leads, websites, and follow-up. Done for you.",
+    title: "Grow your business. Build your community.",
     description:
-      `A 90-day acquisition campaign for East Texas businesses, starting at ${CAMPAIGN_MINIMUM} upfront. Ads, websites, and follow-up in accounts you own; scope agreed in writing.`,
-    eyebrow: "Done for you",
+      "Websites, marketing, content and follow-up for local businesses, online businesses and communities. Build your next move with The LeadFlow Pro.",
+    eyebrow: "Your next move",
     art: "/images/ryan-wholesale-universe-warehouse-pallets-flag.jpg",
   },
   {
     path: "/about",
-    title: "Meet Ryan Nichols",
+    title: "Meet Ryan Nichols and the LeadFlow team",
     description:
-      "The operator behind The LeadFlow Pro, and the work that shaped the business.",
-    eyebrow: "The operator",
+      "Wholesale Universe, marketing campaigns, business support and the people behind The LeadFlow Pro. Explore the stories and experience behind the work.",
+    eyebrow: "The people behind the work",
     art: "/images/ryan-wholesale-universe-owner.jpg",
   },
   {

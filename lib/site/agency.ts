@@ -94,11 +94,11 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
     offerId: "agency_meta_ads",
     name: "Meta ads management",
     navLabel: "Meta ads",
-    seoTitle: "Facebook and Instagram Ads Management in Longview, TX | The LeadFlow Pro",
+    seoTitle: "Facebook and Instagram Ads for Businesses & Communities | The LeadFlow Pro",
     metaDescription:
-      "Facebook and Instagram lead ads for Longview and East Texas businesses, built in your own Meta Business Manager. Advertising is included in your written plan allocation. You keep the pixel, audiences, leads, and reporting.",
+      "Facebook and Instagram lead ads for local businesses, online businesses and communities, built in your own Meta Business Manager. Advertising is included in your written plan allocation. You keep the pixel, audiences, leads, and reporting.",
     eyebrow: "Facebook and Instagram",
-    audience: "Local service businesses, schools, and shops in East Texas that need more inquiries this month, not a brand campaign.",
+    audience: "Local service businesses, online businesses, schools and communities that need a clear path from advertising to relevant inquiries.",
     problem: "Boosted posts and a lead form nobody follows up on. Money goes out, a few names come in, and nobody can say which ad paid for which job.",
     promise: "Lead ads and landing pages built in your Meta Business account, wired to your inbox and CRM, with the trace from ad to lead to outcome kept in your records.",
     included: [
@@ -129,9 +129,9 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
     offerId: "agency_google_ads",
     name: "Google Ads management",
     navLabel: "Google Ads",
-    seoTitle: "Google Ads Management in Longview, TX | The LeadFlow Pro",
+    seoTitle: "Google Ads Management for Businesses | The LeadFlow Pro",
     metaDescription:
-      "Google Search and Local Services campaigns for Longview and East Texas businesses, run in your own Google Ads account with call and form tracking you keep.",
+      "Google Search campaigns for local and online businesses, with Local Services campaigns where eligible, run in your own Google Ads account with call and form tracking you keep.",
     eyebrow: "Search and local",
     audience: "Businesses people search for by name or need: plumbers, roofers, clinics, schools, repair shops.",
     problem: "Clicks on broad keywords, calls that go to voicemail, and no way to tell a call from an ad apart from a call from the sign on the truck.",
@@ -164,11 +164,11 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
     offerId: "website_launch",
     name: "Websites",
     navLabel: "Websites",
-    seoTitle: "Website Design for Longview, TX Businesses | The LeadFlow Pro",
+    seoTitle: "Website Design for Businesses & Communities | The LeadFlow Pro",
     metaDescription:
-      "Website and storefront projects for Longview and East Texas, quoted around your build, launch, and support. You own your site and accounts.",
+      "Website and storefront projects for local businesses, online businesses and communities, quoted around your build, launch and support. You own your site and accounts.",
     eyebrow: "A website that gives people a next step",
-    audience: "Any business whose website cannot answer what you do, what it costs, and how to reach you from a phone.",
+    audience: "Businesses and communities whose websites need to explain the offer, answer questions and make the next step clear on a phone.",
     problem: "A template someone else owns, a contact form that goes nowhere, and a monthly bill for a site that has never produced a lead you could trace.",
     promise: "A website or storefront built around what you sell, with the pages, checkout, delivery, and support agreed in a separate project quote. You own the site and accounts; managed acquisition is optional.",
     included: [
@@ -202,9 +202,9 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
     offerId: "agency_automation",
     name: "Automation",
     navLabel: "Automation",
-    seoTitle: "Lead Follow-Up and Missed Call Text Back Automation in Longview, TX | The LeadFlow Pro",
+    seoTitle: "Lead Follow-Up & Business Automation | The LeadFlow Pro",
     metaDescription:
-      "Lead routing, first reply, missed call text back, and follow-up sequences installed in your own CRM, phone, and email accounts for Longview and East Texas businesses, with consent and STOP handled.",
+      "Lead routing, first reply, missed call text back, and follow-up sequences installed in your own CRM, phone, and email accounts for local businesses, online businesses and communities, with consent and STOP handled.",
     eyebrow: "Capture, record, follow up, sell, deliver, report",
     audience: "Owners doing follow-up from memory, re-typing the same reply, and losing the lead that came in on Saturday.",
     problem: "Inquiries arrive in five places, nobody owns the next step, and the one automation somebody set up two years ago texts people who never agreed to it.",
@@ -271,9 +271,9 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
     offerId: "agency_content",
     name: "Content",
     navLabel: "Content",
-    seoTitle: "Content Marketing for Longview, TX Businesses | The LeadFlow Pro",
+    seoTitle: "Content Marketing for Businesses & Communities | The LeadFlow Pro",
     metaDescription:
-      "Posts, pages, and emails written for Longview and East Texas businesses, approved by you before anything publishes, in channels you own.",
+      "Posts, pages and emails for local businesses, online businesses and communities, approved by you before anything publishes, in channels you own.",
     eyebrow: "Posts, pages, and emails that answer real questions",
     audience: "Owners who know what customers ask every week and never have time to write it down.",
     problem: "A page that has not changed since launch, a Facebook feed that stops every time the business gets busy, and emails that only go out when there is a sale.",
@@ -518,7 +518,7 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
   },
 ];
 
-/** The six services every local business buys, for pages about the local lead system. */
+/** The six core services, also used on pages about the local lead system. */
 export const CORE_AGENCY_SERVICES: readonly AgencyService[] = AGENCY_SERVICES.filter((s) => !s.specialty);
 
 /** Services built for one kind of client, shown in their own band on the hub. */
@@ -534,8 +534,8 @@ export function agencyOffer(service: AgencyService): Offer {
 
 export const AGENCY_HUB = {
   eyebrow: "Run it for me",
-  title: "The agency lane.",
-  lead: `Meta ads, Google Ads, websites, automation, video, and content, run by ${BUSINESS.operator} in accounts you own, plus specialty builds for online communities, CPA firms, XRP Ledger projects, and shops that take crypto. This is the lane for owners who want the whole loop handled.`,
+  title: "Marketing that connects to the work.",
+  lead: `Meta ads, Google Ads, websites, automation, video, and content, run by ${BUSINESS.operator} in accounts you own, plus specialty builds for online communities, CPA firms, XRP Ledger projects, and shops that take crypto. For local businesses, online businesses and communities that want the work connected and managed.`,
   budgetNote: `${AGENCY_PLAN_SUMMARY} ${managedBillingExplanation()}`,
   contact: {
     phone: BUSINESS.phone.display,

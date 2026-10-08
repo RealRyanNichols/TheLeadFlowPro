@@ -6,6 +6,7 @@ import "./fonts.css";
 import "./company-builder.css";
 import "./leadflow-theme.css";
 import "./theme-consistency.css";
+import "./public-growth-theme.css";
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 import TrackingScripts from "@/components/TrackingScripts";
@@ -18,9 +19,9 @@ import { getSettings } from "@/lib/settings";
 // Keep the exact already-deployed fonts and fallback metrics in source.
 // The production build no longer depends on a Google Fonts CSS response.
 export const metadata: Metadata = withPublicPageMetadata("/", {
-  title: "The LeadFlow Pro | Marketing agency in Longview, TX",
+  title: "The LeadFlow Pro | Growth for businesses & communities",
   description:
-    "Ads, websites, funnels, and follow-up built and run for Longview and East Texas businesses in accounts you own. Start with a free 30-minute consultation.",
+    "Websites, marketing and follow-up for local businesses, online businesses and communities. Based in Longview, Texas. Start with a free 30-minute consultation.",
   metadataBase: new URL("https://www.theleadflowpro.com"),
   icons: {
     icon: [
@@ -32,9 +33,9 @@ export const metadata: Metadata = withPublicPageMetadata("/", {
   },
   alternates: { canonical: "https://www.theleadflowpro.com" },
   openGraph: {
-    title: "The LeadFlow Pro | Marketing agency in Longview, TX",
+    title: "The LeadFlow Pro | Growth for businesses & communities",
     description:
-      "Ads, websites, funnels, and follow-up built and run for Longview and East Texas businesses in accounts you own.",
+      "Websites, marketing and follow-up for local businesses, online businesses and communities, built in accounts you own.",
     url: "https://www.theleadflowpro.com",
     siteName: "The LeadFlow Pro",
     images: [{ url: "/og/home.png", width: 1200, height: 630 }],
@@ -42,20 +43,16 @@ export const metadata: Metadata = withPublicPageMetadata("/", {
   },
   twitter: {
     card: "summary_large_image",
-    title: "The LeadFlow Pro | Marketing agency in Longview, TX",
+    title: "The LeadFlow Pro | Growth for businesses & communities",
     description:
-      "Ads, websites, funnels, and follow-up for Longview and East Texas businesses, in accounts you own.",
+      "Growth for local businesses, online businesses and communities through websites, marketing and follow-up in accounts you own.",
     images: ["/og/home.png"],
   },
 });
 
-// Last two leftovers from the navy era. themeColor painted the mobile browser
-// chrome navy above a light page, and colorScheme "dark" told the UA to render
-// scrollbars, form controls and other default UI dark on a site that is now
-// light everywhere. globals.css already declares color-scheme:light on :root;
-// these are the document-level defaults that were still contradicting it.
+// White/blue public chrome and light page controls.
 export const viewport = {
-  themeColor: "#f3efe8",
+  themeColor: "#ffffff",
   colorScheme: "light" as const,
 };
 

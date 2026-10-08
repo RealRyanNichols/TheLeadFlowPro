@@ -40,7 +40,7 @@ import { breadcrumbJsonLd, graph, jsonLdText, localBusinessJsonLd } from "@/lib/
 export const metadata: Metadata = withPublicPageMetadata("/agency", {
   title: "Agency: Meta ads, Google Ads, websites, automation, video, content | The LeadFlow Pro",
   description:
-    "Managed acquisition campaigns and separately quoted website, storefront, and product projects for East Texas businesses. You keep your accounts and records.",
+    "Managed acquisition campaigns and separately quoted website, storefront and product projects for local businesses, online businesses and communities. You keep your accounts and records.",
 });
 
 const ALWAYS_TRUE = [
@@ -91,7 +91,7 @@ export default function AgencyHubPage() {
         eyebrow="Run my marketing"
         mutedTitle="Your marketing."
         title="Handled for you."
-        body={`An acquisition campaign with the agreed ads, website, follow-up, video, and content, managed in accounts you own. ${managedUpfrontSummary()} ${managedCampaignSummary()} Advertising is included.`}
+        body={`Marketing for local businesses, online businesses and communities, with the agreed ads, website, follow-up, video and content managed in accounts you own. ${managedUpfrontSummary()} ${managedCampaignSummary()} Advertising is included.`}
         media={{
           src: "/images/services/quote-follow-up-light.webp",
           alt: "A quote clipboard, reminder bell, calendar, and phone connected across a bright cream desk",

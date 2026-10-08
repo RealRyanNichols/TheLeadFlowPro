@@ -15,6 +15,6 @@ export default async function SalesLayout({ children }: { children: React.ReactN
   if (profile?.role !== "sales" && profile?.role !== "admin") redirect("/dashboard");
   const isAdmin = profile.role === "admin";
   const login = isAdmin ? ownerDashboardLoginFor(user.email) : null;
-  const name = login === "ryan" ? "Ryan Nichols" : login === "pat" ? "Patrick Grabbs" : profile.full_name || "LeadFlow team";
+  const name = login === "ryan" ? "Ryan Nichols" : login === "pat" ? "Patrick" : profile.full_name || "LeadFlow team";
   return <><InternalTrafficMarker /><AdminShell name={name} ownerLogin={login} ownerAccess={!!login} scope={isAdmin ? "admin" : "sales"}>{children}</AdminShell></>;
 }

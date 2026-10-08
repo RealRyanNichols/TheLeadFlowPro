@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const overview = await nativeOwnerOverview(); const login = overview.viewer.login;
-    let markup = renderCommandCenter({ login, name: login === "ryan" ? "Ryan Nichols" : "Patrick Grabbs" }, "/admin/hub", overview.tools || {});
+    let markup = renderCommandCenter({ login, name: login === "ryan" ? "Ryan Nichols" : "Patrick" }, "/admin/hub", overview.tools || {});
     markup = markup.replaceAll("/admin/hub/assets/", "/admin-workspace/").replace("<body>", '<body class="native-admin-embedded">');
     markup = markup.replace('href="/admin/hub/marketing"', 'href="/admin/overview?view=marketing" target="_top"')
       .replaceAll('href="/admin/hub/o/leadflow"', 'href="/admin/clients" target="_top"')

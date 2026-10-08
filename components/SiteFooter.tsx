@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import styles from "./SiteChrome.module.css";
 import BrandLockup from "@/components/BrandLockup";
 import { usePathname } from "next/navigation";
 import { BUSINESS } from "@/lib/site/business";
@@ -29,12 +30,12 @@ export default function SiteFooter() {
   const pathname = usePathname();
   if (hidesSiteChrome(pathname)) return null;
   return (
-    <footer className="site-footer cb-footer">
-      <div className="cb-shell">
-        <div className="cb-footer-top">
+    <footer className={styles.footer}>
+      <div className={styles.footerInner}>
+        <div className={styles.footerTop}>
           <div>
             <BrandLockup />
-            <p className="cb-footer-pitch">{FOOTER_PITCH}</p>
+            <p className={styles.footerPitch}>{FOOTER_PITCH}</p>
             <nav aria-label="Contact The LeadFlow Pro" className="mt-6 flex flex-col items-start gap-2">
             <a href={`mailto:${BUSINESS.email.hello}`} className="cb-textlink">
               {BUSINESS.email.hello}
@@ -51,7 +52,7 @@ export default function SiteFooter() {
             const featured = col.links.filter((link) => !col.featuredHrefs || col.featuredHrefs.includes(link.href));
             const more = col.featuredHrefs ? col.links.filter((link) => !col.featuredHrefs?.includes(link.href)) : [];
             return (
-            <div key={col.heading} className="cb-footer-col">
+            <div key={col.heading} className={styles.footerColumn}>
               <h2>{col.heading}</h2>
               <nav aria-label={col.heading}>
                 {featured.map((link) => <FooterLink key={link.href} link={link} />)}
@@ -68,7 +69,7 @@ export default function SiteFooter() {
             );
           })}
         </div>
-        <div className="cb-footer-bottom">
+        <div className={styles.footerBottom}>
           <span>
             &copy; {new Date().getFullYear()} {BUSINESS.name}. A DBA of {BUSINESS.legalName}.
           </span>

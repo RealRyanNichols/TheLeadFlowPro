@@ -1,210 +1,32 @@
 import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
-import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, BadgeCheck, ShieldCheck } from "lucide-react";
-import CtaLink from "@/components/site/CtaLink";
-import { TOOL_COUNT } from "@/lib/tools";
-import { approvedClaim } from "@/lib/site/claims";
+import { ArrowRight, ArrowUpRight } from "lucide-react";
+import RyanFounderProof from "@/components/site/RyanFounderProof";
+import { RYAN_PROOF } from "@/lib/site/ryanProof";
+import styles from "./about-story.module.css";
 
-const LIVE_SYSTEMS = approvedClaim("lfp_live_systems")?.value ?? "several";
-const RRN_PROFILES = approvedClaim("rrn_case_profiles")?.value ?? "thousands of";
-
-// About Ryan. Operator proof, grounded in receipts, kept short on purpose. This
-// is not an autobiography: it exists to answer one question, which is whether
-// the person building the system has ever had to run one.
-//
-// Everything here is either visible in this repository or on a live property.
-// No revenue, client, or outcome numbers are claimed.
-
-export const metadata: Metadata = withPublicPageMetadata("/about", {
-  title: "About Ryan Nichols | The LeadFlow Pro",
-  description:
-    "The operator behind The LeadFlow Pro. Companies, offers, audiences, ecommerce operations, fulfillment, sales processes, websites, and software, all built under real pressure.",
-  alternates: { canonical: "https://www.theleadflowpro.com/about" },
-  openGraph: {
-    title: "I have already built what you are trying to build.",
-    description: `The operator behind The LeadFlow Pro: ${LIVE_SYSTEMS} live systems across multiple industries, ${TOOL_COUNT} published tools, and real software products.`,
-    url: "https://www.theleadflowpro.com/about",
-    siteName: "The LeadFlow Pro",
-    images: [{ url: "/og/home.png", width: 1200, height: 630 }],
-    type: "profile",
-  },
+export const metadata = withPublicPageMetadata("/about", {
+  title: "Meet Ryan Nichols & the LeadFlow Team | The LeadFlow Pro",
+  description: "Ryan’s operating and ecommerce experience. Patrick’s marketing, funnel and advisory work. Meet the people helping businesses and communities grow with LeadFlow.",
 });
 
-const CHAPTERS = [
-  {
-    kicker: "Before the software",
-    title: "He ran the operation first.",
-    body: "Wholesale and ecommerce: sourcing loads, moving pallets, holding inventory, packing orders, and running the sales process behind all of it. Nothing about that job is theoretical. When a system failed, the cost was payroll and product sitting in a warehouse, not a missed sprint.",
-    image: "/images/ryan-wholesale-universe-2015-pallets.jpg",
-    alt: "Shrink-wrapped pallets of wholesale inventory stacked in the warehouse operation Ryan Nichols ran",
-    w: 1800,
-    h: 1350,
-    photo: true,
-  },
-  {
-    kicker: "Then the demand side",
-    title: "He had to go get the customers himself.",
-    body: "Offers, content, ads, live selling, and audience building across platforms he did not own. That is where the follow-up lesson comes from: the post gets attention, the system makes money. Attention that lands nowhere is just noise you paid for.",
-    image: "/images/ryan-live-content-work-1.jpg",
-    alt: "Ryan Nichols producing live content, with camera and lighting equipment set up",
-    w: 1600,
-    h: 1200,
-    photo: true,
-  },
-  {
-    kicker: "Then the software",
-    title: "He stopped renting the tools and built them.",
-    body: "Seven live systems across multiple industries: an independent media platform, a dental school's enrollment engine, a commerce marketplace, a legal services catalog, a nonprofit mission platform, a local service business, and The LeadFlow Pro itself. These are working systems with databases, search, intake, payments, and operational tools, not brochure pages.",
-    image: "/og/portfolio/theleadflowpro.jpg",
-    alt: "The LeadFlow Pro website and connected business system built by Ryan Nichols",
-    w: 1200,
-    h: 630,
-    photo: false,
-  },
-];
-
-const RECEIPTS = [
-  {
-    head: `${LIVE_SYSTEMS} live systems across multiple industries.`,
-    body: "Every one is publicly inspectable. The portfolio links straight to them and labels which are client systems and which are Ryan's own products.",
-  },
-  {
-    head: `${RRN_PROFILES} case profiles in a searchable archive.`,
-    body: "RealRyanNichols.com is a working publishing system on the owned stack, with a searchable database, intake, an AI assistant, SMS alerts, and a store.",
-  },
-  {
-    head: "He has been on the buying side of premium work.",
-    body: "Ryan has flown a specialist in first class, covered the room, the board and the food, and paid five figures for a two day shoot, because the content that came out of it paid for itself once it went to work. That is why he does not flinch at quoting a real number, and why he will tell you when something is not worth it.",
-  },
-  {
-    head: `${TOOL_COUNT} free working tools and an owned article library.`,
-    body: "Calculators, assessments, and generators published on infrastructure he controls, not on a rented platform that can change the terms.",
-  },
-  {
-    head: "Everything installed in accounts the client owns.",
-    body: "GitHub, Vercel, Supabase, domains, and approved vendor accounts, organised so the business keeps control of its own code, data, and customers.",
-  },
-];
-
 export default function AboutPage() {
-  return (
-    <main className="cb-page">
-      <section className="cb-hero">
-        <div className="cb-shell">
-          <p className="cb-eyebrow">The operator</p>
-          <h1 className="cb-h1">
-            <em>I have already built what you are trying to build.</em>
-            Now let&rsquo;s build yours.
-          </h1>
-          <p className="cb-hero-lead">
-            Ryan Nichols builds business systems because he needed them before he sold them.
-            The companies, the offers, the inventory, the fulfillment, the sales process, the
-            audience, and eventually the software. All of it under real pressure, with his own
-            money on the line.
-          </p>
-          <div className="cb-actions">
-            <CtaLink
-              href="/start"
-              event="map_my_company"
-              placement="about_hero"
-              className="cb-btn cb-btn--primary"
-            >
-              Map My Company
-              <ArrowRight aria-hidden="true" className="h-4 w-4" />
-            </CtaLink>
-            <Link className="cb-btn cb-btn--ghost" href="/portfolio">
-              See the Live Systems
-            </Link>
-          </div>
-          <p className="cb-hero-own">
-            <ShieldCheck aria-hidden="true" className="h-5 w-5" />
-            Built by an operator. Installed in your accounts. Your business stays yours.
-          </p>
-        </div>
-      </section>
-
-      <section className="cb-band">
-        <div className="cb-shell">
-          <div className="cb-cases">
-            {CHAPTERS.map((c, i) => (
-              <article key={c.title} className={`cb-case${i % 2 === 1 ? " cb-case--flip" : ""}`}>
-                <div className={`cb-case-shot${c.photo ? " cb-case-shot--photo" : ""}`}>
-                  <Image
-                    src={c.image}
-                    alt={c.alt}
-                    width={c.w}
-                    height={c.h}
-                    sizes="(max-width: 900px) 100vw, 55vw"
-                    priority={i === 0}
-                  />
-                </div>
-                <div>
-                  <p className="cb-eyebrow">{c.kicker}</p>
-                  <h2 className="cb-h2 cb-h2--case">
-                    {c.title}
-                  </h2>
-                  <p className="cb-lead">{c.body}</p>
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="cb-band cb-band--tint">
-        <div className="cb-shell">
-          <div className="cb-headrow">
-            <div>
-              <p className="cb-eyebrow">Receipts</p>
-              <h2 className="cb-h2 cb-heading">Proof before promise.</h2>
-            </div>
-            <p className="cb-lead">
-              No revenue claims, no client testimonials invented for a page, no guaranteed
-              results. Just what exists and can be checked.
-            </p>
-          </div>
-          <ul className="cb-receipts cb-receipts--standalone">
-            {RECEIPTS.map((r) => (
-              <li key={r.head}>
-                <BadgeCheck aria-hidden="true" className="h-5 w-5" />
-                <span>
-                  <strong>{r.head}</strong> {r.body}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-
-      <section className="cb-final">
-        <div className="cb-shell">
-          <p className="cb-eyebrow">Your next move</p>
-          <h2 className="cb-h2">
-            <em>Show me the business.</em>
-            I&rsquo;ll show you what to build.
-          </h2>
-          <p className="cb-lead">
-            Start with how your company actually runs today. The map shows what to build,
-            what to connect, and what to stop paying for.
-          </p>
-          <div className="cb-actions">
-            <CtaLink
-              href="/start"
-              event="map_my_company"
-              placement="about_final"
-              className="cb-btn cb-btn--primary"
-            >
-              Map My Company
-              <ArrowRight aria-hidden="true" className="h-4 w-4" />
-            </CtaLink>
-            <Link className="cb-btn cb-btn--ghost" href="/contact">
-              Send a message
-            </Link>
-          </div>
-        </div>
-      </section>
-    </main>
-  );
+  return <main className={styles.page}>
+    <section className={`lf-shell ${styles.hero}`}>
+      <p className={styles.eyebrow}>RYAN NICHOLS / THE LEADFLOW TEAM</p>
+      <h1>The people.<br />The experience.<br /><em>The work ahead.</em></h1>
+      <div className={styles.heroBottom}><p>Running a business teaches you what needs to connect. Building campaigns teaches you how to get people moving. Ryan and Patrick bring those experiences together for local businesses, online businesses and communities.</p><Link className={styles.button} href="/#client-stories">Hear the client stories <ArrowRight size={18} aria-hidden="true" /></Link></div>
+      <div className={styles.team}><article><span>01 / RYAN NICHOLS</span><h2>From the operation<br />to the system.</h2><p>Wholesale Universe, ecommerce, fulfillment and hands-on content work. Ryan brings the experience of running the operation to websites and connected business tools.</p><a href="#ryans-story">Explore Ryan’s story <ArrowRight size={17} aria-hidden="true" /></a></article><article><span>02 / PATRICK</span><h2>From the offer<br />to the conversation.</h2><p>Patrick’s past clients and collaborators describe his funnel building, marketing, offer development and business support. Their original interviews show the work in their own words.</p><a href="#patrick">Explore Patrick’s experience <ArrowRight size={17} aria-hidden="true" /></a></article></div>
+    </section>
+    <RyanFounderProof full />
+    <section className={`lf-shell ${styles.section}`} id="wholesale-universe">
+      <p className={styles.eyebrow}>THE WHOLESALE UNIVERSE ARCHIVE</p><h2>Product on the floor.<br /><em>A business to run.</em></h2><p className={styles.lead}>At Wholesale Universe, Ryan handled sourcing, inventory and the work behind each order. His operating experience connects the sales conversation to what happens after someone buys.</p>
+      <div className={styles.gallery}><figure><Image src="/images/ryan-wholesale-universe-2015-pallets.jpg" alt="Ryan beside stacked merchandise cartons and a trailer, from the Wholesale Universe archive" width={1800} height={1350} sizes="(max-width:800px) 100vw, 60vw" /><figcaption>Ryan with inventory from the Wholesale Universe archive.</figcaption></figure><figure><Image src="/images/wholesale-universe-michael-kors-load-1.jpg" alt="Merchandise inventory from a Wholesale Universe load" width={768} height={1024} sizes="(max-width:800px) 100vw, 40vw" /><figcaption>Merchandise from the Wholesale Universe inventory archive.</figcaption></figure></div>
+      <p className={styles.lead}>In July 2018, Ryan spoke at the Midwest E-Com Conference on sourcing and scaling as Wholesale Universe’s owner and president.</p><a className={styles.textLink} href={RYAN_PROOF.wholesaleSource} target="_blank" rel="noopener noreferrer">View the 2018 conference listing <ArrowUpRight size={16} aria-hidden="true" /></a>
+    </section>
+    <section className={styles.patrick} id="patrick"><div className="lf-shell"><p className={styles.eyebrow}>PATRICK’S MARKETING & ADVISORY WORK</p><h2>The experience behind<br /><em>the next move.</em></h2><p className={styles.lead}>Offers, funnels, campaigns and conversations. Hear how earlier clients and collaborators describe working with Patrick, in the markets and roles where that work happened.</p><div className={styles.references}><article><span>FUNNELS & COLLABORATION</span><h3>Ryan Stewman</h3><p>Describes years of funnel work, teamwork and attention to the goals of the business.</p></article><article><span>OFFERS & ADVISORY</span><h3>Katrina Ruth</h3><p>Describes a conversation with Patrick that helped her launch a mastermind.</p></article><article><span>COACHING & BUSINESS SUPPORT</span><h3>Glenn Smith</h3><p>Shares the support and clarity he experienced while building his coaching business.</p></article></div><Link className={styles.button} href="/#client-stories">Watch the original testimonials <ArrowRight size={18} aria-hidden="true" /></Link><p className={styles.note}>Historical experiences retain their original context. They do not establish a particular outcome for another business.</p></div></section>
+    <section className={`lf-shell ${styles.section}`}><p className={styles.eyebrow}>THE WORK TOGETHER</p><h2>A clear message.<br /><em>A connected next step.</em></h2><p className={styles.lead}>At LeadFlow, Ryan’s operating and content experience comes together with Patrick’s strategy and marketing work. The aim is practical: connect what you offer to the people it helps, then make the inquiry, purchase and follow-up easier to manage.</p><div className={styles.work}><div><h3>See the Premier academy build.</h3><p>A website, enrollment path, practice tools and student portal around a real school. Amanda Williams leads the academy; its staff deliver the education and support.</p><p className={styles.note}>Premier Dental Academy and LeadFlow share an ownership group.</p></div><Link className={styles.textLink} href="/premier-system">Explore the system <ArrowRight size={18} aria-hidden="true" /></Link></div></section>
+    <section className={styles.close}><div className="lf-shell"><p className={styles.eyebrow}>YOUR NEXT CHAPTER</p><h2>What are you<br /><em>ready to grow?</em></h2><p>Bring your business, your community or the idea you’re working on. Start with a free 30-minute consultation.</p><Link className={styles.button} href="/#free-consultation">Book my free consultation <ArrowRight size={18} aria-hidden="true" /></Link></div></section>
+  </main>;
 }

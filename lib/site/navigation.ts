@@ -3,23 +3,44 @@
 // number from lib/site/prices.ts so the footer can never drift from checkout.
 //
 // The header CTA is the free consultation on the homepage
-// (lib/site/consultation.ts). Events and courses are deliberately not in the
-// primary navigation: the business sells done-for-you work, not seats or
-// lessons. The pages still exist for people who already hold a link.
+// (lib/site/consultation.ts). Existing tools and learning pages remain
+// discoverable under Resources; every existing destination is retained.
 
 import { CONSULTATION } from "./consultation";
 import { PRICES, usd, usdPerMonth, usdRange } from "./prices";
 
 export type NavLink = { href: string; label: string };
 
-export const NAV_LINKS: readonly NavLink[] = [
-  { href: "/services", label: "Build my business" },
-  { href: "/agency", label: "Run it for me" },
-  { href: "/service-areas", label: "Service areas" },
-  { href: "/pricing", label: "Pricing" },
-  { href: "/tools", label: "Tools" },
-  { href: "/articles", label: "Articles" },
+export type NavGroup = NavLink & { links: readonly NavLink[] };
+
+export const NAV_GROUPS: readonly NavGroup[] = [
+  { href: "/agency", label: "Services", links: [
+    { href: "/services", label: "Websites & business systems" },
+    { href: "/agency", label: "Managed marketing" },
+    { href: "/commerce", label: "Online stores & products" },
+    { href: "/agency/community-help-desk", label: "Community help desks" },
+    { href: "/pricing", label: "Managed campaign pricing" },
+  ] },
+  { href: "/results", label: "Our work", links: [
+    { href: "/results", label: "Results & client stories" },
+    { href: "/portfolio", label: "Explore the portfolio" },
+    { href: "/premier-system", label: "Inside the Premier system" },
+    { href: "/live", label: "Live site activity" },
+  ] },
+  { href: "/tools", label: "Resources", links: [
+    { href: "/tools", label: "Free business tools" },
+    { href: "/articles", label: "Articles & guides" },
+    { href: "/academy", label: "Courses & learning" },
+    { href: "/tools/pro", label: "Pro kits" },
+  ] },
+  { href: "/about", label: "About", links: [
+    { href: "/about", label: "Meet Ryan & the team" },
+    { href: "/contact", label: "Get in touch" },
+    { href: "/service-areas", label: "Service areas & availability" },
+    { href: "/longview", label: "Our Longview roots" },
+  ] },
 ];
+export const NAV_LINKS: readonly NavLink[] = NAV_GROUPS.map(({ href, label }) => ({ href, label }));
 
 export const HEADER_PORTAL: NavLink = { href: "/login", label: "Portal" };
 export const HEADER_CTA: NavLink = {
@@ -38,13 +59,14 @@ export type FooterColumn = {
 export const FOOTER_COLUMNS: readonly FooterColumn[] = [
   {
     heading: "Services",
-    featuredHrefs: ["/services", "/agency", "/pricing"],
+    featuredHrefs: ["/services", "/agency", "/commerce", "/agency/community-help-desk", "/pricing"],
     moreLabel: "Tools, products & custom options",
     links: [
-      { href: "/services", label: "Build my business" },
+      { href: "/services", label: "Websites & business systems" },
       { href: "/agency", label: "Run my marketing" },
-      { href: "/pricing", label: "Compare prices & scope" },
+      { href: "/pricing", label: "Managed campaign pricing" },
       { href: "/commerce", label: "Commerce & online selling" },
+      { href: "/agency/community-help-desk", label: "Community help desks" },
       { href: "/operator-academy", label: "Courses & learning" },
       { href: "/add-ons", label: "Custom build options" },
       { href: "/tools", label: "Free Tools" },
@@ -69,7 +91,7 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
     ],
   },
   {
-    heading: "Proof",
+    heading: "Our work",
     featuredHrefs: ["/results", "/scoreboard", "/portfolio", "/about"],
     moreLabel: "More examples & guides",
     links: [
@@ -80,7 +102,7 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
       { href: "/live", label: "Live Proof" },
       { href: "/portfolio", label: "The Work" },
       { href: "/articles", label: "Articles" },
-      { href: "/about", label: "About Ryan" },
+      { href: "/about", label: "Meet Ryan & the team" },
     ],
   },
   {
@@ -108,7 +130,7 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
 ];
 
 export const FOOTER_PITCH =
-  "More attention. More leads. More revenue. We connect the website, follow-up, sales tools, and operating system in accounts you control.";
+  "Websites, marketing and useful systems for local businesses, online brands and communities. Built around your next move.";
 
 export const LEGAL_LINKS: readonly NavLink[] = [
   { href: "/privacy", label: "Privacy" },
@@ -139,6 +161,7 @@ export function hidesSiteChrome(pathname: string): boolean {
 export function chromeInternalHrefs(): string[] {
   const all = [
     ...NAV_LINKS,
+    ...NAV_GROUPS.flatMap((group) => group.links),
     HEADER_PORTAL,
     HEADER_CTA,
     ...FOOTER_COLUMNS.flatMap((c) => c.links),

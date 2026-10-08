@@ -1,0 +1,17 @@
+/* Public website identity. Staff, member and other chrome-free applications keep their existing presentation. */
+body:has([data-public-site="leadflow"]) {
+  --lf-bg:#ffffff; --lf-panel:#ffffff; --lf-line:#d7e6f7; --lf-text:#10264a; --lf-muted:#425f82;
+  --lf-orange:#1557d2; --lf-violet:#1557d2; --page:#ffffff; --page-soft:#f0f7ff;
+  --cb-canvas:#ffffff; --cb-surface:#ffffff; --cb-surface-2:#f0f7ff; --cb-hair:#d7e6f7;
+  --lf-shadow:0 4px 20px #1557d209; --lf-shadow-lift:0 14px 35px #1557d214;
+  background:#ffffff;
+}
+body:has([data-public-site="leadflow"]) .lf-shell {max-width:1264px}
+body:has([data-public-site="leadflow"]) :is(.lf-button,.cb-btn-primary,.cb-btn--primary){border-radius:7px}
+body:has([data-public-site="leadflow"]) .lf-eyebrow{letter-spacing:.15em}
+body:has([data-public-site="leadflow"]) :is(.lf-section,.cb-section){scroll-margin-top:100px}
+
+body:has([data-public-site="leadflow"]){--cb-blue:#1557d2;--cb-blue-deep:#0b4fbe;--cb-blue-soft:#e2f0ff;--cb-cyan:#1aaad5;--blue:#1557d2;--blue-strong:#0b4fbe;--accent-tint:#eaf4ff;--accent-line:#b6d6f7}
+body:has([data-public-site="leadflow"]) :is(.lf-button,.cb-btn-primary,.cb-btn--primary){background:#1557d2;color:white;border-color:#1557d2;box-shadow:0 7px 22px #1557d219}
+body:has([data-public-site="leadflow"]) :is(.lf-button,.cb-btn-primary,.cb-btn--primary):hover{background:#0b4fbe;color:white}
+body:has([data-public-site="leadflow"]) .lf-eyebrow{color:#0b5c9b}

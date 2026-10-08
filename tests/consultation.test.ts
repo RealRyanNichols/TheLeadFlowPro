@@ -7,8 +7,8 @@ import { CONSULTATION } from "../lib/site/consultation.ts";
 import { FOOTER_COLUMNS, HEADER_CTA, NAV_LINKS } from "../lib/site/navigation.ts";
 
 // The homepage's one ask is the free thirty-minute consultation. These tests
-// keep the offer described one way everywhere and keep events and courses
-// off the front door.
+// keep the offer described one way everywhere. Resource links remain secondary
+// to the consultation under the October8 broader website organization request.
 
 test("a consultation request lands in the done-for-you lane with a welcome that names the time, the place, and the phone", () => {
   assert.ok(INTEREST_LABELS[CONSULTATION.interest], "interest must be a labelled leads.interest value");
@@ -28,7 +28,7 @@ test("a consultation request lands in the done-for-you lane with a welcome that 
   assert.ok(!/calendly\.com|pick the time yourself/i.test(mail.text), "the 30-minute request does not redirect to a separate 20-minute calendar");
 });
 
-test("the homepage sells the consultation and the done-for-you services, never events or courses", () => {
+test("the homepage keeps the consultation and existing service destinations clear", () => {
   const home = readFileSync("app/page.tsx", "utf8");
   for (const banned of [
     "FeaturedEvent",

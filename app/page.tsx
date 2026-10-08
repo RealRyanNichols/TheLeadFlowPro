@@ -1,436 +1,86 @@
-import SeptemberSpecialNotice from "@/components/site/SeptemberSpecialNotice";
 import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
-export const metadata = withPublicPageMetadata("/", {
-  title:
-    "Marketing Agency in Longview, TX: Ads, Websites, Follow-Up | The LeadFlow Pro",
-  description:
-    "The LeadFlow Pro builds and runs the lead system for Longview and East Texas businesses: ads, websites, funnels, and follow-up in accounts you own. Start with a free 30-minute consultation.",
-});
 import Link from "next/link";
-import {
-  ArrowRight,
-  ArrowUpRight,
-  Check,
-  Globe,
-  MapPin,
-  Megaphone,
-  MessageSquareText,
-  ShieldCheck,
-} from "lucide-react";
+import Image from "next/image";
+import { ArrowRight, ArrowUpRight, Check, Globe2, MapPin, Users, Sparkles, Play, Layers3 } from "lucide-react";
 import ConsultationForm from "@/components/site/ConsultationForm";
 import HomeScoreboard from "@/components/site/HomeScoreboard";
+import HomeProofStories from "@/components/site/HomeProofStories";
+import SeptemberSpecialNotice from "@/components/site/SeptemberSpecialNotice";
 import { TOOL_COUNT } from "@/lib/tools";
 import { BUSINESS } from "@/lib/site/business";
 import { CONSULTATION } from "@/lib/site/consultation";
-import {
-  managedUpfrontSummary,
-  managedCampaignSummary,
-} from "@/lib/site/managedPlans";
-import { TEXT_LABEL, smsHref } from "@/lib/site/textLinks";
-import {
-  graph,
-  jsonLdText,
-  localBusinessJsonLd,
-  organizationJsonLd,
-  webPageJsonLd,
-  websiteJsonLd,
-} from "@/lib/site/structuredData";
+import { managedUpfrontSummary, managedCampaignSummary } from "@/lib/site/managedPlans";
+import { graph, jsonLdText, localBusinessJsonLd, organizationJsonLd, webPageJsonLd, websiteJsonLd } from "@/lib/site/structuredData";
+import styles from "./growth-home.module.css";
 
-// The homepage has one job: get a business owner to ask for the free
-// thirty-minute consultation. No events, no courses. What we build and run,
-// how the sit-down works, proof from the scoreboard, and the form.
-//
-// Re-rendered every 15 minutes so the scoreboard rows stay current.
+const TITLE = "Grow Your Business & Community | The LeadFlow Pro";
+const DESCRIPTION = "Websites, marketing, content and follow-up for local businesses, online businesses and communities. Build your next move with Ryan Nichols and The LeadFlow Pro.";
+export const metadata = withPublicPageMetadata("/", { title: TITLE, description: DESCRIPTION });
 export const revalidate = 900;
-
-const HOME_JSONLD = graph(
-  organizationJsonLd(),
-  localBusinessJsonLd(),
-  websiteJsonLd(),
-  webPageJsonLd(
-    "/",
-    "Marketing Agency in Longview, TX: Ads, Websites, Follow-Up | The LeadFlow Pro",
-    "Ads, websites, funnels, and follow-up built and run for Longview and East Texas businesses in accounts they own. Start with a free 30-minute consultation.",
-  ),
-);
-
-const STEPS = [
-  {
-    title: "Send the form.",
-    body: "Name, business, phone, and what is getting in the way. That is it. Ryan calls or texts within one business day to set the time and the place.",
-  },
-  {
-    title: "Pick the place.",
-    body: `Your shop, the ${BUSINESS.city} office, or a call. In ${BUSINESS.city} and ${BUSINESS.region}, Ryan comes to you and sees the business the way your customers do.`,
-  },
-  {
-    title: "Bring everything.",
-    body: "Thirty minutes, all of it on the table. You leave with the first thing to fix and your next three moves, whether you hire us or not.",
-  },
-] as const;
-
+const HOME_JSONLD = graph(organizationJsonLd(), localBusinessJsonLd(), websiteJsonLd(), webPageJsonLd("/", TITLE, DESCRIPTION));
 const CONSULT_HREF = `#${CONSULTATION.anchor}`;
 
 export default function HomePage() {
-  return (
-    <main className="lf-home">
-      <SeptemberSpecialNotice />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: jsonLdText(HOME_JSONLD) }}
-      />
-      <section className="lf-hero lf-shell">
-        <div className="lf-hero-copy">
-          <p className="lf-eyebrow">
-            THE LEADFLOW PRO / {BUSINESS.city.toUpperCase()},{" "}
-            {BUSINESS.region.toUpperCase()} AND BEYOND
-          </p>
-          <h1>
-            More leads for {BUSINESS.region} businesses.
-            <br />
-            Less busywork.
-            <br />
-            <em>We handle it for you.</em>
-          </h1>
-          <p className="lf-intro">
-            Websites, funnels, lead follow-up, and the automation behind them.
-            Built and run for your business, in accounts you own. You run the
-            business. We run the system.
-          </p>
-          <p className="lf-plan-expectation">
-            <Link href="/pricing">
-              <strong>{managedUpfrontSummary()}</strong>{" "}
-              {managedCampaignSummary()}
-            </Link>
-          </p>
-          <div className="lf-actions">
-            <a
-              className="lf-button"
-              href={CONSULT_HREF}
-              data-cta="consultation_cta"
-              data-cta-placement="home_hero_copy"
-            >
-              Book my free {CONSULTATION.minutes}-minute consultation{" "}
-              <ArrowRight size={19} aria-hidden="true" />
-            </a>
-            <a className="lf-text-link" href="#what-we-do">
-              See what we build and run{" "}
-              <ArrowUpRight size={18} aria-hidden="true" />
-            </a>
+  return <main className={`lf-home ${styles.page}`}>
+    <SeptemberSpecialNotice />
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdText(HOME_JSONLD) }} />
+    <section className={styles.hero}>
+      <div className={styles.heroGlow} aria-hidden="true" />
+      <div className={styles.wrap}>
+        <div className={styles.heroGrid}>
+          <div className={styles.heroCopy}>
+            <p className={styles.eyebrow}><span />THE LEADFLOW PRO / YOUR NEXT MOVE</p>
+            <h1>Grow the business.<br />Build the following.<br /><em>Own what’s next.</em></h1>
+            <p className={styles.intro}>For the business on Main Street. The brand selling online. The community bringing people together. We build the websites, marketing and follow-up that help you grow.</p>
+            <div className={styles.actions}><a className={styles.button} href={CONSULT_HREF} data-cta="consultation_cta" data-cta-placement="home_hero_copy">Let’s build your next move <ArrowUpRight size={20} aria-hidden="true" /></a><a className={styles.textLink} href="#client-stories"><Play size={15} aria-hidden="true" />Hear the stories</a></div>
+            <p className={styles.heroNote}>Start with a free {CONSULTATION.minutes}-minute conversation. Your business. Your accounts. Your direction.</p>
           </div>
-          <div className="lf-hero-trust">
-            <span>
-              <ShieldCheck size={16} aria-hidden="true" /> Your business. Your
-              accounts. Your leads.
-            </span>
-            <span>
-              <MapPin size={16} aria-hidden="true" /> We come to you in{" "}
-              {BUSINESS.region}. Or meet at the {BUSINESS.city} office.
-            </span>
+          <div className={styles.heroVisual}>
+            <figure className={styles.heroPhoto}><Image src="/images/ryan-wholesale-universe-owner.jpg" alt="Ryan Nichols above pallets of inventory in the Wholesale Universe warehouse" width={1800} height={1350} sizes="(max-width:800px) 92vw, 44vw" priority /><figcaption><span>RYAN NICHOLS / WHOLESALE UNIVERSE</span><strong>Business experience.<br />Put to work for you.</strong><Link href="/about">Meet Ryan Nichols <ArrowUpRight size={18} aria-hidden="true" /></Link></figcaption></figure>
+            <Link className={styles.archiveCard} href="/about"><Image src="/images/ryan-meta-raybans-production-clean.jpg" alt="Ryan Nichols wearing smart glasses" width={768} height={1024} sizes="100px" /><span>MEET YOUR BUSINESS GUIDE<strong>Meet Ryan Nichols <ArrowUpRight size={15} aria-hidden="true" /></strong></span></Link>
+            <div className={styles.visualStamp} aria-hidden="true"><Sparkles size={18} />BUILT AROUND<br />YOUR AMBITION</div>
           </div>
         </div>
-        <div className="lf-hero-feature" id={CONSULTATION.anchor}>
-          <div className="lf-consult">
-            <div className="lf-consult-head">
-              <span>{CONSULTATION.eyebrow.toUpperCase()}</span>
-              <h2 id="free-consultation-title">{CONSULTATION.headline}</h2>
-              <p>{CONSULTATION.body}</p>
-            </div>
-            <ConsultationForm
-              placement={CONSULTATION.placement}
-              labelledBy="free-consultation-title"
-            />
-          </div>
-        </div>
-      </section>
+        <div className={styles.heroBottom}><span><MapPin size={16} aria-hidden="true" />Local businesses</span><span><Globe2 size={16} aria-hidden="true" />Online businesses</span><span><Users size={16} aria-hidden="true" />Communities &amp; creators</span><a href="#possibilities">Find your next move <ArrowRight size={17} aria-hidden="true" /></a></div>
+      </div>
+    </section>
 
-      <section className="lf-section lf-section-raised" id="what-we-do">
-        <div className="lf-shell">
-          <div className="lf-section-heading">
-            <div>
-              <p className="lf-eyebrow">WE DO THE WORK</p>
-              <h2>
-                You run the business.
-                <br />
-                <em>We run the system.</em>
-              </h2>
-            </div>
-            <p>
-              No courses to finish. No software to learn. Tell us what you sell
-              and who you want more of. We build it, run it, and hand you the
-              results in accounts you own.
-            </p>
-          </div>
-          <div className="lf-path-grid">
-            <article>
-              <span className="lf-path-number">01 / LEADS</span>
-              <Megaphone aria-hidden="true" />
-              <h3>Leads that reach your phone, not a spreadsheet.</h3>
-              <p>
-                Facebook, Instagram, and Google ads built in your own accounts.
-                Lead forms wired to your inbox, your CRM, and your phone. You
-                can see which ad paid for which job.
-              </p>
-              <Link href="/agency/meta-ads">
-                See the lead service <ArrowRight size={18} aria-hidden="true" />
-              </Link>
-              <small>
-                Customers search for you by name or need?{" "}
-                <Link href="/agency/google-ads">See Google Ads.</Link>
-              </small>
-            </article>
-            <article>
-              <span className="lf-path-number">02 / FOLLOW-UP</span>
-              <MessageSquareText aria-hidden="true" />
-              <h3>Follow-up that runs whether you are free or not.</h3>
-              <p>
-                Every inquiry becomes a record with an owner. The first reply
-                goes out fast. The rest runs on a ladder you approve, with
-                consent and STOP handled. Documented and pausable, in your
-                accounts.
-              </p>
-              <Link href="/agency/automation">
-                See the automation service{" "}
-                <ArrowRight size={18} aria-hidden="true" />
-              </Link>
-              <small>
-                Just want the messages written?{" "}
-                <Link href="/pricing">See the 90-day campaign.</Link>
-              </small>
-            </article>
-            <article>
-              <span className="lf-path-number">03 / WEBSITES AND FUNNELS</span>
-              <Globe aria-hidden="true" />
-              <h3>A website and a funnel that give people a next step.</h3>
-              <p>
-                Five pages that say what you do, what it costs, and how to reach
-                you from a phone. One offer page with the follow-up behind it.
-                Built in accounts you own.
-              </p>
-              <Link href="/agency/websites">
-                See the website service{" "}
-                <ArrowRight size={18} aria-hidden="true" />
-              </Link>
-              <small>
-                <Link href="/pricing">
-                  {managedUpfrontSummary()} {managedCampaignSummary()}
-                </Link>
-              </small>
-            </article>
-          </div>
-        </div>
-      </section>
+    <section className={`${styles.wrap} ${styles.section}`} id="possibilities" aria-labelledby="possibilities-title">
+      <div className={styles.sectionHead}><div><p className={styles.eyebrow}>WHERE DO YOU WANT TO GROW?</p><h2 id="possibilities-title">Different businesses.<br /><em>Big possibilities.</em></h2></div><p>More customers. A stronger online presence. A place for people to connect. Start with what you’re building, and we’ll help connect the next steps.</p></div>
+      <div className={styles.audienceGrid}>
+        <article className={styles.audienceCard} id="contractor-example"><Image src="/images/contractors/scott-cab-hero.jpg" alt="Scott and Ryan on location with O-L Guy Farms" width={1200} height={800} sizes="(max-width:800px) 100vw, 33vw" /><div><span className={styles.index}>01 / LOCAL BUSINESSES</span><h3>Be the business<br />people ask for.</h3><p>Show your work, reach the right people and give each inquiry a clear path to a conversation.</p><Link href="/agency">Grow your local business <ArrowUpRight size={18} aria-hidden="true" /></Link></div></article>
+        <article className={styles.audienceCard}><Image src="/images/ryan-wholesale-universe-designer-rack-sale.jpg" alt="Merchandise display from the Wholesale Universe business archive" width={480} height={360} sizes="(max-width:800px) 100vw, 33vw" /><div><span className={styles.index}>02 / ONLINE BUSINESSES</span><h3>Turn your offer<br />into a destination.</h3><p>Connect your storefront, content and customer journey so people understand what you sell and how to buy.</p><Link href="/commerce">Build your online business <ArrowUpRight size={18} aria-hidden="true" /></Link></div></article>
+        <article className={styles.audienceCard}><Image src="/images/portfolio/belize-mission-team.jpg" alt="Team photo from the Belize mission project featured in the LeadFlow portfolio" width={1032} height={928} sizes="(max-width:800px) 100vw, 33vw" /><div><span className={styles.index}>03 / COMMUNITIES &amp; CREATORS</span><h3>Give people<br />a place to belong.</h3><p>Bring your purpose, content, learning and member experience into a place people can find and use.</p><Link href="/agency/community-help-desk">Explore community support <ArrowUpRight size={18} aria-hidden="true" /></Link></div></article>
+      </div>
+    </section>
 
-      <section
-        className="lf-section lf-shell"
-        aria-labelledby="territory-title"
-      >
-        <div className="lf-territory-callout">
-          <div>
-            <p className="lf-eyebrow">YOUR INDUSTRY. YOUR TERRITORY.</p>
-            <h2 id="territory-title">
-              Your competitor should not get the same campaign next door.
-            </h2>
-            <p>
-              We agree on the services and area we protect before taking on
-              competing work. Local radius, a whole state, or national coverage:
-              the boundary follows your business.
-            </p>
-            <Link
-              className="lf-button"
-              href="/service-areas#check-my-area"
-              data-cta="service_area_check"
-              data-cta-placement="home_territory"
-            >
-              Check my service area <ArrowRight size={18} aria-hidden="true" />
-            </Link>
-          </div>
-          <div className="lf-territory-visual" aria-hidden="true">
-            <span className="lf-territory-ring lf-territory-ring-outer" />
-            <span className="lf-territory-ring lf-territory-ring-inner" />
-            <ShieldCheck size={50} strokeWidth={1.5} />
-            <span>Agreed in writing.</span>
-          </div>
-        </div>
-      </section>
+    <HomeProofStories />
 
-      <section className="lf-section lf-shell" id="how-it-works">
-        <div className="lf-section-heading">
-          <div>
-            <p className="lf-eyebrow">THE FREE CONSULTATION</p>
-            <h2>
-              Thirty minutes.
-              <br />
-              <em>Bring everything.</em>
-            </h2>
-          </div>
-          <p>
-            No pitch deck. No homework you have to finish first. Show Ryan the
-            real business and get straight answers.
-          </p>
-        </div>
-        <div className="lf-consult-grid">
-          <ol className="lf-steps">
-            {STEPS.map((step, index) => (
-              <li key={step.title}>
-                <span aria-hidden="true">{index + 1}</span>
-                <div>
-                  <h3>{step.title}</h3>
-                  <p>{step.body}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-          <aside className="lf-bring" aria-labelledby="bring-title">
-            <h3 id="bring-title">What to bring</h3>
-            <ul>
-              {CONSULTATION.bring.map((item) => (
-                <li key={item}>
-                  <Check size={18} aria-hidden="true" />
-                  <span>{item}</span>
-                </li>
-              ))}
-            </ul>
-            <div className="lf-actions">
-              <a
-                className="lf-button"
-                href={CONSULT_HREF}
-                data-cta="consultation_cta"
-                data-cta-placement="home_how_it_works"
-              >
-                Book my free consultation{" "}
-                <ArrowRight size={18} aria-hidden="true" />
-              </a>
-              <a
-                className="lf-text-link"
-                href={BUSINESS.phone.tel}
-                data-cta="call"
-                data-cta-placement="home_how_it_works"
-              >
-                Or call {BUSINESS.phone.display}
-              </a>
-              <a
-                className="lf-text-link"
-                href={smsHref("home_how_it_works")}
-                data-cta="text"
-                data-cta-placement="home_how_it_works"
-              >
-                {TEXT_LABEL}
-              </a>
-            </div>
-          </aside>
-        </div>
-      </section>
+    <section className={`${styles.wrap} ${styles.section}`} id="what-we-do" aria-labelledby="services-title">
+      <div className={styles.sectionHead}><div><p className={styles.eyebrow}>MAKE THE PIECES WORK TOGETHER</p><h2 id="services-title">A better website.<br /><em>A bigger plan.</em></h2></div><p>You might need one great project. You might need a team to run the marketing. We’ll help you choose the scope that fits.</p></div>
+      <div className={styles.serviceGrid}>
+        <article className={styles.projectPath}><span className={styles.index}>BUILD SOMETHING GREAT</span><h3>Your next website.<br />Storefront. Customer journey.</h3><p>Bring the idea and the way your business works. We shape the experience, build the pages and connect the practical next steps.</p><div className={styles.serviceLinks}><Link href="/agency/websites">Websites &amp; funnels <ArrowUpRight size={16} /></Link><Link href="/commerce">Stores &amp; online sales <ArrowUpRight size={16} /></Link><Link href="/agency/automation">Follow-up &amp; connected systems <ArrowUpRight size={16} /></Link></div><Link className={styles.outlineButton} href="/services">Explore project services <ArrowRight size={18} /></Link><small>Projects are scoped and quoted separately. Review the written scope before committing.</small></article>
+        <article className={styles.growthPath}><span className={styles.index}>PUT A TEAM BEHIND YOUR GROWTH</span><h3>The campaign.<br />The content. The follow-through.</h3><p>Bring your offer and your goals. We connect the website, advertising, content and follow-up around an agreed campaign.</p><div className={styles.serviceLinks}><Link href="/agency/meta-ads">Facebook &amp; Instagram campaigns <ArrowUpRight size={16} /></Link><Link href="/agency/google-ads">Search campaigns <ArrowUpRight size={16} /></Link><Link href="/agency/content">Content &amp; creative <ArrowUpRight size={16} /></Link></div><Link className={styles.button} href="/agency">Explore managed growth <ArrowRight size={18} /></Link><small><Link href="/pricing">{managedUpfrontSummary()} {managedCampaignSummary()}</Link></small></article>
+      </div>
+    </section>
 
-      <section className="lf-section lf-section-raised" id="results">
-        <div className="lf-shell">
-          <div className="lf-section-heading">
-            <div>
-              <p className="lf-eyebrow">PROOF, NOT PROMISES</p>
-              <h2>
-                The work should
-                <br />
-                <em>show up on the board.</em>
-              </h2>
-            </div>
-            <p>
-              Our own businesses, running on the same system we build for
-              clients. Real records from their own accounts. Definitions printed
-              on every board.
-            </p>
-          </div>
-          <HomeScoreboard />
-          <div className="lf-actions">
-            <Link className="lf-text-link" href="/scoreboard">
-              Explore every business’s scoreboard{" "}
-              <ArrowRight size={18} aria-hidden="true" />
-            </Link>
-            <Link className="lf-text-link" href="/results">
-              See the work behind the numbers{" "}
-              <ArrowRight size={18} aria-hidden="true" />
-            </Link>
-          </div>
-        </div>
-      </section>
+    <section className={styles.workSection} aria-labelledby="work-title"><div className={styles.wrap}>
+      <div className={styles.sectionHead}><div><p className={styles.eyebrow}>FROM THE PORTFOLIO</p><h2 id="work-title">Work with a purpose.<br /><em>Built for real people.</em></h2></div><Link className={styles.textLink} href="/portfolio">Explore the work <ArrowUpRight size={19} /></Link></div>
+      <div className={styles.workGrid}>
+        <article id="education-example"><Link href="/premier-system" className={styles.workImage}><Image src="/images/premier/premier-classroom.jpg" alt="Students practicing with dental models at Premier Dental Academy" width={1000} height={750} sizes="(max-width:800px) 100vw, 60vw" /><span>EDUCATION / ENROLLMENT / STUDENT TOOLS</span></Link><h3>Premier Dental Academy</h3><p>A real school with a connected website, enrollment journey, practice tools and student portal.</p><Link href="/premier-system">Explore the academy system <ArrowUpRight size={17} /></Link><small>Premier and LeadFlow share an ownership group. Amanda Williams leads the academy; its team delivers the education and student support.</small></article>
+        <article><Link href="/portfolio" className={styles.workImage}><Image src="/images/portfolio/lone-star-fleet-before-after.jpg" alt="Truck before and after washing, from Lone Star Total Wash’s completed-jobs gallery" width={1400} height={933} sizes="(max-width:800px) 100vw, 40vw" /><span>BUSINESS WEBSITES / CLEARER CUSTOMER PATHS</span></Link><h3>Lone Star Total Wash</h3><p>A business website built around its services, completed jobs and a clear way to ask for a quote.</p><Link href="/portfolio">See more projects <ArrowUpRight size={17} /></Link><small>The washing shown was performed by Lone Star Total Wash’s crew. LeadFlow’s project was the website.</small></article>
+      </div>
+    </div></section>
 
-      <section className="lf-section lf-shell">
-        <div className="lf-resource-grid">
-          <Link href="/tools">
-            <span className="lf-eyebrow">YOUR TOOLBOX</span>
-            <strong>
-              {TOOL_COUNT} free tools.
-              <br />
-              Find one that helps today.
-            </strong>
-            <p>
-              Work out a price, see what missed calls cost, or plan your next
-              move. No login.
-            </p>
-            <span className="lf-text-link">
-              Open the tools <ArrowRight aria-hidden="true" />
-            </span>
-          </Link>
-          <Link href="/articles">
-            <span className="lf-eyebrow">PLAIN-ENGLISH GUIDES</span>
-            <strong>
-              Read it.
-              <br />
-              Use it in your business.
-            </strong>
-            <p>
-              Practical answers with steps you can use. No wall of technical
-              jargon.
-            </p>
-            <span className="lf-text-link">
-              Read the articles <ArrowRight aria-hidden="true" />
-            </span>
-          </Link>
-        </div>
-      </section>
+    <section className={`${styles.wrap} ${styles.section}`} aria-labelledby="process-title"><div className={styles.sectionHead}><div><p className={styles.eyebrow}>A CLEAR WAY FORWARD</p><h2 id="process-title">Bring the ambition.<br /><em>We’ll work on the next move.</em></h2></div><p>Start with a conversation, get specific about the work, and build around the outcome you want.</p></div><ol className={styles.steps}><li><span>01</span><h3>Talk it through.</h3><p>Show Ryan your business, website or idea. Meet by phone or video, or in person around Longview and East Texas.</p></li><li><span>02</span><h3>Make a clear plan.</h3><p>Agree on the audience, scope, ownership, priorities and what happens next. Know what you’re buying before work begins.</p></li><li><span>03</span><h3>Build. Learn. Improve.</h3><p>Connect the work to the customer journey. Review inquiries and outcomes where the connected records support them.</p></li></ol></section>
 
-      <section className="lf-final">
-        <div className="lf-shell">
-          <p className="lf-eyebrow">
-            {BUSINESS.city.toUpperCase()}. {BUSINESS.region.toUpperCase()}.
-            ANYWHERE.
-          </p>
-          <h2>
-            You run the business.
-            <br />
-            <em>We will run the system.</em>
-          </h2>
-          <p>
-            Thirty minutes. Bring what you have got. Leave knowing what to fix
-            first.
-          </p>
-          <div className="lf-actions">
-            <a
-              className="lf-button"
-              href={CONSULT_HREF}
-              data-cta="consultation_cta"
-              data-cta-placement="home_final"
-            >
-              Book my free consultation <ArrowRight aria-hidden="true" />
-            </a>
-            <a
-              className="lf-text-link"
-              href={BUSINESS.phone.tel}
-              data-cta="call"
-              data-cta-placement="home_final"
-            >
-              Call {BUSINESS.phone.display} <ArrowRight aria-hidden="true" />
-            </a>
-            <a
-              className="lf-text-link"
-              href={smsHref("home_final")}
-              data-cta="text"
-              data-cta-placement="home_final"
-            >
-              {TEXT_LABEL} <ArrowRight aria-hidden="true" />
-            </a>
-          </div>
-        </div>
-      </section>
-    </main>
-  );
+    <section className={styles.consultSection} id={CONSULTATION.anchor} aria-labelledby="free-consultation-title"><div className={`${styles.wrap} ${styles.consultGrid}`}>
+      <div className={styles.consultIntro}><p className={styles.eyebrow}>FREE {CONSULTATION.minutes}-MINUTE CONSULTATION</p><h2 id="free-consultation-title">Let’s talk about<br /><em>what’s next for you.</em></h2><p>A local business. An online offer. A community you believe in. Bring what you have and where you want to go.</p><ul><li><Check size={18} />A real conversation about your business.</li><li><Check size={18} />A practical place to start.</li><li><Check size={18} />A clear next step and scope that fits.</li></ul><a href={BUSINESS.phone.tel} className={styles.textLink}>Prefer to talk? {BUSINESS.phone.display} <ArrowUpRight size={18} /></a><p className={styles.consultBase}>Based in Longview, Texas. Working with businesses and communities online and on location.</p></div>
+      <div className={`lf-consult ${styles.consultCard}`}><ConsultationForm placement={CONSULTATION.placement} labelledBy="free-consultation-title" /></div>
+    </div></section>
+
+    <section className={`${styles.wrap} ${styles.section}`} id="results" aria-labelledby="score-title"><div className={styles.sectionHead}><div><p className={styles.eyebrow}>OPEN THE NUMBERS</p><h2 id="score-title">See what the<br /><em>records actually show.</em></h2></div><p>Explore activity from our own businesses. Each board explains what its numbers measure, including where lead records differ from customers and sales.</p></div><HomeScoreboard /><div className={styles.actions}><Link className={styles.outlineButton} href="/scoreboard">Explore the scoreboards <ArrowUpRight size={18} /></Link><Link className={styles.textLink} href="/results">More results &amp; context <ArrowRight size={18} /></Link></div></section>
+
+    <section className={styles.resources}><div className={styles.wrap}><div><p className={styles.eyebrow}>KEEP BUILDING</p><h2>A few tools<br />for your next move.</h2></div><Link href="/tools"><Layers3 size={23} /><span><strong>{TOOL_COUNT} free business tools</strong><small>Plan, price and work through an idea.</small></span><ArrowUpRight size={20} /></Link><Link href="/articles"><Globe2 size={23} /><span><strong>Guides you can use</strong><small>Practical answers for the work ahead.</small></span><ArrowUpRight size={20} /></Link><Link href="/academy"><Sparkles size={23} /><span><strong>Learn at your pace</strong><small>Explore the academy and learning resources.</small></span><ArrowUpRight size={20} /></Link></div></section>
+  </main>;
 }
