@@ -506,6 +506,16 @@ Supabase table, function or policy, and nothing on Vercel.
 
 ## Getting it onto the droplet
 
+**October 7 update: withheld until the join.** Ryan's rule on Oct 7: the
+droplet's admin section "has been greatly updated", it is the base, nothing
+Pat built is deleted, and this board is layered on top of it. The live site
+runs `8f96f9ca`, on no GitHub branch, so a plain `leadflow-release` of
+`main` would replace that work. The order now is in `docs/lanes.md`: Pat's
+side pushes `/srv/sites/leadflow` to `droplet/live`; the build session
+merges `main` into it keeping the droplet's version of every file both
+sides touched and re-adds the board's panels as additions; that joined
+commit is what gets released. The steps below apply to the joined sha.
+
 This session could not reach the droplet (no SSH key here; Pat has root).
 The full runbook, with the read-only checks, the guard, the optional
 settings and the rollback, is `docs/infrastructure/command-center-deploy-2026-10-06.md`.

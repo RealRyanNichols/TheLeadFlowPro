@@ -1,5 +1,14 @@
 # Deploy runbook: branch `claude/dazzling-fermi-svd28t` onto the live droplet with `leadflow-release`
 
+> **Withdrawn on October 7, 2026 until the join is done.** Ryan's rule that
+> day: the droplet's admin section is the base, nothing Pat built is
+> deleted, the board is layered on top. The live site runs `8f96f9ca`, a
+> commit on no GitHub branch, so a plain `leadflow-release` (which builds
+> `origin/main`) would replace the droplet's admin work with `main`'s. Do
+> not run it. First action and the rules: `docs/lanes.md` ("The first
+> action"). Once `droplet/live` is pushed and the joined commit is on
+> GitHub, this runbook applies to that sha.
+
 Written Oct 6, 2026 from the repo (`CLAUDE.md`, `docs/infrastructure/*`, `deploy/*`), Pat's Sep 26 handoff doc, and the facts handed to this task. This session has no SSH key and has not touched the droplet; every command below is for Ryan (DigitalOcean web console) or Pat (root SSH) to run **as root** on the droplet `leadflow-web` (165.227.248.110). Paste the output of any step that looks different from "expected" to Claude before going on.
 
 **What this deploy is:** the live site is the systemd service `site@leadflow` (Next.js, `127.0.0.1:3109`, running as `leadflowsite` on Node 22.23.2 from `/var/lib/leadflow-releases/current`, settings in `/srv/site-env/leadflow.env`). Caddy sends `www.theleadflowpro.com` to it. Live on Oct 3 was `9c701b2` (origin/main). On Oct 6 at 10 AM Central the health route reported `232976c`, a commit that is on no branch or tag on GitHub (all 219 refs checked), so somebody released a local commit from `/srv/sites/leadflow`; step 0 item 3 says what to do about that before anything else is released. The branch is main plus the rebuilt `/admin/command-center` board, a new `/sales/board` page for the sales login, `lib/commandCenter*.ts`, `lib/metaInsights.ts`, `lib/operatorLinks.ts`, a read-only change to `app/api/ads-brain/pull/route.ts`, four optional env names in `web.env.example`, and tests. **No database migration, no new timer, no Caddy or DNS change, no sends.** The branch is on GitHub as draft PR RealRyanNichols/TheLeadFlowPro#121; its tip may still gain commits, so step 2 reads the tip from GitHub instead of hard-coding it.
