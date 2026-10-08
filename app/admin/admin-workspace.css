@@ -26,3 +26,15 @@ body:has(#lf-admin-shell) .site-frame,body:has(#lf-admin-shell) .site-content{ma
 #lf-admin-shell .lf-admin-featured strong{display:block;font-size:12px;white-space:nowrap;color:var(--heading)}
 #lf-admin-shell .lf-admin-featured small{display:block;font-size:10px;color:var(--muted);margin-top:2px}
 @media(max-height:650px){#lf-admin-shell .lf-admin-sidebar{padding-top:14px}#lf-admin-shell .lf-admin-brand{padding-bottom:12px}#lf-admin-shell .lf-admin-primary{padding-top:10px;gap:4px}}
+
+/* Private native CRM: readable calls and bounded source-backed intake briefs. */
+#lf-admin-shell .lf-prospect-phone{font-size:28px;line-height:1.2;letter-spacing:-.4px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;color:var(--blue);padding:4px 0}
+#lf-admin-shell .lf-prospect-brief{margin-top:9px;max-width:760px;color:var(--text);font-size:14px;line-height:1.55}
+#lf-admin-shell .lf-prospect-summary{margin:0 0 5px}#lf-admin-shell .lf-prospect-next{margin:0 0 8px;color:var(--muted);font-size:13px}#lf-admin-shell .lf-prospect-next strong{color:var(--blue)}
+#lf-admin-shell .lf-prospect-details{border:1px solid var(--line);border-radius:9px;background:var(--panel-2);max-width:760px}
+#lf-admin-shell .lf-prospect-details>summary{padding:9px 12px;cursor:pointer;font-size:13px;font-weight:600;color:var(--blue)}
+#lf-admin-shell .lf-prospect-details[open]>summary{border-bottom:1px solid var(--line)}
+#lf-admin-shell .lf-prospect-details dl{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:0;padding:14px}
+#lf-admin-shell .lf-prospect-details dt{font-size:12px;color:var(--muted);margin:0 0 4px}#lf-admin-shell .lf-prospect-details dd{margin:0;color:var(--text);font-size:14px;overflow-wrap:anywhere}
+#lf-admin-shell .lf-prospect-wide{grid-column:1/-1}#lf-admin-shell .lf-prospect-reviewed{margin:0;padding:0 14px 14px;color:var(--muted);font-size:12px}
+@media(max-width:600px){#lf-admin-shell .lf-prospect-phone{font-size:26px}#lf-admin-shell .lf-prospect-details dl{grid-template-columns:1fr}}

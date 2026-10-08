@@ -17,3 +17,8 @@ test("a manually changed stage supersedes an older curated decision summary", ()
  const result=leadStanding({status:"won",notes:"[LEADFLOW STANDING]\nStatus: proposal\nSummary: Awaiting a decision.\nNext: Ask for the decision.\nUpdated: 2026-10-06T12:00:00Z\n[/LEADFLOW STANDING]"});
  assert.match(result.summary,/Won/);assert.equal(result.nextAction,null);
 });
+
+test("intake exposes bounded form fields without copying raw notes or claiming an exact ad", () => {
+ const r=leadStanding({status:"new",notes:"private history not for lists",source:"facebook_lead_ad",industry:"excavation",timeline:"now_30_days",goals:"Need more grading work. https://private.invalid/signed person@example.com "+"x".repeat(500)});
+ assert.equal(r.intake?.source,"facebook_lead_ad");assert.equal(r.intake?.campaign,null);assert.equal(r.intake?.timeline,"now_30_days");assert.ok((r.intake?.goals?.length||0)<=320);assert.doesNotMatch(JSON.stringify(r),/private history|signed|person@example/);
+});

@@ -41,7 +41,7 @@ export default async function AdminLeads() {
       </>
     );
   const touches = await loadLeadTouches(supabase, (leads ?? []).map(lead => lead.id));
-  const all = (leads ?? []).map(({ notes, ...lead }) => ({ ...lead, lastTouch: touches[lead.id], brief: leadStanding({ notes, status: lead.status }) }));
+  const all = (leads ?? []).map(({ notes, ...lead }) => ({ ...lead, lastTouch: touches[lead.id], brief: leadStanding({ notes, status: lead.status, source: lead.source, industry: lead.industry, interest: lead.interest, timeline: lead.timeline, goals: lead.goals }) }));
   const counts = {
     total: all.length,
     new: all.filter((l) => l.status === "new").length,
