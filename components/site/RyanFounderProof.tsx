@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight, Warehouse, Tv, Layers3 } from "lucide-react";
 import { RYAN_PROOF } from "@/lib/site/ryanProof";
-import ProofVideo from "./ProofVideo";
+import EllenVideo from "./EllenVideo";
 import styles from "./ryan-founder-proof.module.css";
 
 export default function RyanFounderProof({ full = false }: { full?: boolean }) {
@@ -15,8 +15,8 @@ export default function RyanFounderProof({ full = false }: { full?: boolean }) {
       </div>
       <div className={styles.chapters}>
         <article><Warehouse size={23} aria-hidden="true" /><p>{RYAN_PROOF.foundedYear} / WHOLESALE UNIVERSE</p><h3>Real product. Real operations.</h3><span>Inventory, ecommerce, live selling and fulfillment—the experience behind the systems.</span></article>
-        <article id={full ? "ellen" : "ellen-home"} className={styles.ellen}><Tv size={23} aria-hidden="true" /><p>{RYAN_PROOF.ellen.dateLabel.toUpperCase()} / THE ELLEN SHOW</p><h3>{RYAN_PROOF.ellen.title}</h3><span>{RYAN_PROOF.ellen.context}</span>{RYAN_PROOF.ellen.video ? <ProofVideo {...RYAN_PROOF.ellen.video} name="Ryan Nichols on The Ellen Show" /> : <a href={RYAN_PROOF.ellen.coverageUrl} target="_blank" rel="noopener noreferrer">Read the original appearance coverage <ArrowUpRight size={16} aria-hidden="true" /></a>}</article>
-        <article><Layers3 size={23} aria-hidden="true" /><p>TODAY / THE LEADFLOW PRO</p><h3>Put the experience to work.</h3><span>Websites, content, campaigns and follow-up built around the way your business operates.</span><Link href="/premier-system">Explore the Premier academy build <ArrowRight size={16} aria-hidden="true" /></Link></article>
+        <article id={full ? "ellen" : "ellen-home"} className={styles.ellen}><Tv size={23} aria-hidden="true" /><p>{RYAN_PROOF.ellen.dateLabel.toUpperCase()} / THE ELLEN SHOW</p><h3>{RYAN_PROOF.ellen.title}</h3><span>{RYAN_PROOF.ellen.context}</span><EllenVideo /></article>
+        <article><Layers3 size={23} aria-hidden="true" /><p>TODAY / THE LEADFLOW PRO</p><h3>Put the experience to work.</h3><span>High-value jobs, student enrollments and paying customers, measured against the cost of bringing them in.</span><Link href="/premier-system">Explore the Premier academy build <ArrowRight size={16} aria-hidden="true" /></Link></article>
       </div>
       {!full && <Link className={styles.more} href="/about">Meet Ryan and Patrick <ArrowRight size={18} aria-hidden="true" /></Link>}
     </div>

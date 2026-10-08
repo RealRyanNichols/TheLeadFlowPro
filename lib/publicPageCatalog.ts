@@ -137,17 +137,17 @@ export const PUBLIC_PAGE_CATALOG = [
   },
   {
     path: "/",
-    title: "Grow your business. Build your community.",
+    title: "High-value jobs. More enrollments.",
     description:
-      "Websites, marketing, content and follow-up for local businesses, online businesses and communities. Build your next move with The LeadFlow Pro.",
-    eyebrow: "Your next move",
+      "Veteran-owned and operated. Grow around high-value jobs, student enrollments and paying customers, with a clear target cost per result.",
+    eyebrow: "Results that matter",
     art: "/images/ryan-wholesale-universe-warehouse-pallets-flag.jpg",
   },
   {
     path: "/about",
     title: "Meet Ryan Nichols and the LeadFlow team",
     description:
-      "Wholesale Universe, marketing campaigns, business support and the people behind The LeadFlow Pro. Explore the stories and experience behind the work.",
+      "Meet Marine Corps veteran Ryan Nichols. Explore Wholesale Universe, his Hurricane Florence rescue work and Ellen appearance, and the people behind The LeadFlow Pro.",
     eyebrow: "The people behind the work",
     art: "/images/ryan-wholesale-universe-owner.jpg",
   },

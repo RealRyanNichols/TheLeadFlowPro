@@ -18,6 +18,7 @@ export default function ProofVideo({ src, poster, name, duration, priority = fal
         aria-label={`${name} video story`} data-proof-video
         onPlay={() => {
           setStarted(true);
+          window.dispatchEvent(new Event("leadflow-native-proof-play"));
           document.querySelectorAll<HTMLVideoElement>("video[data-proof-video]").forEach(other => {
             if (other !== video.current) other.pause();
           });

@@ -130,7 +130,7 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
 ];
 
 export const FOOTER_PITCH =
-  "Websites, marketing and useful systems for local businesses, online brands and communities. Built around your next move.";
+  "Veteran-owned and operated. Helping businesses win high-value jobs, grow enrollments and earn more customers, with a clear target cost per result.";
 
 export const LEGAL_LINKS: readonly NavLink[] = [
   { href: "/privacy", label: "Privacy" },

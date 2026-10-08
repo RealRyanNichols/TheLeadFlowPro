@@ -1,4 +1,4 @@
-/** Curated public founder evidence. A dead historical video is never exposed as a working player. */
+/** Curated public founder evidence with a reviewed, playable provider embed. */
 export const RYAN_PROOF = {
   warehouseImage: "/images/ryan-wholesale-universe-owner.jpg",
   foundedYear: "2015",
@@ -8,7 +8,12 @@ export const RYAN_PROOF = {
     title: "Ryan’s appearance on The Ellen Show",
     context: "Recognized for his volunteer rescue work during Hurricane Florence.",
     coverageUrl: "https://www.kltv.com/2018/09/28/man-who-rescued-people-animals-hurricane-honored-ellen/",
-    // The original Ellen/Facebook publication is unavailable. Await a verified original.
-    video: null as null | { src: string; poster: string; duration: string },
+    video: {
+      embedSrc: "https://rumble.com/embed/v1ctll3/?pub=4",
+      watchUrl: "https://rumble.com/v1ffri1-ryan-nichols-on-the-ellen-degeneres-show.html",
+      poster: "/images/proof/ryan-ellen-studio.jpg",
+      duration: "5:32",
+      coverage: "Ellen appearance excerpt followed by Ryan’s rescue-boat update",
+    },
   },
 } as const;

@@ -45,7 +45,7 @@ test("the homepage keeps the consultation and existing service destinations clea
   }
   assert.ok(home.includes("ConsultationForm"));
   assert.ok(home.includes("id={CONSULTATION.anchor}"));
-  for (const href of ["/agency/meta-ads", "/agency/automation", "/agency/websites", "/scoreboard", "/tools"]) {
+  for (const href of ["/services", "/portfolio", "/about", "/scoreboard", "/tools"]) {
     assert.ok(home.includes(`href="${href}"`), `homepage links ${href}`);
   }
 });

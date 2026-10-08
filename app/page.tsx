@@ -1,20 +1,21 @@
 import { withPublicPageMetadata } from "@/lib/publicPageMetadata";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, ArrowUpRight, Check, Globe2, MapPin, Users, Sparkles, Play, Layers3 } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Check, GraduationCap, HardHat, Users, ShieldCheck, Play } from "lucide-react";
 import ConsultationForm from "@/components/site/ConsultationForm";
-import HomeScoreboard from "@/components/site/HomeScoreboard";
 import HomeProofStories from "@/components/site/HomeProofStories";
+import BusinessResults from "@/components/site/BusinessResults";
+import VeteranStory from "@/components/site/VeteranStory";
 import SeptemberSpecialNotice from "@/components/site/SeptemberSpecialNotice";
-import { TOOL_COUNT } from "@/lib/tools";
 import { BUSINESS } from "@/lib/site/business";
 import { CONSULTATION } from "@/lib/site/consultation";
 import { managedUpfrontSummary, managedCampaignSummary } from "@/lib/site/managedPlans";
 import { graph, jsonLdText, localBusinessJsonLd, organizationJsonLd, webPageJsonLd, websiteJsonLd } from "@/lib/site/structuredData";
 import styles from "./growth-home.module.css";
+import results from "./results-home.module.css";
 
-const TITLE = "Grow Your Business & Community | The LeadFlow Pro";
-const DESCRIPTION = "Websites, marketing, content and follow-up for local businesses, online businesses and communities. Build your next move with Ryan Nichols and The LeadFlow Pro.";
+const TITLE = "High-Value Jobs. More Enrollments. | The LeadFlow Pro";
+const DESCRIPTION = "Veteran-owned and operated. Helping local businesses win high-value jobs, schools grow enrollments and online businesses earn more customers, with a clear target cost per result.";
 export const metadata = withPublicPageMetadata("/", { title: TITLE, description: DESCRIPTION });
 export const revalidate = 900;
 const HOME_JSONLD = graph(organizationJsonLd(), localBusinessJsonLd(), websiteJsonLd(), webPageJsonLd("/", TITLE, DESCRIPTION));
@@ -29,58 +30,53 @@ export default function HomePage() {
       <div className={styles.wrap}>
         <div className={styles.heroGrid}>
           <div className={styles.heroCopy}>
-            <p className={styles.eyebrow}><span />THE LEADFLOW PRO / YOUR NEXT MOVE</p>
-            <h1>Grow the business.<br />Build the following.<br /><em>Own what’s next.</em></h1>
-            <p className={styles.intro}>For the business on Main Street. The brand selling online. The community bringing people together. We build the websites, marketing and follow-up that help you grow.</p>
-            <div className={styles.actions}><a className={styles.button} href={CONSULT_HREF} data-cta="consultation_cta" data-cta-placement="home_hero_copy">Let’s build your next move <ArrowUpRight size={20} aria-hidden="true" /></a><a className={styles.textLink} href="#client-stories"><Play size={15} aria-hidden="true" />Hear the stories</a></div>
-            <p className={styles.heroNote}>Start with a free {CONSULTATION.minutes}-minute conversation. Your business. Your accounts. Your direction.</p>
+            <p className={`${styles.eyebrow} ${results.veteranBadge}`}><ShieldCheck size={18} />VETERAN-OWNED &amp; OPERATED</p>
+            <h1>High-value jobs.<br />More enrollments.<br /><em>Growth that pays.</em></h1>
+            <p className={styles.intro}>Put the crew on better jobs. Bring the right students into your next class. Turn interest into paying customers. We help local and online businesses grow around the results that matter.</p>
+            <p className={results.heroPromise}>Our focus: a fair, predictable cost per result.</p>
+            <div className={styles.actions}><a className={styles.button} href={CONSULT_HREF} data-cta="consultation_cta" data-cta-placement="home_hero_copy">Plan my next results <ArrowUpRight size={20} aria-hidden="true" /></a><a className={styles.textLink} href="#results"><Play size={15} aria-hidden="true" />See the numbers</a></div>
+            <p className={styles.heroNote}>Start with a free {CONSULTATION.minutes}-minute conversation about your customers, margins and capacity. Agree on the result and the target cost before work begins.</p>
           </div>
           <div className={styles.heroVisual}>
-            <figure className={styles.heroPhoto}><Image src="/images/ryan-wholesale-universe-owner.jpg" alt="Ryan Nichols above pallets of inventory in the Wholesale Universe warehouse" width={1800} height={1350} sizes="(max-width:800px) 92vw, 44vw" priority /><figcaption><span>RYAN NICHOLS / WHOLESALE UNIVERSE</span><strong>Business experience.<br />Put to work for you.</strong><Link href="/about">Meet Ryan Nichols <ArrowUpRight size={18} aria-hidden="true" /></Link></figcaption></figure>
-            <Link className={styles.archiveCard} href="/about"><Image src="/images/ryan-meta-raybans-production-clean.jpg" alt="Ryan Nichols wearing smart glasses" width={768} height={1024} sizes="100px" /><span>MEET YOUR BUSINESS GUIDE<strong>Meet Ryan Nichols <ArrowUpRight size={15} aria-hidden="true" /></strong></span></Link>
-            <div className={styles.visualStamp} aria-hidden="true"><Sparkles size={18} />BUILT AROUND<br />YOUR AMBITION</div>
+            <figure className={styles.heroPhoto}><Image src="/images/ryan-wholesale-universe-owner.jpg" alt="Ryan Nichols above pallets of inventory in the Wholesale Universe warehouse" width={1800} height={1350} sizes="(max-width:800px) 92vw, 44vw" priority /><figcaption><span>RYAN NICHOLS / MARINE CORPS VETERAN</span><strong>He knows what it takes<br />to run a business.</strong><a href="#ryans-story">Meet Ryan. Watch his story. <ArrowUpRight size={18} aria-hidden="true" /></a></figcaption></figure>
+            <a className={styles.archiveCard} href="#ellen-home"><Image src="/images/proof/ryan-ellen-studio.jpg" alt="Ryan Nichols with Ellen DeGeneres" width={854} height={480} sizes="100px" /><span>THE ELLEN APPEARANCE<strong>Watch Ryan’s rescue story <Play size={15} aria-hidden="true" /></strong></span></a>
+            <div className={styles.visualStamp} aria-hidden="true"><ShieldCheck size={18} />VETERAN OWNED<br />OWNER OPERATED</div>
           </div>
         </div>
-        <div className={styles.heroBottom}><span><MapPin size={16} aria-hidden="true" />Local businesses</span><span><Globe2 size={16} aria-hidden="true" />Online businesses</span><span><Users size={16} aria-hidden="true" />Communities &amp; creators</span><a href="#possibilities">Find your next move <ArrowRight size={17} aria-hidden="true" /></a></div>
+        <div className={styles.heroBottom}><span><HardHat size={16} aria-hidden="true" />High-value jobs</span><span><GraduationCap size={16} aria-hidden="true" />Student enrollments</span><span><Users size={16} aria-hidden="true" />Paying customers &amp; members</span><a href="#possibilities">Find your result <ArrowRight size={17} aria-hidden="true" /></a></div>
       </div>
     </section>
+
+    <BusinessResults />
 
     <section className={`${styles.wrap} ${styles.section}`} id="possibilities" aria-labelledby="possibilities-title">
-      <div className={styles.sectionHead}><div><p className={styles.eyebrow}>WHERE DO YOU WANT TO GROW?</p><h2 id="possibilities-title">Different businesses.<br /><em>Big possibilities.</em></h2></div><p>More customers. A stronger online presence. A place for people to connect. Start with what you’re building, and we’ll help connect the next steps.</p></div>
+      <div className={styles.sectionHead}><div><p className={styles.eyebrow}>WHAT DOES A WIN LOOK LIKE FOR YOU?</p><h2 id="possibilities-title">Start with the result.<br /><em>Make the numbers work.</em></h2></div><p>The right customer is worth more than a busy inbox. We work backward from what you sell, what it costs to deliver and how much business you can handle.</p></div>
       <div className={styles.audienceGrid}>
-        <article className={styles.audienceCard} id="contractor-example"><Image src="/images/contractors/scott-cab-hero.jpg" alt="Scott and Ryan on location with O-L Guy Farms" width={1200} height={800} sizes="(max-width:800px) 100vw, 33vw" /><div><span className={styles.index}>01 / LOCAL BUSINESSES</span><h3>Be the business<br />people ask for.</h3><p>Show your work, reach the right people and give each inquiry a clear path to a conversation.</p><Link href="/agency">Grow your local business <ArrowUpRight size={18} aria-hidden="true" /></Link></div></article>
-        <article className={styles.audienceCard}><Image src="/images/ryan-wholesale-universe-designer-rack-sale.jpg" alt="Merchandise display from the Wholesale Universe business archive" width={480} height={360} sizes="(max-width:800px) 100vw, 33vw" /><div><span className={styles.index}>02 / ONLINE BUSINESSES</span><h3>Turn your offer<br />into a destination.</h3><p>Connect your storefront, content and customer journey so people understand what you sell and how to buy.</p><Link href="/commerce">Build your online business <ArrowUpRight size={18} aria-hidden="true" /></Link></div></article>
-        <article className={styles.audienceCard}><Image src="/images/portfolio/belize-mission-team.jpg" alt="Team photo from the Belize mission project featured in the LeadFlow portfolio" width={1032} height={928} sizes="(max-width:800px) 100vw, 33vw" /><div><span className={styles.index}>03 / COMMUNITIES &amp; CREATORS</span><h3>Give people<br />a place to belong.</h3><p>Bring your purpose, content, learning and member experience into a place people can find and use.</p><Link href="/agency/community-help-desk">Explore community support <ArrowUpRight size={18} aria-hidden="true" /></Link></div></article>
+        <article className={styles.audienceCard} id="contractor-example"><Image src="/images/contractors/scott-cab-hero.jpg" alt="Scott and Ryan on location with O-L Guy Farms" width={1200} height={800} sizes="(max-width:800px) 100vw, 33vw" /><div><span className={styles.index}>01 / CONTRACTORS &amp; LOCAL BUSINESSES</span><h3>Win jobs worth<br />rolling out for.</h3><p>Dirt work. Land clearing. Ponds. We focus on customers whose project, location and budget fit your equipment, crew and margins.</p><a href={CONSULT_HREF}>Plan for higher-value jobs <ArrowUpRight size={18} aria-hidden="true" /></a></div></article>
+        <article className={styles.audienceCard} id="education-example"><Image src="/images/premier/premier-classroom.jpg" alt="Students learning practical dental skills at Premier Dental Academy" width={1000} height={750} sizes="(max-width:800px) 100vw, 33vw" /><div><span className={styles.index}>02 / SCHOOLS &amp; TRAINING PROGRAMS</span><h3>Fill the next class<br />with the right students.</h3><p>Turn interest into enrollment and tuition payments. Start with your program, available seats, admissions process and the cost you can afford per enrolled student.</p><a href={CONSULT_HREF}>Plan for more enrollments <ArrowUpRight size={18} aria-hidden="true" /></a></div></article>
+        <article className={styles.audienceCard}><Image src="/images/ryan-wholesale-universe-designer-rack-sale.jpg" alt="Merchandise from Ryan’s Wholesale Universe business archive" width={480} height={360} sizes="(max-width:800px) 100vw, 33vw" /><div><span className={styles.index}>03 / ONLINE BUSINESSES &amp; COMMUNITIES</span><h3>Bring in customers.<br />Build lasting value.</h3><p>Grow product sales, paid memberships or program sign-ups around an offer people want and an acquisition cost your business can support.</p><a href={CONSULT_HREF}>Plan my next customers <ArrowUpRight size={18} aria-hidden="true" /></a></div></article>
       </div>
     </section>
 
+    <VeteranStory />
     <HomeProofStories />
 
-    <section className={`${styles.wrap} ${styles.section}`} id="what-we-do" aria-labelledby="services-title">
-      <div className={styles.sectionHead}><div><p className={styles.eyebrow}>MAKE THE PIECES WORK TOGETHER</p><h2 id="services-title">A better website.<br /><em>A bigger plan.</em></h2></div><p>You might need one great project. You might need a team to run the marketing. We’ll help you choose the scope that fits.</p></div>
-      <div className={styles.serviceGrid}>
-        <article className={styles.projectPath}><span className={styles.index}>BUILD SOMETHING GREAT</span><h3>Your next website.<br />Storefront. Customer journey.</h3><p>Bring the idea and the way your business works. We shape the experience, build the pages and connect the practical next steps.</p><div className={styles.serviceLinks}><Link href="/agency/websites">Websites &amp; funnels <ArrowUpRight size={16} /></Link><Link href="/commerce">Stores &amp; online sales <ArrowUpRight size={16} /></Link><Link href="/agency/automation">Follow-up &amp; connected systems <ArrowUpRight size={16} /></Link></div><Link className={styles.outlineButton} href="/services">Explore project services <ArrowRight size={18} /></Link><small>Projects are scoped and quoted separately. Review the written scope before committing.</small></article>
-        <article className={styles.growthPath}><span className={styles.index}>PUT A TEAM BEHIND YOUR GROWTH</span><h3>The campaign.<br />The content. The follow-through.</h3><p>Bring your offer and your goals. We connect the website, advertising, content and follow-up around an agreed campaign.</p><div className={styles.serviceLinks}><Link href="/agency/meta-ads">Facebook &amp; Instagram campaigns <ArrowUpRight size={16} /></Link><Link href="/agency/google-ads">Search campaigns <ArrowUpRight size={16} /></Link><Link href="/agency/content">Content &amp; creative <ArrowUpRight size={16} /></Link></div><Link className={styles.button} href="/agency">Explore managed growth <ArrowRight size={18} /></Link><small><Link href="/pricing">{managedUpfrontSummary()} {managedCampaignSummary()}</Link></small></article>
-      </div>
+    <section className={`${styles.wrap} ${styles.section}`} id="what-we-do" aria-labelledby="result-plan-title">
+      <div className={styles.sectionHead}><div><p className={styles.eyebrow}>A CLEAR COST. A CLEAR SCORECARD.</p><h2 id="result-plan-title">Know what counts.<br /><em>Know what it costs.</em></h2></div><p>We do the work the result requires. Your plan stays centered on the customer you want, the outcome we are measuring and the budget behind it.</p></div>
+      <ol className={styles.steps}>
+        <li><span>01</span><h3>Define a real result.</h3><p>An accepted job. A student who enrolls and makes the required payment. A paying customer or member. Agree on the definition and how we will verify it.</p></li>
+        <li><span>02</span><h3>Set the target cost.</h3><p>Work back from your price, delivery costs and capacity. Set a sensible acquisition budget and a target cost per result in your written plan.</p></li>
+        <li><span>03</span><h3>Measure. Improve. Repeat.</h3><p>Track verified outcomes against the agreed acquisition spend. Keep what works, address what gets in the way and make the next decision from actual results.</p></li>
+      </ol>
+      <div className={results.math}><div><span>THE NUMBER THAT MATTERS</span><strong>Total acquisition spend ÷ verified results</strong><p>Include the fees and advertising spend covered by your plan. Keep inquiries, accepted work and collected payments clear in the reporting.</p></div><a className={styles.button} href={CONSULT_HREF}>Work out my target cost <ArrowUpRight size={18} /></a></div>
+      <p className={results.scopeNote}>Targets and outcomes depend on the agreed scope, your market and delivery capacity. Review your written plan for pricing, responsibilities and any specific commitments. <Link href="/pricing">{managedUpfrontSummary()} {managedCampaignSummary()}</Link></p>
     </section>
 
-    <section className={styles.workSection} aria-labelledby="work-title"><div className={styles.wrap}>
-      <div className={styles.sectionHead}><div><p className={styles.eyebrow}>FROM THE PORTFOLIO</p><h2 id="work-title">Work with a purpose.<br /><em>Built for real people.</em></h2></div><Link className={styles.textLink} href="/portfolio">Explore the work <ArrowUpRight size={19} /></Link></div>
-      <div className={styles.workGrid}>
-        <article id="education-example"><Link href="/premier-system" className={styles.workImage}><Image src="/images/premier/premier-classroom.jpg" alt="Students practicing with dental models at Premier Dental Academy" width={1000} height={750} sizes="(max-width:800px) 100vw, 60vw" /><span>EDUCATION / ENROLLMENT / STUDENT TOOLS</span></Link><h3>Premier Dental Academy</h3><p>A real school with a connected website, enrollment journey, practice tools and student portal.</p><Link href="/premier-system">Explore the academy system <ArrowUpRight size={17} /></Link><small>Premier and LeadFlow share an ownership group. Amanda Williams leads the academy; its team delivers the education and student support.</small></article>
-        <article><Link href="/portfolio" className={styles.workImage}><Image src="/images/portfolio/lone-star-fleet-before-after.jpg" alt="Truck before and after washing, from Lone Star Total Wash’s completed-jobs gallery" width={1400} height={933} sizes="(max-width:800px) 100vw, 40vw" /><span>BUSINESS WEBSITES / CLEARER CUSTOMER PATHS</span></Link><h3>Lone Star Total Wash</h3><p>A business website built around its services, completed jobs and a clear way to ask for a quote.</p><Link href="/portfolio">See more projects <ArrowUpRight size={17} /></Link><small>The washing shown was performed by Lone Star Total Wash’s crew. LeadFlow’s project was the website.</small></article>
-      </div>
-    </div></section>
-
-    <section className={`${styles.wrap} ${styles.section}`} aria-labelledby="process-title"><div className={styles.sectionHead}><div><p className={styles.eyebrow}>A CLEAR WAY FORWARD</p><h2 id="process-title">Bring the ambition.<br /><em>We’ll work on the next move.</em></h2></div><p>Start with a conversation, get specific about the work, and build around the outcome you want.</p></div><ol className={styles.steps}><li><span>01</span><h3>Talk it through.</h3><p>Show Ryan your business, website or idea. Meet by phone or video, or in person around Longview and East Texas.</p></li><li><span>02</span><h3>Make a clear plan.</h3><p>Agree on the audience, scope, ownership, priorities and what happens next. Know what you’re buying before work begins.</p></li><li><span>03</span><h3>Build. Learn. Improve.</h3><p>Connect the work to the customer journey. Review inquiries and outcomes where the connected records support them.</p></li></ol></section>
-
     <section className={styles.consultSection} id={CONSULTATION.anchor} aria-labelledby="free-consultation-title"><div className={`${styles.wrap} ${styles.consultGrid}`}>
-      <div className={styles.consultIntro}><p className={styles.eyebrow}>FREE {CONSULTATION.minutes}-MINUTE CONSULTATION</p><h2 id="free-consultation-title">Let’s talk about<br /><em>what’s next for you.</em></h2><p>A local business. An online offer. A community you believe in. Bring what you have and where you want to go.</p><ul><li><Check size={18} />A real conversation about your business.</li><li><Check size={18} />A practical place to start.</li><li><Check size={18} />A clear next step and scope that fits.</li></ul><a href={BUSINESS.phone.tel} className={styles.textLink}>Prefer to talk? {BUSINESS.phone.display} <ArrowUpRight size={18} /></a><p className={styles.consultBase}>Based in Longview, Texas. Working with businesses and communities online and on location.</p></div>
+      <div className={styles.consultIntro}><p className={styles.eyebrow}>FREE {CONSULTATION.minutes}-MINUTE RESULTS CONVERSATION</p><h2 id="free-consultation-title">What result would<br /><em>move your business?</em></h2><p>Tell Ryan what you sell, who you want to serve and what a good customer is worth. Let’s work out a practical path to more of them.</p><ul><li><Check size={18} />The jobs, students or customers you want.</li><li><Check size={18} />A target acquisition cost that fits your margins.</li><li><Check size={18} />Clear priorities, responsibilities and next steps.</li></ul><a href={BUSINESS.phone.tel} className={styles.textLink}>Prefer to talk? {BUSINESS.phone.display} <ArrowUpRight size={18} /></a><p className={styles.consultBase}>Based in Longview, Texas. Helping local and online businesses and communities grow.</p></div>
       <div className={`lf-consult ${styles.consultCard}`}><ConsultationForm placement={CONSULTATION.placement} labelledBy="free-consultation-title" /></div>
     </div></section>
 
-    <section className={`${styles.wrap} ${styles.section}`} id="results" aria-labelledby="score-title"><div className={styles.sectionHead}><div><p className={styles.eyebrow}>OPEN THE NUMBERS</p><h2 id="score-title">See what the<br /><em>records actually show.</em></h2></div><p>Explore activity from our own businesses. Each board explains what its numbers measure, including where lead records differ from customers and sales.</p></div><HomeScoreboard /><div className={styles.actions}><Link className={styles.outlineButton} href="/scoreboard">Explore the scoreboards <ArrowUpRight size={18} /></Link><Link className={styles.textLink} href="/results">More results &amp; context <ArrowRight size={18} /></Link></div></section>
-
-    <section className={styles.resources}><div className={styles.wrap}><div><p className={styles.eyebrow}>KEEP BUILDING</p><h2>A few tools<br />for your next move.</h2></div><Link href="/tools"><Layers3 size={23} /><span><strong>{TOOL_COUNT} free business tools</strong><small>Plan, price and work through an idea.</small></span><ArrowUpRight size={20} /></Link><Link href="/articles"><Globe2 size={23} /><span><strong>Guides you can use</strong><small>Practical answers for the work ahead.</small></span><ArrowUpRight size={20} /></Link><Link href="/academy"><Sparkles size={23} /><span><strong>Learn at your pace</strong><small>Explore the academy and learning resources.</small></span><ArrowUpRight size={20} /></Link></div></section>
+    <section className={results.explore} aria-label="Explore more of LeadFlow"><div className={styles.wrap}><div><strong>More of the story.</strong><p>Explore our work, the people behind it and the ways we can help.</p></div><nav><Link href="/about">Meet Ryan &amp; the team <ArrowUpRight size={15} /></Link><Link href="/portfolio">See our work <ArrowUpRight size={15} /></Link><Link href="/services">Explore services <ArrowUpRight size={15} /></Link><Link href="/scoreboard">Business scoreboards <ArrowUpRight size={15} /></Link><Link href="/tools">Business resources <ArrowUpRight size={15} /></Link></nav></div></section>
   </main>;
 }
