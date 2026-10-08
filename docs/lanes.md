@@ -37,7 +37,7 @@ What that means in practice:
 
 | What | State |
 | --- | --- |
-| Live site `www.theleadflowpro.com` | `/api/health` reports commit `8f96f9cada726fe8015e4f22c13eb05c319d78b7`. That commit is on no branch or tag in this repository. On Oct 6 the live commit was `232976c`, then `071f4c7`; none of the three is on GitHub. |
+| Live site `www.theleadflowpro.com` | `/api/health` reported `8f96f9ca` on Oct 7 and `dc124190cfe7ce3da6e30ae0c23f7edda4913fb2` by 00:55Z on Oct 8. Neither is on any branch or tag in this repository, and neither were `232976c` and `071f4c7` on Oct 6. Somebody is releasing local commits from the droplet checkout about daily. |
 | `origin/main` | `922a7f3` (Picture Studio, Oct 6 evening), on top of `59119f0` (PR #122, the board and the cash ledger). |
 | Open pull requests | #123 "Next actions" (another Claude session, PDA GitHub account, Oct 7): a read-only `/admin/sales/next-actions` page, follow-up plan, scripts, scorecard. Its own description says the same thing this file says: join the droplet copy first, then release. #119 (orphan-page QA, Oct 4). |
 | The droplet's brain | `/opt/brain` (Call Desk at the root, `/command` dated Oct 3, `/ads`, `/fieldy`, a daily CRM sync). Its code is on no GitHub repository; `RealRyanNichols/brain` on GitHub is a different, Aug 29 application. The CRM sync writes a daily batch (newest event Oct 6 16:20Z); the reasoning cycle last ran Aug 29. |
@@ -54,10 +54,14 @@ Push the droplet checkout to GitHub so both sides can read it. As root on
 cd /srv/sites/leadflow
 git status --short
 git log --oneline -5
-git branch --contains 8f96f9cada726fe8015e4f22c13eb05c319d78b7
-git diff --stat origin/main 8f96f9cada726fe8015e4f22c13eb05c319d78b7
-git push origin 8f96f9cada726fe8015e4f22c13eb05c319d78b7:refs/heads/droplet/live
+git diff --stat origin/main HEAD
+git push origin HEAD:refs/heads/droplet/live
 ```
+
+The live commit keeps moving (`232976c` and `071f4c7` on Oct 6, `8f96f9ca`
+on Oct 7, `dc12419` by 00:55Z on Oct 8), so push whatever `HEAD` is at the
+time rather than a sha from this file; every one of those commits was on
+no GitHub ref when checked.
 
 If the checkout has uncommitted changes, commit them first on the local
 branch so the push carries everything, and say so in the announcement. Once
@@ -274,8 +278,8 @@ lanes:
   - lane: droplet-checkout-admin-base
     owner: Pat
     lives_at: /srv/sites/leadflow on leadflow-web
-    state: base for /admin per Ryan Oct 7; push to droplet/live requested
-    sha: 8f96f9cada726fe8015e4f22c13eb05c319d78b7
+    state: base for /admin per Ryan Oct 7; push of HEAD to droplet/live requested
+    sha: dc124190cfe7ce3da6e30ae0c23f7edda4913fb2 (live at 00:55Z Oct 8; moves daily)
   - lane: releases
     owner: root on the droplet (Pat); pipeline author owns the files
     lives_at: /usr/local/bin/leadflow-release
