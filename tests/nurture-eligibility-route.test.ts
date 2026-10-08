@@ -11,6 +11,7 @@ import * as nurtureRentReceipt from "../lib/nurtureRentReceipt";
 import * as guard from "../lib/metaCampaignGuard";
 import * as contractorSeries from "../lib/contractorSeries";
 import * as contractorEmailHtml from "../lib/contractorEmailHtml";
+import * as metaSalesSeries from "../lib/metaSalesSeries";
 
 const require = createRequire(import.meta.url);
 const website = {
@@ -146,6 +147,10 @@ async function recipients(rows: Lead[], now = "2026-09-07T00:00:00Z") {
       if (name === "@/lib/metaCampaignGuard") return guard;
       if (name === "@/lib/contractorSeries") return contractorSeries;
       if (name === "@/lib/contractorEmailHtml") return contractorEmailHtml;
+      if (name === "@/lib/metaSalesSeries") return metaSalesSeries;
+      if (name === "@/lib/resendContacts") return {
+        readResendContactOptOuts: async () => ({ ok: true, emails: new Set<string>() }),
+      };
       if (name === "@/lib/site/business") return business;
       if (name === "@/lib/unsubscribe")
         return { unsubscribeSecret: () => "fixture-unsubscribe" };
@@ -174,6 +179,10 @@ async function recipients(rows: Lead[], now = "2026-09-07T00:00:00Z") {
 test("actual nurture route admits only consented website and registered sequence lanes", async () => {
   const forms = [
     guard.LEADFLOW_META.formId,
+    "2016689789051460",
+    "2043120369669082",
+    "2235052820606054",
+    "1794058118689457",
     "1602617814609528",
     "1001553739566746",
     "1072145798524733",
@@ -237,4 +246,30 @@ test("actual nurture route stops workshop enrollment at its exact start while ke
   assert.deepEqual(await recipients(rows, "2026-09-17T23:30:00.000Z"), [
     "website",
   ]);
+});
+
+test("restored daily-email forms still require actual consent and an open sales status", async () => {
+  const forms = ["2016689789051460", "2043120369669082", "2235052820606054", "1794058118689457"];
+  const rows = forms.flatMap((form) => [
+    ...[false, null, undefined, "true"].map((consent, i) => ({
+      ...formLead(form, `${form}-no-consent-${i}`),
+      marketing_email_consent: consent,
+    })),
+    ...["proposal", "won", "lost"].map((status) => ({
+      ...formLead(form, `${form}-${status}`),
+      status,
+    })),
+    { ...formLead(form, `${form}-opt-out`), email_unsubscribed_at: "2026-09-06T00:00:00Z" },
+  ]) as Lead[];
+  assert.deepEqual(await recipients(rows), []);
+});
+
+test("only the interrupted Free Build Volume form receives a longer recovery window", async () => {
+  const now = Date.parse("2026-10-08T12:00:00Z");
+  const old = (form: string, days: number): Lead => ({
+    ...formLead(form, `${form}-${days}`),
+    created_at: new Date(now - days * 86400_000).toISOString(),
+  });
+  const rows = [old("2043120369669082", 66), old("2043120369669082", 76), old("2235052820606054", 46), old("3610264839155246", 46)];
+  assert.deepEqual(await recipients(rows, new Date(now).toISOString()), ["2043120369669082-66"]);
 });

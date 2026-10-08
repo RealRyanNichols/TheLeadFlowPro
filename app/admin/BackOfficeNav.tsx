@@ -12,7 +12,7 @@ import {
   currentHref,
   type BackOfficeGroup,
   type BackOfficeLink,
-} from "./backOfficeNav";
+} from "./backOfficeNav.ts";
 
 /**
  * The Back Office header nav. One row: Today's calls, the four daily pages

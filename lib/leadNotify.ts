@@ -19,6 +19,7 @@ import {
   contractorSubject,
 } from "@/lib/contractorSeries";
 import { renderContractorHtml } from "@/lib/contractorEmailHtml";
+import { META_SALES_START } from "@/lib/nurture";
 import { unsubscribeSecret, unsubscribeUrl } from "@/lib/unsubscribe";
 
 // Display labels for leads.interest. The database CHECK constraint fixes the
@@ -579,13 +580,20 @@ function contractorWelcome(lead: NotifiableLead, context: OwnerAlertContext) {
   const first = contractorFirstName(lead.full_name);
   const secret = unsubscribeSecret();
   const unsubUrl = context.leadId && secret ? unsubscribeUrl(context.leadId, secret) : null;
+  const receivedAt = context.receivedAt instanceof Date
+    ? context.receivedAt.getTime()
+    : typeof context.receivedAt === "string" ? Date.parse(context.receivedAt) : NaN;
+  const welcome = lead.source === "meta_lead_ad" && Number.isFinite(receivedAt) &&
+    receivedAt >= Date.parse(META_SALES_START)
+    ? { ...CONTRACTOR_WELCOME, next: "Over the coming weeks, I will follow up about the work you want, the offer, and whether The LeadFlow Pro fits your business." }
+    : CONTRACTOR_WELCOME;
   return {
     from: FROM_RYAN,
     to: [lead.email],
     reply_to: BUSINESS.email.hello,
-    subject: contractorSubject(CONTRACTOR_WELCOME, first),
-    text: contractorPlainText(CONTRACTOR_WELCOME, first, unsubUrl),
-    html: renderContractorHtml({ email: CONTRACTOR_WELCOME, firstName: first, unsubUrl }),
+    subject: contractorSubject(welcome, first),
+    text: contractorPlainText(welcome, first, unsubUrl),
+    html: renderContractorHtml({ email: welcome, firstName: first, unsubUrl }),
     ...(unsubUrl
       ? {
           headers: {

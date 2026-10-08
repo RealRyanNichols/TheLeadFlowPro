@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { syncResendContacts, type ResendContactLead } from "../lib/resendContacts";
+import { readResendContactOptOuts, syncResendContacts, type ResendContactLead } from "../lib/resendContacts";
 
 const lead = (overrides: Partial<ResendContactLead> = {}): ResendContactLead => ({
   full_name: "Pat Owner",
@@ -271,4 +271,68 @@ test("contact sync defers a listed contact without a provider ID instead of usin
   assert.equal(result.marked_unsubscribed, 0);
   assert.equal(result.added_to_segment, 0);
   assert.equal(writes, 0);
+});
+
+
+test("native opt-out read paginates and normalizes duplicates without provider writes", async () => {
+  const requests: string[] = [];
+  const result = await readResendContactOptOuts({ apiKey: "fixture", fetcher: async (url, init) => {
+    assert.equal(init?.method, undefined, "native opt-out guard is read-only");
+    requests.push(String(url));
+    return Response.json(requests.length === 1
+      ? { has_more: true, data: [{ id: "first", email: "OWNER@Example.com", unsubscribed: true }] }
+      : { has_more: false, data: [{ id: "last", email: "owner@example.com", unsubscribed: false }, { id: "second", email: "second@example.com", unsubscribed: true }] });
+  } });
+  assert.equal(result.ok, true);
+  assert.deepEqual([...result.emails].sort(), ["owner@example.com", "second@example.com"]);
+  assert.equal(requests.length, 2);
+  assert.ok(requests[1].includes("after=first"));
+});
+
+test("native opt-out reads fail closed on partial pages, malformed state and private thrown messages", async () => {
+  let page = 0;
+  const partial = await readResendContactOptOuts({ apiKey: "fixture", fetcher: async () => {
+    page++;
+    return page === 1
+      ? Response.json({ has_more: true, data: [{ id: "first", email: "fixture@example.com", unsubscribed: true }] })
+      : Response.json({ error: "private fixture@example.com" }, { status: 403 });
+  } });
+  assert.deepEqual(partial, { ok: false, error: "list:403" });
+  for (const body of [{ data: [] }, { data: {}, has_more: false }, { data: [{ id: "missing-state", email: "fixture@example.com" }], has_more: false }]) {
+    const bad = await readResendContactOptOuts({ apiKey: "fixture", fetcher: async () => Response.json(body) });
+    assert.equal(bad.ok, false);
+  }
+  const thrown = await readResendContactOptOuts({ apiKey: "fixture", fetcher: async () => { throw new Error("fixture@example.com private response"); } });
+  assert.deepEqual(thrown, { ok: false, error: "list:request_failed" });
+});
+
+test("native opt-out contact reads respect provider rate retries and return only the final verified state", async () => {
+  let requests = 0;
+  const result = await readResendContactOptOuts({ apiKey: "fixture", fetcher: async () => {
+    requests++;
+    return requests === 1
+      ? Response.json({ error: "rate_limit" }, { status: 429, headers: { "retry-after": "0" } })
+      : Response.json({ has_more: false, data: [] });
+  } });
+  assert.equal(result.ok, true);
+  assert.equal(requests, 2);
+  if (result.ok) assert.equal(result.emails.size, 0);
+});
+
+
+test("native opt-out reads bound hung requests and excessive retry-after to the total deadline", async () => {
+  let signal: AbortSignal | null | undefined;
+  const hung = await readResendContactOptOuts({ apiKey: "fixture", timeoutMs: 10, fetcher: async (_url, init) => {
+    signal = init?.signal;
+    return new Promise<Response>(() => {});
+  } });
+  assert.deepEqual(hung, { ok: false, error: "list:deadline_exceeded" });
+  assert.equal(signal?.aborted, true);
+  let requests = 0;
+  const backoff = await readResendContactOptOuts({ apiKey: "fixture", timeoutMs: 20, fetcher: async () => {
+    requests++;
+    return Response.json({ error: "rate_limit" }, { status: 429, headers: { "retry-after": "60" } });
+  } });
+  assert.equal(backoff.ok, false);
+  assert.equal(requests, 1, "never wait beyond the read deadline for a retry");
 });

@@ -39,6 +39,8 @@ import { MANAGED_COMMERCIAL_TERMS, managedAdvertisingExplanation, managedAdditio
 // Part of the send idempotency key (lib/nurtureDelivery.ts). Never rename it,
 // even though the offer it was named for is retired.
 export const NURTURE_CAMPAIGN = "free_build";
+/** Immutable cutoff shared by the transactional welcome and v1 follow-ups. */
+export const META_SALES_START = "2026-10-08T12:00:00.000Z";
 
 // The free website build was retired on 2026-09-22 (its page is a 301 to
 // /services). New leads get the Rent Receipt series (lib/nurtureRentReceipt.ts);
@@ -76,6 +78,10 @@ export type FreeWebsiteNurtureCandidate = NurtureLeadAttribution & {
  */
 export const FREE_BUILD_SEQUENCE_META_FORM_IDS: ReadonlySet<string> = new Set([
   LEADFLOW_META.formId,
+  "2016689789051460", // Free Website: optional 30-day email checkbox
+  "2043120369669082", // Free Build Volume: optional daily email checkbox
+  "2235052820606054", // Time Back: separate optional marketing checkbox
+  "1794058118689457", // Fix First: optional marketing checkbox
   "1602617814609528", // LFP Free Build NoQ v2
   "1001553739566746", // LFP Services Volume v1
   "1072145798524733", // LFP Scoreboard Volume v1
@@ -83,6 +89,27 @@ export const FREE_BUILD_SEQUENCE_META_FORM_IDS: ReadonlySet<string> = new Set([
   "3610264839155246", // LFP | Rent Receipt | Pain + Timeline v1 (mall video)
   "2349934135833664", // LFP Enrollment Gap Timeline v1 (schools)
 ]);
+
+export const GENERAL_NURTURE_LOOKBACK_DAYS = 45;
+export const RESTORED_FORM_RECOVERY_LOOKBACK_DAYS = 75;
+
+/**
+ * Two consented Free Build Volume leads had their first four steps accepted,
+ * then their registered form disappeared from this admission list. Give this
+ * restored form enough time to finish its original thirty steps, one per day.
+ * Existing step history, opt-outs and delivery claims still govern every send.
+ * Other general forms retain their original forty-five-day limit.
+ */
+export function generalNurtureLookbackDays(lead: NurtureLeadAttribution): number {
+  if (lead.source !== "meta_lead_ad") return GENERAL_NURTURE_LOOKBACK_DAYS;
+  const diagnostic = lead.diagnostic;
+  if (!diagnostic || typeof diagnostic !== "object" || Array.isArray(diagnostic)) {
+    return GENERAL_NURTURE_LOOKBACK_DAYS;
+  }
+  return (diagnostic as Record<string, unknown>).form_id === "2043120369669082"
+    ? RESTORED_FORM_RECOVERY_LOOKBACK_DAYS
+    : GENERAL_NURTURE_LOOKBACK_DAYS;
+}
 
 /** LFP Workshop Sep 17 Volumev1 — enrolled in the workshop sequence instead. */
 export const WORKSHOP_META_FORM_ID = "1749164796410610";

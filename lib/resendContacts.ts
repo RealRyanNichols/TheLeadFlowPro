@@ -63,11 +63,15 @@ async function requestWithRateLimit(
   fetcher: Fetcher,
   url: string,
   init: RequestInit,
+  deadlineAt?: number,
 ): Promise<Response> {
+  if (deadlineAt !== undefined && Date.now() >= deadlineAt) throw new Error("Provider read deadline");
   let response = await fetcher(url, init);
   for (let attempt = 0; response.status === 429 && attempt < 2; attempt++) {
     const retryAfter = Number(response.headers.get("retry-after"));
-    await wait(Number.isFinite(retryAfter) ? Math.max(550, retryAfter * 1000) : 1000);
+    const delay = Number.isFinite(retryAfter) ? Math.max(550, retryAfter * 1000) : 1000;
+    if (deadlineAt !== undefined && Date.now() + delay >= deadlineAt) throw new Error("Provider read deadline");
+    await wait(delay);
     response = await fetcher(url, init);
   }
   return response;
@@ -77,6 +81,7 @@ async function listContacts(
   apiKey: string,
   fetcher: Fetcher,
   endpoint = RESEND_CONTACTS_ENDPOINT,
+  deadlineAt?: number,
 ): Promise<{ contacts: ExistingResendContact[]; error?: string }> {
   const contacts: ExistingResendContact[] = [];
   let after: string | null = null;
@@ -85,12 +90,15 @@ async function listContacts(
     const url = new URL(endpoint);
     url.searchParams.set("limit", "100");
     if (after) url.searchParams.set("after", after);
-    const response = await fetcher(url.toString(), {
+    const response = await requestWithRateLimit(fetcher, url.toString(), {
       headers: { Authorization: `Bearer ${apiKey}` },
-    });
+    }, deadlineAt);
     if (!response.ok) return { contacts, error: `list:${response.status}` };
     const body = (await response.json()) as ResendContactList;
-    const pageContacts = body.data ?? [];
+    if (!Array.isArray(body.data) || typeof body.has_more !== "boolean") {
+      return { contacts, error: "list:invalid_response" };
+    }
+    const pageContacts = body.data;
     contacts.push(...pageContacts);
     if (!body.has_more) return { contacts };
     const next = pageContacts.at(-1)?.id;
@@ -99,6 +107,55 @@ async function listContacts(
   }
 
   return { contacts, error: "list:page_limit" };
+}
+
+export type ResendContactOptOutRead =
+  | { ok: true; emails: ReadonlySet<string> }
+  | { ok: false; error: string };
+
+/** Reads current native opt-outs without changing any provider contact. */
+export async function readResendContactOptOuts(input: {
+  apiKey: string;
+  fetcher?: Fetcher;
+  /** Tests may shorten the bound; callers cannot extend the eight-second cap. */
+  timeoutMs?: number;
+}): Promise<ResendContactOptOutRead> {
+  const timeoutMs = Number.isFinite(input.timeoutMs)
+    ? Math.min(8000, Math.max(1, input.timeoutMs!)) : 8000;
+  const deadlineAt = Date.now() + timeoutMs;
+  const controller = new AbortController();
+  const fetcher: Fetcher = (url, init) => (input.fetcher ?? fetch)(url, {
+    ...init, signal: controller.signal,
+  });
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const deadline = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(() => {
+      controller.abort();
+      reject(new Error("Provider read deadline"));
+    }, timeoutMs);
+  });
+  try {
+    const listed = await Promise.race([
+      listContacts(input.apiKey, fetcher, RESEND_CONTACTS_ENDPOINT, deadlineAt),
+      deadline,
+    ]);
+    if (listed.error) return { ok: false, error: listed.error };
+    const emails = new Set<string>();
+    for (const contact of listed.contacts) {
+      const email = normalizedEmail(contact.email);
+      // Unknown provider state is not permission to continue sending.
+      if (!email || typeof contact.unsubscribed !== "boolean") {
+        return { ok: false, error: "list:invalid_contact_state" };
+      }
+      if (contact.unsubscribed) emails.add(email);
+    }
+    return { ok: true, emails };
+  } catch {
+    // Provider bodies and thrown messages may contain recipient information.
+    return { ok: false, error: controller.signal.aborted ? "list:deadline_exceeded" : "list:request_failed" };
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 /**

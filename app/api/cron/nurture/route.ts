@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { SUPABASE_URL } from "@/lib/config";
 import {
+  generalNurtureLookbackDays,
   isBusinessDiagnosticLead,
   isFreeWebsiteProgramNurtureLead,
   isWorkshopNurtureLead,
@@ -49,7 +50,18 @@ import {
   type ContractorStep,
 } from "@/lib/contractorSeries";
 import { renderContractorHtml } from "@/lib/contractorEmailHtml";
+import {
+  isMetaSalesSeriesLead,
+  META_SALES_CAMPAIGN,
+  META_SALES_FIRST_STEP,
+  META_SALES_LAST_STEP,
+  META_SALES_STEPS,
+  metaSalesStepsDueBy,
+  renderMetaSalesStep,
+  type MetaSalesStep,
+} from "@/lib/metaSalesSeries";
 import { BUSINESS } from "@/lib/site/business";
+import { readResendContactOptOuts } from "@/lib/resendContacts";
 import { unsubscribeSecret, unsubscribeUrl } from "@/lib/unsubscribe";
 
 // The nurture sequence sender. Runs hourly so an uncertain provider response
@@ -117,7 +129,7 @@ type EligibleLead = {
   goals: string | null;
 };
 
-type SequenceStep = NurtureStep | ContractorStep;
+type SequenceStep = NurtureStep | ContractorStep | MetaSalesStep;
 
 type Sequence = {
   campaign: string;
@@ -159,12 +171,21 @@ const CONTRACTOR_SEQUENCE: Sequence = {
   dueBy: contractorStepsDueBy,
 };
 
+const META_SALES_SEQUENCE: Sequence = {
+  campaign: META_SALES_CAMPAIGN,
+  steps: META_SALES_STEPS,
+  firstStep: META_SALES_FIRST_STEP,
+  lastStep: META_SALES_LAST_STEP,
+  dueBy: metaSalesStepsDueBy,
+};
+
 /** The highest step any sequence here writes; the send-history read stops there. */
 const HISTORY_LAST_STEP = Math.max(
   FREE_BUILD_SEQUENCE.lastStep,
   WORKSHOP_SEQUENCE.lastStep,
   RENT_RECEIPT_SEQUENCE.lastStep,
   CONTRACTOR_SEQUENCE.lastStep,
+  META_SALES_SEQUENCE.lastStep,
 );
 
 /**
@@ -173,6 +194,7 @@ const HISTORY_LAST_STEP = Math.max(
  * lands after RENT_RECEIPT_SERIES_START can never hand anyone two series.
  */
 function sequenceFor(lead: EligibleLead, history: NurtureDeliveryRow[]): Sequence {
+  if (isMetaSalesSeriesLead(lead, history)) return META_SALES_SEQUENCE;
   if (isContractorSeriesLead(lead)) return CONTRACTOR_SEQUENCE;
   if (isWorkshopNurtureLead(lead)) return WORKSHOP_SEQUENCE;
   const startedFreeBuild = history.some(
@@ -285,24 +307,60 @@ export async function GET(request: Request) {
   // sequenceFor(). Workshop leads drop out entirely once the event has
   // started; nobody gets sold a chair in a room that already met.
   // Contractor leads stay in for their whole 180 day series. Everyone else is
-  // held to the same 45 days the query alone used to enforce.
+  // held to their general window. The restored daily-email checkbox form has
+  // a narrow recovery window so its interrupted original steps can finish.
   const eligibleLeads = nonDiagnosticLeads.filter((lead) =>
     isContractorSeriesLead(lead)
       ? ageInDays(lead.created_at) <= CONTRACTOR_LOOKBACK_DAYS
-      : ageInDays(lead.created_at) <= LOOKBACK_DAYS &&
+      : ageInDays(lead.created_at) <= generalNurtureLookbackDays(lead) &&
         (isFreeWebsiteProgramNurtureLead(lead) ||
           (isWorkshopNurtureLead(lead) && !workshopSequenceClosed())),
   );
   const excludedDiagnostic = (leads ?? []).length - nonDiagnosticLeads.length;
   const excludedWrongProgram = nonDiagnosticLeads.length - eligibleLeads.length;
-  const ids = eligibleLeads.map((lead) => lead.id);
-  if (!ids.length) {
+  if (!eligibleLeads.length) {
     return NextResponse.json({
       ok: true,
       checked: 0,
       excludedDiagnostic,
       excludedWrongProgram,
       sent: 0,
+    });
+  }
+
+  // Native provider opt-outs win over CRM consent across every sequence.
+  // Complete this once-per-run read before acquiring any send claim. A failed
+  // or partial provider read cannot be treated as an empty suppression list.
+  const providerOptOuts = await readResendContactOptOuts({ apiKey: resendKey });
+  if (!providerOptOuts.ok) {
+    return NextResponse.json({
+      error: "provider opt-out verification failed", sent: 0,
+    }, { status: 503 });
+  }
+  let providerOptOutsHeld = 0;
+  let providerOptOutSyncFailed = 0;
+  const sendableLeads: EligibleLead[] = [];
+  for (const lead of eligibleLeads) {
+    const email = String(lead.email ?? "").trim().toLowerCase();
+    if (!providerOptOuts.emails.has(email)) {
+      sendableLeads.push(lead);
+      continue;
+    }
+    providerOptOutsHeld++;
+    // Preserve an existing timestamp and every consent/history field. Failure
+    // to save the mirror still holds this lead; the next run verifies again.
+    const synced = await supabase.from("leads")
+      .update({ email_unsubscribed_at: new Date(Date.now()).toISOString() })
+      .eq("id", lead.id).is("email_unsubscribed_at", null);
+    if (synced.error) providerOptOutSyncFailed++;
+  }
+  const ids = sendableLeads.map((lead) => lead.id);
+  if (!ids.length) {
+    return NextResponse.json({
+      ok: true, checked: eligibleLeads.length, excludedDiagnostic,
+      excludedWrongProgram, sent: 0,
+      provider_opt_outs_held: providerOptOutsHeld,
+      provider_opt_out_sync_failed: providerOptOutSyncFailed,
     });
   }
 
@@ -313,7 +371,7 @@ export async function GET(request: Request) {
       "id, lead_id, step, sent_at, delivery_status, first_attempt_at, last_attempt_at, attempt_count",
     )
     .in("lead_id", ids)
-    .gte("step", NURTURE_FIRST_STEP)
+    .gte("step", 0)
     .lte("step", HISTORY_LAST_STEP);
 
   if (sentRowsError) {
@@ -351,7 +409,7 @@ export async function GET(request: Request) {
   let blocked = 0;
   const errors: string[] = [];
 
-  for (const lead of eligibleLeads) {
+  for (const lead of sendableLeads) {
     if (sent >= MAX_SENDS_PER_RUN) break;
     // Sentinel addresses: Meta leads with no email, and text-in leads who
     // never gave one. Mailing them is a guaranteed hard bounce against the
@@ -366,7 +424,13 @@ export async function GET(request: Request) {
     const sequence = sequenceFor(lead, allRows);
     const sequenceSteps = sequence.steps;
     const due = sequence.dueBy(ageInDays(lead.created_at));
-    if (!due.length) continue;
+    // V1 stops NEW sends after day 30. A previously claimed request may still
+    // retry with the identical provider key inside its existing safe window.
+    const pendingMetaSalesClaim = sequence === META_SALES_SEQUENCE && allRows.some(
+      (row) => row.delivery_status === "pending" &&
+        row.step >= sequence.firstStep && row.step <= sequence.lastStep,
+    );
+    if (!due.length && !pendingMetaSalesClaim) continue;
 
     const deliveryRows = allRows.filter(
       (row) => row.step >= sequence.firstStep && row.step <= sequence.lastStep,
@@ -483,7 +547,34 @@ export async function GET(request: Request) {
     let text: string;
     let html: string | undefined;
     let track: string;
-    if (sequence === CONTRACTOR_SEQUENCE) {
+    if (sequence === META_SALES_SEQUENCE) {
+      const email = next as MetaSalesStep;
+      const rendered = renderMetaSalesStep(email, unsubUrl);
+      subject = email.subject;
+      text = rendered.text;
+      html = rendered.html;
+      track = "meta_sales_v1";
+      // Consent and sales status can change while the batch is running.
+      // Fail closed immediately before submitting a new-series message.
+      const current = await supabase.from("leads")
+        .select("status,deleted_at,is_test,marketing_email_consent,email_unsubscribed_at")
+        .eq("id", lead.id).maybeSingle();
+      if (current.error) {
+        failed++;
+        errors.push(`step ${next.step}: current eligibility could not be verified`);
+        continue;
+      }
+      const row = current.data;
+      if (!row || row.deleted_at || row.is_test === true || row.marketing_email_consent !== true ||
+          row.email_unsubscribed_at || !["new", "contacted"].includes(row.status)) {
+        const held = await supabase.from("lead_emails")
+          .update({ delivery_status: "failed", last_error: "Lead is no longer eligible for this email series" })
+          .eq("id", deliveryRow.id).eq("delivery_status", "pending");
+        if (held.error) failed++;
+        blocked++;
+        continue;
+      }
+    } else if (sequence === CONTRACTOR_SEQUENCE) {
       // The contractor series renders its own words and design; the pain and
       // hot or cool context of the other series does not apply to it.
       const email = next as ContractorStep;
@@ -509,7 +600,9 @@ export async function GET(request: Request) {
       resendKey,
       nurtureEmailIdempotencyKey(lead.id, next.step, sequence.campaign),
       {
-        from: `${BUSINESS.operator} <${BUSINESS.email.ryan}>`,
+        from: sequence === META_SALES_SEQUENCE
+          ? `Ryan | The LeadFlow Pro <${BUSINESS.email.hello}>`
+          : `${BUSINESS.operator} <${BUSINESS.email.ryan}>`,
         reply_to: BUSINESS.email.hello,
         to: [lead.email],
         subject,
@@ -593,6 +686,8 @@ export async function GET(request: Request) {
     failed,
     throttled,
     held_for_window: heldForWindow,
+    provider_opt_outs_held: providerOptOutsHeld,
+    provider_opt_out_sync_failed: providerOptOutSyncFailed,
     retried,
     retry_deferred: retryDeferred,
     blocked,

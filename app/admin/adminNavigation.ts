@@ -1,4 +1,4 @@
-import { MENU_GROUPS, CALL_SHEET_HREF, currentHref } from "./backOfficeNav";
+import { MENU_GROUPS, CALL_SHEET_HREF, currentHref } from "./backOfficeNav.ts";
 export type AdminDestination = { href: string; label: string; hint?: string; external?: boolean };
 export type AdminGroup = { label: string; ownerOnly?: boolean; items: AdminDestination[] };
 
