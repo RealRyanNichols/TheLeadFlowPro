@@ -179,17 +179,23 @@ October 8 at 8:35 PM.
    git status --short
    git rev-parse HEAD
    git log origin/main..HEAD --oneline | tail -20
-   git push origin HEAD:refs/heads/droplet/live
+   git diff --stat origin/main HEAD | tail -40
    ```
 
-   `git rev-parse HEAD` should print the same commit that
-   `www.theleadflowpro.com/api/health` reports. If it does not, stop and ask
-   whoever released last. If `git status --short` lists files, those changes
-   are in no commit yet and the push would leave them behind: commit them on
-   the droplet first, as `docs/lanes.md` says.
+   Read what those print before going on. `git rev-parse HEAD` should print
+   the same commit that `www.theleadflowpro.com/api/health` reports. If it
+   does not, stop and ask whoever released last. If `git status --short`
+   lists files, those changes are in no commit yet and the push would leave
+   them behind: commit them on the droplet first, as `docs/lanes.md` says.
 
-   The repository is public. Look at that list of commits first, and do not
-   push if any of them carries a key, a token or a customer's details.
+   The repository is public. Read the list of commits and the list of files,
+   and do not push if any of them carries a key, a token or a customer's
+   details. An env file, a database dump or an export of leads has no place
+   there. Then:
+
+   ```
+   git push origin HEAD:refs/heads/droplet/live
+   ```
 2. **Merge and test off the server.** With the live code on GitHub, the join
    is done in a pull request: conflicts resolved, the full test suite and
    `npm run build` run on the result. The Next actions page itself only adds
