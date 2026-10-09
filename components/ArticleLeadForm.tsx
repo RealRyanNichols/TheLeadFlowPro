@@ -52,7 +52,7 @@ export default function ArticleLeadForm({
       utm_source: params?.get("utm_source") ?? null,
       utm_medium: params?.get("utm_medium") ?? null,
       utm_campaign: params?.get("utm_campaign") ?? null,
-      diagnostic: { from: "article", article: articleSlug, tool: toolSlug },
+      diagnostic: { from: "article", article: articleSlug, tool: toolSlug || null },
     };
 
     try {
@@ -154,7 +154,9 @@ export default function ArticleLeadForm({
 
       <div className="mt-4">
         <label className="label" htmlFor={`${articleSlug}-goals`}>
-          What did the number come out to, and what is the part you are stuck on?
+          {toolSlug
+            ? "What did the number come out to, and what is the part you are stuck on?"
+            : "What is your setup today, and what is the part you are stuck on?"}
         </label>
         <textarea
           className="input"

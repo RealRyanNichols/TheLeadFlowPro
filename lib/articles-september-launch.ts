@@ -10,6 +10,12 @@ export const SEPTEMBER_LAUNCH_ARTICLES: Article[] = [
     publishedAt: "2026-09-04",
     readingMinutes: 5,
     ogImage: "/images/articles-v4/ai-website-small-business-2026.jpg",
+    form: {
+      heading: "Want help picking the first task worth automating?",
+      lead: "Tell us the question your customers ask most and how you answer it today. We will show you where it fits in a system you own, and what the next task after it should be. No customer details needed.",
+      interest: "learn",
+      industry: "General small business",
+    },
     faq: [
       {
         q: "Do I need a paid AI account for this exercise?",
@@ -30,6 +36,12 @@ export const SEPTEMBER_LAUNCH_ARTICLES: Article[] = [
     publishedAt: "2026-09-05",
     readingMinutes: 5,
     ogImage: "/images/articles-v4/does-my-business-need-a-crm.jpg",
+    form: {
+      heading: "Want every inquiry to land with an owner and a next step automatically?",
+      lead: "Tell us where your inquiries come from (website, phone, Facebook, email) and who answers them now. We will show you the lead list we run for service businesses, on accounts you own, and quote it. No customer data needed.",
+      interest: "lead_engine",
+      industry: "General small business",
+    },
     faq: [
       {
         q: "Do I need a new CRM before trying this?",
@@ -50,6 +62,12 @@ export const SEPTEMBER_LAUNCH_ARTICLES: Article[] = [
     publishedAt: "2026-09-06",
     readingMinutes: 5,
     ogImage: "/og/events/chatgpt-for-business-owners-longview.jpg",
+    form: {
+      heading: "Bringing a task to the workshop? Tell us what it is.",
+      lead: "Describe the one job you want to walk out with done. We will tell you what to bring, whether the workshop fits it, or whether a working session would get you there faster.",
+      interest: "learn",
+      industry: "General small business",
+    },
     faq: [
       {
         q: "What if I am new to the tools?",

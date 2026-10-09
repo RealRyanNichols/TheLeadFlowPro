@@ -69,8 +69,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
     ...getPublishedArticles().map((a) => ({
       url: `${BASE}/articles/${a.slug}`,
-      // Publication dates remain in Article schema. No verified modification
-      // timestamp is maintained for these pages, so do not mislabel it lastmod.
+      // The publication date, or the dated revision when an article carries
+      // one, is the last change we can vouch for. Nothing else is used here.
+      lastModified: new Date(`${a.updatedAt ?? a.publishedAt}T12:00:00Z`),
       changeFrequency: "monthly" as const,
       priority: 0.6,
     })),

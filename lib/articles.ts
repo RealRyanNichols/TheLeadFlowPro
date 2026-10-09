@@ -7,6 +7,7 @@ import { DAILY_ARTICLES } from "./articles-daily";
 import { TOOL_BUSINESS_ARTICLES } from "./articles-tool-business";
 import { TOOL_GENERATOR_ARTICLES } from "./articles-tool-generators";
 import { TOOL_HOUSEHOLD_ARTICLES } from "./articles-tool-household";
+import { OCTOBER_2026_ARTICLES } from "./articles-october-2026";
 import { isArticlePublished, publishedArticles } from "./article-publication";
 import { MANAGED_COMMERCIAL_TERMS } from "./site/managedPlans";
 import { usd } from "./site/prices";
@@ -48,15 +49,55 @@ export type ArticleTool = {
 
 export type ArticleFaq = { q: string; a: string };
 
+// One bar in an article chart. Values are plain numbers in the chart's unit.
+export type ArticleChartBar = {
+  label: string;
+  value: number;
+  note?: string;
+  tone?: "blue" | "red" | "green" | "gold" | "muted";
+};
+
+// A chart drawn from the article's own numbers. Rendered on the server as
+// plain markup (no chart library, nothing to download), so it shows up in the
+// HTML Google reads and it prints. Every chart names where its numbers come
+// from. A chart built on worked-example arithmetic says so with `illustrative`.
+export type ArticleChart = {
+  id: string; // {{CHART:id}} on its own line in the body places it
+  title: string;
+  subtitle?: string;
+  kind: "bars" | "columns";
+  unit?: "percent" | "money" | "count" | "x" | "minutes" | "text";
+  bars: ArticleChartBar[];
+  max?: number; // scale ceiling, defaults to the largest value
+  source: string; // plain words: whose numbers, from when
+  illustrative?: boolean;
+};
+
+// A source the article leans on, shown at the end so a reader can check it.
+export type ArticleSource = { label: string; url: string; date: string };
+
+// The form for an article with no embedded tool. Same form, same lead stamp.
+export type ArticleForm = {
+  heading: string;
+  lead: string;
+  interest: string; // a key from INTEREST_LABELS
+  industry: string;
+};
+
 export type Article = {
   slug: string;
   title: string;
   description: string;
   publishedAt: string; // ISO date
+  updatedAt?: string; // ISO date, when the piece was materially revised
   readingMinutes: number;
   ogImage: string; // path under /public, 1200x630
+  tags?: string[]; // topic tags, used for related guides and Article keywords
   video?: ArticleVideo; // optional, plays inline at the top of the article
   tool?: ArticleTool; // optional, renders where {{TOOL}} appears in the body
+  form?: ArticleForm; // optional, the ask on articles that have no tool
+  charts?: ArticleChart[]; // optional, placed with {{CHART:id}} markers
+  sources?: ArticleSource[]; // optional, listed under the article
   faq?: ArticleFaq[]; // optional, renders at the end and emits FAQPage schema
   body: string; // markdown. Put {{TOOL}} on its own line to place the tool.
 };
@@ -1645,6 +1686,7 @@ ARTICLES.push(
   ...TOOL_BUSINESS_ARTICLES,
   ...TOOL_GENERATOR_ARTICLES,
   ...TOOL_HOUSEHOLD_ARTICLES,
+  ...OCTOBER_2026_ARTICLES,
 );
 
 // Keep ARTICLES as the complete authored catalog for build tools and duplicate
@@ -1662,13 +1704,26 @@ export function getArticle(
   );
 }
 
+// Related guides: the ones that share the most tags, newest first among ties.
+// Articles without tags fall back to the newest guides, same as before.
 export function getRelatedArticles(
   slug: string,
   limit = 3,
   now = new Date(),
 ): Article[] {
+  const self = ARTICLES.find((article) => article.slug === slug);
+  const mine = new Set(self?.tags ?? []);
   return getPublishedArticles(now)
     .filter((article) => article.slug !== slug)
-    .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt))
-    .slice(0, Math.max(0, Math.floor(limit)));
+    .map((article) => ({
+      article,
+      shared: (article.tags ?? []).filter((tag) => mine.has(tag)).length,
+    }))
+    .sort(
+      (a, b) =>
+        b.shared - a.shared ||
+        b.article.publishedAt.localeCompare(a.article.publishedAt),
+    )
+    .slice(0, Math.max(0, Math.floor(limit)))
+    .map((entry) => entry.article);
 }

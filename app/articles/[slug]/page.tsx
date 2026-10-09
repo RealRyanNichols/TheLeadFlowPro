@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { uniqueOgImagePath } from "@/lib/uniqueOgImages";
 import "../article-body.css";
 import { notFound } from "next/navigation";
@@ -20,7 +21,9 @@ const ARTICLE_CHARTS: Record<string, React.ComponentType> = {
   "website-traffic-but-no-customers": FollowUpSpeedChart,
 };
 import ArticleToolSection from "@/components/ArticleToolSection";
-import { getArticle } from "@/lib/articles";
+import ArticleChart from "@/components/ArticleChart";
+import ArticleLeadForm from "@/components/ArticleLeadForm";
+import { getArticle, getRelatedArticles, type Article } from "@/lib/articles";
 import {
   articlePremiumArtAlt,
   articlePremiumArtPath,
@@ -57,6 +60,8 @@ export async function generateMetadata({
   return {
     title: `${article.title} | The LeadFlow Pro`,
     description: article.description,
+    keywords: article.tags?.length ? article.tags : undefined,
+    authors: [{ name: "Ryan Nichols", url: "https://www.theleadflowpro.com/about" }],
     alternates: {
       canonical: `https://www.theleadflowpro.com/articles/${article.slug}`,
     },
@@ -65,6 +70,10 @@ export async function generateMetadata({
       description: article.description,
       type: "article",
       publishedTime: article.publishedAt,
+      modifiedTime: article.updatedAt ?? article.publishedAt,
+      authors: ["https://www.theleadflowpro.com/about"],
+      section: "Operator field notes",
+      tags: article.tags,
       url: `https://www.theleadflowpro.com/articles/${article.slug}`,
       images: [
         {
@@ -106,16 +115,47 @@ export default async function ArticlePage({
     articleSocialImagePath(article.slug);
   const premiumArt = articlePremiumArtPath(article.slug);
   const relatedKit = article.tool ? proUpgradesFor(article.tool.slug)[0] : undefined;
+  const wordCount = article.body.replace(/\{\{[^}]+\}\}/g, "").trim().split(/\s+/).length;
   const articleLd = {
     "@context": "https://schema.org",
     "@type": "Article",
     headline: article.title,
     description: article.description,
     datePublished: article.publishedAt,
-    author: { "@type": "Person", name: "Ryan Nichols" },
-    publisher: { "@type": "Organization", name: "The LeadFlow Pro" },
+    dateModified: article.updatedAt ?? article.publishedAt,
+    author: {
+      "@type": "Person",
+      name: "Ryan Nichols",
+      url: `${SITE}/about`,
+      jobTitle: "Operator, The LeadFlow Pro",
+    },
+    publisher: {
+      "@type": "Organization",
+      name: "The LeadFlow Pro",
+      url: SITE,
+      logo: { "@type": "ImageObject", url: `${SITE}/icon-512.png`, width: 512, height: 512 },
+    },
     mainEntityOfPage: `${SITE}/articles/${article.slug}`,
     image: `${SITE}${socialImage}`,
+    wordCount,
+    inLanguage: "en-US",
+    isAccessibleForFree: true,
+    articleSection: "Operator field notes",
+    ...(article.tags?.length ? { keywords: article.tags.join(", ") } : {}),
+    ...(article.sources?.length
+      ? { citation: article.sources.map((source) => ({ "@type": "CreativeWork", name: source.label, url: source.url })) }
+      : {}),
+  };
+
+  // Breadcrumbs: Home > Articles > this guide. Lets the result show the path.
+  const breadcrumbLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "The LeadFlow Pro", item: SITE },
+      { "@type": "ListItem", position: 2, name: "Articles", item: `${SITE}/articles` },
+      { "@type": "ListItem", position: 3, name: article.title, item: `${SITE}/articles/${article.slug}` },
+    ],
   };
 
   // Video articles get their own VideoObject so the clip can be indexed on its own.
@@ -164,17 +204,36 @@ export default async function ArticlePage({
       }
     : null;
 
-  const graph = [articleLd, videoLd, howToLd, faqLd].filter(Boolean);
+  const graph = [articleLd, breadcrumbLd, videoLd, howToLd, faqLd].filter(Boolean);
   const jsonLd = graph.length === 1 ? graph[0] : graph;
 
-  // {{TOOL}} on its own line marks where the tool belongs inside the argument.
-  // Without a marker the tool goes after the body rather than disappearing.
-  const [bodyBefore, bodyAfter] = article.tool
-    ? (() => {
-        const parts = article.body.split(/^\s*\{\{TOOL\}\}\s*$/m);
-        return parts.length > 1 ? [parts[0], parts.slice(1).join("")] : [article.body, ""];
-      })()
-    : [article.body, ""];
+  // {{TOOL}} and {{CHART:id}} on their own lines mark where the tool and each
+  // chart belong inside the argument. A chart with no marker is drawn after the
+  // body, and a tool with no marker goes after the body too, so nothing
+  // authored for the page can disappear.
+  const charts = new Map((article.charts ?? []).map((chart) => [chart.id, chart]));
+  const placed = new Set<string>();
+  const segments: Array<{ kind: "md"; text: string } | { kind: "tool" } | { kind: "chart"; id: string }> = [];
+  let toolPlaced = false;
+  for (const piece of article.body.split(/^\s*(\{\{TOOL\}\}|\{\{CHART:[a-z0-9-]+\}\})\s*$/m)) {
+    if (piece === "{{TOOL}}") {
+      if (article.tool) { segments.push({ kind: "tool" }); toolPlaced = true; }
+      continue;
+    }
+    const chartMatch = /^\{\{CHART:([a-z0-9-]+)\}\}$/.exec(piece);
+    if (chartMatch) {
+      if (charts.has(chartMatch[1])) { segments.push({ kind: "chart", id: chartMatch[1] }); placed.add(chartMatch[1]); }
+      continue;
+    }
+    if (piece.trim()) segments.push({ kind: "md", text: piece });
+  }
+  if (article.tool && !toolPlaced) segments.push({ kind: "tool" });
+  for (const chart of article.charts ?? []) {
+    if (!placed.has(chart.id)) segments.push({ kind: "chart", id: chart.id });
+  }
+  const related = getRelatedArticles(article.slug, 3);
+  const dateLabel = (value: string) =>
+    new Date(value + "T00:00:00").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 
   return (
     <main className="cb-page">
@@ -196,11 +255,9 @@ export default async function ArticlePage({
             kicker: article.video ? "Watch and read" : "Visual explainer",
             caption: articleVisualHeadline(article.slug),
           }}
-          trustLine={`${new Date(article.publishedAt + "T00:00:00").toLocaleDateString("en-US", {
-            month: "long",
-            day: "numeric",
-            year: "numeric",
-          })} · ${article.readingMinutes} min read · Ryan Nichols`}
+          trustLine={`${dateLabel(article.publishedAt)}${
+            article.updatedAt && article.updatedAt !== article.publishedAt ? ` · Updated ${dateLabel(article.updatedAt)}` : ""
+          } · ${article.readingMinutes} min read · Ryan Nichols`}
         />
       </div>
 
@@ -235,16 +292,34 @@ export default async function ArticlePage({
           </figcaption>
         </figure>
         ) : null}
-      <div className="prose-lfp">
-        <ReactMarkdown>{bodyBefore}</ReactMarkdown>
-      </div>
-      {article.tool ? (
-        <ArticleToolSection tool={article.tool} articleSlug={article.slug} />
-      ) : null}
-      {bodyAfter.trim() ? (
-        <div className="prose-lfp">
-          <ReactMarkdown>{bodyAfter}</ReactMarkdown>
-        </div>
+      {segments.map((segment, index) => {
+        if (segment.kind === "tool" && article.tool) {
+          return <ArticleToolSection key="tool" tool={article.tool} articleSlug={article.slug} />;
+        }
+        if (segment.kind === "chart") {
+          const chart = charts.get(segment.id);
+          return chart ? <ArticleChart key={`chart-${chart.id}`} chart={chart} /> : null;
+        }
+        if (segment.kind === "md") {
+          return (
+            <div key={`md-${index}`} className="prose-lfp">
+              <ReactMarkdown>{segment.text}</ReactMarkdown>
+            </div>
+          );
+        }
+        return null;
+      })}
+      {!article.tool && article.form ? (
+        <section className="not-prose my-12" id="talk">
+          <ArticleLeadForm
+            heading={article.form.heading}
+            lead={article.form.lead}
+            interest={article.form.interest}
+            industry={article.form.industry}
+            articleSlug={article.slug}
+            toolSlug=""
+          />
+        </section>
       ) : null}
       {article.faq?.length ? (
         <section className="not-prose mt-12">
@@ -274,6 +349,44 @@ export default async function ArticlePage({
           </div>
         ) : null;
       })()}
+      {article.sources?.length ? (
+        <section className="not-prose mt-12 rounded-2xl border border-[var(--line)] bg-[var(--fill-1)] p-5">
+          <h2 className="text-[18px] font-extrabold text-[var(--text)]">Where these numbers come from</h2>
+          <ul className="mt-3 grid gap-2">
+            {article.sources.map((source) => (
+              <li key={source.url} className="text-[14.5px] leading-relaxed text-[var(--quiet)]">
+                <a href={source.url} target="_blank" rel="noopener noreferrer" className="text-[var(--blue)] underline">
+                  {source.label}
+                </a>{" "}
+                <span className="text-[var(--muted)]">({source.date})</span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-[13px] text-[var(--muted)]">
+            Our own figures come from the lead records of businesses we run systems for, counted in total and never by name.
+          </p>
+        </section>
+      ) : null}
+      {related.length ? (
+        <nav aria-label="Related guides" className="not-prose mt-12">
+          <h2 className="text-[22px] font-extrabold leading-tight text-[var(--text)]">Keep reading</h2>
+          <ul className="mt-4 grid gap-3 sm:grid-cols-3">
+            {related.map((item: Article) => (
+              <li key={item.slug}>
+                <Link
+                  href={`/articles/${item.slug}`}
+                  className="block h-full rounded-xl border border-[var(--line)] bg-[var(--fill-1)] p-4 hover:border-[var(--accent-line)]"
+                >
+                  <span className="block text-[15px] font-bold leading-snug text-[var(--text)]">{item.title}</span>
+                  <span className="mt-2 block text-[13px] leading-relaxed text-[var(--quiet)]">
+                    {item.description.length > 110 ? `${item.description.slice(0, 107).trimEnd()}...` : item.description}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      ) : null}
       </article>
       {article.tool ? <FinalCta
         eyebrow="Your next move"

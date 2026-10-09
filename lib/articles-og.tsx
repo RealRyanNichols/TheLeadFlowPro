@@ -55,6 +55,16 @@ const V4_ARTICLE_ART = Object.fromEntries(
 ) as Record<string, string>;
 
 const PREMIUM_ARTICLE_ART: Record<string, string> = {
+  "google-local-services-ads-missed-call-charges": "/images/articles-v5/google-local-services-ads-missed-call-charges.jpg",
+  "is-google-really-calling-my-business": "/images/articles-v5/is-google-really-calling-my-business.jpg",
+  "how-to-get-chatgpt-to-recommend-your-local-business": "/images/articles-v5/how-to-get-chatgpt-to-recommend-your-local-business.jpg",
+  "facebook-link-post-limit-local-business": "/images/articles-v5/facebook-link-post-limit-local-business.jpg",
+  "squarespace-wix-price-increase-2026-how-to-leave": "/images/articles-v5/squarespace-wix-price-increase-2026-how-to-leave.jpg",
+  "texas-sb-140-business-texting-checklist": "/images/articles-v5/texas-sb-140-business-texting-checklist.jpg",
+  "how-fast-do-businesses-actually-call-leads-back": "/images/articles-v5/how-fast-do-businesses-actually-call-leads-back.jpg",
+  "land-clearing-leads-cost": "/images/articles-v5/land-clearing-leads-cost.jpg",
+  "cheap-website-for-small-business-what-500-dollars-buys": "/images/articles-v5/cheap-website-for-small-business-what-500-dollars-buys.jpg",
+  "hvac-ai-answering-service-cost": "/images/articles-v5/hvac-ai-answering-service-cost.jpg",
   "how-to-compare-a-better-close-rate-with-buying-more-leads":
     "/og/tools/close-rate-calculator.jpg",
   "how-to-turn-a-yearly-revenue-goal-into-a-weekly-activity-plan":
@@ -179,6 +189,16 @@ const PREMIUM_ARTICLE_OG_ART: Record<string, string> = {
 };
 
 const VISUAL_HEADLINES: Record<string, string> = {
+  "google-local-services-ads-missed-call-charges": "Missed Calls Now Cost Twice",
+  "is-google-really-calling-my-business": "Is That Call Really Google",
+  "how-to-get-chatgpt-to-recommend-your-local-business": "Get Named in the AI Answer",
+  "facebook-link-post-limit-local-business": "Two Links a Month Changes Everything",
+  "squarespace-wix-price-increase-2026-how-to-leave": "Your Builder Raised the Rent",
+  "texas-sb-140-business-texting-checklist": "The Texas Business Texting Checklist",
+  "how-fast-do-businesses-actually-call-leads-back": "Most Leads Never Get a Call",
+  "land-clearing-leads-cost": "What a Land Clearing Lead Costs",
+  "cheap-website-for-small-business-what-500-dollars-buys": "What Five Hundred Dollars Buys",
+  "hvac-ai-answering-service-cost": "Price the Robot Receptionist Honestly",
   "how-to-compare-a-better-close-rate-with-buying-more-leads":
     "Check the Close Rate First",
   "how-to-turn-a-yearly-revenue-goal-into-a-weekly-activity-plan":
@@ -324,6 +344,26 @@ const VISUAL_HEADLINES: Record<string, string> = {
 };
 
 const PREMIUM_ARTICLE_ALT: Record<string, string> = {
+  "google-local-services-ads-missed-call-charges":
+    "A ringing phone beside a twenty second countdown and a Local Services Ads bill stamped with a missed call charge",
+  "is-google-really-calling-my-business":
+    "A phone showing an unknown incoming call with a question mark beside a caller card asking real or spoofed",
+  "how-to-get-chatgpt-to-recommend-your-local-business":
+    "An AI chat answer listing three local businesses with the second one highlighted, fed by a completed business listing",
+  "facebook-link-post-limit-local-business":
+    "A Facebook style post with its link preview crossed out and a counter badge reading two a month",
+  "squarespace-wix-price-increase-2026-how-to-leave":
+    "Rising monthly price bars for Squarespace plans beside an open exit door and a box marked yours",
+  "texas-sb-140-business-texting-checklist":
+    "A business text bubble holding a consent and opt out checklist beside a lone star badge and a STOP to end reply",
+  "how-fast-do-businesses-actually-call-leads-back":
+    "A stopwatch marking five minutes beside a bar chart showing that most leads never got a call or text back at all",
+  "land-clearing-leads-cost":
+    "A wooded lot being cleared beside a map pin and two cost cards reading $23.89 and $33.81 per lead",
+  "cheap-website-for-small-business-what-500-dollars-buys":
+    "A browser window wearing a $500 price tag with its form, price and phone slots marked missing in red",
+  "hvac-ai-answering-service-cost":
+    "A headset with a sound wave beside a tally of answered conversations priced at 79 cents each, with an HVAC condenser faint behind",
   "how-to-compare-a-better-close-rate-with-buying-more-leads":
     "The LeadFlow Pro Close Rate Impact Calculator graphic with the tool name and its labeled planning illustration.",
   "how-to-turn-a-yearly-revenue-goal-into-a-weekly-activity-plan":
