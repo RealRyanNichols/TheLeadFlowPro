@@ -140,6 +140,14 @@ office (the dark workspace, the Hub frame, Special Effects) exists only on the
 droplet. Releasing this branch by itself would replace that with an older
 site.
 
+**Update, October 8, 8:35 PM.** The live site now reports `b3b9306`. It was
+`dc12419` the evening before, per `docs/lanes.md`. Neither is on GitHub. The
+live code is being re-released from the droplet about daily, so the commit
+named above is already two releases old. Step 1 below now saves whatever the
+droplet checkout holds at the time, the same way `docs/lanes.md` does. Do not
+use the earlier line that named `8f96f9c`: it would save an old copy, and the
+join would be built on it.
+
 There is a second catch. This branch is built on GitHub `main`, and `main`
 has work the live copy does not (the October 6 lead-to-cash board is one
 piece: the live `/admin/command-center` is still the older page). So merging
@@ -158,19 +166,27 @@ wherever both changed a file. Two sessions doing that merge would be the
 duplicate work that file exists to prevent. So unless Ryan says otherwise,
 this session leaves the join to that one, and Next actions rides in through
 pull request #123. The branch name below is the one `docs/lanes.md` uses.
-At 3:25 PM no `droplet/` branch was on GitHub yet.
+At 3:25 PM on October 7 no `droplet/` branch was on GitHub yet, and none on
+October 8 at 8:35 PM.
 
 ### The safest order
 
-1. **Save the live code to GitHub.** One line in the droplet console. It
-   changes nothing on the server:
+1. **Save the live code to GitHub.** In the droplet console. It changes
+   nothing on the server:
 
    ```
    cd /srv/sites/leadflow
    git status --short
-   git log origin/main..8f96f9cada726fe8015e4f22c13eb05c319d78b7 --oneline | tail -20
-   git push origin 8f96f9cada726fe8015e4f22c13eb05c319d78b7:refs/heads/droplet/live
+   git rev-parse HEAD
+   git log origin/main..HEAD --oneline | tail -20
+   git push origin HEAD:refs/heads/droplet/live
    ```
+
+   `git rev-parse HEAD` should print the same commit that
+   `www.theleadflowpro.com/api/health` reports. If it does not, stop and ask
+   whoever released last. If `git status --short` lists files, those changes
+   are in no commit yet and the push would leave them behind: commit them on
+   the droplet first, as `docs/lanes.md` says.
 
    The repository is public. Look at that list of commits first, and do not
    push if any of them carries a key, a token or a customer's details.
@@ -185,9 +201,16 @@ At 3:25 PM no `droplet/` branch was on GitHub yet.
    ```
    cd /srv/sites/leadflow
    git fetch origin <the merged branch>
+   curl -s https://www.theleadflowpro.com/api/health
+   git merge-base --is-ancestor <the commit that line printed> FETCH_HEAD && echo "ok: the merged code contains what is live" || echo "STOP: the live code has work the merged code lacks"
    leadflow-release <the merged sha>
    leadflow-release --status
    ```
+
+   The check before the release matters because the live code moves about
+   daily. If somebody released from the droplet after step 1, the merged code
+   no longer contains what is live, and releasing it would undo that work. On
+   "STOP", run step 1 again and have the join redone on top of it.
 
    `leadflow-release --rollback` goes back one release.
 
