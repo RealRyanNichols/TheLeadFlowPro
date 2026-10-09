@@ -14,8 +14,8 @@ import { graph, jsonLdText, localBusinessJsonLd, organizationJsonLd, webPageJson
 import styles from "./growth-home.module.css";
 import results from "./results-home.module.css";
 
-const TITLE = "High-Value Jobs. More Enrollments. | The LeadFlow Pro";
-const DESCRIPTION = "Veteran-owned and operated. Helping local businesses win high-value jobs, schools grow enrollments and online businesses earn more customers, with a clear target cost per result.";
+const TITLE = "More of the Right Customers. More Predictable Growth. | The LeadFlow Pro";
+const DESCRIPTION = "Grow your business, school or paid community with clear expectations, an agreed budget and a target cost per result. Veteran-owned and operated.";
 export const metadata = withPublicPageMetadata("/", { title: TITLE, description: DESCRIPTION });
 export const revalidate = 900;
 const HOME_JSONLD = graph(organizationJsonLd(), localBusinessJsonLd(), websiteJsonLd(), webPageJsonLd("/", TITLE, DESCRIPTION));
@@ -31,9 +31,9 @@ export default function HomePage() {
         <div className={styles.heroGrid}>
           <div className={styles.heroCopy}>
             <p className={`${styles.eyebrow} ${results.veteranBadge}`}><ShieldCheck size={18} />VETERAN-OWNED &amp; OPERATED</p>
-            <h1>High-value jobs.<br />More enrollments.<br /><em>Growth that pays.</em></h1>
-            <p className={styles.intro}>Put the crew on better jobs. Bring the right students into your next class. Turn interest into paying customers. We help local and online businesses grow around the results that matter.</p>
-            <p className={results.heroPromise}>Our focus: a fair, predictable cost per result.</p>
+            <h1>More of the right customers.<br /><em>More predictable growth.</em></h1>
+            <p className={styles.intro}><strong>Fill your job schedule. Fill your classrooms. Grow your paid community.</strong> We bring greater certainty to your growth plan with clear expectations, an agreed budget and a target cost per result.</p>
+            <p className={results.heroPromise}>Know the plan. Know the investment. See the results.</p>
             <div className={styles.actions}><a className={styles.button} href={CONSULT_HREF} data-cta="consultation_cta" data-cta-placement="home_hero_copy">Plan my next results <ArrowUpRight size={20} aria-hidden="true" /></a><a className={styles.textLink} href="#results"><Play size={15} aria-hidden="true" />See the numbers</a></div>
             <p className={styles.heroNote}>Start with a free {CONSULTATION.minutes}-minute conversation about your customers, margins and capacity. Agree on the result and the target cost before work begins.</p>
           </div>

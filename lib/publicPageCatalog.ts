@@ -137,9 +137,9 @@ export const PUBLIC_PAGE_CATALOG = [
   },
   {
     path: "/",
-    title: "High-value jobs. More enrollments.",
+    title: "More of the right customers. More predictable growth.",
     description:
-      "Veteran-owned and operated. Grow around high-value jobs, student enrollments and paying customers, with a clear target cost per result.",
+      "Grow your business, school or paid community with clear expectations, an agreed budget and a target cost per result. Veteran-owned and operated.",
     eyebrow: "Results that matter",
     art: "/images/ryan-wholesale-universe-warehouse-pallets-flag.jpg",
   },

@@ -6,10 +6,11 @@ export const PUBLIC_SITE_URL = "https://www.theleadflowpro.com";
 export const PUBLIC_OG_SIZE = { width: 1200, height: 630 } as const;
 // A finite version segment refreshes crawler caches without putting query text,
 // tokens, or user-provided values into a public share URL.
-export const PUBLIC_OG_REVISION = "results-20261008";
+export const PUBLIC_OG_REVISION = "predictable-growth-20261008";
 // Keep the previous published URL valid; only these reviewed versions resolve.
 export const PUBLIC_OG_REVISIONS = [
   PUBLIC_OG_REVISION,
+  "results-20261008",
   "ryan-blue-20261008",
   "growth-20261008",
   "scope90-20261003",
