@@ -10,6 +10,13 @@ const CAMPAIGN_MINIMUM = usd(MANAGED_COMMERCIAL_TERMS.startingUpfrontUsd);
 // Reviewed canonical public pages. Redirects and private completion URLs are excluded.
 export const PUBLIC_PAGE_CATALOG = [
   {
+    path: "/dental-partners",
+    title: "More patients. Stronger practice.",
+    description: "Marketing, follow-up, dental referral opportunities, and graduate hiring connections with Amanda Williams and The LeadFlow Pro.",
+    eyebrow: "For East Texas dental practices",
+    art: "/images/premier/amanda-williams.jpg",
+  },
+  {
     path: "/services/picture-packages",
     title: "Custom picture and story packages",
     description: "Custom pictures, captions, themes, and music placement notes for businesses, creators, individuals, and families. Build a connected story or a content bank.",
