@@ -46,6 +46,8 @@ export const LEADFLOW_META = {
     "120253551492760154", // Sep 1 Free Website v2 draft; keep off until creative QA.
     "120253999623340154", // Oct 2026 Scott contractor video, long text (Ad 1).
     "120254001470770154", // Oct 2026 Scott contractor video, short text (Ad 2).
+    "120254081758290154", // Oct 7 2026 Scott video, result first, short v2 (same ad set, form v3).
+    "120254081527290154", // Oct 7 2026 Scott result static, retargeting campaign (form v3).
   ],
 } as const;
 

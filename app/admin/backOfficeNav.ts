@@ -56,6 +56,8 @@ export const MENU_GROUPS: readonly BackOfficeGroup[] = [
       BAR_LINKS[0],
       BAR_LINKS[1],
       { href: "/admin/sales/follow-ups", label: "Follow-ups", description: "Next steps you promised: overdue, today, upcoming" },
+      // The follow-up plan on every open lead: call 3 of 25, the script, and the scorecard.
+      { href: "/admin/sales/next-actions", label: "Next actions", description: "Who to call next, and what to say" },
     ],
   },
   {
