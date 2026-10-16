@@ -229,6 +229,7 @@ export const AGENCY_SERVICES: readonly AgencyService[] = [
     ],
     intakeHref: intake("automation"),
     related: [
+      { href: "/operatoros", label: "OperatorOS: map and review repetitive work" },
       { href: "/pricing", label: "90-day campaign and scope" },
       { href: "/plugin", label: `The plugin, ${usd(PRICES.pluginMonthly)} a month` },
     ],

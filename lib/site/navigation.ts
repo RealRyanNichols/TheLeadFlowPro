@@ -45,7 +45,7 @@ export const FOOTER_COLUMNS: readonly FooterColumn[] = [
       { href: "/agency", label: "Run my marketing" },
       { href: "/pricing", label: "Compare prices & scope" },
       { href: "/commerce", label: "Commerce & online selling" },
-      { href: "/operator-academy", label: "Courses & learning" },
+      { href: "/academy", label: "Courses & learning" },
       { href: "/add-ons", label: "Custom build options" },
       { href: "/tools", label: "Free Tools" },
       {
